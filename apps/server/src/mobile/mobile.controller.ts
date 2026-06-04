@@ -11,6 +11,7 @@ import {
   Query,
   Param,
   ParseIntPipe,
+  Logger,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ProjectRoles } from './decorators/project-roles.decorator';
@@ -31,6 +32,7 @@ import {
   MobileNotificationResponseDto,
 } from 'src/notification/dto/notification.dto';
 import { CreateFeedbackDto } from './dto/feedback.dto';
+import { RecordPlannedInterventionDto } from './dto/record-planned-intervention.dto';
 
 
 
@@ -40,6 +42,8 @@ import { CreateFeedbackDto } from './dto/feedback.dto';
 @Controller('mobile')
 @UseGuards(JwtAuthGuard)
 export class MobileController {
+  private readonly logger = new Logger(MobileController.name);
+
   constructor(
     private readonly appservice: MobileService,
     private readonly usersService: UsersService,
@@ -51,20 +55,11 @@ export class MobileController {
   @Get('user/profile')
   async getUserDetails(
     @CurrentUser() userData: ExtendedUser,
-    @Headers('authorization') authorization: string,
   ): Promise<any> {
-    return this.appservice.getUserDetails(userData, authorization)
+    return this.appservice.getUserDetails(userData)
   }
 
 
-
-  // @Post('user/profile')
-  // async updateProfieDetails(
-  //   @CurrentUser() userData: User,
-  //   @Body() userBody: any,
-  // ): Promise<InterventionResponseDto> {
-  //   return this.appservice.updateUserDetails(userBody, userData);
-  // }
 
   @Get('user/projects')
   async getMyProjects(
@@ -111,7 +106,13 @@ export class MobileController {
     @Body() createInterventionDto: any,
     @Membership() membership: any
   ): Promise<any> {
-    return this.appservice.createNewSite(createInterventionDto, membership.userId);
+    // The body carries the project UID (used by the guard to resolve membership),
+    // but the service matches on the integer project id. Use the resolved
+    // membership.projectId so the lookup works regardless of the body value.
+    return this.appservice.createNewSite(
+      { ...createInterventionDto, projectId: membership.projectId },
+      membership.userId
+    );
   }
 
 
@@ -123,6 +124,20 @@ export class MobileController {
     @Membership() membership: any
   ): Promise<InterventionResponseDto> {
     return this.appservice.createNewInterventionMobile(createInterventionDto, membership);
+  }
+
+  @Put('project/:id/intervention/:interventionId/record')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  @ApiOperation({ summary: 'Record (upload) a planned single-tree intervention from mobile' })
+  @ApiResponse({ status: 200, description: 'Returns the recorded intervention with its tree' })
+  async recordPlannedIntervention(
+    @Param('interventionId') interventionId: string,
+    @Body() dto: RecordPlannedInterventionDto,
+    @Membership() membership: any,
+  ): Promise<any> {
+    this.logger.log(`[recordPlanned] CONTROLLER reached interventionId=${interventionId} membership=${JSON.stringify(membership)}`);
+    return this.appservice.recordPlannedIntervention(interventionId, dto, membership);
   }
 
   @Get('project/interventions')

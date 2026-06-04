@@ -41,12 +41,14 @@ ENV TURBO_TELEMETRY_DISABLED=1
 # For local builds, these can be passed via --build-arg
 ARG NEXT_PUBLIC_CDN
 ARG NEXT_PUBLIC_SERVER_URL
+ARG NEXT_PUBLIC_AUTH0_CLIENT_ID
 
 # Set Next.js public environment variables for build-time inlining
 # These will be inlined into the client bundle during next build
 # Using ARG allows Heroku config vars (available as env vars) to be passed
 ENV NEXT_PUBLIC_CDN=${NEXT_PUBLIC_CDN}
 ENV NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL}
+ENV NEXT_PUBLIC_AUTH0_CLIENT_ID=${NEXT_PUBLIC_AUTH0_CLIENT_ID}
 
 # Build shared-core first, then web and server in parallel
 RUN yarn turbo build --filter=shared-core...

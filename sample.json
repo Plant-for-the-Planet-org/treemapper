@@ -1,0 +1,2675 @@
+[
+  {
+    "nextMeasurementDate": null,
+    "hid": "DY01U3",
+    "metadata": {
+      "app": {
+        "speciesTreeCount1": "84",
+        "speciesId1": "unknown",
+        "speciesAliases1": "Unknown"
+      },
+      "public": []
+    },
+    "scientificName": null,
+    "sampleInterventions": [],
+    "description": null,
+    "otherSpecies": null,
+    "geometryUpdatesCount": 0,
+    "type": "multi-tree-registration",
+    "interventionEndDate": "2021-07-27 00:00:00",
+    "plantProjectSite": null,
+    "statusReason": null,
+    "registrationDate": "2021-07-27 00:00:00",
+    "sampleTreeCount": null,
+    "id": "ivn_qCvCdilhgB0GbXihVUSX7I07",
+    "tag": null,
+    "plantDate": "2021-07-27 00:00:00",
+    "measurements": null,
+    "interventionStartDate": "2021-07-27 00:00:00",
+    "idempotencyKey": "739df083c642087da3743e4917c4ad39",
+    "coordinates": [
+      {
+        "image": "610416ac8d3ff556725128.jpg",
+        "coordinateIndex": 0,
+        "id": "coord_yrId4ypM61IJBBk83dPaCMsx",
+        "status": "complete"
+      },
+      {
+        "image": "61018c50e47d9013753564.jpg",
+        "coordinateIndex": 1,
+        "id": "coord_1tMC2aShDfjxomB0HZiz75yQ",
+        "status": "complete"
+      },
+      {
+        "image": "61018c6705258693362673.jpg",
+        "coordinateIndex": 2,
+        "id": "coord_0BWNC9CWZmtIetRf26yFCtC8",
+        "status": "complete"
+      },
+      {
+        "image": "61018c7cf3e46205006300.jpg",
+        "coordinateIndex": 3,
+        "id": "coord_etX227M2uN80z0iUHgfESe6o",
+        "status": "complete"
+      },
+      {
+        "image": "61018c8fb1e20592972987.jpg",
+        "coordinateIndex": 4,
+        "id": "coord_B8HFd7Q0EtVeKM0s41w7w8i9",
+        "status": "complete"
+      }
+    ],
+    "scientificSpecies": null,
+    "history": [],
+    "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+    "plantedSpecies": [
+      {
+        "scientificName": "Anacardium occidentale",
+        "created": "2021-07-27 17:54:21",
+        "otherSpecies": null,
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "treeCount": 32,
+        "id": "pspec_gwCJY262WJHSKkOTR3nwALsL",
+        "updated": "2021-07-27 17:54:21"
+      },
+      {
+        "scientificName": "Khaya ivorensis",
+        "created": "2021-08-27 15:05:19",
+        "otherSpecies": null,
+        "scientificSpecies": "sspec_5dIfjuzj3vZgJCww4x",
+        "treeCount": 23,
+        "id": "pspec_fvTpJlWlun73ktfgzb3OKEbe",
+        "updated": "2021-08-27 15:05:19"
+      },
+      {
+        "scientificName": "Parkia biglobosia",
+        "created": "2021-08-27 15:05:19",
+        "otherSpecies": null,
+        "scientificSpecies": "sspec_yUywrwcdAvHGsr2VsO",
+        "treeCount": 16,
+        "id": "pspec_QVjeTtoIuTfAXWF6GgJBMiuW",
+        "updated": "2021-08-27 15:05:19"
+      },
+      {
+        "scientificName": "Cassia siamea",
+        "created": "2021-08-27 15:05:19",
+        "otherSpecies": null,
+        "scientificSpecies": "sspec_Z939xSYFQV6W0oHv3o",
+        "treeCount": 13,
+        "id": "pspec_Q4lGRKIWxFP9ZmJmCychmhgc",
+        "updated": "2021-08-27 15:05:19"
+      }
+    ],
+    "originalGeometry": {
+      "coordinates": [
+        [
+          [-1.99188169999999, 8.22048670000002],
+          [-1.99197000000001, 8.22066500000001],
+          [-1.99230700000001, 8.2205136],
+          [-1.9925527, 8.2205908],
+          [-1.99256510000001, 8.22024809999998],
+          [-1.99188169999999, 8.22048670000002]
+        ]
+      ],
+      "type": "Polygon"
+    },
+    "captureMode": "on-site",
+    "geometry": {
+      "coordinates": [
+        [
+          [-1.99188169999999, 8.22048670000002],
+          [-1.99197000000001, 8.22066500000001],
+          [-1.99230700000001, 8.2205136],
+          [-1.9925527, 8.2205908],
+          [-1.99256510000001, 8.22024809999998],
+          [-1.99188169999999, 8.22048670000002]
+        ]
+      ],
+      "type": "Polygon"
+    },
+    "lastMeasurementDate": null,
+    "captureStatus": "complete",
+    "deviceLocation": {
+      "coordinates": [-1.99188169999999, 8.22048670000002],
+      "type": "Point"
+    },
+    "status": null
+  },
+  {
+    "nextMeasurementDate": null,
+    "hid": "KYDWYJ",
+    "metadata": {
+      "app": {
+        "speciesTreeCount1": "101",
+        "speciesId1": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "speciesAliases1": "Anacardium occidentale",
+        "projectId": "proj_nXBzA2sbX2tm1D75p7bfJ81Z"
+      },
+      "public": []
+    },
+    "scientificName": null,
+    "sampleInterventions": [
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_uoGb9wSllVTgeXmwAMdkM969",
+        "hid": "6Y8YIM",
+        "metadata": {
+          "app": {
+            "speciesTreeCount1": "1",
+            "specieHeight": "1",
+            "tagId": "A1",
+            "speciesId1": "sspec_yDQXoWCG0Iv1Nl0l3A",
+            "speciesAliases1": "Anacardium occidentale",
+            "specieDiameter": "1",
+            "plantationDate": "2021-07-28T09:26:14.919Z"
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-07-28 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-07-28 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_9ySvSksgHTN4m4K18iFHy2dH",
+        "tag": "A1",
+        "plantDate": "2021-07-28 00:00:00",
+        "measurements": {
+          "width": 1,
+          "height": 1
+        },
+        "interventionStartDate": "2021-07-28 00:00:00",
+        "idempotencyKey": "5d2bbcc58be21336212264d13afa5992",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "61018d18d8fde266370581.jpg",
+            "created": "2021-07-28 16:59:48",
+            "coordinateIndex": 0,
+            "id": "coord_WScY6iTQ9b0VzrV1tibg9IIh",
+            "updated": "2021-07-28 17:00:09",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99197659999257, 8.22088000021413],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99197659999257, 8.22088000021413],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-07-28 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.9918387, 8.2204033],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_uoGb9wSllVTgeXmwAMdkM969",
+        "hid": "JJVECT",
+        "metadata": {
+          "app": {
+            "speciesTreeCount1": "1",
+            "specieHeight": "1",
+            "tagId": "A2",
+            "speciesId1": "sspec_yDQXoWCG0Iv1Nl0l3A",
+            "speciesAliases1": "Anacardium occidentale",
+            "specieDiameter": "1",
+            "plantationDate": "2021-07-28T09:27:21.817Z"
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-07-28 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-07-28 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_67djv5CEOtCE7PMHHkFNvNDV",
+        "tag": "A2",
+        "plantDate": "2021-07-28 00:00:00",
+        "measurements": {
+          "width": 1,
+          "height": 1
+        },
+        "interventionStartDate": "2021-07-28 00:00:00",
+        "idempotencyKey": "a26bc3cdc284ac0b5ddd18933c800ff0",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "61018d3414e52178487501.jpg",
+            "created": "2021-07-28 17:00:13",
+            "coordinateIndex": 0,
+            "id": "coord_iblgusdnzGMo2075p75wsb04",
+            "updated": "2021-07-28 17:00:36",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99197659999257, 8.22088000021413],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99197659999257, 8.22088000021413],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-07-28 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.9917701, 8.2205005],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_uoGb9wSllVTgeXmwAMdkM969",
+        "hid": "EEXMML",
+        "metadata": {
+          "app": {
+            "speciesTreeCount1": "1",
+            "specieHeight": "1",
+            "tagId": "A3",
+            "speciesId1": "sspec_yDQXoWCG0Iv1Nl0l3A",
+            "speciesAliases1": "Anacardium occidentale",
+            "specieDiameter": "1",
+            "plantationDate": "2021-07-28T09:28:23.689Z"
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-07-28 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-07-28 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_9AGbhGI8dPl3FtB0Z4c1byqI",
+        "tag": "A3",
+        "plantDate": "2021-07-28 00:00:00",
+        "measurements": {
+          "width": 1,
+          "height": 1
+        },
+        "interventionStartDate": "2021-07-28 00:00:00",
+        "idempotencyKey": "caddf9af8425e7f146ad8dc14ea337a9",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "61018d4f1729c459292702.jpg",
+            "created": "2021-07-28 17:00:43",
+            "coordinateIndex": 0,
+            "id": "coord_zh9ECHIQtG96Vo7T2sDasM9L",
+            "updated": "2021-07-28 17:01:03",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99197659999257, 8.22088000021413],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99197659999257, 8.22088000021413],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-07-28 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.9918595, 8.2205304],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_uoGb9wSllVTgeXmwAMdkM969",
+        "hid": "HUE7EK",
+        "metadata": {
+          "app": {
+            "speciesTreeCount1": "1",
+            "specieHeight": "1",
+            "tagId": "A4",
+            "speciesId1": "sspec_yDQXoWCG0Iv1Nl0l3A",
+            "speciesAliases1": "Anacardium occidentale",
+            "specieDiameter": "1",
+            "plantationDate": "2021-07-28T09:29:29.296Z"
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-07-28 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-07-28 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_c6W9Z2UGAZeu7v9cjQovlkcl",
+        "tag": "A4",
+        "plantDate": "2021-07-28 00:00:00",
+        "measurements": {
+          "width": 1,
+          "height": 1
+        },
+        "interventionStartDate": "2021-07-28 00:00:00",
+        "idempotencyKey": "5b0372b79eff4ad0be8fa8c132d98f0e",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "61018d6a29a7a036165327.jpg",
+            "created": "2021-07-28 17:01:08",
+            "coordinateIndex": 0,
+            "id": "coord_FDPp7a8O2sFR9Com1liw4RtX",
+            "updated": "2021-07-28 17:01:30",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99197659999257, 8.22088000021413],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99197659999257, 8.22088000021413],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-07-28 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.9919658, 8.2205576],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_uoGb9wSllVTgeXmwAMdkM969",
+        "hid": "OD5Z8D",
+        "metadata": {
+          "app": {
+            "speciesTreeCount1": "1",
+            "specieHeight": "1",
+            "tagId": "A5",
+            "speciesId1": "sspec_yDQXoWCG0Iv1Nl0l3A",
+            "speciesAliases1": "Anacardium occidentale",
+            "specieDiameter": "1",
+            "plantationDate": "2021-07-28T09:32:00.474Z"
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-07-28 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-07-28 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_CJEHFu4pqipbG5SivTQfIiMN",
+        "tag": "A5",
+        "plantDate": "2021-07-28 00:00:00",
+        "measurements": {
+          "width": 1,
+          "height": 1
+        },
+        "interventionStartDate": "2021-07-28 00:00:00",
+        "idempotencyKey": "aa8673c597200f32137727e845aea597",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "61018d8408480728436194.jpg",
+            "created": "2021-07-28 17:01:37",
+            "coordinateIndex": 0,
+            "id": "coord_V8tshU94BS66huM7L12Wloan",
+            "updated": "2021-07-28 17:01:56",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99193915561776, 8.2209047737234],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99193915561776, 8.2209047737234],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-07-28 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.992105, 8.2208267],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_uoGb9wSllVTgeXmwAMdkM969",
+        "hid": "LO1KXN",
+        "metadata": {
+          "app": {
+            "speciesTreeCount1": "1",
+            "specieHeight": "1",
+            "tagId": "A6",
+            "speciesId1": "sspec_yDQXoWCG0Iv1Nl0l3A",
+            "speciesAliases1": "Anacardium occidentale",
+            "specieDiameter": "1",
+            "plantationDate": "2021-07-28T09:33:26.970Z"
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-07-28 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-07-28 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_rvNquMjkzVEwH5dLIKuaNaoT",
+        "tag": "A6",
+        "plantDate": "2021-07-28 00:00:00",
+        "measurements": {
+          "width": 1,
+          "height": 1
+        },
+        "interventionStartDate": "2021-07-28 00:00:00",
+        "idempotencyKey": "f10525c1daa1bd5a397779c8bf853ada",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "61018d9c9a0b2687701150.jpg",
+            "created": "2021-07-28 17:01:59",
+            "coordinateIndex": 0,
+            "id": "coord_0vfkjqIQNn99KpTdQNmS6bS0",
+            "updated": "2021-07-28 17:02:21",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99197659999257, 8.22088000021413],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99197659999257, 8.22088000021413],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-07-28 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.9917671, 8.2208525],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_uoGb9wSllVTgeXmwAMdkM969",
+        "hid": "38ZION",
+        "metadata": {
+          "app": {
+            "speciesTreeCount1": "1",
+            "specieHeight": "1",
+            "tagId": "A7",
+            "speciesId1": "sspec_yDQXoWCG0Iv1Nl0l3A",
+            "speciesAliases1": "Anacardium occidentale",
+            "specieDiameter": "1",
+            "plantationDate": "2021-07-28T09:35:18.353Z"
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-07-28 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-07-28 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_VW8Hos09JKYvhGImm2JQBGx3",
+        "tag": "A7",
+        "plantDate": "2021-07-28 00:00:00",
+        "measurements": {
+          "width": 1,
+          "height": 1
+        },
+        "interventionStartDate": "2021-07-28 00:00:00",
+        "idempotencyKey": "0380dc35bca71f12b9976e884c148648",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "61018dc40efa7956431666.jpg",
+            "created": "2021-07-28 17:02:35",
+            "coordinateIndex": 0,
+            "id": "coord_e1cCtIvy4QiihPlyJ4lINa9N",
+            "updated": "2021-07-28 17:03:00",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99195985953179, 8.2209421246074],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99195985953179, 8.2209421246074],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-07-28 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.9914253, 8.2207668],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_uoGb9wSllVTgeXmwAMdkM969",
+        "hid": "MUKZBE",
+        "metadata": {
+          "app": {
+            "speciesTreeCount1": "1",
+            "specieHeight": "1",
+            "tagId": "A8",
+            "speciesId1": "sspec_yDQXoWCG0Iv1Nl0l3A",
+            "speciesAliases1": "Anacardium occidentale",
+            "specieDiameter": "1",
+            "plantationDate": "2021-07-28T09:36:14.027Z"
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-07-28 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-07-28 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_o3MLycH5bx98j1n7LIix6k06",
+        "tag": "A8",
+        "plantDate": "2021-07-28 00:00:00",
+        "measurements": {
+          "width": 1,
+          "height": 1
+        },
+        "interventionStartDate": "2021-07-28 00:00:00",
+        "idempotencyKey": "61f5b0060fe546109002f30da775ab81",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "61018ddf018d0157443665.jpg",
+            "created": "2021-07-28 17:03:05",
+            "coordinateIndex": 0,
+            "id": "coord_ZKolVhpUbouEwOc2YfW2TJn9",
+            "updated": "2021-07-28 17:03:27",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99197659999257, 8.22088000021413],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99197659999257, 8.22088000021413],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-07-28 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.9917383, 8.2207067],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_uoGb9wSllVTgeXmwAMdkM969",
+        "hid": "H9WWQ1",
+        "metadata": {
+          "app": {
+            "speciesTreeCount1": "1",
+            "specieHeight": "1",
+            "tagId": "A9",
+            "speciesId1": "sspec_yDQXoWCG0Iv1Nl0l3A",
+            "speciesAliases1": "Anacardium occidentale",
+            "specieDiameter": "1",
+            "plantationDate": "2021-07-28T09:37:40.211Z"
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-07-28 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-07-28 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_Qw35i7a3jclzOxFbrerwiflk",
+        "tag": "A9",
+        "plantDate": "2021-07-28 00:00:00",
+        "measurements": {
+          "width": 1,
+          "height": 1
+        },
+        "interventionStartDate": "2021-07-28 00:00:00",
+        "idempotencyKey": "9f982a6b0d0ae0f6a01514f282835eae",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": null,
+            "created": "2021-07-28 17:03:33",
+            "coordinateIndex": 0,
+            "id": "coord_YyCrR9sJdJUcUmayhTraK1dX",
+            "updated": "2021-07-28 17:03:33",
+            "status": "pending"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99197659999257, 8.22088000021413],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99197659999257, 8.22088000021413],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-07-28 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.9912994, 8.2211629],
+          "type": "Point"
+        },
+        "status": null
+      }
+    ],
+    "description": null,
+    "otherSpecies": null,
+    "geometryUpdatesCount": 0,
+    "type": "multi-tree-registration",
+    "interventionEndDate": "2021-07-28 00:00:00",
+    "plantProjectSite": null,
+    "statusReason": null,
+    "registrationDate": "2021-07-28 00:00:00",
+    "sampleTreeCount": null,
+    "id": "ivn_uoGb9wSllVTgeXmwAMdkM969",
+    "tag": null,
+    "plantDate": "2021-07-28 00:00:00",
+    "measurements": null,
+    "interventionStartDate": "2021-07-28 00:00:00",
+    "idempotencyKey": "88378b925c96bb416b4de65e0d8b7e1d",
+    "coordinates": [
+      {
+        "image": "61018caa70aaf731482870.jpg",
+        "coordinateIndex": 0,
+        "id": "coord_0bq3jkVI4CJpBIg2Bv5eG9X0",
+        "status": "complete"
+      },
+      {
+        "image": "61018cc182e0f362652436.jpg",
+        "coordinateIndex": 1,
+        "id": "coord_hFQanq0uI1oMayUQlypXtfVX",
+        "status": "complete"
+      },
+      {
+        "image": "61018cd752c75993186148.jpg",
+        "coordinateIndex": 2,
+        "id": "coord_Np7QwMU1qNqEk6v9Zv4TKnvt",
+        "status": "complete"
+      },
+      {
+        "image": "61018cf7a73e1491228656.jpg",
+        "coordinateIndex": 3,
+        "id": "coord_ASpgyD60kWnGYbWcLBUO4YG1",
+        "status": "complete"
+      }
+    ],
+    "scientificSpecies": null,
+    "history": [],
+    "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+    "plantedSpecies": [
+      {
+        "scientificName": "Anacardium occidentale",
+        "created": "2021-07-28 16:57:57",
+        "otherSpecies": null,
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "treeCount": 185,
+        "id": "pspec_0bzWyRPx0Wqzz72hpAnp3kaZ",
+        "updated": "2021-07-28 16:57:57"
+      },
+      {
+        "scientificName": "Khaya ivorensis",
+        "created": "2021-08-27 15:08:33",
+        "otherSpecies": null,
+        "scientificSpecies": "sspec_5dIfjuzj3vZgJCww4x",
+        "treeCount": 235,
+        "id": "pspec_rboPiFyI0Q6axzZCYTsvuF9Y",
+        "updated": "2021-08-27 15:08:33"
+      },
+      {
+        "scientificName": "Parkia biglobosia",
+        "created": "2021-08-27 15:08:33",
+        "otherSpecies": null,
+        "scientificSpecies": "sspec_yUywrwcdAvHGsr2VsO",
+        "treeCount": 235,
+        "id": "pspec_eMxt5WE0wJoHKrdCf6OCiBfE",
+        "updated": "2021-08-27 15:08:33"
+      },
+      {
+        "scientificName": "Cassia siamea",
+        "created": "2021-08-27 15:08:33",
+        "otherSpecies": null,
+        "scientificSpecies": "sspec_Z939xSYFQV6W0oHv3o",
+        "treeCount": 370,
+        "id": "pspec_IhMbr39rWLgTeT0zUbwCDkif",
+        "updated": "2021-08-27 15:08:33"
+      }
+    ],
+    "originalGeometry": {
+      "coordinates": [
+        [
+          [-1.9927299, 8.22097050000003],
+          [-1.99206989999999, 8.2212005],
+          [-1.9912233, 8.22129330000003],
+          [-1.99181329999999, 8.22046670000001],
+          [-1.9927299, 8.22097050000003]
+        ]
+      ],
+      "type": "Polygon"
+    },
+    "captureMode": "on-site",
+    "geometry": {
+      "coordinates": [
+        [
+          [-1.9927299, 8.22097050000003],
+          [-1.99206989999999, 8.2212005],
+          [-1.9912233, 8.22129330000003],
+          [-1.99181329999999, 8.22046670000001],
+          [-1.9927299, 8.22097050000003]
+        ]
+      ],
+      "type": "Polygon"
+    },
+    "lastMeasurementDate": null,
+    "captureStatus": "complete",
+    "deviceLocation": {
+      "coordinates": [-1.9927299, 8.22097050000003],
+      "type": "Point"
+    },
+    "status": null
+  },
+  {
+    "nextMeasurementDate": null,
+    "hid": "VW8X2R",
+    "metadata": {
+      "app": {
+        "appVersion": "1.0.4",
+        "species": [
+          {
+            "aliases": "Anacardium occidentale",
+            "treeCount": 1200,
+            "id": "sspec_yDQXoWCG0Iv1Nl0l3A"
+          },
+          {
+            "aliases": "Khaya ivorensis",
+            "treeCount": 800,
+            "id": "sspec_5dIfjuzj3vZgJCww4x"
+          }
+        ],
+        "projectId": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "deviceLocation": {
+          "coordinates": [
+            "-1.9929401390272972",
+            "8.222590475350803"
+          ],
+          "type": "Point"
+        },
+        "plantationDate": "2021-08-16T12:47:43.071Z"
+      },
+      "public": []
+    },
+    "scientificName": null,
+    "sampleInterventions": [
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_F9VewuKLbonmsj8WFRipnI6Z",
+        "hid": "KQI9AF",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.4",
+            "speciesHeight": 0.76,
+            "species": [
+              {
+                "aliases": "Anacardium occidentale",
+                "treeCount": 1,
+                "id": "sspec_yDQXoWCG0Iv1Nl0l3A"
+              }
+            ],
+            "deviceLocation": {
+              "coordinates": [
+                "-1.9929401390273056",
+                "8.222590475350826"
+              ],
+              "type": "Point"
+            },
+            "plantationDate": "2021-08-16T13:00:27.624Z",
+            "speciesDiameter": 0.5
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-08-16 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-08-16 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_0RIuE7HwxzXKEW8SNh48uOwg",
+        "tag": null,
+        "plantDate": "2021-08-16 00:00:00",
+        "measurements": {
+          "width": 0.5,
+          "height": 0.76
+        },
+        "interventionStartDate": "2021-08-16 00:00:00",
+        "idempotencyKey": "ad7a096557f33c646473b350bb83ead0",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "611ab4858fef0601926354.jpg",
+            "created": "2021-08-16 18:53:52",
+            "coordinateIndex": 0,
+            "id": "coord_CRaY4FVU7FPKmBhCr6ImdDLB",
+            "updated": "2021-08-16 18:55:02",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99276892547931, 8.22262940986077],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99276892547931, 8.22262940986077],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-08-16 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99294013902731, 8.22259047535083],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_F9VewuKLbonmsj8WFRipnI6Z",
+        "hid": "2RQYTH",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.4",
+            "speciesHeight": 0.6,
+            "species": [
+              {
+                "aliases": "Anacardium occidentale",
+                "treeCount": 1,
+                "id": "sspec_yDQXoWCG0Iv1Nl0l3A"
+              }
+            ],
+            "deviceLocation": {
+              "coordinates": [
+                "-1.9929401390273056",
+                "8.222590475350826"
+              ],
+              "type": "Point"
+            },
+            "plantationDate": "2021-08-16T13:04:04.692Z",
+            "speciesDiameter": 0.5
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-08-16 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-08-16 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_YzjZMklMhOiJsy0FuLX71bUJ",
+        "tag": null,
+        "plantDate": "2021-08-16 00:00:00",
+        "measurements": {
+          "width": 0.5,
+          "height": 0.6
+        },
+        "interventionStartDate": "2021-08-16 00:00:00",
+        "idempotencyKey": "d4698180589e37ae06647563080ea96e",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "611ba0a43b70b414434764.jpg",
+            "created": "2021-08-16 18:55:08",
+            "coordinateIndex": 0,
+            "id": "coord_cD5hmEb6xVI7tfdviqP32g8g",
+            "updated": "2021-08-17 11:42:28",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.9927689255091, 8.22262940986077],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.9927689255091, 8.22262940986077],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-08-16 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99294013902731, 8.22259047535083],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_F9VewuKLbonmsj8WFRipnI6Z",
+        "hid": "OP74JW",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.4",
+            "speciesHeight": 0.6,
+            "species": [
+              {
+                "aliases": "Anacardium occidentale",
+                "treeCount": 1,
+                "id": "sspec_yDQXoWCG0Iv1Nl0l3A"
+              }
+            ],
+            "deviceLocation": {
+              "coordinates": [
+                "-1.9929401390273056",
+                "8.222590475350826"
+              ],
+              "type": "Point"
+            },
+            "plantationDate": "2021-08-16T13:05:20.140Z",
+            "speciesDiameter": 0.4
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-08-16 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-08-16 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_gKhvl3oIqYULs3fGQxUgltk2",
+        "tag": null,
+        "plantDate": "2021-08-16 00:00:00",
+        "measurements": {
+          "width": 0.4,
+          "height": 0.6
+        },
+        "interventionStartDate": "2021-08-16 00:00:00",
+        "idempotencyKey": "54172066a4207288fa24e59bf18b0f05",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "611ba0b322b54511600635.jpg",
+            "created": "2021-08-16 18:55:44",
+            "coordinateIndex": 0,
+            "id": "coord_Gk21nPM7WqG0yoznxvIHZLjb",
+            "updated": "2021-08-17 11:42:46",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99284931827367, 8.22261857881946],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99284931827367, 8.22261857881946],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-08-16 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99294013902731, 8.22259047535083],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_F9VewuKLbonmsj8WFRipnI6Z",
+        "hid": "NM0AWP",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.4",
+            "speciesHeight": 0.8,
+            "species": [
+              {
+                "aliases": "Anacardium occidentale",
+                "treeCount": 1,
+                "id": "sspec_yDQXoWCG0Iv1Nl0l3A"
+              }
+            ],
+            "deviceLocation": {
+              "coordinates": [
+                "-1.9929401390273056",
+                "8.222590475350826"
+              ],
+              "type": "Point"
+            },
+            "plantationDate": "2021-08-16T13:06:19.647Z",
+            "speciesDiameter": 0.5
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-08-16 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-08-16 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_1Ip5CUkIOHKkwMPwUrfCiCdo",
+        "tag": null,
+        "plantDate": "2021-08-16 00:00:00",
+        "measurements": {
+          "width": 0.5,
+          "height": 0.8
+        },
+        "interventionStartDate": "2021-08-16 00:00:00",
+        "idempotencyKey": "8ac5b5d3a781f47cb882cb95ffb15c1f",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "611adb494175d802117845.jpg",
+            "created": "2021-08-16 18:56:38",
+            "coordinateIndex": 0,
+            "id": "coord_O3kILuj0auGrxACI6j6yRRyX",
+            "updated": "2021-08-16 21:40:26",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.9928564739466, 8.22274188661049],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.9928564739466, 8.22274188661049],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-08-16 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99294013902731, 8.22259047535083],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_F9VewuKLbonmsj8WFRipnI6Z",
+        "hid": "B9WLHC",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.4",
+            "speciesHeight": 0.8,
+            "species": [
+              {
+                "aliases": "Anacardium occidentale",
+                "treeCount": 1,
+                "id": "sspec_yDQXoWCG0Iv1Nl0l3A"
+              }
+            ],
+            "deviceLocation": {
+              "coordinates": [
+                "-1.9929401390273056",
+                "8.222590475350826"
+              ],
+              "type": "Point"
+            },
+            "plantationDate": "2021-08-16T13:07:22.533Z",
+            "speciesDiameter": 0.5
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-08-16 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-08-16 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_PXmviujhmPvNfgqgqYiXyQMa",
+        "tag": null,
+        "plantDate": "2021-08-16 00:00:00",
+        "measurements": {
+          "width": 0.5,
+          "height": 0.8
+        },
+        "interventionStartDate": "2021-08-16 00:00:00",
+        "idempotencyKey": "dd24c9acf889aee9e37b7aa91271ee2c",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "611ba0cde5b47851634554.jpg",
+            "created": "2021-08-16 18:57:11",
+            "coordinateIndex": 0,
+            "id": "coord_OaBfZqrcgPD9wra48y8ghsm1",
+            "updated": "2021-08-17 11:43:10",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.9927689254763, 8.22262940986077],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.9927689254763, 8.22262940986077],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-08-16 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99294013902731, 8.22259047535083],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_F9VewuKLbonmsj8WFRipnI6Z",
+        "hid": "EJ1QK9",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.4",
+            "speciesHeight": 0.5,
+            "species": [
+              {
+                "aliases": "Khaya ivorensis",
+                "treeCount": 1,
+                "id": "sspec_5dIfjuzj3vZgJCww4x"
+              }
+            ],
+            "deviceLocation": {
+              "coordinates": [
+                "-1.9929401390273056",
+                "8.222590475350826"
+              ],
+              "type": "Point"
+            },
+            "plantationDate": "2021-08-16T13:08:51.518Z",
+            "speciesDiameter": 0.4
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Khaya ivorensis",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-08-16 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-08-16 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_J5weocCgs1eD4yc4kNg89iIi",
+        "tag": null,
+        "plantDate": "2021-08-16 00:00:00",
+        "measurements": {
+          "width": 0.4,
+          "height": 0.5
+        },
+        "interventionStartDate": "2021-08-16 00:00:00",
+        "idempotencyKey": "e8f443587fe5a06795efceceef325bb1",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "611ab5790232c652231848.jpg",
+            "created": "2021-08-16 18:58:02",
+            "coordinateIndex": 0,
+            "id": "coord_nV7jNVcqnbdb6LkLVJxTTWNS",
+            "updated": "2021-08-16 18:59:05",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_5dIfjuzj3vZgJCww4x",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99281312051869, 8.22270647710091],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99281312051869, 8.22270647710091],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-08-16 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99294013902731, 8.22259047535083],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_F9VewuKLbonmsj8WFRipnI6Z",
+        "hid": "SAS3VF",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.4",
+            "speciesHeight": 0.55,
+            "species": [
+              {
+                "aliases": "Khaya ivorensis",
+                "treeCount": 1,
+                "id": "sspec_5dIfjuzj3vZgJCww4x"
+              }
+            ],
+            "deviceLocation": {
+              "coordinates": [
+                "-1.9929401390273056",
+                "8.222590475350826"
+              ],
+              "type": "Point"
+            },
+            "plantationDate": "2021-08-16T13:10:09.384Z",
+            "speciesDiameter": 0.43
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Khaya ivorensis",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-08-16 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-08-16 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_E4YDJpzexyBlVaJAP1ozSbV0",
+        "tag": null,
+        "plantDate": "2021-08-16 00:00:00",
+        "measurements": {
+          "width": 0.43,
+          "height": 0.55
+        },
+        "interventionStartDate": "2021-08-16 00:00:00",
+        "idempotencyKey": "f87ca027b1b76574ebc79c2f451f6c7d",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "611ab5a81a1c2586284588.jpg",
+            "created": "2021-08-16 18:59:09",
+            "coordinateIndex": 0,
+            "id": "coord_WbX5eizIWqnp3X7fUF5ksW6Y",
+            "updated": "2021-08-16 18:59:52",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_5dIfjuzj3vZgJCww4x",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99276317384178, 8.22248851197319],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99276317384178, 8.22248851197319],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-08-16 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99294013902731, 8.22259047535083],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_F9VewuKLbonmsj8WFRipnI6Z",
+        "hid": "JF6PD7",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.4",
+            "speciesHeight": 0.35,
+            "species": [
+              {
+                "aliases": "Khaya ivorensis",
+                "treeCount": 1,
+                "id": "sspec_5dIfjuzj3vZgJCww4x"
+              }
+            ],
+            "deviceLocation": {
+              "coordinates": [
+                "-1.9929401390273056",
+                "8.222590475350826"
+              ],
+              "type": "Point"
+            },
+            "plantationDate": "2021-08-16T13:11:26.401Z",
+            "speciesDiameter": 0.57
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Khaya ivorensis",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-08-16 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-08-16 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_oRjxf8gt2WDQcflWppC00S4p",
+        "tag": null,
+        "plantDate": "2021-08-16 00:00:00",
+        "measurements": {
+          "width": 0.57,
+          "height": 0.35
+        },
+        "interventionStartDate": "2021-08-16 00:00:00",
+        "idempotencyKey": "94ea138a4de9448e2c705002c6c7edbe",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "611ba11279767186827626.jpg",
+            "created": "2021-08-16 19:00:01",
+            "coordinateIndex": 0,
+            "id": "coord_RyF5uSMPw8716C3c0OBXacgN",
+            "updated": "2021-08-17 11:44:19",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_5dIfjuzj3vZgJCww4x",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99266033083475, 8.2225623403141],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99266033083475, 8.2225623403141],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-08-16 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99294013902731, 8.22259047535083],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_F9VewuKLbonmsj8WFRipnI6Z",
+        "hid": "U9A1DV",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.4",
+            "speciesHeight": 0.76,
+            "species": [
+              {
+                "aliases": "Anacardium occidentale",
+                "treeCount": 1,
+                "id": "sspec_yDQXoWCG0Iv1Nl0l3A"
+              }
+            ],
+            "deviceLocation": {
+              "coordinates": [
+                "-1.9929401390273056",
+                "8.222590475350826"
+              ],
+              "type": "Point"
+            },
+            "plantationDate": "2021-08-16T13:13:13.250Z",
+            "speciesDiameter": 0.5
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-08-16 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-08-16 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_QLVzaRyFAWERlj0k5y44Fqqr",
+        "tag": null,
+        "plantDate": "2021-08-16 00:00:00",
+        "measurements": {
+          "width": 0.5,
+          "height": 0.76
+        },
+        "interventionStartDate": "2021-08-16 00:00:00",
+        "idempotencyKey": "77f5bb1835f8aceb014ae28e159d3067",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "611ae54bb8493128929871.jpg",
+            "created": "2021-08-16 19:12:49",
+            "coordinateIndex": 0,
+            "id": "coord_bBYFS7j76NytHJpcyPxTYwhf",
+            "updated": "2021-08-16 22:23:08",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99280722757567, 8.22254401054412],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99280722757567, 8.22254401054412],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-08-16 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99294013902731, 8.22259047535083],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_F9VewuKLbonmsj8WFRipnI6Z",
+        "hid": "0EP341",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.4",
+            "speciesHeight": 0.75,
+            "species": [
+              {
+                "aliases": "Anacardium occidentale",
+                "treeCount": 1,
+                "id": "sspec_yDQXoWCG0Iv1Nl0l3A"
+              }
+            ],
+            "deviceLocation": {
+              "coordinates": [
+                "-1.9929401390273056",
+                "8.222590475350826"
+              ],
+              "type": "Point"
+            },
+            "plantationDate": "2021-08-16T13:13:59.634Z",
+            "speciesDiameter": 0.55
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-08-16 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-08-16 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_Z3iearOLzdb1SwWkOxsU2q0j",
+        "tag": null,
+        "plantDate": "2021-08-16 00:00:00",
+        "measurements": {
+          "width": 0.55,
+          "height": 0.75
+        },
+        "interventionStartDate": "2021-08-16 00:00:00",
+        "idempotencyKey": "3f662ac891d35aa614f3ff0f96c9766f",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "611ba0e2b5978731965159.jpg",
+            "created": "2021-08-16 19:13:09",
+            "coordinateIndex": 0,
+            "id": "coord_6BUVxFnmW2b4vrv6nD4q65l7",
+            "updated": "2021-08-17 11:43:31",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99276892550631, 8.22262940986077],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99276892550631, 8.22262940986077],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-08-16 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99294013902731, 8.22259047535083],
+          "type": "Point"
+        },
+        "status": null
+      }
+    ],
+    "description": null,
+    "otherSpecies": null,
+    "geometryUpdatesCount": 0,
+    "type": "multi-tree-registration",
+    "interventionEndDate": "2021-08-16 00:00:00",
+    "plantProjectSite": null,
+    "statusReason": null,
+    "registrationDate": "2021-08-16 00:00:00",
+    "sampleTreeCount": 10,
+    "id": "ivn_F9VewuKLbonmsj8WFRipnI6Z",
+    "tag": null,
+    "plantDate": "2021-08-16 00:00:00",
+    "measurements": null,
+    "interventionStartDate": "2021-08-16 00:00:00",
+    "idempotencyKey": "36c765a97dbe7a17edb0c0aad69ad5f0",
+    "coordinates": [
+      {
+        "image": "611ab3b0120a3899959620.jpg",
+        "coordinateIndex": 0,
+        "id": "coord_Yn3EsOAkkGJ7r1p4cRsLrWOB",
+        "status": "complete"
+      },
+      {
+        "image": "611ab3dd98937302248963.jpg",
+        "coordinateIndex": 1,
+        "id": "coord_Ai8KWjLAH571FUzQfITRywoT",
+        "status": "complete"
+      },
+      {
+        "image": "611ab40eeadb5664277290.jpg",
+        "coordinateIndex": 2,
+        "id": "coord_2mQIp7pIwfA9nISVM2SG8paZ",
+        "status": "complete"
+      },
+      {
+        "image": "611ab43bbcaa4444764908.jpg",
+        "coordinateIndex": 3,
+        "id": "coord_6DKklrb0hpUVKtfSGvS1Nlsr",
+        "status": "complete"
+      }
+    ],
+    "scientificSpecies": null,
+    "history": [],
+    "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+    "plantedSpecies": [
+      {
+        "scientificName": "Anacardium occidentale",
+        "created": "2021-08-16 18:08:56",
+        "otherSpecies": null,
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "treeCount": 1200,
+        "id": "pspec_eNtlR7SznxAh0F1LwjkrT1ai",
+        "updated": "2021-08-16 18:08:56"
+      },
+      {
+        "scientificName": "Khaya ivorensis",
+        "created": "2021-08-16 18:08:56",
+        "otherSpecies": null,
+        "scientificSpecies": "sspec_5dIfjuzj3vZgJCww4x",
+        "treeCount": 800,
+        "id": "pspec_NQP5R9e8uDv05UsuZs8ukVPj",
+        "updated": "2021-08-16 18:08:56"
+      }
+    ],
+    "originalGeometry": {
+      "coordinates": [
+        [
+          [-1.9929401390273, 8.2225904753508],
+          [-1.99296338508074, 8.22291788066499],
+          [-1.99257446596638, 8.22260817362328],
+          [-1.99274701975378, 8.22234093888915],
+          [-1.9929401390273, 8.2225904753508]
+        ]
+      ],
+      "type": "Polygon"
+    },
+    "captureMode": "on-site",
+    "geometry": {
+      "coordinates": [
+        [
+          [-1.9929401390273, 8.2225904753508],
+          [-1.99296338508074, 8.22291788066499],
+          [-1.99257446596638, 8.22260817362328],
+          [-1.99274701975378, 8.22234093888915],
+          [-1.9929401390273, 8.2225904753508]
+        ]
+      ],
+      "type": "Polygon"
+    },
+    "lastMeasurementDate": null,
+    "captureStatus": "complete",
+    "deviceLocation": {
+      "coordinates": [-1.9929401390273, 8.2225904753508],
+      "type": "Point"
+    },
+    "status": null
+  },
+  {
+    "nextMeasurementDate": null,
+    "hid": "FBA3WB",
+    "metadata": {
+      "app": {
+        "appVersion": "1.0.6",
+        "deviceSystemName": "iOS",
+        "deviceSystemVersion": "15.1",
+        "deviceModel": "iPhone 12 Pro Max",
+        "deviceManufacturer": "Apple",
+        "deviceBrand": "Apple",
+        "deviceLocation": {
+          "coordinates": [-1.99278842657986, 8.22255908512339],
+          "type": "Point"
+        }
+      },
+      "public": []
+    },
+    "scientificName": null,
+    "sampleInterventions": [
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_PALn0dKQlisLNX2WjJPM7AHq",
+        "hid": "BLELNX",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.6",
+            "deviceSystemName": "iOS",
+            "deviceSystemVersion": "15.1",
+            "deviceModel": "iPhone 12 Pro Max",
+            "deviceManufacturer": "Apple",
+            "deviceBrand": "Apple",
+            "deviceLocation": {
+              "coordinates": [-1.99298193537171, 8.22311646996719],
+              "type": "Point"
+            }
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-09-07 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-11-24 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_oupVbIbitfzqfTOtdW5DxF77",
+        "tag": null,
+        "plantDate": "2021-09-07 00:00:00",
+        "measurements": {
+          "width": 0.35,
+          "height": 0.5
+        },
+        "interventionStartDate": "2021-09-07 00:00:00",
+        "idempotencyKey": "ca353d5f3e8c7812e1982797c0d1e248",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "619e9466e8ac8841852171.jpg",
+            "created": "2021-11-24 19:36:31",
+            "coordinateIndex": 0,
+            "id": "coord_hlWPl8xQBTUmoPQpyRUHCH3n",
+            "updated": "2021-11-24 19:37:11",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99239321776651, 8.22305714020632],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99239321776651, 8.22305714020632],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-09-07 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99298193537171, 8.22311646996719],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_PALn0dKQlisLNX2WjJPM7AHq",
+        "hid": "Y2WE7O",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.6",
+            "deviceSystemName": "iOS",
+            "deviceSystemVersion": "15.1",
+            "deviceModel": "iPhone 12 Pro Max",
+            "deviceManufacturer": "Apple",
+            "deviceBrand": "Apple",
+            "deviceLocation": {
+              "coordinates": [-1.99298193537171, 8.22311646996719],
+              "type": "Point"
+            }
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Khaya ivorensis",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-09-07 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-11-24 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_5MaLGgh7et1LL3vZ6MHlPlxv",
+        "tag": null,
+        "plantDate": "2021-09-07 00:00:00",
+        "measurements": {
+          "width": 0.2,
+          "height": 0.3
+        },
+        "interventionStartDate": "2021-09-07 00:00:00",
+        "idempotencyKey": "1c2ae4ae31ce32bed3f1618580131c91",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "619e957c13cb9888830532.jpg",
+            "created": "2021-11-24 19:41:19",
+            "coordinateIndex": 0,
+            "id": "coord_z751hzOUU29H0Vs217EzfHBK",
+            "updated": "2021-11-24 19:41:48",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_5dIfjuzj3vZgJCww4x",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99246346862765, 8.22301638198566],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99246346862765, 8.22301638198566],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-09-07 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99298193537171, 8.22311646996719],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_PALn0dKQlisLNX2WjJPM7AHq",
+        "hid": "CJZLQV",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.6",
+            "deviceSystemName": "iOS",
+            "deviceSystemVersion": "15.1",
+            "deviceModel": "iPhone 12 Pro Max",
+            "deviceManufacturer": "Apple",
+            "deviceBrand": "Apple",
+            "deviceLocation": {
+              "coordinates": [-1.99298193537171, 8.22311646996719],
+              "type": "Point"
+            }
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-09-07 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-11-24 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_efE63N2Cs0puWZscjDH4tgfs",
+        "tag": null,
+        "plantDate": "2021-09-07 00:00:00",
+        "measurements": {
+          "width": 0.5,
+          "height": 0.8
+        },
+        "interventionStartDate": "2021-09-07 00:00:00",
+        "idempotencyKey": "21bcbe5c24e5a1a4e3837a56c695ff34",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "619e95a39b90d899181817.jpg",
+            "created": "2021-11-24 19:41:55",
+            "coordinateIndex": 0,
+            "id": "coord_tgwxGbahG96YyQl31A1W1ucp",
+            "updated": "2021-11-24 19:42:28",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99246346862066, 8.22301638198566],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99246346862066, 8.22301638198566],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-09-07 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99298193537171, 8.22311646996719],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_PALn0dKQlisLNX2WjJPM7AHq",
+        "hid": "KI7YGB",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.6",
+            "deviceSystemName": "iOS",
+            "deviceSystemVersion": "15.1",
+            "deviceModel": "iPhone 12 Pro Max",
+            "deviceManufacturer": "Apple",
+            "deviceBrand": "Apple",
+            "deviceLocation": {
+              "coordinates": [-1.99298193537171, 8.22311646996719],
+              "type": "Point"
+            }
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-09-07 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-11-24 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_4QIPjSkwady36wFlyTue3LM1",
+        "tag": null,
+        "plantDate": "2021-09-07 00:00:00",
+        "measurements": {
+          "width": 0.6,
+          "height": 0.9
+        },
+        "interventionStartDate": "2021-09-07 00:00:00",
+        "idempotencyKey": "6c488cbb790ca089f9e59cff8c12e9f7",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "619e95c58ab2a501439136.jpg",
+            "created": "2021-11-24 19:42:34",
+            "coordinateIndex": 0,
+            "id": "coord_7wtk6iKHpDBtwcOitm5eSCKS",
+            "updated": "2021-11-24 19:43:02",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99218211199036, 8.2233122858304],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99218211199036, 8.2233122858304],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-09-07 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99298193537171, 8.22311646996719],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_PALn0dKQlisLNX2WjJPM7AHq",
+        "hid": "PV7QD4",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.6",
+            "deviceSystemName": "iOS",
+            "deviceSystemVersion": "15.1",
+            "deviceModel": "iPhone 12 Pro Max",
+            "deviceManufacturer": "Apple",
+            "deviceBrand": "Apple",
+            "deviceLocation": {
+              "coordinates": [-1.99298193537171, 8.22311646996719],
+              "type": "Point"
+            }
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Khaya ivorensis",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-09-07 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-11-24 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_F2U6M7HFQouwf2I6eW9Xn0rH",
+        "tag": null,
+        "plantDate": "2021-09-07 00:00:00",
+        "measurements": {
+          "width": 0.3,
+          "height": 0.4
+        },
+        "interventionStartDate": "2021-09-07 00:00:00",
+        "idempotencyKey": "09fc2305c1c69ce3fcbdfcf9a56c2ec1",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "619e95e64639f956307841.jpg",
+            "created": "2021-11-24 19:43:07",
+            "coordinateIndex": 0,
+            "id": "coord_89aScUEYgTpDljuygunPOZv6",
+            "updated": "2021-11-24 19:43:34",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_5dIfjuzj3vZgJCww4x",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99273962694539, 8.22317941451235],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99273962694539, 8.22317941451235],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-09-07 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99298193537171, 8.22311646996719],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_PALn0dKQlisLNX2WjJPM7AHq",
+        "hid": "7UWREW",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.6",
+            "deviceSystemName": "iOS",
+            "deviceSystemVersion": "15.1",
+            "deviceModel": "iPhone 12 Pro Max",
+            "deviceManufacturer": "Apple",
+            "deviceBrand": "Apple",
+            "deviceLocation": {
+              "coordinates": [-1.99298193537171, 8.22311646996719],
+              "type": "Point"
+            }
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Anacardium occidentale",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-09-07 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-11-24 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_diy4cBZczj3R6wRDYAAEN6kn",
+        "tag": null,
+        "plantDate": "2021-09-07 00:00:00",
+        "measurements": {
+          "width": 0.5,
+          "height": 0.7
+        },
+        "interventionStartDate": "2021-09-07 00:00:00",
+        "idempotencyKey": "c5dae124e13a0953a4eb7fd91d20ac36",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "619e9601293f9524471612.jpg",
+            "created": "2021-11-24 19:43:38",
+            "coordinateIndex": 0,
+            "id": "coord_Jai17g850IEJ7kEAJpSGUnTj",
+            "updated": "2021-11-24 19:44:01",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99246589110214, 8.22274426128223],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99246589110214, 8.22274426128223],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-09-07 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99298193537171, 8.22311646996719],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_PALn0dKQlisLNX2WjJPM7AHq",
+        "hid": "L6JM5J",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.6",
+            "deviceSystemName": "iOS",
+            "deviceSystemVersion": "15.1",
+            "deviceModel": "iPhone 12 Pro Max",
+            "deviceManufacturer": "Apple",
+            "deviceBrand": "Apple",
+            "deviceLocation": {
+              "coordinates": [-1.99298193537171, 8.22311646996719],
+              "type": "Point"
+            }
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Senna didymobotrya",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-09-07 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-11-24 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_MgceJSIR5GRNeAoBIZIaYoaW",
+        "tag": null,
+        "plantDate": "2021-09-07 00:00:00",
+        "measurements": {
+          "width": 0.65,
+          "height": 0.8
+        },
+        "interventionStartDate": "2021-09-07 00:00:00",
+        "idempotencyKey": "c86235a148b56c04a4838c9e40fefa35",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "619e96244bf11619888868.jpg",
+            "created": "2021-11-24 19:44:08",
+            "coordinateIndex": 0,
+            "id": "coord_EZOylccReQxWMq0EGb10zJF4",
+            "updated": "2021-11-24 19:44:37",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_T24qvqDFEvdqsKj3vF",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99216308559113, 8.22289890265364],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99216308559113, 8.22289890265364],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-09-07 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99298193537171, 8.22311646996719],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_PALn0dKQlisLNX2WjJPM7AHq",
+        "hid": "U8OI72",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.6",
+            "deviceSystemName": "iOS",
+            "deviceSystemVersion": "15.1",
+            "deviceModel": "iPhone 12 Pro Max",
+            "deviceManufacturer": "Apple",
+            "deviceBrand": "Apple",
+            "deviceLocation": {
+              "coordinates": [-1.99298193537171, 8.22311646996719],
+              "type": "Point"
+            }
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Senna didymobotrya",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-09-07 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-11-24 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_3YI1m3a0l1bGAib4uLVm9rWF",
+        "tag": null,
+        "plantDate": "2021-09-07 00:00:00",
+        "measurements": {
+          "width": 0.55,
+          "height": 0.85
+        },
+        "interventionStartDate": "2021-09-07 00:00:00",
+        "idempotencyKey": "d2a9aefcadf881ca1521bf2ece0b68df",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "619e9644c8b8f666215447.jpg",
+            "created": "2021-11-24 19:44:42",
+            "coordinateIndex": 0,
+            "id": "coord_205752PsYz4G0eGKUeWf1ZX0",
+            "updated": "2021-11-24 19:45:09",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_T24qvqDFEvdqsKj3vF",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99267664358135, 8.22294685374925],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99267664358135, 8.22294685374925],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-09-07 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99298193537171, 8.22311646996719],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_PALn0dKQlisLNX2WjJPM7AHq",
+        "hid": "NRZ3MF",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.6",
+            "deviceSystemName": "iOS",
+            "deviceSystemVersion": "15.1",
+            "deviceModel": "iPhone 12 Pro Max",
+            "deviceManufacturer": "Apple",
+            "deviceBrand": "Apple",
+            "deviceLocation": {
+              "coordinates": [-1.99298193537171, 8.22311646996719],
+              "type": "Point"
+            }
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Parkia biglobosa",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-09-07 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-11-24 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_bG9yhSm87tp7YVA7etsgHpOe",
+        "tag": null,
+        "plantDate": "2021-09-07 00:00:00",
+        "measurements": {
+          "width": 0.35,
+          "height": 0.5
+        },
+        "interventionStartDate": "2021-09-07 00:00:00",
+        "idempotencyKey": "291889c8157b5906337cdc192c2369f3",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "619e96645f86c887665993.jpg",
+            "created": "2021-11-24 19:45:15",
+            "coordinateIndex": 0,
+            "id": "coord_mhYQ77xCI89f1hHsy8a6PuGQ",
+            "updated": "2021-11-24 19:45:41",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_jdl42wD0gO5wlE49RN",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99251070741124, 8.22324088170721],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99251070741124, 8.22324088170721],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-09-07 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99298193537171, 8.22311646996719],
+          "type": "Point"
+        },
+        "status": null
+      },
+      {
+        "nextMeasurementDate": null,
+        "parent": "ivn_PALn0dKQlisLNX2WjJPM7AHq",
+        "hid": "VQ8HFQ",
+        "metadata": {
+          "app": {
+            "appVersion": "1.0.6",
+            "deviceSystemName": "iOS",
+            "deviceSystemVersion": "15.1",
+            "deviceModel": "iPhone 12 Pro Max",
+            "deviceManufacturer": "Apple",
+            "deviceBrand": "Apple",
+            "deviceLocation": {
+              "coordinates": [-1.99298193537171, 8.22311646996719],
+              "type": "Point"
+            }
+          },
+          "private": [],
+          "public": []
+        },
+        "scientificName": "Parkia biglobosa",
+        "sampleInterventions": [],
+        "description": null,
+        "otherSpecies": null,
+        "geometryUpdatesCount": 0,
+        "type": "sample-tree-registration",
+        "interventionEndDate": "2021-09-07 00:00:00",
+        "plantProjectSite": null,
+        "statusReason": null,
+        "registrationDate": "2021-11-24 00:00:00",
+        "sampleTreeCount": null,
+        "id": "sivn_Gc3aHY4LjdLZymvtl1ks1wtU",
+        "tag": null,
+        "plantDate": "2021-09-07 00:00:00",
+        "measurements": {
+          "width": 0.35,
+          "height": 0.55
+        },
+        "interventionStartDate": "2021-09-07 00:00:00",
+        "idempotencyKey": "53fcbc9cd2231462caf872066973506f",
+        "profile": "tpo_ST7Xx6h5h1AJnDydwxKd4XHz",
+        "coordinates": [
+          {
+            "image": "619e968656a84671074909.jpg",
+            "created": "2021-11-24 19:45:47",
+            "coordinateIndex": 0,
+            "id": "coord_eT81H2ucsKbw4VtFfMUJy6gf",
+            "updated": "2021-11-24 19:46:15",
+            "status": "complete"
+          }
+        ],
+        "scientificSpecies": "sspec_jdl42wD0gO5wlE49RN",
+        "history": [],
+        "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+        "plantedSpecies": [],
+        "originalGeometry": {
+          "coordinates": [-1.99227209572879, 8.22280419999085],
+          "type": "Point"
+        },
+        "captureMode": "on-site",
+        "geometry": {
+          "coordinates": [-1.99227209572879, 8.22280419999085],
+          "type": "Point"
+        },
+        "lastMeasurementDate": "2021-09-07 00:00:00",
+        "captureStatus": "complete",
+        "deviceLocation": {
+          "coordinates": [-1.99298193537171, 8.22311646996719],
+          "type": "Point"
+        },
+        "status": null
+      }
+    ],
+    "description": null,
+    "otherSpecies": null,
+    "geometryUpdatesCount": 0,
+    "type": "multi-tree-registration",
+    "interventionEndDate": "2021-11-24 00:00:00",
+    "plantProjectSite": null,
+    "statusReason": null,
+    "registrationDate": "2021-11-24 00:00:00",
+    "sampleTreeCount": 10,
+    "id": "ivn_PALn0dKQlisLNX2WjJPM7AHq",
+    "tag": null,
+    "plantDate": "2021-11-24 00:00:00",
+    "measurements": null,
+    "interventionStartDate": "2021-11-24 00:00:00",
+    "idempotencyKey": "274e2d8dc3408ba4e78e9598335d2bb3",
+    "coordinates": [
+      {
+        "image": "619e92d197f06959715458.jpg",
+        "coordinateIndex": 0,
+        "id": "coord_H2NcP5ps03EYPFDgkUWt3ZQe",
+        "status": "complete"
+      },
+      {
+        "image": "619e92f7b6685409314417.jpg",
+        "coordinateIndex": 1,
+        "id": "coord_PyQmgsU3zYIv5JPW7S14qkSq",
+        "status": "complete"
+      },
+      {
+        "image": "619e931e576b4268217482.jpg",
+        "coordinateIndex": 2,
+        "id": "coord_xKYYxILls1IeANhmfirsGnfg",
+        "status": "complete"
+      },
+      {
+        "image": "619e93fc0bda9449432441.jpg",
+        "coordinateIndex": 3,
+        "id": "coord_xWVa7rHdUVxR9e6Z3aAksDjC",
+        "status": "complete"
+      }
+    ],
+    "scientificSpecies": null,
+    "history": [],
+    "plantProject": "proj_nXBzA2sbX2tm1D75p7bfJ81Z",
+    "plantedSpecies": [
+      {
+        "scientificName": "Anacardium occidentale",
+        "created": "2021-11-24 19:30:01",
+        "otherSpecies": null,
+        "scientificSpecies": "sspec_yDQXoWCG0Iv1Nl0l3A",
+        "treeCount": 1500,
+        "id": "pspec_wSoBNplmLjlqK83iuGwGjkdn",
+        "updated": "2021-11-24 19:30:01"
+      },
+      {
+        "scientificName": "Khaya ivorensis",
+        "created": "2021-11-24 19:30:01",
+        "otherSpecies": null,
+        "scientificSpecies": "sspec_5dIfjuzj3vZgJCww4x",
+        "treeCount": 790,
+        "id": "pspec_yTU2eEopEyqaXHvKQ1oJfFwy",
+        "updated": "2021-11-24 19:30:01"
+      },
+      {
+        "scientificName": "Parkia biglobosa",
+        "created": "2021-11-24 19:30:01",
+        "otherSpecies": null,
+        "scientificSpecies": "sspec_jdl42wD0gO5wlE49RN",
+        "treeCount": 910,
+        "id": "pspec_AuOE2dpB8f2ZiyJbb1hU58vX",
+        "updated": "2021-11-24 19:30:01"
+      },
+      {
+        "scientificName": "Senna didymobotrya",
+        "created": "2021-11-24 19:30:01",
+        "otherSpecies": null,
+        "scientificSpecies": "sspec_T24qvqDFEvdqsKj3vF",
+        "treeCount": 500,
+        "id": "pspec_cqFy0eyXbO9VcglSyxk8b3IY",
+        "updated": "2021-11-24 19:30:01"
+      }
+    ],
+    "originalGeometry": {
+      "coordinates": [
+        [
+          [-1.99278842657986, 8.22255908512339],
+          [-1.9919038843382, 8.22268661578019],
+          [-1.99203511926223, 8.22347367835278],
+          [-1.99302305294293, 8.22337774345447],
+          [-1.99278842657986, 8.22255908512339]
+        ]
+      ],
+      "type": "Polygon"
+    },
+    "captureMode": "on-site",
+    "geometry": {
+      "coordinates": [
+        [
+          [-1.99278842657986, 8.22255908512339],
+          [-1.9919038843382, 8.22268661578019],
+          [-1.99203511926223, 8.22347367835278],
+          [-1.99302305294293, 8.22337774345447],
+          [-1.99278842657986, 8.22255908512339]
+        ]
+      ],
+      "type": "Polygon"
+    },
+    "lastMeasurementDate": null,
+    "captureStatus": "complete",
+    "deviceLocation": {
+      "coordinates": [-1.99278842657986, 8.22255908512339],
+      "type": "Point"
+    },
+    "status": null
+  }
+]

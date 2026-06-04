@@ -1,5 +1,5 @@
 import i18next from 'i18next';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Modal,
   View,
@@ -37,8 +37,13 @@ const EditInputModal = ({
   returnKeyType = 'default',
 }: IInputModalProps) => {
   const textInput = useRef<TextInput>(null);
+  // Highlight the existing value when the modal opens so the first keystroke
+  // replaces it, instead of forcing the user to delete the old value first.
+  const [selection, setSelection] = useState<{ start: number; end: number } | undefined>(undefined);
   const setFocus = () => {
-    textInput?.current.focus();
+    textInput?.current?.focus();
+    const length = value ? String(value).length : 0;
+    setSelection({ start: 0, end: length });
   }
   return (
     <Modal
@@ -59,6 +64,14 @@ const EditInputModal = ({
               style={CommonStyles.bottomInputText}
               placeholder={placeholder}
               multiline={true}
+              selection={selection}
+              onSelectionChange={() => {
+                // Once the user moves the cursor or types, stop forcing the
+                // full selection so editing behaves normally.
+                if (selection) {
+                  setSelection(undefined);
+                }
+              }}
               onChangeText={(text) => {
                 if (inputType === 'default') {
                   setValue(text);

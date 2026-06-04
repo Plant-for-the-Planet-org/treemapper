@@ -1,4 +1,3 @@
-import SignUp from './authentication/signUplabels.json';
 import InitialScreen from './static/initialScreen.json';
 import Permission from './static/permission.json';
 import WelcomeScreen from './static/welcomeScreen.json';
@@ -24,7 +23,6 @@ import Plots from './monitoringPlots/plots.json'
 import Other from './user/other.json'
 export default {
   ...WelcomeScreen,
-  ...SignUp,
   ...RegisterTree,
   ...LocateTree,
   ...TreeInventory,

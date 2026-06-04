@@ -33,6 +33,10 @@ const CarouselModal = () => {
 
   const handleNavigation = (id: string, tree_id?: string) => {
     dispatch(clearCarouselData())
+    if (carouselData?.is_planned) {
+      navigation.navigate('PlannedTreeEdit', { interventionId: id })
+      return
+    }
     if (tree_id) {
       navigation.navigate('InterventionPreview', { id: 'preview', intervention: id, sampleTree: tree_id, interventionId:id })
     } else {
@@ -76,7 +80,7 @@ const CarouselModal = () => {
     if (showOverlay) {
       return <CarouselInterventionItem data={item} onPress={showInterventionDetails} />
     } else {
-      return <CarouselItem data={item} onPress={handleNavigation} remeasure={remeasure}/>
+      return <CarouselItem data={item} onPress={handleNavigation} remeasure={remeasure} isPlanned={carouselData?.is_planned}/>
     }
   }
 

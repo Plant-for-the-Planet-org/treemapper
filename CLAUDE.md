@@ -37,17 +37,15 @@ apps/
   mobile/    React Native + Expo app (independent, no shared code with web/server)
   web/       Next.js dashboard (uses shared-core, shadcn/ui)
   server/    NestJS + Fastify backend (Drizzle ORM + Postgres)
-  docs/      Next.js docs site
 packages/
   shared-core/  Shared utilities consumed by web (and potentially mobile)
 ```
 
 ## Stack per app
 
-- **mobile**: Expo SDK, React Native 0.81, Maplibre, Auth0
+- **mobile**: Expo SDK, React Native 0.83.6, Maplibre, Auth0
 - **web**: Next.js 15, React 18, shadcn/ui, Tailwind, Mapbox, Auth0 (@auth0/nextjs-auth0 v3.8)
 - **server**: NestJS 11, Fastify, Drizzle ORM, Postgres (`pg`), Redis (ioredis), Bull, AWS S3 / R2
-- **docs**: Next.js 15, React 19, next-intl
 - **shared-core**: TanStack Query, Zustand
 
 ## Common commands
@@ -76,6 +74,31 @@ yarn db:studio      # Drizzle Studio
 - **English**: prefer simple English, shorter words in copy.
 - **Naming**: the organization is "Plant-for-the-Planet". The platform is "ForestCloud".
 - **Mobile is independent**: `apps/mobile` does not import from `shared-core`, `web`, or `server`. Treat it as a separate project that happens to live in the same repo.
+
+## Dependency pinning
+
+All dependencies are pinned to **exact** versions on purpose: supply-chain
+safety and byte-for-byte reproducible installs. A plain `yarn install` never
+auto-upgrades anything.
+
+- **Manifests**: every `package.json` uses exact versions (no `^`). The
+  exceptions are `expo-*` / React Native packages in `apps/mobile`, which keep
+  `~` (patch-only) so Expo tooling (`expo install`, `expo-doctor`) stays happy.
+  Root `overrides` / `resolutions` are pinned exact too.
+- **New deps must stay pinned**: root `.yarnrc` sets `save-prefix ""` and
+  `.npmrc` sets `save-exact=true`, so `yarn add` / `npm install` write exact
+  versions. Do not reintroduce `^`.
+- **Lockfile is the real freeze**: `yarn.lock` is committed; CI/build uses
+  `yarn install --frozen-lockfile`, which fails if the lock would change.
+- **Pre-commit guard**: `.githooks/pre-commit` blocks any commit that touches a
+  dependency file (`package.json`, `yarn.lock`, `.yarnrc`, `.npmrc`) and prints
+  a "rethink before upgrading" notice. It is auto-enabled for everyone via the
+  root `prepare` script (`git config core.hooksPath .githooks`), which runs on
+  `yarn install`. To land an intended dependency change, re-run with
+  `ALLOW_DEP_CHANGE=1 git commit ...` (never `--no-verify`).
+- **To upgrade a package**: do it deliberately (`yarn upgrade <pkg>` or edit the
+  exact version), keep it pinned, review for breaking/vulnerable versions, and
+  tell the team.
 
 ## Gotchas
 

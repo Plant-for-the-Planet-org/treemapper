@@ -7,7 +7,7 @@ import { Colors } from 'src/utils/constants'
 import NetInfo from '@react-native-community/netinfo'
 import { useNavigation } from '@react-navigation/native'
 
-const DOCS_URL = 'https://docs-ruddy-six.vercel.app/en/docs/introduction'
+const DOCS_URL = 'https://docs.treemapper.app/en/docs/introduction'
 
 const GuideView = () => {
   const [loading, setLoading] = useState(true)
@@ -59,7 +59,7 @@ const GuideView = () => {
         navigation.goBack()
       }
     } catch (error) {
-      console.log('Error parsing message:', error)
+      console.error('Error parsing message:', error)
     }
   }
 

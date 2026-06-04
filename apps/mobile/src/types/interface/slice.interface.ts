@@ -20,8 +20,6 @@ export interface AppInitialState {
   updateAppCount: number,
   refetchProject: string,
   imageSize: number,
-  showNewAppModal: boolean,
-  newFeatureRequest: boolean,
   userProjectSpecies: IScientificSpecies[]
 }
 
@@ -53,6 +51,7 @@ export interface TempStateSlice {
   speciesDownloading: boolean
   speciesWriting: boolean,
   inviteId: string,
+  handledInviteIds: string[],
   speciesUpdatedAt: number
   refreshProject: string
 }
@@ -181,9 +180,12 @@ export interface ProjectStateSlice {
   }
 }
 
+export type LocationPermissionStatus = 'undetermined' | 'granted' | 'denied'
+
 export interface GpsSliceInitialState {
   user_location: number[],
-  accuracy: number
+  accuracy: number,
+  permission_status: LocationPermissionStatus
 }
 
 export interface TakePictureInitialState {
@@ -393,6 +395,7 @@ export interface InterventionData {
   additional_data: FormElement[]
   meta_data: string
   last_updated_at?: number
+  is_planned: boolean,
   status: INTERVENTION_STATUS,
   hid: string,
   coords: {

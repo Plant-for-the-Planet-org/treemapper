@@ -49,20 +49,28 @@ export type RootStackParamList = {
   AddPlotGroup: AddPlotGroup,
   AddPlotsToGroup: AddPlotsToGroup,
   TreeRemeasurement: TreeRemeasurementView
-  ProjectRemeasurementConfig: ProjectRemeasurementConfig
   OldInventoryDataView: undefined,
   EditProject: EditProjectView,
-  SignUpPage: SignUpPage,
   PlantHistory: PlantHistory,
   ProjectSites: undefined
   DeleteAccount: undefined
   CreateProject: undefined
-  TreeMapperFeaturesScreen: undefined
   Guide: undefined
   Notification: undefined
   NotificationDetail: NotificationDetailView
   Language: undefined
   PlotGallery: PlotGalleryView
+  PlannedTreeEdit: PlannedTreeEditView
+  PlannedTreeLocation: PlannedTreeLocationView
+}
+
+type PlannedTreeEditView = {
+  interventionId: string
+}
+
+type PlannedTreeLocationView = {
+  interventionId: string
+  treeId: string
 }
 
 type NotificationDetailView = {
@@ -88,11 +96,6 @@ type InterventionPreviewView = {
   intervention: string
   sampleTree?: string,
   interventionId: string
-}
-
-type SignUpPage = {
-  email: string,
-  accessToken: string
 }
 
 type PlantHistory = {
@@ -223,10 +226,6 @@ type TreeRemeasurementView = {
   isEdit?: boolean
   historyId?: string
 }
-type ProjectRemeasurementConfig = {
-  id: string
-}
-
 type PlotGalleryView = {
   id: string
 }

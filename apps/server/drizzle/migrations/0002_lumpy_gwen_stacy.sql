@@ -1,1 +1,0 @@
-ALTER TABLE "project_member" ADD COLUMN "extra_permissions" text[];

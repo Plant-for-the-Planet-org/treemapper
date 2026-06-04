@@ -10,7 +10,6 @@ const RootNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName='Home'>
       <Stack.Screen name="Home" component={BottomTabStack} />
-      <Stack.Screen name="SignUpPage" component={Screens.SignUpView} />
       <Stack.Screen name="TakePicture" component={Screens.TakePicture} />
       <Stack.Screen name="PolygonMarker" component={Screens.PolygonMarker} />
       <Stack.Screen name="ManageSpecies" component={Screens.ManageSpecies} />
@@ -53,19 +52,19 @@ const RootNavigator = () => {
       <Stack.Screen name='AddPlotGroup' component={Screens.AddPlotGroup} />
       <Stack.Screen name='AddPlotsToGroup' component={Screens.AddPlotsToGroup} />
       <Stack.Screen name='TreeRemeasurement' component={Screens.TreeRemeasurement} />
-      <Stack.Screen name='ProjectRemeasurementConfig' component={Screens.ProjectRemeasurementConfig} />
       <Stack.Screen name='OldInventoryDataView' component={Screens.OldInventoryData} />
       <Stack.Screen name='EditProject' component={Screens.EditProjectView} />
       <Stack.Screen name='PlantHistory' component={Screens.PlantHistory} />
       <Stack.Screen name="ProjectSites" component={Screens.ProjectSites} />
       <Stack.Screen name="DeleteAccount" component={Screens.DeleteAccount} />
       <Stack.Screen name="CreateProject" component={Screens.CreateProject} />
-      <Stack.Screen name="TreeMapperFeaturesScreen" component={Screens.TreeMapperFeaturesScreen} />
       <Stack.Screen name="Guide" component={Screens.Guide} />
       <Stack.Screen name="Notification" component={Screens.Notification} />
       <Stack.Screen name="NotificationDetail" component={Screens.NotificationDetail} />
       <Stack.Screen name="Language" component={Screens.Language} />
       <Stack.Screen name="PlotGallery" component={Screens.PlotGallery} />
+      <Stack.Screen name="PlannedTreeEdit" component={Screens.PlannedTreeEdit} />
+      <Stack.Screen name="PlannedTreeLocation" component={Screens.PlannedTreeLocation} />
       <Stack.Screen
         name="HomeSideDrawer"
         component={Screens.HomeSideDrawer}

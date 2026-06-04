@@ -70,10 +70,8 @@ const InterventionFormView = () => {
   const UserType = useSelector(
     (state: RootState) => state.userState.type
   )
-  const v3Approved = useSelector(
-    (state: RootState) => state.userState.v3Approved
-  )
-  const isTpoUser = userType === 'tpo' || v3Approved
+
+  const isTpoUser = true
   const paramId = route.params ? route.params.id : ''
 
   useEffect(() => {
@@ -146,7 +144,7 @@ const InterventionFormView = () => {
         updateBounds(newCoords);
       }
     } catch (error) {
-      console.log("error", error);
+      console.error("error", error);
     }
   };
 
@@ -275,17 +273,29 @@ const InterventionFormView = () => {
     setRegisterForm(prevState => ({ ...prevState, entire_site_selected: b }))
   }
 
+  // Returns null when the site or its geometry is missing/invalid, so the
+  // caller can surface an error instead of crashing on JSON.parse.
   const siteCoordinatesSelect = () => {
     const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
       RealmSchema.Projects,
       registerForm.project_id,
     )
-    const currentSiteData = ProjectData.sites.filter(
+    const currentSiteData = ProjectData?.sites.filter(
       el => el.id === registerForm.site_id,
     )
-    const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
-    const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0])
-    return [newCoords]
+    if (!currentSiteData?.length || !currentSiteData[0].geometry) {
+      return null
+    }
+    try {
+      const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
+      if (!parsedGeometry?.coordinates?.[0]) {
+        return null
+      }
+      const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0])
+      return [newCoords]
+    } catch (error) {
+      return null
+    }
   }
 
   const pressContinue = async () => {
@@ -369,9 +379,14 @@ const InterventionFormView = () => {
   };
 
   const handleEntireSiteSelected = async () => {
+    const siteCoordinates = siteCoordinatesSelect();
+    if (!siteCoordinates) {
+      handleLocationUpdateError();
+      return;
+    }
     const { coordinates } = makeInterventionGeoJson(
       'Point',
-      siteCoordinatesSelect(),
+      siteCoordinates,
       registerForm.form_id,
       ''
     );

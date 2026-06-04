@@ -1,16 +1,17 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import {
   Settings, Users, MapPin, Shield, Trash2, Save, Leaf,
   Globe, Info, FileText, Upload, AlertTriangle, Lock, Trophy,
   Check, Loader2, Video, AlertCircle, Image as ImageIcon, ImagePlus, X,
+  Key, Copy, RefreshCw,
 } from 'lucide-react'
 
 import UnifiedMapComponent from '@/component/MapSelect'
 import GeoJSONUpload from '@/component/GeoJSONfileupload'
-import { deleteProject, getSingleProjectDetails, updateProjectSettings, getProjectImages, addProjectImage, deleteProjectImage, generatePreSignUrl } from '@shared-core/fetchApi/api.fetch'
+import { deleteProject, getSingleProjectDetails, updateProjectSettings, getProjectImages, addProjectImage, deleteProjectImage, generatePreSignUrl, getProjectApiKey, generateProjectApiKey, revokeProjectApiKey } from '@shared-core/fetchApi/api.fetch'
 import { useToken } from '@/context/useTokenContext'
 import useProjectStore from '@shared-core/store/useProjectStore'
 import { useUserStore } from '@shared-core/store/useUserStore'
@@ -348,7 +349,134 @@ const FeatureToggle = ({ icon: Icon, title, description, checked, onToggle, disa
   </Card>
 )
 
-const FeaturesSettings = ({ projectData, handleToggleChange, handleSubmit, loading, canEdit }: any) => (
+const ApiSettings = ({ projectUid, accessToken, canEdit, apiEnabled, onApiToggle }: any) => {
+  const [status, setStatus] = useState<{ exists: boolean; keyPrefix: string | null; lastUsedAt: string | null; createdAt: string | null } | null>(null)
+  const [newKey, setNewKey] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [confirmRegenerate, setConfirmRegenerate] = useState(false)
+
+  const loadStatus = useCallback(async () => {
+    if (!projectUid) return
+    const result = await getProjectApiKey(accessToken, projectUid)
+    if (result?.data) setStatus(result.data)
+  }, [projectUid, accessToken])
+
+  useEffect(() => { loadStatus() }, [loadStatus])
+
+  const handleGenerate = async () => {
+    if (!canEdit) { toast.error('You do not have permission to manage API keys.'); return }
+    setBusy(true)
+    try {
+      const result = await generateProjectApiKey(accessToken, projectUid)
+      if (result?.data?.apiKey) {
+        setNewKey(result.data.apiKey)
+        toast.success('API key generated. Copy it now, it will not be shown again.')
+        await loadStatus()
+      } else {
+        toast.error(result?.message || 'Failed to generate API key')
+      }
+    } finally { setBusy(false) }
+  }
+
+  const handleRevoke = async () => {
+    if (!canEdit) { toast.error('You do not have permission to manage API keys.'); return }
+    setBusy(true)
+    try {
+      const result = await revokeProjectApiKey(accessToken, projectUid)
+      if (result?.statusCode === 200 || result?.statusCode === 201) {
+        setNewKey(null)
+        setStatus({ exists: false, keyPrefix: null, lastUsedAt: null, createdAt: null })
+        toast.success('API key revoked')
+      } else {
+        toast.error(result?.message || 'Failed to revoke API key')
+      }
+    } finally { setBusy(false) }
+  }
+
+  const handleCopy = async () => {
+    if (!newKey) return
+    try {
+      await navigator.clipboard.writeText(newKey)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      toast.error('Failed to copy to clipboard')
+    }
+  }
+
+  const formatDate = (value: string | null) => value ? new Date(value).toLocaleString() : 'Never'
+
+  return (
+    <FeatureToggle
+      icon={Key}
+      title="Project API"
+      description="Let external apps read this project's information, sites, and interventions using an API key sent in the x-api-key header."
+      checked={apiEnabled}
+      onToggle={() => onApiToggle(!apiEnabled)}
+      disabled={!canEdit || busy}
+    >
+      {apiEnabled && (
+      <div className="mt-4 bg-muted/40 rounded-lg p-4 border border-border space-y-4">
+        {newKey ? (
+          <div className="space-y-3">
+            <Alert>
+              <AlertTriangle />
+              <AlertDescription>Copy this key now. For security, you will not be able to see it again.</AlertDescription>
+            </Alert>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 px-3 py-2 bg-foreground text-background rounded-md text-xs font-mono break-all">{newKey}</code>
+              <Button type="button" size="icon" onClick={handleCopy}>
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+              </Button>
+            </div>
+          </div>
+        ) : status?.exists ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="text-sm text-muted-foreground">
+                <p className="font-mono text-foreground">{status.keyPrefix}{'••••••••'}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Last used: {formatDate(status.lastUsedAt)}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="outline" size="sm" disabled={!canEdit || busy} onClick={() => setConfirmRegenerate(true)}>
+                  <RefreshCw size={14} className="mr-1.5" />Regenerate
+                </Button>
+                <Button type="button" variant="outline" size="sm" disabled={!canEdit || busy} onClick={handleRevoke} className="border-destructive/50 text-destructive hover:bg-destructive/10">
+                  <Trash2 size={14} className="mr-1.5" />Revoke
+                </Button>
+              </div>
+            </div>
+            {confirmRegenerate && (
+              <div className="bg-background rounded-lg p-3 border border-border space-y-3">
+                <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <AlertTriangle size={14} className="flex-shrink-0 mt-0.5 text-amber-500" />
+                  <span>Regenerating will immediately invalidate the current key. Any integrations using it will stop working.</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button type="button" size="sm" disabled={busy} onClick={async () => { setConfirmRegenerate(false); await handleGenerate() }}>
+                    {busy ? <Loader2 size={14} className="mr-1.5 animate-spin" /> : <RefreshCw size={14} className="mr-1.5" />}Yes, regenerate
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setConfirmRegenerate(false)}>Cancel</Button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <p className="text-sm text-muted-foreground">No API key yet. Generate one to start using the API.</p>
+            <Button type="button" size="sm" disabled={!canEdit || busy} onClick={handleGenerate}>
+              {busy ? <Loader2 size={14} className="mr-1.5 animate-spin" /> : <Key size={14} className="mr-1.5" />}Generate API key
+            </Button>
+          </div>
+        )}
+      </div>
+      )}
+    </FeatureToggle>
+  )
+}
+
+const FeaturesSettings = ({ projectData, handleToggleChange, handleSubmit, loading, canEdit, projectUid, accessToken, onApiToggle }: any) => (
   <div className="space-y-4">
     <FeatureToggle
       icon={Shield}
@@ -386,6 +514,14 @@ const FeaturesSettings = ({ projectData, handleToggleChange, handleSubmit, loadi
       checked={projectData.bulkUploadEnabled}
       onToggle={() => handleToggleChange('bulkUploadEnabled')}
       disabled={!canEdit}
+    />
+
+    <ApiSettings
+      projectUid={projectUid}
+      accessToken={accessToken}
+      canEdit={canEdit}
+      apiEnabled={projectData.apiEnabled}
+      onApiToggle={onApiToggle}
     />
 
     <SaveBar onClick={handleSubmit} loading={loading} disabled={!canEdit} />
@@ -503,7 +639,7 @@ const ProjectSettings = () => {
     name: '', slug: '', type: '', ecosystem: '', scale: '', target: '', website: '', videoUrl: '',
     description: '', purpose: '', classification: '', intensity: '', revisionPeriodicity: '', country: '',
     image: null, location: null, originalGeometry: null, metadata: {}, approvalBoardEnabled: false,
-    leaderboardEnabled: true, bulkUploadEnabled: true,
+    leaderboardEnabled: true, bulkUploadEnabled: true, apiEnabled: false,
   })
 
   const activeTab = NAV_ITEMS.some(i => i.id === tabParam) ? tabParam! : 'general'
@@ -546,6 +682,7 @@ const ProjectSettings = () => {
           approvalBoardEnabled: result.data.approvalBoardEnabled ?? false,
           leaderboardEnabled: result.data.leaderboardEnabled ?? true,
           bulkUploadEnabled: result.data.bulkUploadEnabled ?? true,
+          apiEnabled: result.data.apiEnabled ?? false,
         })
       }
     } catch (error) {
@@ -648,6 +785,18 @@ const ProjectSettings = () => {
     setProjectData((prev: any) => ({ ...prev, [fieldName]: !prev[fieldName] }))
   }
 
+  const handleApiToggle = async (next: boolean) => {
+    if (!canEdit) { toast.error('You do not have permission to update project settings.'); return }
+    setProjectData((prev: any) => ({ ...prev, apiEnabled: next }))
+    const result = await updateProjectSettings(accessToken, { apiEnabled: next }, selectedProject.uid)
+    if (result?.statusCode === 200 || result?.statusCode === 201) {
+      toast.success(next ? 'API access enabled' : 'API access disabled')
+    } else {
+      setProjectData((prev: any) => ({ ...prev, apiEnabled: !next }))
+      toast.error(result?.message || 'Failed to update API access')
+    }
+  }
+
   const handleLocationUpdate = async (geoData: any) => {
     if (!canEdit) { setNotification({ type: 'error', message: 'You do not have permission to update project location.' }); return }
     setLoading(true)
@@ -717,7 +866,7 @@ const ProjectSettings = () => {
       case 'location':
         return <LocationSettings handleLocationUpdate={handleLocationUpdate} existingGeoJSON={projectData.originalGeometry} loading={loading} canEdit={canEdit} />
       case 'features':
-        return <FeaturesSettings projectData={projectData} handleToggleChange={handleToggleChange} handleSubmit={handleSubmit} loading={loading} canEdit={canEdit} />
+        return <FeaturesSettings projectData={projectData} handleToggleChange={handleToggleChange} handleSubmit={handleSubmit} loading={loading} canEdit={canEdit} projectUid={selectedProject?.uid} accessToken={accessToken} onApiToggle={handleApiToggle} />
       case 'danger':
         return <DangerZone projectData={projectData} showDeleteConfirm={showDeleteConfirm} setShowDeleteConfirm={setShowDeleteConfirm} handleDeleteProject={handleDeleteProject} canEdit={canEdit} />
       default:

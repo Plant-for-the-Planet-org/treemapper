@@ -1,8 +1,10 @@
 {
+  "//": "Dependencies are pinned to EXACT versions on purpose. Do not add ^ or ~, and do not run yarn upgrade without team review. A pre-commit guard (.githooks/pre-commit) warns on dependency changes.",
   "name": "treemapper",
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || true",
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
@@ -31,8 +33,8 @@
     "node": "22.x.x"
   },
   "overrides": {
-    "minimatch": "^10.2.1",
-    "ajv": "^8.18.0"
+    "minimatch": "10.2.5",
+    "ajv": "8.18.0"
   },
   "packageManager": "yarn@1.22.19",
   "workspaces": [
@@ -40,18 +42,18 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0",
-    "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.1.0",
-    "patch-package": "^8.0.0",
-    "prettier": "^3.2.5",
-    "turbo": "^2.2.3",
+    "@typescript-eslint/eslint-plugin": "6.21.0",
+    "@typescript-eslint/parser": "6.21.0",
+    "eslint": "8.57.1",
+    "eslint-config-prettier": "9.1.2",
+    "patch-package": "8.0.1",
+    "prettier": "3.8.3",
+    "turbo": "2.9.16",
     "typescript": "5.5.4"
   },
   "dependencies": {
-    "concurrently": "^9.2.0",
-    "dotenv-cli": "^7.1.0",
+    "concurrently": "9.2.1",
+    "dotenv-cli": "7.4.4",
     "i18next": "25.7.3",
     "react-i18next": "16.5.0"
   },

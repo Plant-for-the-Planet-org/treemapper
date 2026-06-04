@@ -2,7 +2,9 @@ import { StyleProp } from 'react-native'
 import React from 'react'
 import { GeoJSONSource, Layer, LineLayerStyle, PressEventWithFeatures } from '@maplibre/maplibre-react-native'
 import { NativeSyntheticEvent } from 'react-native'
-import { FillColor } from 'src/utils/constants/colors'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
+import { FillColor, NEW_PRIMARY, WHITE } from 'src/utils/constants/colors'
 
 
 
@@ -20,6 +22,9 @@ interface Props {
 
 const ClusteredShapeSource = (props: Props) => {
   const { geoJSON, onShapeSourcePress } = props
+  const isSatellite = useSelector(
+    (state: RootState) => state.displayMapState.mainMapView === 'SATELLITE'
+  )
   const handlePress = (e: NativeSyntheticEvent<PressEventWithFeatures>) => {
     if (e.nativeEvent?.features?.[0]) {
       onShapeSourcePress(e.nativeEvent.features[0].properties.id || '');
@@ -49,7 +54,17 @@ const ClusteredShapeSource = (props: Props) => {
         style={{ ...polyline, lineColor: FillColor }}
         filter={['all', ["!=", ["geometry-type"], "Point"]]}
       />
-      <Layer id={'singleEntire'} type="circle" style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"]]} />
+      <Layer
+        id={'singleEntire'}
+        type="circle"
+        style={{
+          circleOpacity: 0.8,
+          circleColor: FillColor,
+          circleStrokeWidth: 2,
+          circleStrokeColor: isSatellite ? NEW_PRIMARY : WHITE,
+        }}
+        filter={['all', ["==", ["geometry-type"], "Point"]]}
+      />
     </GeoJSONSource>
   )
 }

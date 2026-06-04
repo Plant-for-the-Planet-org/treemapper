@@ -4,7 +4,6 @@ import {
   View,
   Text,
   Dimensions,
-  Pressable,
 } from 'react-native'
 import Animated, {
   useAnimatedStyle,
@@ -31,7 +30,6 @@ import { useToast } from 'react-native-toast-notifications'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import EyeIcon from 'assets/images/svg/EyeIcon.svg'
-import DropDownIcon from 'assets/images/svg/DownIcon.svg'
 import { updateProjectModal } from 'src/store/slice/displayMapSlice'
 import useLocationPermission from 'src/hooks/useLocationPermission'
 
@@ -49,7 +47,6 @@ const AddOptionModal = (props: Props) => {
   const currentProject = useSelector((state: RootState) => state.projectState.currentProject)
   const userType = useSelector((state: RootState) => state.userState.type)
   const GPSLocation = useSelector((state: RootState) => state.gpsState.user_location)
-  const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
   const showPlotFeature = useSelector((state: RootState) => state.userState.showPlotFeature)
 
 
@@ -72,8 +69,7 @@ const AddOptionModal = (props: Props) => {
 
 
   const checkWhetherProjectIsSelected = () => {
-    const showProjectModal = v3Approved || userType === 'tpo'
-    if (!currentProject.projectId && props.visible && showProjectModal) {
+    if (!currentProject.projectId && props.visible && userType) {
       toggleModal()
       return false
     }
@@ -83,7 +79,6 @@ const AddOptionModal = (props: Props) => {
   const provideLocation = () => {
     if (GPSLocation[0] === 0) {
       userCurrentLocation().catch((error) => { // Use .catch() to handle errors
-        console.log("Error:", error);
       });
     }
   };
@@ -92,35 +87,24 @@ const AddOptionModal = (props: Props) => {
     {
       svgIcon: <ChartIcon width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.monitoring_plot'),
-      coming_soon: !showPlotFeature ? false : true,
+      coming_soon: false,
       onPress: () => {
         toast.hideAll()
-        if (showPlotFeature) {
-          toast.show(i18next.t('label.coming_soon'))
-          props.setVisible(false)
-        } else {
-          navigation.navigate('CreatePlot')
-          props.setVisible(false)
-        }
+        navigation.navigate('CreatePlot')
+        props.setVisible(false)
       },
       disabled: false,
     },
     {
       svgIcon: <CrossArrow width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.project_sites'),
-      coming_soon: v3Approved ? true : false,
+      coming_soon: false,
       onPress: () => {
-        if (userType !== 'tpo' && !v3Approved) {
-          toast.hideAll()
-          toast.show("Please login from RO account")
-          props.setVisible(false)
-        } else {
-          provideLocation()
-          navigation.navigate('ProjectSites')
-          props.setVisible(false)
-        }
+        provideLocation()
+        navigation.navigate('ProjectSites')
+        props.setVisible(false)
       },
-      disabled: v3Approved ? true : false,
+      disabled: false,
     },
     {
       svgIcon: <Intervention width={SCALE_24} height={SCALE_24} />,
@@ -203,23 +187,21 @@ const AddOptionModal = (props: Props) => {
         animatedStyles,
       ]}>
       <Animated.View style={{ zIndex: 10 }}><>
-        <View style={[styles.projectContainer, { paddingVertical: ProjectName ? 3 : 8 }]}>
-          {!!ProjectName && <Pressable style={styles.projectWrapper} onPress={toggleModal}>
-            <View style={styles.eyeIconWrapper}>
-              <EyeIcon />
+        {!!ProjectName && (
+          <View style={[styles.projectContainer, { paddingVertical: 3 }]}>
+            <View style={styles.projectWrapper}>
+              <View style={styles.eyeIconWrapper}>
+                <EyeIcon />
+              </View>
+              <View style={styles.projectSection}>
+                <Text style={styles.projectLabel}>
+                  {i18next.t('label.project')}
+                </Text>
+                <Text style={styles.projectName}>{ProjectName}</Text>
+              </View>
             </View>
-            <View style={styles.projectSection}>
-              <Text style={styles.projectLabel}>
-                {i18next.t('label.project')}
-              </Text>
-              <Text style={styles.projectName}>{ProjectName}</Text>
-            </View>
-            <View style={styles.projectDown}>
-              <View style={styles.divider} />
-              <DropDownIcon />
-            </View>
-          </Pressable>
-          }</View>
+          </View>
+        )}
         {calcComponents}</></Animated.View>
     </Animated.View>
   )

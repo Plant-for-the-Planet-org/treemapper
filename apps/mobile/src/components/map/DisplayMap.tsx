@@ -1,7 +1,6 @@
 import { StyleSheet } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { Map, Camera, CameraRef, MapRef, UserLocation, useCurrentPosition } from '@maplibre/maplibre-react-native'
-import * as Location from 'expo-location'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { useQuery, useRealm } from '@realm/react'
@@ -29,7 +28,6 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
 const DisplayMap = () => {
-  const [locationStatus] = Location.useForegroundPermissions()
   const realm = useRealm()
   const [overlayGeoJSON, setOverlayGeoJSON] = useState({
     type: 'FeatureCollection',
@@ -38,7 +36,10 @@ const DisplayMap = () => {
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
-  const { type: userType, v3Approved } = useSelector(
+  const locationPermissionStatus = useSelector(
+    (state: RootState) => state.gpsState.permission_status,
+  )
+  const { type: userType } = useSelector(
     (state: RootState) => state.userState,
   )
 
@@ -62,7 +63,7 @@ const DisplayMap = () => {
   const handleGeoJSONData = () => {
     const dateFilter = filterToTime(interventionFilter)
     const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key)).filter(el => {
-      if ((onlyRemeasurement && userType === 'tpo') && onlyRemeasurement && v3Approved) {
+      if (onlyRemeasurement) {
         return el.remeasurement_required === true
       }
       return el
@@ -74,7 +75,7 @@ const DisplayMap = () => {
         JSON.parse(el.location.coordinates),
         el.intervention_id,
         {
-          key: (el.remeasurement_required && userType === 'tpo') || (el.remeasurement_required && v3Approved) ? 'remeasurement' : el.intervention_key,
+          key: (el.remeasurement_required) || (el.remeasurement_required) ? 'remeasurement' : el.intervention_key,
           site: el.entire_site,
         }
       )
@@ -127,13 +128,6 @@ const DisplayMap = () => {
   const handleCameraViewChange = () => {
     const { bounds, key } = MapBounds
 
-    // Check if bounds are valid (should have exactly 4 values: [minLon, minLat, maxLon, maxLat])
-    // if (!bounds || bounds.length !== 4) {
-    //   if (userType !== 'tpo' || v3Approved) {
-    //     handleCamera()
-    //   }
-    //   return
-    // }
 
     if (key === 'DISPLAY_MAP') {
       // Use the bounding box to fit the entire polygon area
@@ -165,9 +159,6 @@ const DisplayMap = () => {
     )
     const { geoJSON } = makeInterventionGeoJson(intervention.location_type, JSON.parse(intervention.location.coordinates), intervention.intervention_id)
     const bounds = bbox(geoJSON)
-    console.log('Intervention:', intervention)
-    console.log('GeoJSON:', geoJSON)
-    console.log('Calculated bounds:', bounds)
     if (intervention && intervention.intervention_type !== 'single-tree-registration') {
       getBoundsAndSetIntervention(bounds, intervention)
     }
@@ -200,7 +191,7 @@ const DisplayMap = () => {
             el.intervention_id,
             {
               active: el.active ? 'true' : 'false',
-              key: (el.remeasurement_required && userType === 'tpo') || (el.remeasurement_required && v3Approved) ? 'remeasurement' : el.intervention_key,
+              key: (el.remeasurement_required) || (el.remeasurement_required) ? 'remeasurement' : el.intervention_key,
             }
           )
           feature.push(result.geoJSON)
@@ -255,7 +246,7 @@ const DisplayMap = () => {
           el.intervention_id,
           {
             active: el.active ? 'true' : 'false',
-            key: (el.remeasurement_required && userType === 'tpo') && (el.remeasurement_required && v3Approved) ? 'remeasurement' : el.intervention_key,
+            key: (el.remeasurement_required) && (el.remeasurement_required) ? 'remeasurement' : el.intervention_key,
           }
         )
         feature.push(result.geoJSON)
@@ -356,8 +347,8 @@ const DisplayMap = () => {
       ref={mapRef}
       mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}
     >
-      <Camera ref={cameraRef} />
-      {locationStatus?.status === Location.PermissionStatus.GRANTED && (
+      <Camera ref={cameraRef} maxZoom={17} />
+      {locationPermissionStatus === 'granted' && (
         <UserLocation heading />
       )}
       {renderShapeSource()}

@@ -1,7 +1,8 @@
-import { StyleSheet, Text, View, TouchableOpacity, FlatList, Pressable } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, Pressable, ActivityIndicator } from 'react-native'
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import ZoomSiteIcon from 'assets/images/svg/ZoomSiteIcon.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
+import RefreshIcon from 'assets/images/svg/RefreshIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
 import CustomDropDownPicker from '../common/CustomDropDown'
 import { useRealm } from '@realm/react'
@@ -13,7 +14,13 @@ import { useDispatch, useSelector } from 'react-redux'
 import {
   updateCurrentProject,
   updateProjectSite,
+  updateProjectState,
+  updateProjectError,
 } from 'src/store/slice/projectStateSlice'
+import NetInfo from '@react-native-community/netinfo'
+import { getUserProjects } from 'src/api/api.fetch'
+import useProjectManagement from 'src/hooks/realm/useProjectManagement'
+import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
@@ -42,6 +49,7 @@ const ProjectModal = (props: Props) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { isVisible, toggleModal } = props
   const [projects, setProjects] = useState<ProjectInterface[]>([])
+  const [isRefreshing, setIsRefreshing] = useState(false)
   
   const [selectedProject, setSelectedProject] = useState<DropdownItem>({
     label: '',
@@ -59,6 +67,12 @@ const ProjectModal = (props: Props) => {
   const { toggleProjectModal, lastProjectAdded } = useSelector(
     (state: RootState) => state.displayMapState,
   )
+  const isLoggedIn = useSelector((state: RootState) => state.appState.isLoggedIn)
+  const refetchProject = useSelector((state: RootState) => state.appState.refetchProject)
+  const refreshProject = useSelector((state: RootState) => state.tempState.refreshProject)
+
+  const { addAllProjects } = useProjectManagement()
+  const { addNewLog } = useLogManagement()
 
   // Memoized dropdown data
   const projectDropdownData = useMemo(() => {
@@ -90,7 +104,7 @@ const ProjectModal = (props: Props) => {
         dispatch(updateMapBounds({ bounds, key: 'DISPLAY_MAP' }))
       }
     } catch (error) {
-      console.log("Error updating map bounds:", error)
+      console.error("Error updating map bounds:", error)
     }
   }, [dispatch])
 
@@ -115,6 +129,97 @@ const ProjectModal = (props: Props) => {
     }
   }, [realm, currentProject.projectId])
 
+  // Fetch projects from the API and sync them into Realm.
+  // Runs only when logged in and there is internet. Refreshes the local
+  // list afterwards so the dropdown reflects the synced data.
+  const fetchAndSyncProjects = useCallback(async () => {
+    if (!isLoggedIn) return
+
+    const netInfo = await NetInfo.fetch()
+    if (!netInfo.isConnected) return
+
+    const { responseData, responseError } = await getUserProjects()
+    if (responseError || !Array.isArray(responseData)) {
+      // Failed/offline fetch. Do not touch local Realm data, just show cache.
+      addNewLog({
+        logType: 'PROJECTS',
+        message: 'Project fetching failed (response error)',
+        logLevel: 'error',
+        statusCode: '400',
+      })
+      loadProjects()
+      return
+    }
+
+    // responseData is authoritative here (including an empty array, which means
+    // the account has no projects). Sync mirrors it into Realm: it updates and
+    // adds projects from the response and deletes any local project no longer
+    // present, so removed projects and revoked site access drop off the device.
+    const result = await addAllProjects(responseData)
+    if (result) {
+      dispatch(updateProjectState(true))
+
+      // Keep the active selection valid. If nothing is selected yet, or the
+      // selected project was removed on the server, fall back to the first
+      // available project (or clear it when the account has none).
+      const selectedProjectResp = currentProject.projectId
+        ? responseData.find((p: any) => p.properties.id === currentProject.projectId)
+        : undefined
+
+      if (!selectedProjectResp) {
+        if (responseData.length > 0) {
+          const firstProject = responseData[0]
+          dispatch(updateCurrentProject({
+            name: firstProject.properties.name,
+            id: firstProject.properties.id,
+          }))
+        } else {
+          dispatch(updateCurrentProject({ name: '', id: '' }))
+        }
+        // The previously selected site no longer applies.
+        dispatch(updateProjectSite({ name: '', id: '' }))
+      } else if (
+        projectSite.siteId &&
+        projectSite.siteId !== 'other' &&
+        !(selectedProjectResp.properties?.sites || []).some(
+          (s: any) => s.id === projectSite.siteId
+        )
+      ) {
+        // Project kept, but the selected site lost access. Clear the site.
+        dispatch(updateProjectSite({ name: '', id: '' }))
+      }
+
+      addNewLog({
+        logType: 'PROJECTS',
+        message: 'Project Fetched',
+        logLevel: 'info',
+        statusCode: '000',
+      })
+    } else {
+      dispatch(updateProjectError(true))
+      addNewLog({
+        logType: 'PROJECTS',
+        message: 'Error while syncing project',
+        logLevel: 'error',
+        statusCode: '000',
+      })
+    }
+
+    loadProjects()
+  }, [isLoggedIn, currentProject.projectId, projectSite.siteId, addAllProjects, addNewLog, dispatch, loadProjects])
+
+  // Manual refresh: pull the latest projects from the API on user tap.
+  // Shows a spinner while the fetch + Realm sync runs.
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return
+    setIsRefreshing(true)
+    try {
+      await fetchAndSyncProjects()
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [isRefreshing, fetchAndSyncProjects])
+
   // Modal handlers
   const handlePresentModal = useCallback(() => {
     bottomSheetModalRef.current?.present()
@@ -122,9 +227,21 @@ const ProjectModal = (props: Props) => {
 
   const closeModal = useCallback(() => {
     bottomSheetModalRef.current?.dismiss()
-    toggleModal()
+  }, [])
+
+  // Runs on every dismiss path (close button, backdrop, swipe-down,
+  // programmatic). Clears all triggers so a Home remount (e.g. the
+  // navigation reset after registering an intervention) does not
+  // re-present the modal from stale flags.
+  const handleSheetDismiss = useCallback(() => {
     dispatch(updateProjectModal(false))
-  }, [toggleModal, dispatch])
+    dispatch(updateLastProject(0))
+    // Only flip the parent's local state when it is the open trigger;
+    // a blind toggle would set it to true and re-open the modal.
+    if (isVisible) {
+      toggleModal()
+    }
+  }, [dispatch, isVisible, toggleModal])
 
   // Navigation handlers
   const createNewProject = useCallback(() => {
@@ -179,13 +296,23 @@ const ProjectModal = (props: Props) => {
     [closeModal]
   )
 
-  // Effect to handle modal visibility
+  // Background sync: keep Realm projects in step on home load, on login
+  // state change, and whenever a project refetch/refresh is requested.
+  // Does not present the modal.
+  useEffect(() => {
+    fetchAndSyncProjects()
+  }, [isLoggedIn, refetchProject, refreshProject, fetchAndSyncProjects])
+
+  // Effect to handle modal visibility. Always fetch when the modal shows up
+  // (login + internet are checked inside fetchAndSyncProjects), and show the
+  // cached Realm data immediately while the fetch runs.
   useEffect(() => {
     if (isVisible || toggleProjectModal || lastProjectAdded) {
       loadProjects()
+      fetchAndSyncProjects()
       handlePresentModal()
     }
-  }, [isVisible, toggleProjectModal, lastProjectAdded, loadProjects, handlePresentModal, dispatch])
+  }, [isVisible, toggleProjectModal, lastProjectAdded, loadProjects, fetchAndSyncProjects, handlePresentModal, dispatch])
 
   // Effect to handle initial map bounds update
   useEffect(() => {
@@ -221,7 +348,7 @@ const ProjectModal = (props: Props) => {
         }
       }
     } catch (error) {
-      console.log("Error processing project geometry:", error)
+      console.error("Error processing project geometry:", error)
     }
   }, [currentProject.projectId, projectSite.siteId, updateMapBoundsForGeometry])
 
@@ -285,6 +412,7 @@ const ProjectModal = (props: Props) => {
       handleStyle={styles.handleStyle}
       enableContentPanningGesture={false}
       enablePanDownToClose={true}
+      onDismiss={handleSheetDismiss}
       backdropComponent={backdropComponent}
       backgroundStyle={{ backgroundColor: 'transparent' }}
       keyboardBehavior="interactive"
@@ -299,6 +427,18 @@ const ProjectModal = (props: Props) => {
                 {toggleProjectModal ? "Select Project" : i18next.t('label.zoom_to_site')}
               </Text>
               <View style={styles.divider} />
+              <TouchableOpacity
+                style={styles.iconWrapper}
+                onPress={handleRefresh}
+                disabled={isRefreshing}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                {isRefreshing ? (
+                  <ActivityIndicator size="small" color={Colors.NEW_PRIMARY} />
+                ) : (
+                  <RefreshIcon width={20} height={20} />
+                )}
+              </TouchableOpacity>
               <TouchableOpacity style={styles.iconWrapper} onPress={closeModal}>
                 <CloseIcon width={20} height={20} />
               </TouchableOpacity>

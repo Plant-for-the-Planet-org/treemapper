@@ -1,6 +1,8 @@
 import {StyleProp} from 'react-native'
 import React from 'react'
 import { GeoJSONSource, Layer, LineLayerStyle } from '@maplibre/maplibre-react-native'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
 import {Colors} from 'src/utils/constants'
 
 const polyline: StyleProp<LineLayerStyle> = {
@@ -46,6 +48,9 @@ interface Props {
 
 const MapShapeSource = (props: Props) => {
   const {geoJSON, onShapeSourcePress, showError} = props
+  const isSatellite = useSelector(
+    (state: RootState) => state.displayMapState.mainMapView === 'SATELLITE'
+  )
   const pressHandle = (el: any) => {
     onShapeSourcePress(el.properties.id)
   }
@@ -66,7 +71,11 @@ const MapShapeSource = (props: Props) => {
                 <Layer
                   id={'singleSelectedPolyCircle' + feature.properties.id}
                   type="circle"
-                  style={bigCircleStyle}
+                  style={{
+                    ...bigCircleStyle,
+                    circleStrokeWidth: 2,
+                    circleStrokeColor: isSatellite ? Colors.NEW_PRIMARY : Colors.WHITE,
+                  }}
                 />
               </GeoJSONSource>
             )

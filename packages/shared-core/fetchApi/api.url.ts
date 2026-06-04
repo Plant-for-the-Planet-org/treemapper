@@ -60,6 +60,7 @@ export const postUrlApi = {
   submitSiteReviewDecision: `${baseUrl}/approval-board/projects`,
   addAdminSiteComment: `${baseUrl}/approval-board/projects`,
   addFieldWorkerSiteComment: `${baseUrl}/approval-board/sites`,
+  generateProjectApiKey: `${baseUrl}/projects`,
 } as const;
 
 
@@ -96,6 +97,8 @@ export const getUrlApi = {
   getAllWorkspaces: `${baseUrl}/workspace/all`,
   getProjectMap: `${baseUrl}/interventions`,
   getProjectTreeMap: `${baseUrl}/interventions`,
+  getSiteInterventionsMap: `${baseUrl}/interventions`,
+  getProjectSitesMap: `${baseUrl}/projects`,
   getProjectAnalytics: `${baseUrl}/analytics`,
   getApprovalBoard: `${baseUrl}/interventions/approval/board`,
   getProjectRequiresApproval: `${baseUrl}/approval-board/projects`,
@@ -114,6 +117,7 @@ export const getUrlApi = {
   // Workspace-level approval queues
   getWorkspaceReviewQueue: `${baseUrl}/approval-board/workspaces`,
   getWorkspaceSiteReviewQueue: `${baseUrl}/approval-board/workspaces`,
+  projectApiKey: `${baseUrl}/projects`,
 } as const;
 
 export const patchUrlApi = {
@@ -137,6 +141,7 @@ export const deleteUrlApi = {
   deletePrjIntervention: `${baseUrl}/interventions`,
   deleteProject: `${baseUrl}/projects`,
   deleteProjectImage: `${baseUrl}/projects`,
+  revokeProjectApiKey: `${baseUrl}/projects`,
 } as const;
 
 export const putUrlApi = {

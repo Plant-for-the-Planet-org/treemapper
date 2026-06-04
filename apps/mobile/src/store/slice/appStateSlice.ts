@@ -19,8 +19,6 @@ const initialState: AppInitialState = {
   updateAppCount: 10,
   imageSize: 0,
   refetchProject: '',
-  showNewAppModal: false,
-  newFeatureRequest: false,
   userProjectSpecies: [],
 }
 
@@ -61,6 +59,7 @@ const appStateSlice = createSlice({
       state.userSpecies = action.payload
     },
     updateUserPojectSpecies(state, action: PayloadAction<IScientificSpecies[]>) {
+      console.log('Updating user project species in state with', action.payload, 'species')
       state.userProjectSpecies = action.payload
     },
     updateLastSyncData(state, action: PayloadAction<number>) {
@@ -74,12 +73,6 @@ const appStateSlice = createSlice({
     },
     updateRefetchProject(state) {
       state.refetchProject = String(new Date())
-    },
-    updateNewAppModal(state) {
-      state.showNewAppModal = true
-    },
-    updateNewFeatureRequest(state) {
-      state.newFeatureRequest = true
     },
     setUpdateAppCount(state) {
       if (state.updateAppCount > 0) {
@@ -100,6 +93,6 @@ const appStateSlice = createSlice({
   },
 })
 
-export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData, updateRefetchProject, updateNewAppModal, updateNewFeatureRequest, updateUserPojectSpecies } = appStateSlice.actions
+export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData, updateRefetchProject, updateUserPojectSpecies } = appStateSlice.actions
 
 export default appStateSlice.reducer

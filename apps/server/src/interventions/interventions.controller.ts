@@ -20,6 +20,7 @@ import {
   CreateInterventionDto,
   InterventionResponseDto,
   CreateInterventionBulkDto,
+  CreateBulkSingleTreePlanDto,
   CreateCustomBulkDto,
   GetProjectInterventionsQueryDto,
   GetProjectInterventionsResponseDto,
@@ -51,6 +52,26 @@ export class InterventionsController {
     @Membership() membership: any
   ): Promise<InterventionResponseDto> {
     return this.interventionsService.createNewInterventionWeb(createInterventionDto, membership);
+  }
+
+  @Post('/projects/:id/web/plan')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async createPlannedInterventionWeb(
+    @Body() dto: any,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<any> {
+    return this.interventionsService.createPlannedInterventionWeb(dto, membership);
+  }
+
+  @Post('/projects/:id/web/plan/bulk-single')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async createBulkSingleTreePlanWeb(
+    @Body() dto: CreateBulkSingleTreePlanDto,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<any> {
+    return this.interventionsService.createBulkSingleTreePlanWeb(dto, membership);
   }
 
   @Get('/projects/:id')
@@ -122,12 +143,14 @@ export class InterventionsController {
     @Param('interventionId') interventionId: string,
     @Body() transferDto: any,
     @CurrentUser() req: any,
+    @Membership() membership: ProjectGuardResponse,
   ): Promise<any> {
     const requesterId = req.user?.id || req.user?.sub;
     return await this.interventionsService.interventionEdit(
       interventionId,
       transferDto,
       requesterId,
+      membership.projectId,
     );
   }
 
@@ -139,6 +162,7 @@ export class InterventionsController {
     @Param('interventionId', ParseIntPipe) interventionId: number,
     @Body() transferDto: TransferInterventionOwnershipDto,
     @CurrentUser() req: any, // Replace with your user request type
+    @Membership() membership: ProjectGuardResponse,
   ): Promise<any> {
     // Validate intervention ID
     if (interventionId <= 0) {
@@ -155,6 +179,7 @@ export class InterventionsController {
       interventionId,
       transferDto,
       requesterId,
+      membership.projectId,
     );
   }
 
@@ -167,6 +192,7 @@ export class InterventionsController {
     @Param('speciesId') speciesId: string,
     @Body() updateDto: UpdateInterventionSpeciesDto,
     @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
   ) {
     try {
       const result = await this.interventionsService.updateInterventionSpecies(
@@ -174,6 +200,7 @@ export class InterventionsController {
         speciesId,
         updateDto,
         user.id,
+        membership.projectId,
       );
       return {
         success: true,
@@ -243,7 +270,7 @@ export class InterventionsController {
   @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
   async deleteMyIntervention(@Param('interventionId') interventionId: string, @Membership() membership: ProjectGuardResponse,) {
-    const data = await this.interventionsService.deleteMyIntervention(interventionId, membership.userId);
+    const data = await this.interventionsService.deleteMyIntervention(interventionId, membership.userId, membership.projectId);
     return data
   }
 
@@ -343,6 +370,16 @@ export class InterventionsController {
     return data
   }
 
+  @Get(':id/sites/:siteUid/map')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async getSiteMap(
+    @Param('siteUid') siteUid: string,
+    @Membership() membership: ProjectGuardResponse,
+  ) {
+    return this.interventionsService.getSiteMapInterventions(membership.projectId, siteUid);
+  }
+
   @Get(':id/map/tree')
   @ProjectRoles('owner', 'admin', 'contributor')
   @UseGuards(ProjectPermissionsGuard)
@@ -377,6 +414,28 @@ export class InterventionsController {
     }
   }
 
+  @Get(':id/intervention/:interventionId/detail')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async getInterventionDetail(
+    @Param('interventionId', ParseIntPipe) interventionId: number,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<any> {
+    try {
+      const data = await this.interventionsService.getInterventionFullDetail(
+        interventionId,
+        membership.projectId,
+      );
+      return { success: true, statusCode: 200, data };
+    } catch (error: any) {
+      if (error instanceof HttpException) throw error;
+      throw new HttpException(
+        error?.message || 'Failed to fetch intervention detail',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Get('trees/:treeHid/:id/records')
   @ProjectRoles('owner', 'admin', 'contributor', 'observer')
   @UseGuards(ProjectPermissionsGuard)
@@ -394,6 +453,28 @@ export class InterventionsController {
       if (error instanceof HttpException) throw error;
       throw new HttpException(
         error.message || 'Failed to fetch tree records',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('trees/:treeHid/:id/detail')
+  @ProjectRoles('owner', 'admin', 'contributor', 'observer')
+  @UseGuards(ProjectPermissionsGuard)
+  async getTreeDetail(
+    @Param('treeHid') treeHid: string,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<any> {
+    try {
+      const result = await this.interventionsService.getTreeDetail(
+        treeHid,
+        membership.projectId,
+      );
+      return { success: true, statusCode: 200, data: result };
+    } catch (error: any) {
+      if (error instanceof HttpException) throw error;
+      throw new HttpException(
+        error.message || 'Failed to fetch tree detail',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

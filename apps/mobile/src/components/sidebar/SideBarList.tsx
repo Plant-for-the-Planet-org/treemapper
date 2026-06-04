@@ -27,9 +27,7 @@ const SideBarList = (props: Props) => {
   const UserType = useSelector(
     (state: RootState) => state.userState.type
   )
-  const v3Approved = useSelector(
-    (state: RootState) => state.userState.v3Approved
-  )
+
   const data: SideDrawerItem[] = [
     {
       label: t('label.manage_species'),
@@ -42,7 +40,7 @@ const SideBarList = (props: Props) => {
       label: t('label.manage_project'),
       screen: 'ManageProjects',
       icon: <ManageProjectIcon width={SCALE_24} height={SCALE_24} />,
-      visible: v3Approved,
+      visible: true,
       key: 'manage_projects'
     },
     {
@@ -67,20 +65,6 @@ const SideBarList = (props: Props) => {
       visible: true,
       key: 'guide'
     },
-    // {
-    //   label: i18next.t('label.data_explorer'),
-    //   screen: 'DataExplorer',
-    //   icon: <DataExplorerIcon width={SCALE_24} height={SCALE_24} />,
-    //   visible: v3Approved,
-    //   key: 'data_explorer'
-    // },
-    // {
-    //   label: 'New Features',
-    //   screen: 'TreeMapperFeaturesScreen',
-    //   icon: <Ionicons name={'leaf'} size={24} color="#007A49" />,
-    //   visible: !v3Approved && UserType!=='',
-    //   key: 'features'
-    // },
     {
       label: t('label.activity_logs'),
       screen: 'ActivityLog',
@@ -105,7 +89,7 @@ const SideBarList = (props: Props) => {
       label: "Delete Account",
       screen: 'DeleteAccount',
       icon: <View style={styles.binIconWrapper}><BinIcon width={15} height={15} fill={'#fff'} /></View>,
-      visible: (isLoggedIn && UserType !== 'tpo') || (isLoggedIn && v3Approved),
+      visible: true,
       key: 'delete'
     },
     {
@@ -120,6 +104,8 @@ const SideBarList = (props: Props) => {
     <View style={styles.container}>
       <FlatList
         data={data}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <SideBarCard
             item={item}
@@ -143,6 +129,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginTop: 10,
+  },
+  listContent: {
+    paddingBottom: 100,
   },
   binIconWrapper: {
     width: SCALE_24,

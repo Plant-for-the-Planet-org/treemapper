@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { Open_Sans } from 'next/font/google'
@@ -66,11 +67,15 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {/* Mobile App Redirect Component */}
-        <MobileAppRedirect />
-        
+        <Suspense fallback={null}>
+          <MobileAppRedirect />
+        </Suspense>
+
         <ThemeProvider>
           <TooltipProvider delayDuration={300}>
-            <AuthInitializer />
+            <Suspense fallback={null}>
+              <AuthInitializer />
+            </Suspense>
             <I18nProvider>
               {children}
             </I18nProvider>

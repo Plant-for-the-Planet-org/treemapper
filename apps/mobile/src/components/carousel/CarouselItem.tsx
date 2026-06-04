@@ -4,8 +4,8 @@ import React from 'react'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
-import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
-import { SCALE_36 } from 'src/utils/constants/spacing'
+import UploadSpecieIcon from 'assets/images/svg/UploadSpecieIcon.svg'
+import { SCALE_56 } from 'src/utils/constants/spacing'
 import InterventionIconSwitch from '../intervention/InterventionIconSwitch'
 import i18next from 'src/locales/index'
 import { updateFilePath } from 'src/utils/helpers/fileSystemHelper'
@@ -16,10 +16,11 @@ interface Props {
   data: any
   onPress: ((id: string, tree_id?: string) => void)
   remeasure: ((id: string, tree_id?: string) => void)
+  isPlanned?: boolean
 }
 
 const CarouselItem = (props: Props) => {
-  const { data, onPress, remeasure } = props
+  const { data, onPress, remeasure, isPlanned } = props
   const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
 
   if (data?.tree_type) {
@@ -29,7 +30,7 @@ const CarouselItem = (props: Props) => {
       onPress(data.intervention_id, data.tree_id)
     }}>
       <View style={styles.imageWrapper}>
-        {hasImage ? <ExpoImage.Image cachePolicy='memory-disk' style={styles.imageContainer} source={{ uri: uri }} /> : <SingleTreeIcon width={SCALE_36} height={SCALE_36} />
+        {hasImage ? <ExpoImage.Image cachePolicy='memory-disk' style={styles.imageContainer} source={{ uri: uri }} /> : <UploadSpecieIcon width={SCALE_56} height={SCALE_56} />
         }
       </View>
       <View style={styles.sectionWrapper}>
@@ -47,7 +48,13 @@ const CarouselItem = (props: Props) => {
       }}>
         <Text style={styles.nextButtonLabel}>{i18next.t("label.remeasure")}</Text>
       </TouchableOpacity>: null} */}
-      {v3Approved  && data.status === 'SYNCED' ? <TouchableOpacity style={styles.nextButton} onPress={() => {
+      {isPlanned ? <TouchableOpacity style={styles.nextButton} onPress={() => {
+        onPress(data.intervention_id, data.tree_id)
+      }}>
+        <Text style={styles.nextButtonLabel}>Add details</Text>
+      </TouchableOpacity> : !data.is_alive ? <View style={styles.deadBadge}>
+        <Text style={styles.deadBadgeLabel}>{i18next.t("label.dead")}</Text>
+      </View> : data.status === 'SYNCED' ? <TouchableOpacity style={styles.nextButton} onPress={() => {
         remeasure(data.intervention_id, data.tree_id)
       }}>
         <Text style={styles.nextButtonLabel}>{i18next.t("label.remeasure")}</Text>
@@ -152,5 +159,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.WHITE
+  },
+  deadBadge: {
+    height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    backgroundColor: Colors.GRAY_LIGHT,
+    borderRadius: 12,
+    paddingHorizontal: 10
+  },
+  deadBadgeLabel: {
+    fontSize: 12,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: Colors.TEXT_COLOR
   }
 })

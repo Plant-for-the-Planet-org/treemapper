@@ -92,7 +92,7 @@ const SpeciesSearchView = () => {
           />
         }
         keyboardDismissMode='interactive'
-        ListEmptyComponent={<EmptySpeciesSearchList />}
+        ListEmptyComponent={<EmptySpeciesSearchList onPressSync={() => setShowSpeciesSyncAlert(true)} />}
       />
       <AlertModal
         visible={showSpeciesSyncAlert}

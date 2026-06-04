@@ -31,7 +31,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -51,7 +50,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -87,7 +85,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -103,7 +100,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -129,7 +125,6 @@ const useMonitoringPlotManagement = () => {
       })
       return true
     } catch (error) {
-      console.error('Error deleting image record:', error)
       return false
     }
   }
@@ -156,7 +151,6 @@ const useMonitoringPlotManagement = () => {
       })
       return true
     } catch (error) {
-      console.error('Error adding image record:', error)
       return false
     }
   }
@@ -173,7 +167,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -190,7 +183,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -210,7 +202,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -225,7 +216,6 @@ const useMonitoringPlotManagement = () => {
         }
       });
       return true    } catch (error) {
-      console.error('Error during update:', error);
  return false;
     }
   };
@@ -245,7 +235,6 @@ const useMonitoringPlotManagement = () => {
         })
       });
       return true    } catch (error) {
-      console.error('Error during update:', error);
  return false;
     }
   };
@@ -265,7 +254,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -300,7 +288,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -323,7 +310,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -356,7 +342,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -373,7 +358,6 @@ const useMonitoringPlotManagement = () => {
         plotDetails.plot_updated_at = Date.now()
       })
       return true    } catch (error) {
-      console.error('Error during update:', error);
  return false;
     }
   };
@@ -390,7 +374,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -411,7 +394,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -429,7 +411,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -448,7 +429,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -464,7 +444,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -484,7 +463,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -503,7 +481,6 @@ const useMonitoringPlotManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }

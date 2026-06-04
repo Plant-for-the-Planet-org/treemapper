@@ -13,6 +13,8 @@ import i18next from 'src/locales'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import SatelliteIconWrapper from '../map/SatelliteIconWrapper'
+import SatelliteLayer from 'assets/mapStyle/satelliteView'
 
 
 
@@ -32,6 +34,9 @@ const OfflineMapDisplay = () => {
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
+  const mainMapView = useSelector(
+    (state: RootState) => state.displayMapState.mainMapView,
+  )
 
   const { createNewOfflineMap } = useOfflineMapManager()
 
@@ -47,7 +52,6 @@ const OfflineMapDisplay = () => {
   }
 
   const errorListener = async (offlineRegion, status) => {
-    console.log("Error", offlineRegion, status)
   }
 
   const alert = (message: string) => {
@@ -93,7 +97,6 @@ const OfflineMapDisplay = () => {
       );
     } catch (err) {
       setIsLoaderShow(false);
-      console.log("err", err)
     }
   };
 
@@ -109,10 +112,11 @@ const OfflineMapDisplay = () => {
             attribution={false}
             onDidFinishLoadingMap={handleCamera}
             onRegionDidChange={(e) => setVisibleBounds(e.nativeEvent.bounds)}
-            mapStyle={MapStyle}>
+            mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
             <Camera ref={cameraRef} />
             <UserLocation heading minDisplacement={1} />
           </Map>
+          <SatelliteIconWrapper bottom={20} />
         </View>
         <CustomButton
           label="Save Area"

@@ -1,0 +1,58 @@
+#!/bin/sh
+# Dependency-pin guard.
+#
+# Dependencies in this repo are pinned to EXACT versions on purpose (supply-chain
+# safety + reproducible installs). This hook stops a commit that changes any
+# dependency file until the author confirms they meant to.
+#
+# To proceed once you have rethought the change, re-run the commit with:
+#     ALLOW_DEP_CHANGE=1 git commit ...
+#
+# Do not bypass with --no-verify.
+
+# Files that count as a dependency change.
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+
+deps=$(printf '%s\n' "$staged" | grep -E '(^|/)package\.json$|(^|/)yarn\.lock$|(^|/)\.yarnrc$|(^|/)\.npmrc$' || true)
+
+[ -z "$deps" ] && exit 0
+
+if [ "$ALLOW_DEP_CHANGE" = "1" ]; then
+  echo "dep-guard: ALLOW_DEP_CHANGE=1 set, allowing dependency change." >&2
+  exit 0
+fi
+
+cat >&2 <<'MSG'
+
+  ──────────────────────────────────────────────────────────────
+   STOP: you are changing pinned dependencies
+  ──────────────────────────────────────────────────────────────
+
+  A developer pinned every package in this repo to an EXACT version
+  on purpose. This blocks silent minor/patch upgrades from npm and
+  keeps installs reproducible across the team.
+
+  You are committing changes to:
+MSG
+
+printf '%s\n' "$deps" | sed 's/^/       - /' >&2
+
+cat >&2 <<'MSG'
+
+  Before you continue, rethink:
+    - Do you really need to upgrade, or just install? A plain
+      `yarn install` needs no manifest change.
+    - New deps must be pinned exact (no ^ or ~). `.yarnrc` already
+      enforces this for `yarn add`.
+    - An upgrade can pull a vulnerable or breaking version. Review it
+      and tell the team.
+
+  If you meant this, re-run:
+
+      ALLOW_DEP_CHANGE=1 git commit ...
+
+  ──────────────────────────────────────────────────────────────
+
+MSG
+
+exit 1

@@ -26,6 +26,7 @@ import AlertModal from '../common/AlertModal'
 import PolygonTracker from './PolygonTracker'
 import bbox from '@turf/bbox'
 import MapZoomScale from './MapZoomScale'
+import SiteMapSource from './SiteMapSource'
 
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -36,10 +37,11 @@ interface Props {
   species_required: boolean
   form_id: string
   intervention_key: string
+  siteId?: string
 }
 
 const PolygonMarkerMap = (props: Props) => {
-  const { species_required, form_id, intervention_key } = props
+  const { species_required, form_id, intervention_key, siteId } = props
   const [currentCoordinate, setCurrentCoordinate] = useState({
     id: 'A',
     index: 0,
@@ -58,9 +60,6 @@ const PolygonMarkerMap = (props: Props) => {
   )
   const user = useSelector(
     (state: RootState) => state.userState.type,
-  )
-  const v3Approved = useSelector(
-    (state: RootState) => state.userState.v3Approved,
   )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updateInterventionLocation } = useInterventionManagement()
@@ -224,7 +223,6 @@ const PolygonMarkerMap = (props: Props) => {
 
   const proceedTrackComplete = async () => {
     // setCoordinates([...finalCoordinates])
-    console.log("SDsd", trackingGeoJSON)
     const data = makeInterventionGeoJson('Point', trackingGeoJSON[0], form_id)
     const result = await updateInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
     if (!result) {
@@ -327,6 +325,12 @@ const PolygonMarkerMap = (props: Props) => {
         mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
         <Camera ref={cameraRef} trackUserLocation={trackingState === 'start' ? 'course' : undefined} />
         <UserLocation heading minDisplacement={1} />
+        {/* Boundary of the site picked for this intervention, outline only.
+            site_id is 'other' (or empty) when no real site was chosen --
+            in that case no boundary is drawn. */}
+        {!!siteId && siteId !== 'other' && (
+          <SiteMapSource isSatellite={mainMapView === 'SATELLITE'} siteId={siteId} />
+        )}
         {!isTracking && <>
           <LineMarker coordinates={coordinates} isSatellite={mainMapView === 'SATELLITE'} />
           <AlphabetMarkers coordinates={coordinates} />
@@ -423,7 +427,7 @@ const PolygonMarkerMap = (props: Props) => {
         /> : null
       }
       {!isTracking && <ActiveMarkerIcon />}
-      {!isTracking && <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={user === 'tpo' || v3Approved} />
+      {!isTracking && <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={true} />
       }
       <AlertModal
         visible={trackerModal}

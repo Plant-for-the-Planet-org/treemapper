@@ -101,7 +101,7 @@ const CameraMainView = (props: Props) => {
       <>
         <Camera
           device={device}
-          isActive={!loading}
+          isActive={true}
           style={styles.cameraWrapper}
           ref={cameraRef}
           outputs={[photoOutput]}

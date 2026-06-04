@@ -1,6 +1,7 @@
 // src/main.ts
 import { NestFactory, Reflector } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import compression from '@fastify/compress';
 import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -27,12 +28,33 @@ async function bootstrap() {
       logger.log(`${request.method} ${request.url}`);
     });
 
+    // Open CORS for the public external API. These routes are @Public() and
+    // read-only, so any origin may call them from a browser. No credentials
+    // are used here, which is what lets us safely return a wildcard origin --
+    // separate from the strict, credentialed policy below used for auth routes.
+    app.getHttpAdapter().getInstance().addHook('onRequest', async (request, reply) => {
+      if (request.url.startsWith('/api/external/')) {
+        reply.header('Access-Control-Allow-Origin', '*');
+        reply.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        reply.header(
+          'Access-Control-Allow-Headers',
+          request.headers['access-control-request-headers'] || 'Content-Type, Accept',
+        );
+        reply.header('Access-Control-Max-Age', '86400');
+        if (request.method === 'OPTIONS') {
+          reply.code(204).send();
+        }
+      }
+    });
+
     const isProduction = process.env.NODE_ENV === 'production';
 
     // Environment-based CORS configuration
     const corsOrigins = isProduction
       ? process.env.CORS_ORIGINS?.split(',') || [`https://${process.env.HEROKU_APP_NAME}.herokuapp.com`]
       : ['http://127.0.0.1:3000', 'http://localhost:3000'];
+
+    await app.register(compression, { global: true });
 
     app.enableCors({
       origin: corsOrigins,

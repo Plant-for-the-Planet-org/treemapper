@@ -35,6 +35,8 @@ const InterventionCard = (props: Props) => {
   const renderFixLabel = () => {
     if (item.fix_required === "PROJECT_ID_MISSING") {
       return "Project not assigned";
+    } else if (item.fix_required === "SERVER_REJECTED") {
+      return "Upload rejected";
     } else {
       return "Fix Required";
     }

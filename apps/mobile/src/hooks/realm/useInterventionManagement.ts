@@ -69,7 +69,7 @@ const useInterventionManagement = () => {
       locate_tree: '',
       remeasurement_required: false,
       next_measurement_date: 0,
-      intervention_end_date: intervention.intervention_date,
+      intervention_end_date: 0,
       fix_required: 'NO'
     }
     try {
@@ -99,10 +99,25 @@ const useInterventionManagement = () => {
     }
   }
 
+  const interventionExistsByHid = (hid: string): boolean => {
+    if (!hid) {
+      return false
+    }
+    const existing = realm
+      .objects<InterventionData>(RealmSchema.Intervention)
+      .filtered('hid == $0', hid)
+    return existing.length > 0
+  }
+
   const addNewIntervention = async (
     intervention: InterventionData,
   ): Promise<boolean> => {
     try {
+      // Skip if an intervention with the same HID is already stored, to avoid
+      // creating a duplicate copy of the same server intervention.
+      if (interventionExistsByHid(intervention.hid)) {
+        return true
+      }
       realm.write(() => {
         realm.create(
           RealmSchema.Intervention,
@@ -121,6 +136,54 @@ const useInterventionManagement = () => {
       })
       return false
     }
+  }
+
+  // Upserts a server intervention into Realm during a manual refresh.
+  // - Not stored locally yet -> add it.
+  // - Stored and local copy is SYNCED (no pending local edits) -> overwrite it
+  //   with the server version so edits made on the web show up on device.
+  // - Stored but local copy is not SYNCED -> it has local changes that have not
+  //   reached the server yet, so skip it to avoid clobbering that work.
+  const refreshSyncedIntervention = async (
+    intervention: InterventionData,
+  ): Promise<'added' | 'updated' | 'skipped'> => {
+    try {
+      const existing = realm.objectForPrimaryKey<InterventionData>(
+        RealmSchema.Intervention,
+        intervention.intervention_id,
+      )
+      if (existing && existing.status !== 'SYNCED') {
+        return 'skipped'
+      }
+      realm.write(() => {
+        realm.create(
+          RealmSchema.Intervention,
+          intervention,
+          Realm.UpdateMode.All,
+        )
+      })
+      return existing ? 'updated' : 'added'
+    } catch (error) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error occurred while refreshing server intervention ' + intervention.intervention_id,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error),
+      })
+      return 'skipped'
+    }
+  }
+
+  const interventionExists = (intervention_id: string): boolean => {
+    if (!intervention_id) {
+      return false
+    }
+    const existing = realm.objectForPrimaryKey<InterventionData>(
+      RealmSchema.Intervention,
+      intervention_id,
+    )
+    return existing !== null
   }
 
   const addMigrationInventory = async (
@@ -192,7 +255,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -200,13 +262,11 @@ const useInterventionManagement = () => {
   const updateSampleTreeImage = async (interventionID: string, treeId: string, imageUrl: string): Promise<boolean> => {
     try {
       realm.write(() => {
-        console.log("interventionID", interventionID)
         const intervention = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
         intervention.image_url = imageUrl
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -225,7 +285,51 @@ const useInterventionManagement = () => {
 
       return true
     } catch (error) {
-      console.error('Error during update:', error);
+      return false;
+    }
+  };
+
+  const updatePlannedTreeLocation = async (interventionID: string, treeId: string, longitude: number, latitude: number, accuracy?: number): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
+        treeDetails.latitude = latitude
+        treeDetails.longitude = longitude
+        if (accuracy !== undefined) {
+          treeDetails.location_accuracy = String(accuracy)
+        }
+        treeDetails.image_data = {
+          ...treeDetails.image_data,
+          latitude,
+          longitude,
+        }
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        intervention.location_type = 'Point'
+        intervention.location = {
+          type: 'Point',
+          coordinates: JSON.stringify([[longitude, latitude]]),
+        }
+        intervention.coords = {
+          type: 'Point',
+          coordinates: [longitude, latitude],
+        }
+        intervention.last_updated_at = Date.now()
+      });
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: `Planned tree location updated for intervention(${interventionID}).`,
+        logLevel: 'info',
+        statusCode: '',
+      })
+      return true
+    } catch (error) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: `Error while updating planned tree location for intervention(${interventionID}).`,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
       return false;
     }
   };
@@ -329,7 +433,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -355,7 +458,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -369,7 +471,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -639,7 +740,6 @@ const useInterventionManagement = () => {
       })
       return true
     } catch (error) {
-      console.log("Error", error)
       addNewLog({
         logType: 'INTERVENTION',
         message: 'Error while updating additional for intervention' + `(${interventionID}).`,
@@ -676,6 +776,73 @@ const useInterventionManagement = () => {
       })
       return false;
     }
+  };
+
+  const markPlannedInterventionSynced = async (interventionID: string, treeId: string, treeHid: string, treeUid: string, cdnImage?: string): Promise<boolean> => {
+    let foundIntervention = false;
+    let foundTree = false;
+    // Critical write: flip statuses to SYNCED. Kept minimal so nothing here can
+    // throw and roll back the status change (that was the bug: a failure on the
+    // image_data line below rolled back the whole transaction, leaving the
+    // intervention stuck at PENDING_DATA_UPLOAD even though the server saved it).
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        if (intervention) {
+          foundIntervention = true;
+          intervention.status = 'SYNCED'
+          intervention.last_updated_at = Date.now()
+          intervention.is_planned = false
+        }
+        const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
+        if (treeDetails) {
+          foundTree = true;
+          treeDetails.status = 'SYNCED'
+          if (treeHid) treeDetails.hid = treeHid
+          if (treeUid) treeDetails.sloc_id = treeUid
+        }
+      });
+    } catch (error) {
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: 'DB status write error Planned intervention ' + interventionID,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      return false;
+    }
+
+    // Best-effort write: image metadata is cosmetic. A failure here must not undo
+    // the SYNCED status above, so it runs in its own transaction + try/catch.
+    try {
+      realm.write(() => {
+        const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
+        if (treeDetails) {
+          if (cdnImage) treeDetails.cdn_image_url = cdnImage
+          treeDetails.image_data = {
+            ...treeDetails.image_data,
+            isImageUploaded: !!cdnImage,
+          }
+        }
+      });
+    } catch (imageError) {
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: 'Planned intervention image metadata write failed (non-fatal) ' + interventionID,
+        logLevel: 'warn',
+        statusCode: '',
+        logStack: JSON.stringify(imageError)
+      })
+    }
+
+    addNewLog({
+      logType: 'DATA_SYNC',
+      message: `Planned synced foundIntervention=${foundIntervention} foundTree=${foundTree} id=${interventionID} treeId=${treeId}`,
+      logLevel: foundIntervention ? 'info' : 'error',
+      statusCode: '',
+    })
+    return foundIntervention
   };
 
   const updateTreeStatus = async (tree_id: string, hid: string, sloc_id: string, status: INTERVENTION_STATUS, parent_id: string, coordinates: any): Promise<boolean> => {
@@ -845,7 +1012,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -879,7 +1045,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -899,7 +1064,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -916,7 +1080,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -941,7 +1104,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -957,12 +1119,11 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
 
-  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount }
+  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, refreshSyncedIntervention, interventionExists, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount, updatePlannedTreeLocation, markPlannedInterventionSynced }
 }
 
 export default useInterventionManagement

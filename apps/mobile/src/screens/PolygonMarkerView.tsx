@@ -46,7 +46,8 @@ const PolygonMarker = () => {
         rightComponent={<GpsAccuracyTile showModalInfo={setShowInfoModal} />} />
       <PolygonMarkerMap
         intervention_key={interventionData.intervention_key}
-        species_required={species_required} form_id={interventionData.form_id || interventionData.intervention_id} />
+        species_required={species_required} form_id={interventionData.form_id || interventionData.intervention_id}
+        siteId={interventionData.site_id} />
       <InfoModal isVisible={showInfoModal} toggleModal={setShowInfoModal} />
       <LocationPermissionModal/>
     </SafeAreaView>

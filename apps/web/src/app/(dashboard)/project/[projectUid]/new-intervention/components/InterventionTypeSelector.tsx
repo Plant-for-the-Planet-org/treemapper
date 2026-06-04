@@ -13,6 +13,12 @@ export const InterventionTypeSelector: React.FC<InterventionTypeSelectorProps> =
   setFormData
 }) => {
   const currentConfig = interventionConfigurations[formData.interventionType];
+  const PLANNABLE_TYPES = ['single-tree-registration', 'multi-tree-registration'];
+  const visibleConfigurations = formData.isPlanningMode
+    ? Object.fromEntries(
+        Object.entries(interventionConfigurations).filter(([key]) => PLANNABLE_TYPES.includes(key))
+      )
+    : interventionConfigurations;
 
   return (
     <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg p-8">
@@ -24,7 +30,7 @@ export const InterventionTypeSelector: React.FC<InterventionTypeSelectorProps> =
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        {Object.entries(interventionConfigurations).map(([key, config]) => (
+        {Object.entries(visibleConfigurations).map(([key, config]) => (
           <label
             key={key}
             className={`relative cursor-pointer group transition-all duration-200 ${formData.interventionType === key ? 'scale-105' : 'hover:scale-102'
@@ -40,7 +46,10 @@ export const InterventionTypeSelector: React.FC<InterventionTypeSelectorProps> =
                 interventionType: e.target.value,
                 species: [],
                 geoJSON: null,
-                geoJSONFile: null
+                geoJSONFile: null,
+                // Bulk single-tree only applies to single-tree registration.
+                multiSingleTree: e.target.value === 'single-tree-registration' ? prev.multiSingleTree : false,
+                multiTreePoints: e.target.value === 'single-tree-registration' ? prev.multiTreePoints : []
               }))}
               className="sr-only"
             />

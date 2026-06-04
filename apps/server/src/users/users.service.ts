@@ -1,6 +1,6 @@
 import { Injectable, ConflictException, BadRequestException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
-import { image, intervention, project, projectMember, survey, user, workspace, workspaceMember } from '../database/schema';
+import { image, intervention, project, projectMember, survey, user, userDevice, workspace, workspaceMember } from '../database/schema';
 import { AvatarDTO, CreateSurvey } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateDeviceDto } from './dto/create-device.dto';
@@ -50,7 +50,8 @@ export class UsersService {
         primaryWorkspaceUid: user.primaryWorkspaceUid,
         primaryProjectUid: user.primaryProjectUid,
         workspaceRole: user.workspaceRole,
-        v3ApprovedAt: user.v3ApprovedAt
+        v3ApprovedAt: user.v3ApprovedAt,
+        lastActiveAt: user.lastActiveAt
     } as const;
 
     private generateSlug(name: string): string {
@@ -484,79 +485,90 @@ export class UsersService {
         return await this.userCacheService.invalidateUser(user);
     }
 
-    // async registerOrUpdateDevice(userId: number, dto: CreateDeviceDto): Promise<{ uid: string; deviceId: string }> {
-    //     try {
-    //         const existingDevice = await this.drizzleService.db
-    //             .select({ id: userDevice.id, uid: userDevice.uid })
-    //             .from(userDevice)
-    //             .where(eq(userDevice.deviceId, dto.deviceId))
-    //             .limit(1);
+    // Upsert the device row for this user and stamp last-active on both the
+    // device and the user. Called on every app open. deviceId is unique, so a
+    // device that logs in as a new user has its ownership (userId) reassigned.
+    async registerOrUpdateDevice(userId: number, dto: CreateDeviceDto): Promise<{ uid: string; deviceId: string }> {
+        try {
+            return await this.drizzleService.db.transaction(async (tx) => {
+                const now = new Date();
 
-    //         const now = new Date();
+                const existingDevice = await tx
+                    .select({ id: userDevice.id, uid: userDevice.uid })
+                    .from(userDevice)
+                    .where(eq(userDevice.deviceId, dto.deviceId))
+                    .limit(1);
 
-    //         if (existingDevice.length > 0) {
-    //             const updateData: Partial<typeof userDevice.$inferInsert> = {
-    //                 userId,
-    //                 lastActiveAt: now,
-    //                 updatedAt: now,
-    //             };
+                // Keep the user's last-active in sync with the app-open call.
+                await tx
+                    .update(user)
+                    .set({ lastActiveAt: now })
+                    .where(eq(user.id, userId));
 
-    //             if (dto.oneSignalId !== undefined) updateData.oneSignalId = dto.oneSignalId;
-    //             if (dto.deviceOs !== undefined) updateData.deviceOs = dto.deviceOs;
-    //             if (dto.deviceName !== undefined) updateData.deviceName = dto.deviceName;
-    //             if (dto.deviceModel !== undefined) updateData.deviceModel = dto.deviceModel;
-    //             if (dto.osVersion !== undefined) updateData.osVersion = dto.osVersion;
-    //             if (dto.appVersion !== undefined) updateData.appVersion = dto.appVersion;
-    //             if (dto.locale !== undefined) updateData.locale = dto.locale;
-    //             if (dto.timezone !== undefined) updateData.timezone = dto.timezone;
-    //             if (dto.notificationPermission !== undefined) updateData.notificationPermission = dto.notificationPermission;
-    //             if (dto.isActive !== undefined) updateData.isActive = dto.isActive;
+                if (existingDevice.length > 0) {
+                    const updateData: Partial<typeof userDevice.$inferInsert> = {
+                        userId,
+                        lastActiveAt: now,
+                        updatedAt: now,
+                    };
 
-    //             await this.drizzleService.db
-    //                 .update(userDevice)
-    //                 .set(updateData)
-    //                 .where(eq(userDevice.deviceId, dto.deviceId));
+                    if (dto.oneSignalId !== undefined) updateData.oneSignalId = dto.oneSignalId;
+                    if (dto.deviceOs !== undefined) updateData.deviceOs = dto.deviceOs;
+                    if (dto.deviceName !== undefined) updateData.deviceName = dto.deviceName;
+                    if (dto.deviceModel !== undefined) updateData.deviceModel = dto.deviceModel;
+                    if (dto.osVersion !== undefined) updateData.osVersion = dto.osVersion;
+                    if (dto.appVersion !== undefined) updateData.appVersion = dto.appVersion;
+                    if (dto.locale !== undefined) updateData.locale = dto.locale;
+                    if (dto.timezone !== undefined) updateData.timezone = dto.timezone;
+                    if (dto.notificationPermission !== undefined) updateData.notificationPermission = dto.notificationPermission;
+                    if (dto.isActive !== undefined) updateData.isActive = dto.isActive;
 
-    //             return {
-    //                 uid: existingDevice[0].uid,
-    //                 deviceId: dto.deviceId,
-    //             };
-    //         }
+                    await tx
+                        .update(userDevice)
+                        .set(updateData)
+                        .where(eq(userDevice.deviceId, dto.deviceId));
 
-    //         const deviceUid = generateUid('dev');
-    //         await this.drizzleService.db.insert(userDevice).values({
-    //             uid: deviceUid,
-    //             deviceId: dto.deviceId,
-    //             userId,
-    //             oneSignalId: dto.oneSignalId || null,
-    //             deviceOs: dto.deviceOs || null,
-    //             deviceName: dto.deviceName || null,
-    //             deviceModel: dto.deviceModel || null,
-    //             osVersion: dto.osVersion || null,
-    //             appVersion: dto.appVersion || null,
-    //             locale: dto.locale || null,
-    //             timezone: dto.timezone || null,
-    //             notificationPermission: dto.notificationPermission ?? true,
-    //             isActive: dto.isActive ?? true,
-    //             lastActiveAt: now,
-    //             createdAt: now,
-    //             updatedAt: now,
-    //         });
+                    return {
+                        uid: existingDevice[0].uid,
+                        deviceId: dto.deviceId,
+                    };
+                }
 
-    //         return {
-    //             uid: deviceUid,
-    //             deviceId: dto.deviceId,
-    //         };
-    //     } catch (error) {
-    //         this.logger.error(`Failed to register device for user ${userId}`, error);
+                const deviceUid = generateUid('dev');
+                await tx.insert(userDevice).values({
+                    uid: deviceUid,
+                    deviceId: dto.deviceId,
+                    userId,
+                    oneSignalId: dto.oneSignalId || null,
+                    deviceOs: dto.deviceOs || null,
+                    deviceName: dto.deviceName || null,
+                    deviceModel: dto.deviceModel || null,
+                    osVersion: dto.osVersion || null,
+                    appVersion: dto.appVersion || null,
+                    locale: dto.locale || null,
+                    timezone: dto.timezone || null,
+                    notificationPermission: dto.notificationPermission ?? true,
+                    isActive: dto.isActive ?? true,
+                    lastActiveAt: now,
+                    createdAt: now,
+                    updatedAt: now,
+                });
 
-    //         if (error.code === '23505') {
-    //             throw new ConflictException('Device already registered');
-    //         }
+                return {
+                    uid: deviceUid,
+                    deviceId: dto.deviceId,
+                };
+            });
+        } catch (error) {
+            this.logger.error(`Failed to register device for user ${userId}`, error);
 
-    //         throw new InternalServerErrorException('Failed to register device');
-    //     }
-    // }
+            if (error.code === '23505') {
+                throw new ConflictException('Device already registered');
+            }
+
+            throw new InternalServerErrorException('Failed to register device');
+        }
+    }
 
     //   async findByEmail(email: string): Promise<User | null> {
     //     const cacheKey = CACHE_KEYS.USER.BY_EMAIL(email);

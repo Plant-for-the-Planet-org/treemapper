@@ -10,8 +10,6 @@ export const runRealmMigrations = ({
   newRealm: Realm;
 }) => {
   try {
-    console.log("old Realm",oldRealm);
-    console.log("new Realm",newRealm);
   } catch (error) {
     Bugsnag.notify(error)
   }

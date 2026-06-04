@@ -85,8 +85,12 @@ export class ProjectsController {
   @Post(':id/invites/expire')
   @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
-  expireInvite(@Body() declineInviteDto: DeclineInviteDto, @CurrentUser() currentUser: User,) {
-    return this.projectsService.expireInvite(declineInviteDto.token, currentUser);
+  expireInvite(
+    @Body() declineInviteDto: DeclineInviteDto,
+    @CurrentUser() currentUser: User,
+    @Membership() membership: ProjectGuardResponse,
+  ) {
+    return this.projectsService.expireInvite(declineInviteDto.token, currentUser, membership.projectId);
   }
 
 
@@ -150,13 +154,15 @@ export class ProjectsController {
   }
 
   @Patch(':id/members/:memberId/extra-permissions')
-  @UseGuards(JwtAuthGuard)
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
   updateMemberExtraPermissions(
     @Param('id') id: string,
     @Param('memberId') memberId: string,
+    @Membership() membership: ProjectGuardResponse,
     @Body() dto: UpdateExtraPermissionsDto,
   ) {
-    return this.projectsService.updateMemberExtraPermissions(id, memberId, dto);
+    return this.projectsService.updateMemberExtraPermissions(memberId, membership, dto);
   }
 
 

@@ -291,6 +291,7 @@ export const convertInventoryToIntervention = (data: any): InterventionData | nu
             intervention_type: extraData.key,
             form_data: [],
             additional_data: [],
+            is_planned: data.isPlanning || false,
             meta_data: metaData,
             status: 'SYNCED',
             hid: data.hid || '',
@@ -314,6 +315,6 @@ export const convertInventoryToIntervention = (data: any): InterventionData | nu
         }
         return finalData
     } catch (error) {
-        console.log("Error in converting inventory to intervention: ", error);
+        console.error("Error in converting inventory to intervention: ", error);
     }
 }

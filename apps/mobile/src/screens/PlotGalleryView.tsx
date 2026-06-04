@@ -60,7 +60,6 @@ const PlotGalleryView = () => {
 
     useEffect(() => {
         if (imageDetails && imageDetails.id === imageId && imageId !== '') {
-            console.log('Saving image for plot:', plotId, 'with URL:', JSON.stringify(imageDetails))
             handleSaveImage(imageDetails.url)
             setImageId('')
         }

@@ -3,7 +3,12 @@
     "allow": [
       "Bash(npx tsc *)",
       "Read(//Users/plant-214/Documents/pftp/treemapper/**)",
-      "Bash(yarn install *)"
+      "Bash(yarn install *)",
+      "Bash(yarn tsc *)",
+      "Bash(grep -rln \"map/all\\\\|'map'\\\\|\\\\\"map\\\\\"\\\\|map/tree\" apps/server/src/interventions/)",
+      "Bash(ls apps/server/src/sites/)",
+      "Bash(ls apps/server/src/site/)",
+      "Bash(grep -rln \"@Controller\\('sites'\\)\\\\|@Controller\\('site'\\)\\\\|class Site\" apps/server/src)"
     ]
   }
 }

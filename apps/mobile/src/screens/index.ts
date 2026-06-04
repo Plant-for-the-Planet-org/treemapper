@@ -41,20 +41,19 @@ import AddObservationFormView from './AddObservationFormView'
 import AddPlotGroupView from './AddPlotGroupView'
 import AddPlotsToGroupView from './AddPlotToGroupView'
 import TreeRemeasurement from './TreeRemeasurementView'
-import ProjectRemeasurementConfig from './ProjectRemeasurementConfigView'
 import OldInventoryDataView from './OldInventoryDataView'
 import EditProjectView from './EditProjectView'
-import SignUpView from './SignUpView'
 import PlantHistory from './PlantHistoryView'
 import ProjectSites from './ProjectSitesView'
 import DeleteAccount from './DeleteAccount'
 import CreateProjectScreen from './CreateProject'
-import TreeMapperFeaturesScreen from './TreeMapperFeaturesScreen'
 import GuideView from './GuideView'
 import NotificationView from './NotificationView'
 import NotificationDetailView from './NotificationDetailView'
 import LanguageSettingsView from './LanguageSettingsView'
 import PlotGalleryView from './PlotGalleryView'
+import PlannedTreeEditView from './PlannedTreeEditView'
+import PlannedTreeLocationView from './PlannedTreeLocationView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -100,18 +99,17 @@ export default {
   AddPlotGroup: AddPlotGroupView,
   AddPlotsToGroup: AddPlotsToGroupView,
   TreeRemeasurement: TreeRemeasurement,
-  ProjectRemeasurementConfig: ProjectRemeasurementConfig,
   OldInventoryData: OldInventoryDataView,
   EditProjectView: EditProjectView,
-  SignUpView: SignUpView,
   PlantHistory:PlantHistory,
   ProjectSites:ProjectSites,
   DeleteAccount: DeleteAccount,
-  TreeMapperFeaturesScreen:TreeMapperFeaturesScreen,
   CreateProject:CreateProjectScreen,
   Guide: GuideView,
   Notification: NotificationView,
   NotificationDetail: NotificationDetailView,
   Language: LanguageSettingsView,
   PlotGallery: PlotGalleryView,
+  PlannedTreeEdit: PlannedTreeEditView,
+  PlannedTreeLocation: PlannedTreeLocationView,
 }

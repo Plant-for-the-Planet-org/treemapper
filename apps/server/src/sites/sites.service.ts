@@ -255,6 +255,64 @@ export class SiteService {
         return [];
     }
   }
+
+  // Returns site boundaries as a GeoJSON FeatureCollection for the map.
+  // Unlike getAllSitesByProject (which returns raw originalGeometry jsonb),
+  // this reads the real PostGIS location column and emits clean GeoJSON,
+  // mirroring the intervention map endpoint.
+  async getProjectSitesMap(projectId: number): Promise<any> {
+    if (!projectId || projectId <= 0) {
+      throw new BadRequestException('Invalid project ID provided');
+    }
+
+    const rows = await this.drizzleService.db
+      .select({
+        id: site.id,
+        uid: site.uid,
+        name: site.name,
+        status: site.status,
+        area: site.area,
+        location: sql<GeoJSON.Polygon | GeoJSON.MultiPolygon>`ST_AsGeoJSON(${site.location})::json`,
+        centroid: sql<GeoJSON.Point>`ST_AsGeoJSON(ST_Centroid(${site.location}))::json`,
+      })
+      .from(site)
+      .where(
+        and(
+          eq(site.projectId, projectId),
+          sql`${site.deletedAt} IS NULL`,
+          sql`${site.location} IS NOT NULL`,
+          sql`ST_IsValid(${site.location}) = true`,
+          sql`ST_X(ST_Centroid(${site.location})) BETWEEN -180 AND 180`,
+          sql`ST_Y(ST_Centroid(${site.location})) BETWEEN -90 AND 90`,
+        ),
+      );
+
+    const features = rows
+      .filter((row) => row.location && typeof row.location === 'object')
+      .map((row) => ({
+        type: 'Feature' as const,
+        id: row.id,
+        properties: {
+          id: row.id,
+          uid: row.uid,
+          name: row.name,
+          status: row.status,
+          area: row.area ? Number(row.area) : null,
+          centroid: row.centroid,
+        },
+        geometry: row.location,
+      }));
+
+    return {
+      success: true,
+      data: {
+        type: 'FeatureCollection',
+        features,
+        totalSites: features.length,
+      },
+    };
+  }
+
   // Helper method to add member information to sites
   private async addMemberInfoToSites(sites: any[]) {
     const sitesWithMembers = await Promise.all(
@@ -391,14 +449,14 @@ export class SiteService {
 
 
 
-  async grantSiteAccess(siteUid: string, dto: GrantAccessDto): Promise<{ message: string }> {
+  async grantSiteAccess(projectId: number, siteUid: string, dto: GrantAccessDto): Promise<{ message: string }> {
     const siteData = await this.drizzleService.db
       .select({
         id: site.id,
         projectId: site.projectId,
       })
       .from(site)
-      .where(eq(site.uid, siteUid))
+      .where(and(eq(site.uid, siteUid), eq(site.projectId, projectId)))
       .limit(1);
 
     if (siteData.length === 0) {
@@ -466,15 +524,15 @@ export class SiteService {
     return { message: 'Site access granted successfully' };
   }
 
-  async revokeSiteAccess(siteUid: string, dto: RevokeAccessDto): Promise<{ message: string }> {
-    // Verify site exists
+  async revokeSiteAccess(projectId: number, siteUid: string, dto: RevokeAccessDto): Promise<{ message: string }> {
+    // Verify site exists in this project
     const siteData = await this.drizzleService.db
       .select({
         id: site.id,
         projectId: site.projectId,
       })
       .from(site)
-      .where(eq(site.uid, siteUid))
+      .where(and(eq(site.uid, siteUid), eq(site.projectId, projectId)))
       .limit(1);
 
     if (siteData.length === 0) {

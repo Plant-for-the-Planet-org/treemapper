@@ -120,7 +120,6 @@ const CreateProjectScreen = () => {
 
 
             // API call placeholder
-            console.log('Creating project with data:', projectData);
 
             // Simulate API call
             const { response } = await createMobileProject(projectData)

@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { resetUserDetails, updateName, updateUserDetails } from 'src/store/slice/userStateSlice'
 import { logoutAppUser, updateNewIntervention, updateUserLogin, updateUserToken } from 'src/store/slice/appStateSlice'
 import useAuthentication from 'src/hooks/useAuthentication'
-import { getUserDetails, updateApiUserDetails } from 'src/api/api.fetch'
 import { RootState } from 'src/store'
 import Snackbar from 'react-native-snackbar'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
@@ -20,6 +19,8 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import i18next from 'i18next'
 import { getMobileUserDetails } from '../../api/api.fetch'
 import EmailVerificationModal from '../common/EmailVerifcationModal'
+import AlertModal from '../common/AlertModal'
+import { UserInterface } from 'src/types/interface/slice.interface'
 
 const LoginButton = () => {
   const webAuthLoading = useSelector(
@@ -31,6 +32,7 @@ const LoginButton = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const [buttonMounted, setButtonMounted] = useState(false)
   const [showEmailModal, setShowEmailModal] = useState(false)
+  const [showFetchErrorModal, setShowFetchErrorModal] = useState(false)
 
 
   function getFirstAndLastName(fullName) {
@@ -61,18 +63,6 @@ const LoginButton = () => {
     }
   }, [error])
 
-    const handleUpdateUserDetails = async (serverData, auth0Data) => {
-      if (serverData && !serverData.image && auth0Data) {
-        updateApiUserDetails({
-          image: auth0Data.picture || '',
-          firstName: auth0Data.givenName || '',
-          lastName: auth0Data.familyName || '',
-          name: auth0Data.name || '',
-        })
-      }
-
-    }
-
   useEffect(() => {
     if (user && buttonMounted) {
       getDetails()
@@ -98,34 +88,20 @@ const LoginButton = () => {
       handleLogout()
       return
     }
-    const { response } = await getMobileUserDetails()
+    const { response, status } = await getMobileUserDetails()
     if (response && response.data) {
-      if (!response.data.v3Approved) {
-        const { response, success } = await getUserDetails()
-        if (success && response.signUpRequire) {
-          navigation.navigate('SignUpPage', {
-            email: user?.email,
-            accessToken: credentials.accessToken
-          })
-          return
-        }
-        if (!success) {
-          throw new Error("Failed to fetch user details")
-        }
-      }
       loginAndUpdateDetails({ ...response.data, image: response.data.image || user.picture || user.profile || '' })
-      handleUpdateUserDetails(response.data, user)
     } else {
-      Bugsnag.notify("/app/profile failed to fetch user details")
-      toast.show("Something went wrong. If this continue please contact help and share the logs.")
+      Bugsnag.notify(new Error("Failed to fetch user details"))
       addNewLog({
         logType: 'USER',
-        message: "User details api failed to fetch data",
+        message: "Failed to fetch user details",
         logLevel: 'error',
-        statusCode: '',
+        statusCode: status ? `${status}` : '',
       })
-      handleLogout()
       dispatch(updateWebAuthLoading(false))
+      // Let the user retry or clear their session instead of forcing a logout.
+      setShowFetchErrorModal(true)
     }
   }
 
@@ -171,12 +147,12 @@ const LoginButton = () => {
       dispatch(logoutAppUser())
       dispatch(updateNewIntervention())
     } catch (error) {
-      console.log("Error occurred while logout")
+      console.error("Error occurred while logout")
     }
   }
 
 
-  const loginAndUpdateDetails = async data => {
+  const loginAndUpdateDetails = async (data: UserInterface) => {
     const finalDetails = { ...data }
     dispatch(updateUserDetails(finalDetails))
     dispatch(updateUserLogin(true))
@@ -197,6 +173,21 @@ const LoginButton = () => {
         setShowEmailModal(false);
         handleLogin()
       }} />
+      <AlertModal
+        visible={showFetchErrorModal}
+        heading="Failed to fetch user details"
+        message="Please try again, or clear your session and log in."
+        primaryBtnText="Try Again"
+        onPressPrimaryBtn={() => {
+          setShowFetchErrorModal(false)
+          getDetails()
+        }}
+        secondaryBtnText="Clear Session"
+        onPressSecondaryBtn={() => {
+          setShowFetchErrorModal(false)
+          handleLogout()
+        }}
+      />
     </View>
   )
 }

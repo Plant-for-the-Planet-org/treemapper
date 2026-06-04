@@ -7,9 +7,10 @@ import { UsersModule } from 'src/users/users.module';
 import { MigrationModule } from 'src/migrate/migrate.module.ts';
 import { EmailModule } from 'src/email/email.module';
 import { NotificationModule } from 'src/notification/notification.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-    imports: [DatabaseModule, ProjectsModule, UsersModule, MigrationModule, EmailModule, NotificationModule],
+    imports: [DatabaseModule, ProjectsModule, UsersModule, MigrationModule, EmailModule, NotificationModule, AuthModule],
     controllers: [MobileController],
     providers: [MobileService],
     exports: [MobileService],

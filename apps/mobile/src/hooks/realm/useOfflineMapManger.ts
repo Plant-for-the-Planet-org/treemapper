@@ -21,7 +21,6 @@ const useOfflineMapManager = () => {
             })
             return Promise.resolve(true)
         } catch (error) {
-            console.error('Error during bulk write:', error)
        return false
         }
     }
@@ -33,7 +32,6 @@ const useOfflineMapManager = () => {
             });
             return Promise.resolve(true)
         } catch (error) {
-            console.error('Error during bulk write:', error)
        return false
         }
 

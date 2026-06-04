@@ -9,6 +9,7 @@ import { UsersModule } from '../users/users.module';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { SuperAdminGuard } from './super-admin.guard';
 import { ImpersonationGuard } from './impersonation.guard';
+import { AuthzService } from './authz.service';
 import { DatabaseModule } from '../database/database.module';
 
 @Module({
@@ -26,12 +27,14 @@ import { DatabaseModule } from '../database/database.module';
     JwtAuthGuard,
     SuperAdminGuard,
     ImpersonationGuard,
+    AuthzService,
   ],
   exports: [
     AuthService,
     JwtAuthGuard,
     SuperAdminGuard,
     ImpersonationGuard,
+    AuthzService,
   ],
 })
 export class AuthModule {}

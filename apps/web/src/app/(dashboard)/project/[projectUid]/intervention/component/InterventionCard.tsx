@@ -50,6 +50,7 @@ interface Intervention {
   uid: string;
   hid: string;
   type: string;
+  status?: string;
   // capture completeness: 'complete' | 'partial' | 'incomplete'
   captureStatus: string;
   registrationDate: string;
@@ -83,6 +84,7 @@ export const InterventionCard = ({
 }: InterventionCardProps) => {
   const IconComponent = interventionTypeIcons[intervention.type] || Target;
   const selected = (isSelected && !isMultiSelectMode) || isChecked;
+  const isPlanning = intervention.status === 'planning';
 
   // NOTE (i18n): the number formatting ('en-US'), the "Tree" / "Trees"
   // pluralization, the title-casing of the type name and the date format are
@@ -154,7 +156,11 @@ export const InterventionCard = ({
                 </span>
               </div>
               <div className="flex items-center gap-1.5 flex-shrink-0">
-                {intervention.captureStatus === 'complete' ? (
+                {isPlanning ? (
+                  <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
+                    Planning
+                  </span>
+                ) : intervention.captureStatus === 'complete' ? (
                   <CloudCheck className="h-3.5 w-3.5 text-primary" aria-label="Synced" />
                 ) : (
                   <CloudAlert className="h-3.5 w-3.5 text-amber-600" aria-label="Not synced" />

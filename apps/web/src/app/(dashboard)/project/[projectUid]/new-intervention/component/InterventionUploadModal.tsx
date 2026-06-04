@@ -13,9 +13,9 @@ import {
     Ruler,
     TreePine
 } from 'lucide-react';
-import { createNewIntervention, generatePreSignUrl } from '@shared-core/fetchApi/api.fetch';
+import { createNewIntervention, createPlannedIntervention, createBulkSingleTreePlan, generatePreSignUrl } from '@shared-core/fetchApi/api.fetch';
 
-const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, accessToken }) => {
+const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, accessToken, isPlanning = false, isBulkSingleTreePlan = false }) => {
     const [currentStep, setCurrentStep] = useState('form'); // 'form', 'uploading', 'success', 'error'
     const [error, setError] = useState('');
     const [hasStartedUpload, setHasStartedUpload] = useState(false);
@@ -101,7 +101,15 @@ const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, 
             if (imageId) {
                 formData['image'] = imageId
             }
-            const response = await createNewIntervention(accessToken, { ...formData }, formData.plantProject)
+            const apiCall = isBulkSingleTreePlan
+                ? createBulkSingleTreePlan
+                : isPlanning
+                    ? createPlannedIntervention
+                    : createNewIntervention;
+            // plantProject is only used to build the request URL, the server
+            // DTOs reject it as an unknown body property, so keep it out of the body.
+            const { plantProject, ...body } = formData;
+            const response = await apiCall(accessToken, body, plantProject)
             if (response.statusCode !== 201 && response.statusCode !== 200) {
                 throw new Error(response.message || 'Failed to upload intervention data');
             }
@@ -117,7 +125,7 @@ const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, 
             setError('');
 
             let imageString = '';
-            if (image) {
+            if (image && !isPlanning) {
                 const result = await uploadImage();
                 if (!result.success) {
                     throw new Error(result.error || 'Error occurred while uploading image');
@@ -129,7 +137,7 @@ const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, 
             if (!result.success) {
                 throw new Error(result.message);
             }
-            
+
             setCurrentStep('success');
         } catch (error) {
             console.error('Submit error:', error);
@@ -182,10 +190,10 @@ const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, 
                                 <TreePine className="w-5 h-5 text-white" />
                             </div>
                             <h2 className="text-xl font-semibold text-gray-900">
-                                {currentStep === 'form' && 'Upload Intervention'}
-                                {currentStep === 'uploading' && 'Uploading...'}
-                                {currentStep === 'success' && 'Upload Successful'}
-                                {currentStep === 'error' && 'Upload Failed'}
+                                {currentStep === 'form' && (isPlanning ? 'Save Plan' : 'Upload Intervention')}
+                                {currentStep === 'uploading' && (isPlanning ? 'Saving plan...' : 'Uploading...')}
+                                {currentStep === 'success' && (isPlanning ? 'Plan Saved' : 'Upload Successful')}
+                                {currentStep === 'error' && (isPlanning ? 'Save Failed' : 'Upload Failed')}
                             </h2>
                         </div>
                         {currentStep !== 'uploading' && (

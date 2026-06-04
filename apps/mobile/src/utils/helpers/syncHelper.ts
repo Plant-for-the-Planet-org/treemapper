@@ -3,10 +3,8 @@ import { BodyPayload, InterventionData, QuaeBody, SampleTree } from "src/types/i
 import { setUpIntervention } from "./formHelper/selectIntervention";
 import { appRealm } from "src/db/RealmProvider";
 import { RealmSchema } from "src/types/enum/db.enum";
-import * as FileSystem from 'expo-file-system';
 import { FormElement } from "src/types/interface/form.interface";
 import { updateFilePath } from "./fileSystemHelper";
-import sampleTreeBase64 from '../../../assets/images/base64/sampleTree'
 
 
 const postTimeConvertor = (t: number) => {
@@ -14,22 +12,23 @@ const postTimeConvertor = (t: number) => {
 }
 
 
-const getImageAsBase64 = async (fileUri: string) => {
-    try {
-        const base64 = await FileSystem.readAsStringAsync(fileUri, {
-            encoding: FileSystem.EncodingType.Base64,
-        });
-        return base64;
-    } catch (error) {
-        return sampleTreeBase64;
-    }
-};
-
-
-
 export const postDataConvertor = (d: InterventionData[]) => {
     const quae: QuaeBody[] = []
     d.forEach(el => {
+        // Planned interventions already exist on the server (created on web).
+        // They are not created again, only "recorded" with the field data.
+        if (el.is_planned) {
+            if (el.sample_trees.length > 0) {
+                quae.push({
+                    type: 'plannedTree',
+                    priority: 1,
+                    nextStatus: 'SYNCED',
+                    p1Id: el.intervention_id,
+                    p2Id: el.sample_trees[0].tree_id,
+                })
+            }
+            return
+        }
         if (el.intervention_key === 'single-tree-registration') {
             if (el.hid === '') {
                 quae.push({
@@ -96,6 +95,8 @@ export const postDataConvertor = (d: InterventionData[]) => {
                     })
                 }
                 if (trees.status === 'SKIP_REMEASUREMENT') {
+                    // Resolved locally (no upload) by the sync handler; needed so the
+                    // parent intervention can reach SYNCED. See handleSkipRemeasurement.
                     quae.push({
                         type: 'skipRemeasurement',
                         priority: 1,
@@ -137,19 +138,41 @@ export const getPostBody = async (r: QuaeBody): Promise<BodyPayload> => {
         const SingleTree = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, r.p1Id);
         return convertTreeToBody(JSON.parse(JSON.stringify(SingleTree)), JSON.parse(JSON.stringify(SingleTree.sample_trees[0])))
     }
+    if (r.type === 'plannedTree') {
+        const Intervention = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, r.p1Id);
+        const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
+        // A missing Realm record cannot heal on retry; flag it so the sync
+        // loop quarantines the intervention instead of retrying forever.
+        if (!Intervention || !TreeDetails) {
+            return { pData: null, message: 'Planned tree record missing in local DB', fixRequired: 'UNKNOWN', error: '' }
+        }
+        return convertPlannedTreeToBody(JSON.parse(JSON.stringify(Intervention)), JSON.parse(JSON.stringify(TreeDetails)))
+    }
     if (r.type === 'sampleTree') {
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
+        if (!TreeDetails) {
+            return { pData: null, message: 'Sample tree record missing in local DB', fixRequired: 'UNKNOWN', error: '' }
+        }
         const Intervention = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, TreeDetails.intervention_id);
+        if (!Intervention) {
+            return { pData: null, message: 'Parent intervention missing in local DB', fixRequired: 'UNKNOWN', error: '' }
+        }
+        // Parent intervention not uploaded yet: resolved by a later sync pass,
+        // so fixRequired stays "NO" (retryable, not corrupt).
         if (Intervention.location_id === '') {
-            return null
+            return { pData: null, message: 'Parent intervention not uploaded yet', fixRequired: 'NO', error: '' }
         }
         return convertTreeToBody(Intervention, TreeDetails)
     }
     if (r.type === 'treeImage') {
         try {
             const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
+            if (!TreeDetails) {
+                return { pData: null, message: 'Tree record missing in local DB', fixRequired: 'UNKNOWN', error: '' }
+            }
+            // Tree not uploaded yet: a later sync pass resolves this (retryable).
             if (TreeDetails.sloc_id === '') {
-                return null
+                return { pData: null, message: 'Tree not uploaded yet', fixRequired: 'NO', error: '' }
             }
             const body = {
                 imageFile: updateFilePath(TreeDetails.image_url),
@@ -157,10 +180,8 @@ export const getPostBody = async (r: QuaeBody): Promise<BodyPayload> => {
                 imageId: TreeDetails.image_data.coordinateID,
                 treeServerId: TreeDetails.sloc_id
             };
-            console.log("Here is the image data", body.imageId)
             return { pData: body, message: '', fixRequired: "NO", error: "" }
         } catch (error) {
-            console.log("Here is the error", error)
             return { pData: null, message: 'Image process failed.', fixRequired: "UNKNOWN", error: JSON.stringify(error) }
         }
     }
@@ -176,10 +197,6 @@ export const getRemeasurementBody = async (r: QuaeBody): Promise<BodyPayload> =>
     if (r.type === 'remeasurementStatus') {
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
         return convertRemeasurementStatus(TreeDetails)
-    }
-    if (r.type === 'skipRemeasurement') {
-        const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
-        return TreeDetails && TreeDetails.sloc_id !== '' ? { pData: null, message: "", fixRequired: 'NO', error: "", historyID: '', treeID: TreeDetails.sloc_id } : null
     }
     return { pData: null, message: '', fixRequired: "NO", error: "" }
 }
@@ -281,8 +298,8 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree): BodyPaylo
                 width: d.specie_diameter
             },
         }
-        postData.interventionStartDate = postTimeConvertor(d.plantation_date)
-        postData.interventionEndDate = postTimeConvertor(d.plantation_date)
+        postData.interventionStartDate = postTimeConvertor(i.intervention_date)
+        postData.interventionEndDate = postTimeConvertor(i.intervention_end_date || i.intervention_date)
 
         if (i.project_id) {
             postData.plantProject = i.project_id
@@ -302,6 +319,63 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree): BodyPaylo
         }
         if (d.tag_id) {
             postData.tag = d.tag_id
+        }
+        return { pData: postData, message: "", fixRequired: 'NO', error: "" }
+    } catch (error) {
+        return { pData: null, message: "Unknown error occurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }
+    }
+}
+
+
+/**
+ * Builds the payload to "record" a planned single-tree intervention.
+ *
+ * The intervention + species already exist on the server (created on web),
+ * so we only send what the field worker captured. Routing fields
+ * (projectId, interventionId, treeId) and the local imageFile path travel
+ * on pData; the sync handler strips them before building the request body
+ * and uploads the image separately.
+ */
+export const convertPlannedTreeToBody = (i: InterventionData, d: SampleTree): BodyPayload => {
+    try {
+        const metaData = i.meta_data ? JSON.parse(i.meta_data) : {}
+        const additionalDataConvert = handleAdditionalData([...i.additional_data, ...i.form_data])
+        const finalMeta = {
+            app: {
+                ...metaData.app
+            },
+            public: {
+                ...additionalDataConvert.publicAdd,
+                ...metaData.public
+            },
+            private: {
+                ...additionalDataConvert.privateAdd,
+                ...metaData.privateAdd
+            }
+        }
+        const postData: any = {
+            projectId: i.project_id,
+            interventionId: i.intervention_id,
+            treeId: d.tree_id,
+            geometry: {
+                type: 'Point',
+                coordinates: [d.longitude, d.latitude]
+            },
+            measurements: {
+                height: d.specie_height,
+                width: d.specie_diameter,
+            },
+            plantingDate: new Date(d.plantation_date || i.intervention_date || Date.now()).toISOString(),
+            metadata: finalMeta,
+        }
+        if (d.tag_id) {
+            postData.tag = d.tag_id
+        }
+        if (metaData.app && metaData.app.deviceLocation) {
+            postData.deviceLocation = metaData.app.deviceLocation
+        }
+        if (d.image_url) {
+            postData.imageFile = updateFilePath(d.image_url)
         }
         return { pData: postData, message: "", fixRequired: 'NO', error: "" }
     } catch (error) {
@@ -366,8 +440,9 @@ export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPaylo
                 }
             } : {}
         }
+        console.log('Remeasurement body metadata', JSON.stringify(postData, null, 2))
 
-        // Handle image file - for v3Approved, use file path; for others, use base64
+        // Image is uploaded by file path (presigned URL) to the new backend.
         if (d.image_url) {
             postData.imageFile = updateFilePath(d.image_url);
         }
@@ -380,8 +455,8 @@ export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPaylo
 
 
 export const convertRemeasurementStatus = async (d: SampleTree): Promise<BodyPayload> => {
-    const getHistory = d.history.find(el => el.dataStatus === 'REMEASUREMENT_EVENT_UPDATE')
     try {
+        const getHistory = d.history.find(el => el.dataStatus === 'REMEASUREMENT_EVENT_UPDATE')
         const postData: any = {
             "type": "status",
             "eventDate": postTimeConvertor(getHistory.eventDate || Date.now()),

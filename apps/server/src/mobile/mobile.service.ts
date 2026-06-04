@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { and, desc, eq, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm';
 // import { sites, projects, users, projectMembers, scientificSpecies, interventions, trees, images, projectSpecies } from '../database/schema'; // Adjust import path as needed
 import { generateUid } from 'src/util/uidGenerator';
@@ -8,6 +8,7 @@ import { generateParentHID } from 'src/util/hidGenerator';
 import { CaptureStatus } from 'src/interventions/interventions.service';
 import { project, projectMember, workspace, site, scientificSpecies, intervention, tree, interventionSpecies, user, auditLog, workspaceMember, projectSpecies, notifications, migrationRequest, treeRecord, image, feedback } from 'src/database/schema';
 import { CreateFeedbackDto } from './dto/feedback.dto';
+import { RecordPlannedInterventionDto } from './dto/record-planned-intervention.dto';
 import { booleanValid } from '@turf/boolean-valid';
 import { getType } from '@turf/invariant';
 import { ExtendedUser, User } from 'src/users/entities/user.entity';
@@ -16,6 +17,7 @@ import { WorkspaceService } from 'src/workspace/workspace.service';
 import { boolean } from 'drizzle-orm/gel-core';
 import { async, skip } from 'rxjs';
 import { UserCacheService } from 'src/cache/user-cache.service'
+import { AuthzService } from 'src/auth/authz.service';
 import { EmailService } from 'src/email/email.service';
 
 export interface UserDevice {
@@ -79,6 +81,7 @@ export interface InterventionResponseItem {
   idempotencyKey: string;
   coordinates: any[];
   scientificSpecies: string | null;
+  isPlanning: boolean;
   history: any[];
   plantProject: string;
   plantedSpecies: PlantedSpecies[];
@@ -297,11 +300,14 @@ interface GeoJSONPointGeometry {
 
 @Injectable()
 export class MobileService {
+  private readonly logger = new Logger(MobileService.name);
+
   constructor(
     private drizzleService: DrizzleService,
     private migrateService: MigrationService,
     private emailService: EmailService,
     private userCacheService: UserCacheService,
+    private authzService: AuthzService,
   ) { }
 
   /**
@@ -486,70 +492,22 @@ export class MobileService {
   }
 
 
-  async getUserDetails(userData: User, token: string) {
-    try {
-      if (userData.v3ApprovedAt || userData.existingPlanetUser) {
-        return {
-          country: userData.country,
-          created: userData.createdAt,
-          displayName: userData.displayName,
-          email: userData.email,
-          firstName: userData.firstName,
-          id: userData.uid,
-          image: userData.image,
-          isPrivate: false,
-          lastName: userData.lastName,
-          locale: userData.locale,
-          name: userData.displayName,
-          slug: userData.slug,
-          type: userData.type,
-          v3Approved: userData.v3ApprovedAt ? true : false
-        }
-      }
-
-
-      const existingPlanetUser = await this.migrateService.checkUserInttc(token, userData);
-      if (!existingPlanetUser) {
-        throw ''
-      }
-
-      if (!existingPlanetUser.existingPlanetUser) {
-        return {
-          country: userData.country,
-          created: userData.createdAt,
-          displayName: userData.displayName,
-          email: userData.email,
-          firstName: userData.firstName,
-          id: userData.uid,
-          image: userData.image,
-          isPrivate: false,
-          lastName: userData.lastName,
-          locale: userData.locale,
-          name: userData.displayName,
-          slug: userData.slug,
-          type: userData.type,
-          v3Approved: true
-        }
-      } else {
-        return {
-          country: existingPlanetUser.country,
-          created: userData.createdAt,
-          displayName: userData.displayName,
-          email: userData.email,
-          firstName: userData.firstName,
-          id: existingPlanetUser.uid,
-          image: userData.image,
-          isPrivate: false,
-          lastName: userData.lastName,
-          locale: existingPlanetUser.locale,
-          name: userData.displayName,
-          slug: userData.slug,
-          type: existingPlanetUser.type,
-          v3Approved: false
-        }
-      }
-    } catch (error) {
-      throw ''
+  async getUserDetails(userData: User) {
+    return {
+      country: userData.country || '',
+      created: userData.createdAt,
+      displayName: userData.displayName || userData.firstName || '',
+      email: userData.email,
+      firstName: userData.firstName || '',
+      id: userData.uid,
+      image: userData.image,
+      isPrivate: false,
+      lastName: userData.lastName || '',
+      locale: userData.locale || 'en',
+      name: userData.displayName || userData.firstName || '',
+      slug: userData.slug,
+      type: userData.type,
+      v3Approved: true
     }
   }
 
@@ -559,7 +517,7 @@ export class MobileService {
         .select({
           id: tree.id,
           interventionId: tree.interventionId,
-          ownerId: intervention.userId,
+          projectId: intervention.projectId,
         })
         .from(tree)
         .innerJoin(intervention, eq(tree.interventionId, intervention.id))
@@ -567,12 +525,10 @@ export class MobileService {
         .limit(1);
 
       if (treeResult.length === 0) {
-        throw new BadRequestException('Tree not found or access denied');
+        throw new NotFoundException('Tree not found');
       }
 
-      if (treeResult[0].ownerId !== userData.id) {
-        throw new BadRequestException('access denied');
-      }
+      await this.authzService.assertProjectMembership(userData.id, treeResult[0].projectId);
 
       return await this.drizzleService.db.transaction(async (tx) => {
 
@@ -593,8 +549,291 @@ export class MobileService {
         return true;
       });
     } catch (error) {
+      if (error instanceof ForbiddenException || error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
       console.log(error)
       return false;
+    }
+  }
+
+
+  /**
+   * Records a planned single-tree intervention from mobile.
+   *
+   * Web planning creates only the intervention + species rows (status
+   * `planning`, no tree). This attaches the field-recorded details: it creates
+   * the tree on the first call and updates it on later calls (upsert), writes a
+   * planting record + image row when provided, and marks the plan `completed`.
+   * Every field in the payload is optional; only provided values are written.
+   */
+  async recordPlannedIntervention(
+    interventionUid: string,
+    dto: RecordPlannedInterventionDto,
+    membership: ProjectGuardResponse,
+  ): Promise<any> {
+    this.logger.log(`[recordPlanned] ENTRY uid=${interventionUid} project=${membership?.projectId} user=${membership?.userId}`);
+    this.logger.log(`[recordPlanned] dto=${JSON.stringify(dto)}`);
+    try {
+      // 1. Load the plan and confirm it belongs to this project.
+      const [interventionRow] = await this.drizzleService.db
+        .select({
+          id: intervention.id,
+          uid: intervention.uid,
+          userId: intervention.userId,
+          projectId: intervention.projectId,
+          type: intervention.type,
+          status: intervention.status,
+          originalGeometry: intervention.originalGeometry,
+          interventionStartDate: intervention.interventionStartDate,
+        })
+        .from(intervention)
+        .where(and(eq(intervention.uid, interventionUid), isNull(intervention.deletedAt)))
+        .limit(1);
+
+      if (!interventionRow) {
+        throw new NotFoundException('Intervention not found');
+      }
+      if (interventionRow.projectId !== membership.projectId) {
+        throw new ForbiddenException('Intervention does not belong to this project');
+      }
+      if (interventionRow.type !== 'single-tree-registration') {
+        throw new BadRequestException('Only single-tree plans can be recorded with this endpoint');
+      }
+      this.logger.log(`[recordPlanned] step1 loaded intervention id=${interventionRow.id} type=${interventionRow.type} status=${interventionRow.status}`);
+
+      // 2. Resolve the species the plan was created with (single-tree => one).
+      const [speciesRow] = await this.drizzleService.db
+        .select({
+          id: interventionSpecies.id,
+          speciesName: interventionSpecies.speciesName,
+          isUnknown: interventionSpecies.isUnknown,
+        })
+        .from(interventionSpecies)
+        .where(and(
+          eq(interventionSpecies.interventionId, interventionRow.id),
+          isNull(interventionSpecies.deletedAt),
+        ))
+        .limit(1);
+
+      if (!speciesRow) {
+        throw new BadRequestException('Planned intervention has no species to attach a tree to');
+      }
+      this.logger.log(`[recordPlanned] step2 species id=${speciesRow.id} name=${speciesRow.speciesName} unknown=${speciesRow.isUnknown}`);
+
+      // 3. Does a single tree already exist for this plan? (upsert)
+      const [existingTree] = await this.drizzleService.db
+        .select({ id: tree.id, uid: tree.uid, hid: tree.hid })
+        .from(tree)
+        .where(and(
+          eq(tree.interventionId, interventionRow.id),
+          eq(tree.treeType, 'single'),
+          isNull(tree.deletedAt),
+        ))
+        .limit(1);
+
+      this.logger.log(`[recordPlanned] step3 existingTree=${existingTree ? existingTree.id : 'none'}`);
+
+      // 4. Resolve geometry: use what was sent, else fall back to the planned point.
+      const geometry = dto.geometry ?? interventionRow.originalGeometry;
+      let locationValue: any = undefined;
+      let latitude: number | undefined;
+      let longitude: number | undefined;
+      if (geometry) {
+        const cleanGeometry =
+          geometry.type === 'Feature' ? geometry.geometry :
+            geometry.type === 'FeatureCollection' ? geometry.features?.[0]?.geometry :
+              geometry;
+        const latlng = this.extractLatLngFromPoint(geometry); // validates Point
+        latitude = latlng.latitude;
+        longitude = latlng.longitude;
+        locationValue = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(cleanGeometry)}), 4326)`;
+      }
+
+      const plantingDate = dto.plantingDate
+        ? new Date(dto.plantingDate)
+        : new Date(interventionRow.interventionStartDate);
+      this.logger.log(`[recordPlanned] step4 geometryPresent=${!!geometry} lat=${latitude} lng=${longitude} plantingDate=${plantingDate?.toISOString?.() ?? plantingDate}`);
+
+      this.logger.log(`[recordPlanned] step5 opening transaction`);
+      const recorded = await this.drizzleService.db.transaction(async (tx) => {
+        let treeId: number;
+        let treeUid: string;
+        let treeHid: string | null = existingTree?.hid ?? null;
+
+        if (existingTree) {
+          // Update only the fields that were provided.
+          const updateSet: Record<string, any> = { updatedAt: new Date() };
+          if (locationValue !== undefined) {
+            updateSet.location = locationValue;
+            updateSet.originalGeometry = geometry;
+            updateSet.latitude = latitude;
+            updateSet.longitude = longitude;
+          }
+          if (dto.measurements?.height !== undefined) updateSet.height = dto.measurements.height;
+          if (dto.measurements?.width !== undefined) updateSet.width = dto.measurements.width;
+          if (dto.tag !== undefined) updateSet.tag = dto.tag;
+          if (dto.image?.filename) updateSet.image = dto.image.filename;
+          if (dto.metadata !== undefined) updateSet.metadata = dto.metadata;
+          if (dto.plantingDate) updateSet.plantingDate = plantingDate;
+
+          this.logger.log(`[recordPlanned] tx updating existing tree id=${existingTree.id} set=${JSON.stringify(Object.keys(updateSet))}`);
+          await tx.update(tree).set(updateSet).where(eq(tree.id, existingTree.id));
+          treeId = existingTree.id;
+          treeUid = existingTree.uid;
+          this.logger.log(`[recordPlanned] tx tree updated id=${treeId}`);
+        } else {
+          // First recording: the plan never had a tree, so create it.
+          if (locationValue === undefined) {
+            throw new BadRequestException('A tree location is required to record this plan');
+          }
+          const treePayload: any = {
+            hid: generateParentHID(),
+            uid: generateUid('tree'),
+            interventionId: interventionRow.id,
+            interventionSpeciesId: speciesRow.id,
+            speciesName: speciesRow.speciesName,
+            isUnknown: speciesRow.isUnknown,
+            createdById: membership.userId,
+            tag: dto.tag ?? null,
+            treeType: 'single' as const,
+            status: 'alive' as const,
+            location: locationValue,
+            originalGeometry: geometry,
+            latitude,
+            longitude,
+            plantingDate,
+            image: dto.image?.filename ?? null,
+            height: dto.measurements?.height ?? null,
+            width: dto.measurements?.width ?? null,
+            metadata: dto.metadata ?? null,
+          };
+          this.logger.log(`[recordPlanned] tx inserting new tree...`);
+          const [created] = await tx.insert(tree).values(treePayload).returning();
+          treeId = created.id;
+          treeUid = created.uid;
+          treeHid = created.hid;
+          this.logger.log(`[recordPlanned] tx tree inserted id=${treeId} uid=${treeUid} hid=${treeHid}`);
+
+          const recordedAt = plantingDate > new Date() ? new Date() : plantingDate;
+          this.logger.log(`[recordPlanned] tx inserting treeRecord recordedAt=${recordedAt?.toISOString?.() ?? recordedAt}`);
+          await tx.insert(treeRecord).values({
+            uid: generateUid('treerec'),
+            treeId: created.id,
+            recordedById: membership.userId,
+            recordType: 'planting',
+            recordedAt,
+            height: dto.measurements?.height ?? null,
+            width: dto.measurements?.width ?? null,
+          });
+          this.logger.log(`[recordPlanned] tx treeRecord inserted`);
+        }
+
+        // Image row (kept in sync with tree.image). This endpoint is an upsert,
+        // so re-recording the same tree must not pile up duplicate image rows:
+        // update the existing one for this tree if present, else insert.
+        if (dto.image?.filename) {
+          this.logger.log(`[recordPlanned] tx image upsert for treeId=${treeId} filename=${dto.image.filename}`);
+          const [existingImage] = await tx
+            .select({ id: image.id })
+            .from(image)
+            .where(and(
+              eq(image.entityId, treeId),
+              eq(image.entityType, 'tree'),
+              isNull(image.deletedAt),
+            ))
+            .limit(1);
+
+          if (existingImage) {
+            this.logger.log(`[recordPlanned] tx updating existing image id=${existingImage.id}`);
+            await tx.update(image).set({
+              type: (dto.image.type as any) || 'overview',
+              filename: dto.image.filename,
+              mimeType: dto.image.mimeType ?? null,
+              deviceType: 'mobile' as const,
+              uploadedById: membership.userId,
+              updatedAt: new Date(),
+            }).where(eq(image.id, existingImage.id));
+          } else {
+            this.logger.log(`[recordPlanned] tx inserting new image row`);
+            await tx.insert(image).values({
+              uid: generateUid('img'),
+              entityId: treeId,
+              entityType: 'tree' as const,
+              type: (dto.image.type as any) || 'overview',
+              filename: dto.image.filename,
+              mimeType: dto.image.mimeType ?? null,
+              deviceType: 'mobile' as const,
+              uploadedById: membership.userId,
+            });
+          }
+          this.logger.log(`[recordPlanned] tx image upsert done`);
+        }
+
+        // The plan is now recorded in the field. Move the intervention window to
+        // when the tree was actually planted (the same date the tree + its
+        // planting record use), not the sync moment. editedAt/updatedAt stay as
+        // the real write time since they are audit columns.
+        const writeNow = new Date();
+        const interventionSet: Record<string, any> = {
+          status: 'completed',
+          captureStatus: CaptureStatus.COMPLETE,
+          interventionStartDate: plantingDate,
+          interventionEndDate: plantingDate,
+          editedAt: writeNow,
+          updatedAt: writeNow,
+          totalTreeCount: 1,
+        };
+        if (dto.deviceLocation !== undefined) interventionSet.deviceLocation = dto.deviceLocation;
+        if (locationValue !== undefined) {
+          interventionSet.location = locationValue;
+          interventionSet.originalGeometry = geometry;
+        }
+        this.logger.log(`[recordPlanned] tx updating intervention id=${interventionRow.id} -> completed`);
+        await tx.update(intervention)
+          .set(interventionSet)
+          .where(eq(intervention.id, interventionRow.id));
+
+        this.logger.log(`[recordPlanned] tx done, returning treeUid=${treeUid} treeHid=${treeHid}`);
+        return { treeUid, treeHid };
+      });
+      this.logger.log(`[recordPlanned] step6 transaction COMMITTED tree=${JSON.stringify(recorded)}`);
+
+      // The write is already committed. Building the response must not fail the
+      // request: if the read-back throws, the recording still succeeded, so we
+      // return what we have rather than turn a committed write into a 400 (which
+      // would leave the client retrying a record that is already done).
+      let updated: Awaited<ReturnType<typeof this.getSingleIntervention>> = null;
+      try {
+        this.logger.log(`[recordPlanned] step7 read-back getSingleIntervention`);
+        updated = await this.getSingleIntervention(interventionUid, interventionRow.userId);
+        this.logger.log(`[recordPlanned] step7 read-back ok`);
+      } catch (readError) {
+        this.logger.error(
+          `recordPlannedIntervention read-back failed for ${interventionUid}: ${readError?.message}`,
+          readError?.stack,
+        );
+      }
+      this.logger.log(`[recordPlanned] SUCCESS uid=${interventionUid} returning 200`);
+      return {
+        success: true,
+        statusCode: 200,
+        data: updated,
+        tree: recorded,
+      };
+    } catch (error) {
+      this.logger.error(
+        `[recordPlanned] FAILED uid=${interventionUid}: ${error?.message}`,
+        error?.stack,
+      );
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to record planned intervention: ${error.message}`);
     }
   }
 
@@ -634,12 +873,12 @@ export class MobileService {
 
   //     if (userBody.device) {
   //       const deviceData = userBody.device;
-        
+
   //       // deviceId is required (installation id - unique)
   //       if (!deviceData.deviceId) {
   //         throw new BadRequestException('deviceId is required in device object');
   //       }
-        
+
   //       // Check if device already exists by deviceId (installation id - unique)
   //       const existingDevice = await this.drizzleService.db
   //         .select()
@@ -1650,6 +1889,27 @@ export class MobileService {
 
 
 
+  // Builds the response shape for an intervention that already exists (idempotent
+  // replay). For single-tree registrations it also returns the linked tree.
+  private async buildExistingInterventionResult(existingIntervention: any): Promise<any> {
+    let singleTreeResult: { id: string | null, hid: string | null } = { id: null, hid: null };
+    if (existingIntervention.type === 'single-tree-registration') {
+      const existingTree = await this.drizzleService.db
+        .select({ uid: tree.uid, hid: tree.hid })
+        .from(tree)
+        .where(eq(tree.interventionId, existingIntervention.id))
+        .limit(1);
+      if (existingTree.length > 0) {
+        singleTreeResult = { id: existingTree[0].uid, hid: existingTree[0].hid };
+      }
+    }
+    return {
+      id: existingIntervention.uid,
+      hid: existingIntervention.hid,
+      singleTreeResult,
+    };
+  }
+
   async createNewInterventionMobile(createInterventionDto: any, membership: ProjectGuardResponse): Promise<any> {
     try {
       let newHID = generateParentHID();
@@ -1774,7 +2034,9 @@ export class MobileService {
           hid: sampleResult[0].hid
         }
       }
-      // Idempotency check: if client sent a stable local ID, use it to deduplicate
+      // Idempotency check: if client sent a stable local ID, use it to deduplicate.
+      // This is the fast path for sequential retries (first request already finished).
+      // Concurrent retries are handled by onConflictDoNothing on the insert below.
       if (createInterventionDto.clientId) {
         const existing = await this.drizzleService.db
           .select()
@@ -1782,23 +2044,7 @@ export class MobileService {
           .where(eq(intervention.idempotencyKey, createInterventionDto.clientId))
           .limit(1);
         if (existing.length > 0) {
-          const existingIntervention = existing[0];
-          let singleTreeResult: { id: string | null, hid: string | null } = { id: null, hid: null };
-          if (existingIntervention.type === 'single-tree-registration') {
-            const existingTree = await this.drizzleService.db
-              .select({ uid: tree.uid, hid: tree.hid })
-              .from(tree)
-              .where(eq(tree.interventionId, existingIntervention.id))
-              .limit(1);
-            if (existingTree.length > 0) {
-              singleTreeResult = { id: existingTree[0].uid, hid: existingTree[0].hid };
-            }
-          }
-          return {
-            id: existingIntervention.uid,
-            hid: existingIntervention.hid,
-            singleTreeResult,
-          };
+          return this.buildExistingInterventionResult(existing[0]);
         }
       }
 
@@ -1820,6 +2066,7 @@ export class MobileService {
         siteId: siteId || null,
         idempotencyKey: createInterventionDto.clientId || generateUid('idem'),
         type: createInterventionDto.type,
+        status: 'completed',
         registrationDate: new Date(),
         interventionStartDate: new Date(createInterventionDto.interventionStartDate),
         interventionEndDate: new Date(createInterventionDto.interventionEndDate),
@@ -1841,8 +2088,20 @@ export class MobileService {
       const result = await this.drizzleService.db
         .insert(intervention)
         .values(interventionData)
+        .onConflictDoNothing({ target: intervention.idempotencyKey })
         .returning();
-      if (!result) {
+      // Empty result means a concurrent request won the race on the same
+      // idempotencyKey. Fetch and return the row it created instead of erroring,
+      // and skip the species/tree inserts below (they already exist).
+      if (result.length === 0) {
+        const [existing] = await this.drizzleService.db
+          .select()
+          .from(intervention)
+          .where(eq(intervention.idempotencyKey, interventionData.idempotencyKey))
+          .limit(1);
+        if (existing) {
+          return this.buildExistingInterventionResult(existing);
+        }
         throw new Error('Failed to create intervention');
       }
       let interventionSpeciesData: any[] = [];
@@ -1927,30 +2186,35 @@ export class MobileService {
   ): Promise<any> {
     try {
       this.validateRemeasurementDto(remeasurementDTO);
-      
-      // Get tree details — support both tree UIDs and intervention UIDs (single-tree interventions)
-      let treeDetails: any[];
-      if (remeasurementDTO.tree.startsWith('ivn_')) {
-        treeDetails = await this.drizzleService.db
-          .select({ tree })
+
+      // Resolve tree + owning intervention's projectId.
+      // The id may be a tree UID, or an intervention UID for single-tree
+      // interventions (mobile sends the intervention uid as the tree id).
+      // Intervention UIDs are not always 'inv_'-prefixed (web bulk uploads
+      // keep the client-provided id), so try tree first, then intervention.
+      let [treeRow] = await this.drizzleService.db
+        .select({ tree, projectId: intervention.projectId })
+        .from(tree)
+        .innerJoin(intervention, eq(tree.interventionId, intervention.id))
+        .where(eq(tree.uid, remeasurementDTO.tree))
+        .limit(1);
+
+      if (!treeRow) {
+        [treeRow] = await this.drizzleService.db
+          .select({ tree, projectId: intervention.projectId })
           .from(tree)
           .innerJoin(intervention, eq(tree.interventionId, intervention.id))
           .where(eq(intervention.uid, remeasurementDTO.tree))
-          .limit(1)
-          .then(rows => rows.map(r => r.tree));
-      } else {
-        treeDetails = await this.drizzleService.db
-          .select()
-          .from(tree)
-          .where(eq(tree.uid, remeasurementDTO.tree))
           .limit(1);
       }
 
-      if (treeDetails.length === 0) {
+      if (!treeRow) {
         throw new NotFoundException('Tree not found');
       }
 
-      const currentTree = treeDetails[0];
+      await this.authzService.assertProjectMembership(membership, treeRow.projectId);
+
+      const currentTree = treeRow.tree;
       const now = new Date();
       const recordedAt = remeasurementDTO.eventDate
         ? (() => { const d = new Date(remeasurementDTO.eventDate); return d > now ? now : d; })()
@@ -1979,7 +2243,7 @@ export class MobileService {
 
       throw new BadRequestException('Invalid remeasurement type');
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof ForbiddenException) {
         throw error;
       }
       throw new BadRequestException(`Failed to process remeasurement: ${error.message}`);
@@ -2072,8 +2336,8 @@ export class MobileService {
     return await this.drizzleService.db.transaction(async (tx) => {
       // Determine record type based on status
       // Use 'death' record type if status is 'dead', otherwise use 'status_change'
-      const recordType = remeasurementDTO.status === 'dead' 
-        ? ('death' as const) 
+      const recordType = remeasurementDTO.status === 'dead'
+        ? ('death' as const)
         : ('status_change' as const);
 
       // Create tree record for status change
@@ -2160,7 +2424,7 @@ export class MobileService {
 
       return await this.doRemeasurement(remeasurementDTO, userId);
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof ForbiddenException) {
         throw error;
       }
       throw new BadRequestException(`Failed to mark tree as dead: ${error.message}`);
@@ -2240,6 +2504,58 @@ export class MobileService {
     const parsedPage = parseInt(page, 10) || 1;
     const parsedPageSize = parseInt(pageSize, 10) || 4;
     const skip = (parsedPage - 1) * parsedPageSize;
+
+    // Step 1: pick the exact set of interventions for this page.
+    // We paginate over DISTINCT interventions, not the joined rows. The detail
+    // query below left-joins trees and species (one-to-many), so paging it
+    // directly would apply limit/offset to multiplied rows and could skip or
+    // duplicate interventions across pages. We also order by a unique tiebreaker
+    // (uid) on top of createdAt so the order is fully deterministic; otherwise
+    // interventions sharing a createdAt can shuffle between pages and never get
+    // fetched.
+    const pageRows = await this.drizzleService.db
+      .selectDistinct({
+        id: intervention.id,
+        createdAt: intervention.createdAt,
+        uid: intervention.uid,
+      })
+      .from(intervention)
+      .innerJoin(project, eq(intervention.projectId, project.id))
+      .innerJoin(
+        projectMember,
+        and(
+          eq(projectMember.projectId, project.id),
+          eq(projectMember.userId, mid),
+          eq(projectMember.status, 'active'),
+          isNull(projectMember.deletedAt)
+        )
+      )
+      .leftJoin(site, eq(intervention.siteId, site.id))
+      .where(
+        and(
+          isNull(intervention.deletedAt),
+          eq(project.isActive, true),
+          isNull(project.deletedAt),
+          or(
+            inArray(projectMember.siteAccess, ['all_sites', 'read_only']),
+            isNull(intervention.siteId),
+            and(
+              eq(projectMember.siteAccess, 'limited_access'),
+              sql`${site.uid} = ANY(${projectMember.restrictedSites})`
+            )
+          )
+        )
+      )
+      .orderBy(desc(intervention.createdAt), desc(intervention.uid))
+      .limit(parsedPageSize)
+      .offset(skip);
+
+    const pageIds = pageRows.map((r) => r.id);
+    if (pageIds.length === 0) {
+      return { items: [] };
+    }
+
+    // Step 2: fetch full detail for just those interventions.
     const interventions = await this.drizzleService.db
       .select({
         intervention_uid: intervention.uid,
@@ -2257,6 +2573,7 @@ export class MobileService {
         intervention_device_location: intervention.deviceLocation,
         intervention_created_at: intervention.createdAt,
         intervention_updated_at: intervention.updatedAt,
+        intervention_status: intervention.status,
         project_uid: project.uid,
         site_uid: site.uid,
         tree_uid: tree.uid,
@@ -2278,6 +2595,16 @@ export class MobileService {
       })
       .from(intervention)
       .innerJoin(project, eq(intervention.projectId, project.id))
+      // Only interventions in projects the user is an active member of
+      .innerJoin(
+        projectMember,
+        and(
+          eq(projectMember.projectId, project.id),
+          eq(projectMember.userId, mid),
+          eq(projectMember.status, 'active'),
+          isNull(projectMember.deletedAt)
+        )
+      )
       .leftJoin(site, eq(intervention.siteId, site.id))
       .leftJoin(
         interventionSpecies,
@@ -2298,19 +2625,23 @@ export class MobileService {
         scientificSpecies,
         eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id)
       )
-      .where(
-        and(
-          eq(intervention.userId, mid),
-          isNull(intervention.deletedAt)
-        )
-      )
-      .orderBy(desc(intervention.createdAt))
-      .limit(parsedPageSize)
-      .offset(skip);
+      // Access was already enforced in step 1; here we only fetch detail for the
+      // interventions chosen for this page, keeping the same deterministic order.
+      .where(inArray(intervention.id, pageIds))
+      .orderBy(desc(intervention.createdAt), desc(intervention.uid));
 
     const items: InterventionResponseItem[] = [];
+    // The left joins above can return several rows per intervention (one per
+    // species/tree). Build one item per intervention; the row-level helpers only
+    // read single-tree fields and the full species list comes from
+    // getPlantedSpecies, so the first row per intervention is enough.
+    const seenInterventions = new Set<string>();
 
     for (const row of interventions) {
+      if (seenInterventions.has(row.intervention_uid)) {
+        continue;
+      }
+      seenInterventions.add(row.intervention_uid);
       // Get planted species for this intervention
       const plantedSpeciesData = await this.getPlantedSpecies(row.intervention_uid);
       // Get sample interventions for multi-tree and enrichment-planting
@@ -2351,6 +2682,7 @@ export class MobileService {
         geometry: row.intervention_original_geometry, // Same as originalGeometry
         lastMeasurementDate: null,
         captureStatus: row.intervention_capture_status,
+        isPlanning: row.intervention_status === 'planning',
         deviceLocation: row.intervention_device_location,
         status: null,
         updatedAt: this.formatDate(row.intervention_updated_at),
@@ -2381,6 +2713,7 @@ export class MobileService {
         intervention_device_location: intervention.deviceLocation,
         intervention_created_at: intervention.createdAt,
         intervention_updated_at: intervention.updatedAt,
+        intervention_status: intervention.status,
         project_uid: project.uid,
         site_uid: site.uid,
         tree_uid: tree.uid,
@@ -2469,6 +2802,7 @@ export class MobileService {
       idempotencyKey: row.intervention_idempotency_key,
       coordinates: this.getPrivateCoords(row),
       scientificSpecies: this.getScientificSpeciesUid(row),
+      isPlanning: row.intervention_status === 'planning',
       history: [],
       plantProject: row.project_uid,
       plantedSpecies: plantedSpeciesData,

@@ -45,7 +45,6 @@ const ManageSpeciesView = () => {
   const { selectedId, speciesDownloading, speciesWriting } = useSelector((state: RootState) => state.tempState)
   const SelectedID = selectedId;
   const SpeciesSynced = useSelector((state: RootState) => state.appState.speciesSync)
-  const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
   const currentProject = useSelector((state: RootState) => state.projectState.currentProject)
 
   const isManageSpecies = route.params?.manageSpecies;
@@ -236,7 +235,6 @@ const ManageSpeciesView = () => {
         toggleFavSpecies={addRemoveUserFavSpecies}
         userFavSpecies={[...userFavSpecies]}
         isManageSpecies={isManageSpecies}
-        v3Approved={v3Approved}
         currentProjectUid={currentProject.projectId || ''}
       />
       <RemoveSpeciesModal

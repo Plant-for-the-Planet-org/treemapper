@@ -109,7 +109,7 @@ const SpeciesSync = () => {
       [
         {
           text: 'Cancel',
-          onPress: () => console.log('Cancel Pressed'),
+          onPress: () => {},
           style: 'cancel',
         },
         {
@@ -285,7 +285,6 @@ const SpeciesSync = () => {
         statusCode: '000',
       })
     } catch (error) {
-      console.log("Error in reading and writing species: ", error);
       dispatch(updateSpeciesWriting(false))
       addNewLog({
         logType: 'DATA_SYNC',

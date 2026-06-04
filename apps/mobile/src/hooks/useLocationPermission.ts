@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import * as Location from 'expo-location'
 import { useDispatch } from 'react-redux';
-import { updateAccuracy, updateUserLocation } from 'src/store/slice/gpsStateSlice';
+import { updateAccuracy, updatePermissionStatus, updateUserLocation } from 'src/store/slice/gpsStateSlice';
 import useLogManagement from './realm/useLogManagement';
 
 const useLocationPermission = () => {
@@ -22,6 +22,7 @@ const useLocationPermission = () => {
     }
 
     if (status.status === Location.PermissionStatus.DENIED) {
+      dispatch(updatePermissionStatus('denied'))
       addNewLog({
         logType: 'LOCATION',
         message: "Location permission denied",
@@ -32,21 +33,35 @@ const useLocationPermission = () => {
     }
 
     if (status.status === Location.PermissionStatus.GRANTED) {
-      userCurrentLocation()
+      dispatch(updatePermissionStatus('granted'))
+      fetchAndDispatchLocation()
     }
   }, [status])
 
-
+  // Re-check permission at call time instead of trusting the (possibly stale)
+  // `status` closure. This is what the recenter button / auto-focus relies on,
+  // so it must work on the very first grant without an app restart.
   const userCurrentLocation = async () => {
-    if (status && status.status === Location.PermissionStatus.GRANTED) {
-      getLastKnowLocation()
-      const userLocationDetails = await Location.getCurrentPositionAsync({
-        accuracy: Location.LocationAccuracy.Highest
-      })
-      if (userLocationDetails?.coords?.longitude && userLocationDetails?.coords?.latitude) {
-        dispatch(updateUserLocation([userLocationDetails.coords.longitude, userLocationDetails.coords.latitude]))
-        dispatch(updateAccuracy(userLocationDetails.coords.accuracy ?? 0))
-      }
+    let permission = await Location.getForegroundPermissionsAsync()
+    if (permission.status === Location.PermissionStatus.UNDETERMINED) {
+      permission = await requestForegroundPermissionsAsync()
+    }
+    if (permission.status !== Location.PermissionStatus.GRANTED) {
+      dispatch(updatePermissionStatus(permission.status === Location.PermissionStatus.DENIED ? 'denied' : 'undetermined'))
+      return
+    }
+    dispatch(updatePermissionStatus('granted'))
+    await fetchAndDispatchLocation()
+  }
+
+  const fetchAndDispatchLocation = async () => {
+    getLastKnowLocation()
+    const userLocationDetails = await Location.getCurrentPositionAsync({
+      accuracy: Location.LocationAccuracy.Highest
+    })
+    if (userLocationDetails?.coords?.longitude && userLocationDetails?.coords?.latitude) {
+      dispatch(updateUserLocation([userLocationDetails.coords.longitude, userLocationDetails.coords.latitude]))
+      dispatch(updateAccuracy(userLocationDetails.coords.accuracy ?? 0))
     }
   }
 
@@ -70,7 +85,13 @@ const useLocationPermission = () => {
 
   const requestLocationPermission = async () => {
     try {
-      await requestForegroundPermissionsAsync()
+      const result = await requestForegroundPermissionsAsync()
+      if (result?.status === Location.PermissionStatus.GRANTED) {
+        dispatch(updatePermissionStatus('granted'))
+        await fetchAndDispatchLocation()
+      } else if (result?.status === Location.PermissionStatus.DENIED) {
+        dispatch(updatePermissionStatus('denied'))
+      }
     } catch (error) {
       addNewLog({
         logType: 'LOCATION',

@@ -91,32 +91,12 @@ const useAuthentication = () => {
   }
 
 
-  const refreshUserToken = async (refreshToken: string) => {
-    try {
-      const result = await getCredentials(refreshToken)
-      addNewLog({
-        logType: 'USER',
-        message: 'Refresh token generated successfully.',
-        logLevel: 'info',
-        statusCode: '',
-      })
-      return result
-    } catch (error) {
-      addNewLog({
-        logType: 'USER',
-        message: 'Error occurred generating refresh token.',
-        logLevel: 'error',
-        statusCode: '',
-        logStack: JSON.stringify(error)
-      })
-      return null
-    }
-  }
+  // Token refresh now lives in src/api/sessionManager.ts (`refreshSession`), so
+  // both the proactive expiry check and the reactive 401 handler share one
+  // path. The standalone Auth0 client there reads the same native credential
+  // store this hook writes to.
 
-
-
-
-  return { getUserCredentials, logoutUser, authorizeUser, user, getCredentials, refreshUserToken, error }
+  return { getUserCredentials, logoutUser, authorizeUser, user, getCredentials, error }
 }
 
 export default useAuthentication

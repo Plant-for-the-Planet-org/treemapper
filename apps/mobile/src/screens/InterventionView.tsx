@@ -28,20 +28,22 @@ const InterventionView = () => {
   }, [currentPage, selectedLabel])
 
   const getQuery = (label: string) => {
-    if (label === 'unsync') {
+    if (label === 'planning') {
+      return 'is_planned == true AND NOT (status == "PENDING_DATA_UPLOAD" AND is_complete == true)';
+    } else if (label === 'unsync') {
       return 'status == "PENDING_DATA_UPLOAD" AND is_complete == true';
     } else if (label === 'incomplete') {
-      return 'is_complete==false';
+      return 'is_complete==false AND is_planned == false';
     } else if (label === 'all') {
       return 'intervention_id!=""';
     } else {
-      return `intervention_key=="${label}"`;
+      return `intervention_key=="${label}" AND is_planned == false`;
     }
   };
 
-  const getRelatedIntervention = () => {
-    const query = getQuery(selectedLabel);
-    const start = currentPage * 20;
+  const getRelatedIntervention = (label = selectedLabel, page = currentPage) => {
+    const query = getQuery(label);
+    const start = page * 20;
     const end = start + 20;
     const objects = realm
       .objects(RealmSchema.Intervention)
@@ -74,6 +76,7 @@ const InterventionView = () => {
   }
 
   const handleLabel = (s: string) => {
+    if (s === selectedLabel) return
     hasMoreData.current = true
     setAllIntervention([])
     setSelectedLabel(s)
@@ -84,7 +87,12 @@ const InterventionView = () => {
     hasMoreData.current = true
     setLoading(true)
     setAllIntervention([])
-    setCurrentPage(0);
+    if (currentPage === 0) {
+      // Page is already 0, so the fetch effect won't re-run — fetch directly
+      getRelatedIntervention(selectedLabel, 0)
+    } else {
+      setCurrentPage(0)
+    }
   }
 
 

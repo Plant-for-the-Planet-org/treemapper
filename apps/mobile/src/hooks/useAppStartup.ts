@@ -1,11 +1,35 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { Platform } from 'react-native'
 import { OneSignal } from 'react-native-onesignal'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import Bugsnag from '@bugsnag/expo'
+
+// Set once we have shown the OS notification prompt, so we never ask again.
+const NOTIFICATION_ASKED_KEY = 'notification-permission-asked'
 
 interface StartupTask {
   name: string
   execute: () => Promise<void>
+}
+
+// Ask for notification permission at most once. If permission is already
+// granted, or we have asked before, do nothing. We pass fallbackToSettings
+// = false so a previous denial never force-opens the OS Settings app.
+const requestNotificationPermissionOnce = async (): Promise<void> => {
+  try {
+    const hasPermission = await OneSignal.Notifications.getPermissionAsync()
+    if (hasPermission) {
+      return
+    }
+    const alreadyAsked = await AsyncStorage.getItem(NOTIFICATION_ASKED_KEY)
+    if (alreadyAsked) {
+      return
+    }
+    await OneSignal.Notifications.requestPermission(false)
+    await AsyncStorage.setItem(NOTIFICATION_ASKED_KEY, 'true')
+  } catch (error) {
+    Bugsnag.notify(error as Error)
+  }
 }
 
 interface UseAppStartupResult {
@@ -21,28 +45,21 @@ const useAppStartup = (): UseAppStartupResult => {
 
   const initializeOneSignal = useCallback(async (): Promise<void> => {
     try {
-      const permissionGranted = await OneSignal.Notifications.requestPermission(true)
+      await requestNotificationPermissionOnce()
       OneSignal.User.pushSubscription.addEventListener('change', (subscription) => {
         const newToken = subscription.current.id
         const optedIn = subscription.current.optedIn
         const pushToken = subscription.current.token
-        console.log('[useAppStartup] Push subscription changed:', {
-          id: newToken,
-          optedIn,
-          token: pushToken,
-        })
         if (newToken) {
           fcmTokenRef.current = newToken
         }
       })
 
       OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event: any) => {
-        console.log('[useAppStartup] Notification received in foreground:', event.notification)
         event.getNotification().display()
       })
 
       OneSignal.Notifications.addEventListener('click', (event: any) => {
-        console.log('[useAppStartup] Notification clicked:', event.notification)
       })
 
       const hasPermission = await OneSignal.Notifications.getPermissionAsync()
@@ -50,20 +67,12 @@ const useAppStartup = (): UseAppStartupResult => {
       const pushToken = await OneSignal.User.pushSubscription.getTokenAsync()
       const optedIn = await OneSignal.User.pushSubscription.getOptedInAsync()
 
-      console.log('[useAppStartup] Status after permission request:', {
-        hasPermission,
-        optedIn,
-        pushToken,
-        playerId,
-        platform: Platform.OS,
-      })
 
       if (playerId) {
         fcmTokenRef.current = playerId
       }
 
     } catch (error) {
-      console.error('[useAppStartup] OneSignal setup error:', error)
       Bugsnag.notify(error as Error)
       throw error
     }
@@ -89,11 +98,8 @@ const useAppStartup = (): UseAppStartupResult => {
 
     for (const task of tasks) {
       try {
-        console.log(`[useAppStartup] Starting task: ${task.name}`)
         await task.execute()
-        console.log(`[useAppStartup] Completed task: ${task.name}`)
       } catch (error) {
-        console.error(`[useAppStartup] Task failed: ${task.name}`, error)
         errorRef.current = error as Error
         // Continue with other tasks even if one fails
         // The app should not crash due to startup task failures
@@ -101,7 +107,6 @@ const useAppStartup = (): UseAppStartupResult => {
     }
 
     isInitializedRef.current = true
-    console.log('[useAppStartup] All startup tasks completed')
   }, [initializeOneSignal])
 
   useEffect(() => {

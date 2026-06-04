@@ -248,6 +248,24 @@ export const createNewIntervention = async (token: string, params: any, prjId: s
   return result;
 };
 
+export const createPlannedIntervention = async (token: string, params: any, prjId: string) => {
+  const uri = `${postUrlApi.createNewIntervention}/${prjId}/web/plan`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
+export const createBulkSingleTreePlan = async (token: string, params: any, prjId: string) => {
+  const uri = `${postUrlApi.createNewIntervention}/${prjId}/web/plan/bulk-single`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
+export const getSiteInterventionsMap = async (token: string, projectId: string, siteUid: string) => {
+  const uri = `${getUrlApi.getSiteInterventionsMap}/${projectId}/sites/${siteUid}/map`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
 export const getProjectIntervention = async (token: string, id: string, queryParams: any) => {
   let uri = `${getUrlApi.getProjectIntervnetion}/${id}`
 
@@ -353,6 +371,24 @@ export const updateProjectSettings = async (token: string, params, prid) => {
   return result;
 };
 
+export const getProjectApiKey = async (token: string, prid: string) => {
+  const uri = `${getUrlApi.projectApiKey}/${prid}/api-key`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+export const generateProjectApiKey = async (token: string, prid: string) => {
+  const uri = `${postUrlApi.generateProjectApiKey}/${prid}/api-key`;
+  const result = await fetchPostCall(uri, {}, token);
+  return result;
+};
+
+export const revokeProjectApiKey = async (token: string, prid: string) => {
+  const uri = `${deleteUrlApi.revokeProjectApiKey}/${prid}/api-key`;
+  const result = await fetchDeleteCall(uri, token);
+  return result;
+};
+
 
 
 
@@ -374,6 +410,12 @@ export const getProjectMapData = async (token: string, pid: string) => {
 
 export const getAllMapInterevntions = async (token: string, pid: string) => {
   const uri = `${getUrlApi.getProjectMap}/${pid}/map/all`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+export const getProjectSitesMap = async (token: string, pid: string) => {
+  const uri = `${getUrlApi.getProjectSitesMap}/${pid}/sites/map`
   const result = await fetchGetCall(uri, token)
   return result
 }

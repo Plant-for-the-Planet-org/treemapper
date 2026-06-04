@@ -31,6 +31,7 @@ import { CurrentUser } from 'src/auth/current-user.decorator';
 import { UserCacheService } from 'src/cache/user-cache.service';
 import { SuperAdminGuard } from 'src/auth/super-admin.guard';
 import { ImpersonationGuard } from 'src/auth/impersonation.guard';
+import { WorkspacePermissionsGuard } from './workspace-permissions.guard';
 
 
 interface AuthenticatedRequest extends Request {
@@ -116,6 +117,7 @@ export class WorkspaceController {
     }
 
     @Patch('/:uid/projects/:projectUid/transfer')
+    @UseGuards(WorkspacePermissionsGuard)
     async transferProject(
         @Param('uid') uid: string,
         @Param('projectUid') projectUid: string,
@@ -126,6 +128,7 @@ export class WorkspaceController {
     }
 
     @Patch('/:uid/projects/:projectUid/status')
+    @UseGuards(WorkspacePermissionsGuard)
     async updateProjectStatus(
         @Param('uid') uid: string,
         @Param('projectUid') projectUid: string,
@@ -141,6 +144,7 @@ export class WorkspaceController {
     }
 
     @Patch('/:uid/settings')
+    @UseGuards(WorkspacePermissionsGuard)
     async updateWorkspaceSettings(
         @Param('uid') uid: string,
         @Body(new ValidationPipe({ whitelist: true })) body: UpdateWorkspaceSettingsDto,
@@ -155,6 +159,7 @@ export class WorkspaceController {
     }
 
     @Patch('/:uid')
+    @UseGuards(WorkspacePermissionsGuard)
     async updateWorkspace(@Param('uid') uid: string, @Body() body: any, @CurrentUser() user: User) {
         return await this.workspaceService.updateWorkspace(uid, body, user.id);
     }

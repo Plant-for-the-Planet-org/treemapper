@@ -17,6 +17,7 @@ import {
 import {
   InterventionResponseDto,
   CreateInterventionBulkDto,
+  CreateBulkSingleTreePlanDto,
   CreateCustomBulkDto,
   GetProjectInterventionsQueryDto,
   GetProjectInterventionsResponseDto,
@@ -180,17 +181,26 @@ export class InterventionsService {
     speciesId: string,
     updateDto: UpdateInterventionSpeciesDto,
     userId: number,
+    projectId: number,
   ) {
     return await this.drizzleService.db.transaction(async (tx) => {
-      // 1. Validate intervention exists and user has access
-      const getInterventionId = await tx.select({ id: intervention.id }).from(intervention).where(eq(intervention.uid, interventionId)).limit(1)
+      // 1. Validate intervention exists and belongs to caller's project
+      const getInterventionId = await tx
+        .select({ id: intervention.id })
+        .from(intervention)
+        .where(and(eq(intervention.uid, interventionId), eq(intervention.projectId, projectId)))
+        .limit(1)
       if (!getInterventionId || getInterventionId.length == 0) {
-        throw 'No intervneiton found'
+        throw new NotFoundException('Intervention not found')
       }
 
-      const getInterventionSpecies = await tx.select().from(interventionSpecies).where(eq(interventionSpecies.uid, speciesId)).limit(1)
+      const getInterventionSpecies = await tx
+        .select()
+        .from(interventionSpecies)
+        .where(and(eq(interventionSpecies.uid, speciesId), eq(interventionSpecies.interventionId, getInterventionId[0].id)))
+        .limit(1)
       if (!getInterventionSpecies || getInterventionSpecies.length == 0) {
-        throw 'No intervneiton found'
+        throw new NotFoundException('Intervention species not found')
       }
       // 2. Validate intervention species exists
 
@@ -954,6 +964,302 @@ export class InterventionsService {
       return {} as InterventionResponseDto;
     } catch (error) {
       throw new BadRequestException(`Failed to create intervention: ${error.message}`);
+    }
+  }
+
+  async createPlannedInterventionWeb(dto: any, membership: ProjectGuardResponse): Promise<any> {
+    try {
+      const PLANNABLE_TYPES = ['single-tree-registration', 'multi-tree-registration'];
+      if (!PLANNABLE_TYPES.includes(dto.type)) {
+        throw new BadRequestException(
+          'Planning mode is only supported for single-tree-registration or multi-tree-registration',
+        );
+      }
+
+      if (!dto.species || !Array.isArray(dto.species) || dto.species.length === 0) {
+        throw new BadRequestException('At least one species is required');
+      }
+
+      const newHID = generateParentHID();
+      let projectSiteId: null | number = null;
+      const uid = generateUid('inv');
+      const idempotencyKey = generateUid('idem');
+      const cleanGeometry = this.getGeoJSONForPostGIS(dto.geometry);
+      const locationSQL = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(cleanGeometry)}), 4326)`;
+
+      const transformedSpecies = dto.species.map((el: any) => ({
+        uid: generateUid('invspc'),
+        scientificSpeciesId: el.scientificSpeciesId,
+        isUnknown: el.isUnknown,
+        speciesName: el.speciesName,
+        speciesCount: el.speciesCount,
+      }));
+
+      const speciesIdCheck = transformedSpecies
+        .filter(el => !el.isUnknown)
+        .map(el => el.scientificSpeciesId)
+        .filter(id => id != null);
+
+      if (speciesIdCheck && speciesIdCheck.length > 0) {
+        const existingSpecies = await this.drizzleService.db
+          .select({ id: scientificSpecies.id })
+          .from(scientificSpecies)
+          .where(inArray(scientificSpecies.id, speciesIdCheck));
+        const existingSpeciesIds = existingSpecies.map(s => s.id);
+        const missingSpeciesIds = speciesIdCheck.filter(id => !existingSpeciesIds.includes(id));
+        if (missingSpeciesIds.length > 0) {
+          throw new BadRequestException(
+            `The following scientific species IDs do not exist: ${missingSpeciesIds.join(', ')}`,
+          );
+        }
+      }
+
+      if (dto.plantProjectSite) {
+        const siteData = await this.drizzleService.db
+          .select({ id: site.id })
+          .from(site)
+          .where(eq(site.uid, dto.plantProjectSite))
+          .limit(1);
+        if (siteData.length === 0) {
+          throw new NotFoundException('Site not found');
+        }
+        projectSiteId = siteData[0].id;
+      }
+
+      const now = new Date();
+      const endDate = new Date(now);
+      endDate.setFullYear(endDate.getFullYear() + 1);
+
+      const totalTreeCount = dto.type === 'single-tree-registration'
+        ? 1
+        : transformedSpecies.reduce((sum, s) => sum + (s.speciesCount || 0), 0);
+
+      const interventionData: any = {
+        uid,
+        hid: newHID,
+        userId: membership.userId,
+        projectId: membership.projectId,
+        siteId: projectSiteId || null,
+        idempotencyKey,
+        type: dto.type as InterventionType,
+        status: 'planning',
+        registrationDate: now,
+        interventionStartDate: now,
+        interventionEndDate: endDate,
+        location: locationSQL,
+        originalGeometry: dto.geometry,
+        captureMode: 'web-upload' as CaptureModeEnum,
+        captureStatus: CaptureStatus.INCOMPLETE,
+        metadata: dto.metadata || null,
+        image: null,
+        description: dto.description || null,
+        totalTreeCount,
+      };
+
+      const result = await this.drizzleService.db
+        .insert(intervention)
+        .values(interventionData)
+        .returning();
+      if (!result || result.length === 0) {
+        throw new Error('Failed to create planned intervention');
+      }
+
+      this.auditService.log('intervention', {
+        action: 'create',
+        entityId: result[0].id,
+        entityUid: result[0].uid,
+        userId: membership.userId,
+        projectId: membership.projectId,
+        newValues: {
+          hid: result[0].hid,
+          type: result[0].type,
+          status: result[0].status,
+          totalTreeCount: result[0].totalTreeCount,
+        },
+        source: 'web',
+      });
+
+      const finalInterventionSpecies: InterventionSpeciesSelect[] = transformedSpecies.map(el => ({
+        ...el,
+        interventionId: result[0].id,
+      }));
+      const interventionSpecieData = await this.drizzleService.db
+        .insert(interventionSpecies)
+        .values(finalInterventionSpecies)
+        .returning();
+      if (interventionSpecieData.length === 0) {
+        throw new Error('Species creation failed');
+      }
+
+      return { success: true, statusCode: 201, data: { uid: result[0].uid, hid: result[0].hid } };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new BadRequestException(`Failed to create planned intervention: ${error.message}`);
+    }
+  }
+
+  /**
+   * Bulk planning of single trees.
+   *
+   * Creates one planned single-tree-registration intervention per point, all
+   * sharing the same species. Mirrors createPlannedInterventionWeb (status
+   * 'planning', captureStatus incomplete, no tree rows) but fans out across
+   * many points. Per-point tags are client-supplied and stored on
+   * intervention.metadata.tag, because the intervention table has no tag column
+   * and planning mode creates no tree rows.
+   *
+   * All inserts run inside a single transaction: any failure rolls back the
+   * whole batch (all-or-nothing).
+   */
+  async createBulkSingleTreePlanWeb(dto: CreateBulkSingleTreePlanDto, membership: ProjectGuardResponse): Promise<any> {
+    try {
+      if (!dto.species || !Array.isArray(dto.species) || dto.species.length === 0) {
+        throw new BadRequestException('At least one species is required');
+      }
+      if (!dto.points || !Array.isArray(dto.points) || dto.points.length === 0) {
+        throw new BadRequestException('At least one tree point is required');
+      }
+      if (dto.points.length > 500) {
+        throw new BadRequestException('A maximum of 500 trees can be planned in one request');
+      }
+
+      // Normalize the shared species so each clone satisfies the
+      // unknownSpeciesLogic check constraint. Single-tree => speciesCount 1.
+      const normalizedSpecies = dto.species.map((el) => {
+        const isUnknown = Boolean(el.isUnknown);
+        return {
+          scientificSpeciesId: isUnknown ? null : (el.scientificSpeciesId ?? null),
+          isUnknown,
+          speciesName: el.speciesName ?? null,
+          speciesCount: 1,
+        };
+      });
+
+      // Validate referenced scientific species exist (known species only).
+      const speciesIdCheck = normalizedSpecies
+        .filter((el) => !el.isUnknown)
+        .map((el) => el.scientificSpeciesId)
+        .filter((id): id is number => id != null);
+
+      if (speciesIdCheck.length > 0) {
+        const existingSpecies = await this.drizzleService.db
+          .select({ id: scientificSpecies.id })
+          .from(scientificSpecies)
+          .where(inArray(scientificSpecies.id, speciesIdCheck));
+        const existingSpeciesIds = existingSpecies.map((s) => s.id);
+        const missingSpeciesIds = speciesIdCheck.filter((id) => !existingSpeciesIds.includes(id));
+        if (missingSpeciesIds.length > 0) {
+          throw new BadRequestException(
+            `The following scientific species IDs do not exist: ${missingSpeciesIds.join(', ')}`,
+          );
+        }
+      }
+
+      // Resolve the optional shared site once.
+      let projectSiteId: number | null = null;
+      if (dto.plantProjectSite) {
+        const siteData = await this.drizzleService.db
+          .select({ id: site.id })
+          .from(site)
+          .where(eq(site.uid, dto.plantProjectSite))
+          .limit(1);
+        if (siteData.length === 0) {
+          throw new NotFoundException('Site not found');
+        }
+        projectSiteId = siteData[0].id;
+      }
+
+      const now = new Date();
+      const endDate = new Date(now);
+      endDate.setFullYear(endDate.getFullYear() + 1);
+
+      const created = await this.drizzleService.db.transaction(async (tx) => {
+        const out: Array<{ id: number; uid: string; hid: string; tag: string | null }> = [];
+
+        for (const point of dto.points) {
+          const pointGeometry = {
+            type: 'Point',
+            coordinates: [point.longitude, point.latitude],
+          };
+          const cleanGeometry = this.getGeoJSONForPostGIS(pointGeometry);
+          const locationSQL = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(cleanGeometry)}), 4326)`;
+          const tag = point.tag ?? null;
+
+          const interventionData: any = {
+            uid: generateUid('inv'),
+            hid: generateParentHID(),
+            userId: membership.userId,
+            projectId: membership.projectId,
+            siteId: projectSiteId,
+            idempotencyKey: generateUid('idem'),
+            type: InterventionType.SINGLE_TREE_REGISTRATION,
+            status: 'planning',
+            registrationDate: now,
+            interventionStartDate: now,
+            interventionEndDate: endDate,
+            location: locationSQL,
+            originalGeometry: pointGeometry,
+            captureMode: 'web-upload' as CaptureModeEnum,
+            captureStatus: CaptureStatus.INCOMPLETE,
+            metadata: { ...(dto.metadata || {}), tag },
+            image: null,
+            description: dto.description || null,
+            totalTreeCount: 1,
+          };
+
+          const inserted = await tx.insert(intervention).values(interventionData).returning();
+          if (!inserted || inserted.length === 0) {
+            throw new Error('Failed to create planned intervention');
+          }
+          const row = inserted[0];
+
+          const speciesRows = normalizedSpecies.map((el) => ({
+            uid: generateUid('invspc'),
+            interventionId: row.id,
+            scientificSpeciesId: el.scientificSpeciesId,
+            isUnknown: el.isUnknown,
+            speciesName: el.speciesName,
+            speciesCount: el.speciesCount,
+          }));
+          const insertedSpecies = await tx.insert(interventionSpecies).values(speciesRows).returning();
+          if (insertedSpecies.length === 0) {
+            throw new Error('Species creation failed');
+          }
+
+          out.push({ id: row.id, uid: row.uid, hid: row.hid, tag });
+        }
+
+        return out;
+      });
+
+      // One summary audit entry for the batch (avoids flooding the audit log
+      // with up to 500 rows). Anchored to the first created intervention.
+      this.auditService.log('intervention', {
+        action: 'create',
+        entityId: created[0].id,
+        entityUid: created[0].uid,
+        userId: membership.userId,
+        projectId: membership.projectId,
+        newValues: {
+          type: InterventionType.SINGLE_TREE_REGISTRATION,
+          status: 'planning',
+          bulk: true,
+          count: created.length,
+          uids: created.map((c) => c.uid),
+        },
+        source: 'web',
+      });
+
+      const interventions = created.map(({ id, ...rest }) => rest);
+      return {
+        success: true,
+        statusCode: 201,
+        message: `${created.length} single tree${created.length === 1 ? '' : 's'} planned`,
+        data: { count: created.length, interventions },
+      };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new BadRequestException(`Failed to create bulk single tree plan: ${error.message}`);
     }
   }
 
@@ -1817,12 +2123,14 @@ export class InterventionsService {
     interventionId: number,
     transferDto: TransferInterventionOwnershipDto,
     requesterId: number,
+    projectId: number,
   ): Promise<OwnershipTransferResult> {
     return await this.drizzleService.db.transaction(async (tx) => {
-      // 1. Validate intervention exists and get current data
+      // 1. Validate intervention exists in caller's project
       const currentIntervention = await this.validateAndGetIntervention(
         tx,
-        interventionId
+        interventionId,
+        projectId
       );
 
       // 2. Validate requester has permission to transfer ownership
@@ -1964,16 +2272,18 @@ async interventionEdit(
     value: string;
   },
   requesterId: number,
+  projectId: number,
 ): Promise<boolean> {
   const db = this.drizzleService.db;
 
-  // 1. Fetch the intervention
+  // 1. Fetch the intervention scoped to the caller's project
   const existingIntervention = await db
     .select()
     .from(intervention)
     .where(
       and(
         eq(intervention.uid, interventionUid),
+        eq(intervention.projectId, projectId),
         isNull(intervention.deletedAt)
       )
     )
@@ -2044,7 +2354,7 @@ async interventionEdit(
   /**
    * Validate intervention exists and is not deleted
    */
-  private async validateAndGetIntervention(tx: any, interventionId: number) {
+  private async validateAndGetIntervention(tx: any, interventionId: number, projectId: number) {
     const interventionData = await tx
       .select({
         id: intervention.id,
@@ -2059,6 +2369,7 @@ async interventionEdit(
       .where(
         and(
           eq(intervention.id, interventionId),
+          eq(intervention.projectId, projectId),
           isNull(intervention.deletedAt)
         )
       )
@@ -2314,41 +2625,6 @@ async interventionEdit(
     return changedFields;
   }
 
-  /**
-   * Bulk transfer multiple interventions (bonus method)
-   */
-  async bulkTransferInterventionOwnership(
-    interventionIds: number[],
-    transferDto: TransferInterventionOwnershipDto,
-    requesterId: number,
-  ): Promise<{
-    successful: OwnershipTransferResult[];
-    failed: { interventionId: number; error: string }[];
-  }> {
-    const results = {
-      successful: [] as OwnershipTransferResult[],
-      failed: [] as { interventionId: number; error: string }[],
-    };
-
-    // Process each intervention individually to handle partial failures
-    for (const interventionId of interventionIds) {
-      try {
-        const result = await this.transferInterventionOwnership(
-          interventionId,
-          transferDto,
-          requesterId
-        );
-        results.successful.push(result);
-      } catch (error) {
-        results.failed.push({
-          interventionId,
-          error: error.message || 'Unknown error occurred',
-        });
-      }
-    }
-
-    return results;
-  }
 
 
 
@@ -2389,15 +2665,21 @@ async interventionEdit(
 
 
 
-  async deleteMyIntervention(interventionUID: string, userId?: number) {
+  async deleteMyIntervention(interventionUID: string, userId: number, projectId: number) {
     // Start transaction
     return await this.drizzleService.db.transaction(async (tx) => {
       try {
-        // 1. Find and validate intervention exists
+        // 1. Find and validate intervention exists in caller's project
         const interventionData = await tx
           .select()
           .from(intervention)
-          .where(eq(intervention.uid, interventionUID))
+          .where(
+            and(
+              eq(intervention.uid, interventionUID),
+              eq(intervention.projectId, projectId),
+              isNull(intervention.deletedAt)
+            )
+          )
           .limit(1);
 
         if (!interventionData || interventionData.length === 0) {
@@ -2405,11 +2687,6 @@ async interventionEdit(
         }
 
         const interventionRecord = interventionData[0];
-
-        // 3. Check if already deleted
-        if (interventionRecord.deletedAt) {
-          throw new Error('Intervention is already deleted');
-        }
 
         const deletedAt = new Date();
         const interventionId = interventionRecord.id;
@@ -2476,6 +2753,58 @@ async interventionEdit(
     });
   }
 
+
+  async getSiteMapInterventions(projectId: number, siteUid: string): Promise<any> {
+    if (!projectId || projectId <= 0) throw new Error('Invalid project ID');
+    if (!siteUid) throw new Error('Invalid site UID');
+
+    const [siteRow] = await this.drizzleService.db
+      .select({ id: site.id })
+      .from(site)
+      .where(and(eq(site.uid, siteUid), eq(site.projectId, projectId)))
+      .limit(1);
+
+    if (!siteRow) {
+      return { interventions: [], totalInterventions: 0 };
+    }
+
+    const rows = await this.drizzleService.db
+      .select({
+        uid: intervention.uid,
+        hid: intervention.hid,
+        type: intervention.type,
+        location: sql<GeoJSON.Point | GeoJSON.Polygon | GeoJSON.MultiPolygon>`ST_AsGeoJSON(${intervention.location})::json`,
+        locationGeometryType: sql<string>`REPLACE(ST_GeometryType(${intervention.location}), 'ST_', '')`,
+        totalTreeCount: intervention.totalTreeCount,
+        interventionStartDate: intervention.interventionStartDate,
+      })
+      .from(intervention)
+      .where(
+        and(
+          eq(intervention.projectId, projectId),
+          eq(intervention.siteId, siteRow.id),
+          isNull(intervention.deletedAt),
+          sql`${intervention.location} IS NOT NULL`,
+          sql`ST_IsValid(${intervention.location}) = true`,
+        ),
+      );
+
+    const interventions = rows
+      .filter(r => r.location && typeof r.location === 'object')
+      .map(r => ({
+        uid: r.uid,
+        hid: r.hid,
+        type: r.type,
+        location: r.location,
+        locationGeometryType: r.locationGeometryType as 'Point' | 'Polygon' | 'MultiPolygon',
+        totalTreeCount: Number(r.totalTreeCount) || 0,
+        interventionStartDate: r.interventionStartDate instanceof Date
+          ? r.interventionStartDate.toISOString()
+          : r.interventionStartDate,
+      }));
+
+    return { interventions, totalInterventions: interventions.length };
+  }
 
   async getProjectMapInterventions(projectId: number): Promise<any> {
     try {
@@ -2776,10 +3105,13 @@ async interventionEdit(
         plantingDate: tree.plantingDate,
         lastMeasurementDate: tree.lastMeasurementDate,
         image: tree.image,
+        migratedTree: tree.migratedTree,
 
         // Species information
         speciesName: sql<string>`COALESCE(${tree.speciesName}, ${interventionSpecies.speciesName}, ${scientificSpecies.scientificName})`,
         commonName: sql<string>`COALESCE(${tree.commonName}, ${interventionSpecies.commonName}, ${scientificSpecies.commonName})`,
+        speciesImage: scientificSpecies.image,
+        speciesFamily: scientificSpecies.family,
       })
       .from(tree)
       .leftJoin(
@@ -2815,6 +3147,154 @@ async interventionEdit(
       trees,
       intervention: interventionData,
       bounds: bufferedBounds,
+    };
+  }
+
+  /**
+   * Full detail for a single intervention, used by the overview map panel.
+   * Returns the intervention (with owner), every tree in it (each with its
+   * owner, latest measurements, species and resolved photo) and the map bounds
+   * so the client can plot the tree markers. All data comes straight from the
+   * tree/intervention tables -- no tree_record history is read here.
+   */
+  async getInterventionFullDetail(
+    interventionId: number,
+    projectId: number,
+  ): Promise<any> {
+    const [interventionRow] = await this.drizzleService.db
+      .select({
+        id: intervention.id,
+        uid: intervention.uid,
+        hid: intervention.hid,
+        type: intervention.type,
+        status: intervention.status,
+        projectId: intervention.projectId,
+        registrationDate: intervention.registrationDate,
+        interventionStartDate: intervention.interventionStartDate,
+        interventionEndDate: intervention.interventionEndDate,
+        location: sql<GeoJSON.Point | GeoJSON.Polygon | GeoJSON.MultiPolygon>`ST_AsGeoJSON(${intervention.location})::json`,
+        locationGeometryType: sql<string>`REPLACE(ST_GeometryType(${intervention.location}), 'ST_', '')`,
+        centroid: sql<GeoJSON.Point | null>`
+          CASE
+            WHEN ST_GeometryType(${intervention.location}) = 'ST_Point' THEN NULL
+            ELSE ST_AsGeoJSON(ST_Centroid(${intervention.location}))::json
+          END
+        `,
+        area: intervention.area,
+        totalTreeCount: intervention.totalTreeCount,
+        totalSampleTreeCount: intervention.totalSampleTreeCount,
+        description: intervention.description,
+        image: intervention.image,
+        ownerName: user.displayName,
+        ownerImage: user.image,
+      })
+      .from(intervention)
+      .leftJoin(user, eq(intervention.userId, user.id))
+      .where(
+        and(
+          eq(intervention.id, interventionId),
+          isNull(intervention.deletedAt),
+        ),
+      )
+      .limit(1);
+
+    if (!interventionRow) {
+      throw new NotFoundException('Intervention not found');
+    }
+
+    if (interventionRow.projectId !== projectId) {
+      throw new ForbiddenException('You do not have access to this intervention');
+    }
+
+    // Resolve the intervention photo: stored value first, then the latest
+    // primary image row. Mirrors the fallback used in getTreeDetail.
+    let resolvedImage: string | null = interventionRow.image ?? null;
+    if (!resolvedImage) {
+      const [primaryImage] = await this.drizzleService.db
+        .select({ filename: image.filename })
+        .from(image)
+        .where(
+          and(
+            eq(image.entityType, 'intervention'),
+            eq(image.entityId, interventionRow.id),
+            isNull(image.deletedAt),
+            sql`${image.filename} IS NOT NULL`,
+          ),
+        )
+        .orderBy(desc(image.isPrimary), desc(image.createdAt))
+        .limit(1);
+      if (primaryImage?.filename) resolvedImage = primaryImage.filename;
+    }
+
+    const { projectId: _omitProjectId, ...interventionRest } = interventionRow;
+    const interventionData: any = {
+      ...interventionRest,
+      image: resolvedImage,
+      registrationDate: interventionRow.registrationDate.toISOString(),
+      interventionStartDate: interventionRow.interventionStartDate.toISOString(),
+      interventionEndDate: interventionRow.interventionEndDate.toISOString(),
+      owner: interventionRow.ownerName
+        ? { displayName: interventionRow.ownerName, image: interventionRow.ownerImage }
+        : null,
+    };
+
+    // Trees with species info plus the planter (owner) of each tree.
+    const treesQuery = await this.drizzleService.db
+      .select({
+        id: tree.id,
+        uid: tree.uid,
+        hid: tree.hid,
+        tag: tree.tag,
+        treeType: tree.treeType,
+        location: sql<GeoJSON.Point>`ST_AsGeoJSON(${tree.location})::json`,
+        status: tree.status,
+        height: tree.height,
+        width: tree.width,
+        currentHealthScore: tree.currentHealthScore,
+        plantingDate: tree.plantingDate,
+        lastMeasurementDate: tree.lastMeasurementDate,
+        image: tree.image,
+        migratedTree: tree.migratedTree,
+        speciesName: sql<string>`COALESCE(${tree.speciesName}, ${interventionSpecies.speciesName}, ${scientificSpecies.scientificName})`,
+        commonName: sql<string>`COALESCE(${tree.commonName}, ${interventionSpecies.commonName}, ${scientificSpecies.commonName})`,
+        speciesImage: scientificSpecies.image,
+        speciesFamily: scientificSpecies.family,
+        ownerName: user.displayName,
+        ownerImage: user.image,
+      })
+      .from(tree)
+      .leftJoin(interventionSpecies, eq(tree.interventionSpeciesId, interventionSpecies.id))
+      .leftJoin(scientificSpecies, eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id))
+      .leftJoin(user, eq(tree.createdById, user.id))
+      .where(
+        and(
+          eq(tree.interventionId, interventionId),
+          isNull(tree.deletedAt),
+        ),
+      )
+      .orderBy(tree.tag);
+
+    // Single-tree interventions keep the point on the intervention itself, so a
+    // tree row may have no location of its own. Fall back to the intervention
+    // point in that case so the one tree still shows and plots on the map.
+    const fallbackPoint =
+      interventionData.location?.type === 'Point' ? interventionData.location : null;
+
+    const trees: any[] = treesQuery.map((row) => ({
+      ...row,
+      location: row.location ?? fallbackPoint,
+      plantingDate: row.plantingDate?.toISOString() ?? null,
+      lastMeasurementDate: row.lastMeasurementDate?.toISOString() ?? null,
+    }));
+
+    const bounds = this.addBufferToBounds(
+      this.calculateBounds(trees.map((t) => t.location)),
+    );
+
+    return {
+      intervention: interventionData,
+      trees,
+      bounds,
     };
   }
 
@@ -3080,13 +3560,14 @@ async interventionEdit(
     const db = this.drizzleService.db;
     const errors: any[] = [];
 
-    // Get intervention data
+    // Get intervention data scoped to caller's project
     const interventionData = await db
       .select()
       .from(intervention)
       .where(
         and(
           eq(intervention.uid, interventionUid),
+          eq(intervention.projectId, projectId),
           isNull(intervention.deletedAt)
         )
       )
@@ -3203,13 +3684,14 @@ async interventionEdit(
     const db = this.drizzleService.db;
 
     return await db.transaction(async (tx) => {
-      // 1. Get intervention data
+      // 1. Get intervention data scoped to caller's project
       const interventionData = await tx
         .select()
         .from(intervention)
         .where(
           and(
             eq(intervention.uid, interventionUid),
+            eq(intervention.projectId, projectId),
             isNull(intervention.deletedAt)
           )
         )
@@ -3833,6 +4315,111 @@ async interventionEdit(
       tree: { hid: treeRow.hid, uid: treeRow.uid, status: treeRow.status },
       records,
       total: records.length,
+    };
+  }
+
+  /**
+   * Full detail for a single tree, used by the overview map when a tree marker
+   * is clicked. Resolves the best available photo: the tree's own image, then
+   * the latest primary row in the image table, then the most recent record
+   * photo. Returns the raw filename so the client can build the CDN URL the
+   * same way it does for the tree list.
+   */
+  async getTreeDetail(treeHid: string, projectId: number): Promise<any> {
+    const [treeRow] = await this.drizzleService.db
+      .select({
+        id: tree.id,
+        uid: tree.uid,
+        hid: tree.hid,
+        tag: tree.tag,
+        treeType: tree.treeType,
+        interventionId: tree.interventionId,
+        location: sql<GeoJSON.Point>`ST_AsGeoJSON(${tree.location})::json`,
+        status: tree.status,
+        statusReason: tree.statusReason,
+        height: tree.height,
+        width: tree.width,
+        currentHealthScore: tree.currentHealthScore,
+        plantingDate: tree.plantingDate,
+        lastMeasurementDate: tree.lastMeasurementDate,
+        image: tree.image,
+        migratedTree: tree.migratedTree,
+        speciesName: sql<string>`COALESCE(${tree.speciesName}, ${interventionSpecies.speciesName}, ${scientificSpecies.scientificName})`,
+        commonName: sql<string>`COALESCE(${tree.commonName}, ${interventionSpecies.commonName}, ${scientificSpecies.commonName})`,
+        speciesImage: scientificSpecies.image,
+        speciesFamily: scientificSpecies.family,
+        ownerName: user.displayName,
+        ownerImage: user.image,
+      })
+      .from(tree)
+      .leftJoin(interventionSpecies, eq(tree.interventionSpeciesId, interventionSpecies.id))
+      .leftJoin(scientificSpecies, eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id))
+      .leftJoin(user, eq(tree.createdById, user.id))
+      .where(and(eq(tree.hid, treeHid), isNull(tree.deletedAt)))
+      .limit(1);
+
+    if (!treeRow) throw new NotFoundException(`Tree ${treeHid} not found`);
+
+    const [interventionRow] = await this.drizzleService.db
+      .select({ projectId: intervention.projectId })
+      .from(intervention)
+      .where(eq(intervention.id, treeRow.interventionId))
+      .limit(1);
+
+    if (!interventionRow || interventionRow.projectId !== projectId) {
+      throw new ForbiddenException('You do not have access to this tree');
+    }
+
+    // Resolve the best photo, in priority order.
+    let resolvedImage: string | null = treeRow.image ?? null;
+    let imageSource: 'tree' | 'image' | 'record' | null = resolvedImage ? 'tree' : null;
+
+    if (!resolvedImage) {
+      const [primaryImage] = await this.drizzleService.db
+        .select({ filename: image.filename })
+        .from(image)
+        .where(
+          and(
+            eq(image.entityType, 'tree'),
+            eq(image.entityId, treeRow.id),
+            isNull(image.deletedAt),
+            sql`${image.filename} IS NOT NULL`,
+          ),
+        )
+        .orderBy(desc(image.isPrimary), desc(image.createdAt))
+        .limit(1);
+      if (primaryImage?.filename) {
+        resolvedImage = primaryImage.filename;
+        imageSource = 'image';
+      }
+    }
+
+    if (!resolvedImage) {
+      const [recordImage] = await this.drizzleService.db
+        .select({ filename: treeRecord.image })
+        .from(treeRecord)
+        .where(
+          and(
+            eq(treeRecord.treeId, treeRow.id),
+            isNull(treeRecord.deletedAt),
+            sql`${treeRecord.image} IS NOT NULL`,
+          ),
+        )
+        .orderBy(desc(treeRecord.recordedAt))
+        .limit(1);
+      if (recordImage?.filename) {
+        resolvedImage = recordImage.filename;
+        imageSource = 'record';
+      }
+    }
+
+    const { interventionId, ...rest } = treeRow;
+    return {
+      ...rest,
+      image: resolvedImage,
+      imageSource,
+      plantingDate: treeRow.plantingDate?.toISOString() ?? null,
+      lastMeasurementDate: treeRow.lastMeasurementDate?.toISOString() ?? null,
     };
   }
 

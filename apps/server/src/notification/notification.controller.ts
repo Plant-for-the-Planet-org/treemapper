@@ -9,7 +9,6 @@ import {
   UseGuards,
   ParseIntPipe,
   HttpStatus,
-  Request
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -30,7 +29,7 @@ import {
 import { Notification } from './entity/notification.entity';
 import { CurrentUser } from 'src/auth/current-user.decorator';
 import { User } from 'src/users/entities/user.entity';
-// import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // Adjust import path
+import { SuperAdminGuard } from 'src/auth/super-admin.guard';
 
 @ApiTags('Notifications')
 @ApiBearerAuth()
@@ -39,6 +38,7 @@ export class NotificationController {
   constructor(private readonly notificationService: NotificationService) { }
 
   @Post()
+  @UseGuards(SuperAdminGuard)
   async createNotification(
     @Body() createNotificationDto: CreateNotificationDto,
     @CurrentUser() userData: User,
@@ -47,6 +47,7 @@ export class NotificationController {
   }
 
   @Post('bulk')
+  @UseGuards(SuperAdminGuard)
   @ApiOperation({ summary: 'Create bulk notifications' })
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Bulk notifications created successfully' })
   async createBulkNotifications(
@@ -73,20 +74,18 @@ export class NotificationController {
     type: NotificationStatsDto
   })
   async getNotificationStats(
-    @Request() req: any // Replace with proper request type
+    @CurrentUser() userData: User,
   ): Promise<NotificationStatsDto> {
-    const userId = req.user?.id || 1; // Replace with actual user extraction logic
-    return this.notificationService.getNotificationStats(userId);
+    return this.notificationService.getNotificationStats(userData.id);
   }
 
   @Get('unread-count')
   @ApiOperation({ summary: 'Get unread notification count' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Unread count retrieved successfully' })
   async getUnreadCount(
-    @Request() req: any // Replace with proper request type
+    @CurrentUser() userData: User,
   ): Promise<{ count: number }> {
-    const userId = req.user?.id || 1; // Replace with actual user extraction logic
-    const count = await this.notificationService.getUnreadCount(userId);
+    const count = await this.notificationService.getUnreadCount(userData.id);
     return { count };
   }
 
@@ -99,6 +98,16 @@ export class NotificationController {
     @Param('id', ParseIntPipe) id: number
   ): Promise<Notification> {
     return this.notificationService.getNotificationById(id);
+  }
+
+  @Patch('mark-all-read')
+  @ApiOperation({ summary: 'Mark all notifications as read' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'All notifications marked as read' })
+  async markAllAsRead(
+    @CurrentUser() userData: User,
+  ): Promise<{ message: string }> {
+    await this.notificationService.markAllAsRead(userData.id);
+    return { message: 'All notifications marked as read' };
   }
 
   @Patch(':id/read')
@@ -114,19 +123,9 @@ export class NotificationController {
   @ApiResponse({ status: HttpStatus.OK, description: 'Notification archived' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Notification not found' })
   async markAsArchived(
-    @Param('id', ParseIntPipe) id: number
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() userData: User,
   ): Promise<Notification> {
-    return this.notificationService.markAsArchived(id);
-  }
-
-  @Patch('mark-all-read')
-  @ApiOperation({ summary: 'Mark all notifications as read' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'All notifications marked as read' })
-  async markAllAsRead(
-    @Request() req: any // Replace with proper request type
-  ): Promise<{ message: string }> {
-    const userId = req.user?.id || 1; // Replace with actual user extraction logic
-    await this.notificationService.markAllAsRead(userId);
-    return { message: 'All notifications marked as read' };
+    return this.notificationService.markAsArchived(id, userData);
   }
 }

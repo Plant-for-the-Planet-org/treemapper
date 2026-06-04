@@ -53,5 +53,3 @@ apps/native/ios
 
 # Xcode local env (machine-specific paths)
 .xcode.env.local
-
-graphify-out

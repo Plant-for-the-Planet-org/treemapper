@@ -92,16 +92,11 @@ const SampleTreePreviewList = (props: Props) => {
             }}>
               <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity> : null}
-            {(v3Approved && details.is_alive && details.status === 'SYNCED')? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
+            {(details.is_alive && details.status === 'SYNCED')? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
               remeasurement(details.tree_id)
             }}>
               <RemeasurementIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity> : null}
-            {/* {(type === 'tpo' && details.tree_type !== 'single' && details.status === 'SYNCED' && details.is_alive && !v3Approved)? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
-              remeasurement(details.tree_id)
-            }}>
-              <RemeasurementIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
-            </TouchableOpacity> : null} */}
             {status !== 'INITIALIZED' ? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
               viewTreeDetails(details.tree_id)
             }}>

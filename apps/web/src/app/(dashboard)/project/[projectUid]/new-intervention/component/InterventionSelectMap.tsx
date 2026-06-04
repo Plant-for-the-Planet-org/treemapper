@@ -1,16 +1,78 @@
 import { useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Map, { NavigationControl, Marker, GeolocateControl, Source, Layer } from 'react-map-gl/maplibre';
-import { MapPin, Square } from 'lucide-react';
+import { MapPin, Square, Maximize2, Minimize2, Map as MapIcon, Satellite } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as turf from '@turf/turf';
+
+const MAP_STYLES = {
+  streets: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+  satellite: {
+    version: 8 as const,
+    sources: {
+      'esri-satellite': {
+        type: 'raster' as const,
+        tiles: [
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        ],
+        tileSize: 256,
+        attribution: 'Tiles © Esri',
+      },
+    },
+    layers: [
+      {
+        id: 'esri-satellite-layer',
+        type: 'raster' as const,
+        source: 'esri-satellite',
+        minzoom: 0,
+        maxzoom: 22,
+      },
+    ],
+  },
+};
+
+interface MarkedPoint {
+  longitude: number;
+  latitude: number;
+}
 
 interface Props {
   updateGeoJSON: (geoJSON: any) => void;
   uploadedGeoJSON: any; // GeoJSON from file upload
   interventionType: string
+  selectedSite?: any
+  existingInterventions?: Array<{
+    uid: string;
+    hid?: string;
+    type?: string;
+    location: any;
+    locationGeometryType?: string;
+  }>
+  // Bulk single-tree mode: each click drops a new persistent marker instead of
+  // replacing a single point. The parent owns the marked-points list.
+  isMultiSingleTree?: boolean
+  markedPoints?: MarkedPoint[]
+  onAddPoint?: (point: MarkedPoint) => void
+  onRemovePoint?: (index: number) => void
+  tagPrefix?: string
 }
 
-const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType }: Props) => {
+const parseSiteGeometry = (site: any): any | null => {
+  if (!site) return null;
+  const raw = site.originalGeometry ?? site.location ?? site.geometry;
+  if (!raw) return null;
+  if (typeof raw === 'string') {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+  if (raw.type === 'Feature' && raw.geometry) return raw.geometry;
+  return raw;
+};
+
+const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType, selectedSite, existingInterventions = [], isMultiSingleTree = false, markedPoints = [], onAddPoint, onRemovePoint, tagPrefix = '' }: Props) => {
   // Initial viewport settings
   const [viewState, setViewState] = useState({
     longitude: -100,
@@ -49,7 +111,13 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
 
   // State to track if we're displaying uploaded GeoJSON
   const [displayingUploadedGeoJSON, setDisplayingUploadedGeoJSON] = useState(false);
-  
+
+  // Basemap style: 'streets' or 'satellite'
+  const [mapStyleMode, setMapStyleMode] = useState<'streets' | 'satellite'>('streets');
+
+  // Fullscreen toggle
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   // Maximum allowed area in hectares
   const MAX_AREA_HECTARES = 1000;
 
@@ -62,6 +130,54 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
       setSelectionMode("polygon")
     }
   }, [interventionType])
+
+  // Escape key exits fullscreen + lock body scroll while fullscreen
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsFullscreen(false);
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isFullscreen]);
+
+  const siteGeometry = parseSiteGeometry(selectedSite);
+
+  const existingFeatureCollections = (() => {
+    const points: any[] = [];
+    const polygons: any[] = [];
+    for (const item of existingInterventions) {
+      if (!item?.location) continue;
+      const geomType = item.location.type || item.locationGeometryType;
+      const feature = {
+        type: 'Feature',
+        geometry: item.location,
+        properties: { uid: item.uid, hid: item.hid ?? '', type: item.type ?? '' },
+      };
+      if (geomType === 'Point') points.push(feature);
+      else if (geomType === 'Polygon' || geomType === 'MultiPolygon') polygons.push(feature);
+    }
+    return {
+      points: { type: 'FeatureCollection' as const, features: points },
+      polygons: { type: 'FeatureCollection' as const, features: polygons },
+    };
+  })();
+
+  useEffect(() => {
+    if (!siteGeometry) return;
+    try {
+      const centroid = turf.centroid(siteGeometry as any);
+      const [longitude, latitude] = centroid.geometry.coordinates;
+      setViewState(prev => ({ ...prev, longitude, latitude, zoom: Math.max(prev.zoom, 13) }));
+    } catch (err) {
+      console.error('Site centroid error:', err);
+    }
+  }, [selectedSite?.uid])
 
 
   // Effect to handle uploaded GeoJSON
@@ -194,6 +310,14 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
     }
 
     if (selectionMode === 'point') {
+      // Bulk single-tree mode: append a new marker, let the parent track the list.
+      if (isMultiSingleTree) {
+        onAddPoint?.({ longitude: lngLat.lng, latitude: lngLat.lat });
+        setShowSuccessFeedback(true);
+        setTimeout(() => setShowSuccessFeedback(false), 2000);
+        return;
+      }
+
       // Point mode: set a single marker and immediately select it
       const point = {
         longitude: lngLat.lng,
@@ -214,7 +338,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
 
       setGeoJSON(pointGeoJSON);
       updateGeoJSON(pointGeoJSON);
-      
+
       // Show success feedback
       setShowSuccessFeedback(true);
       setTimeout(() => setShowSuccessFeedback(false), 2000);
@@ -279,7 +403,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
         });
       }
     }
-  }, [selectionMode, drawingPolygon, displayingUploadedGeoJSON, polygonPoints, polygonCompleted, updateGeoJSON, completePolygon]);
+  }, [selectionMode, drawingPolygon, displayingUploadedGeoJSON, polygonPoints, polygonCompleted, updateGeoJSON, completePolygon, isMultiSingleTree, onAddPoint]);
   
   // Handle double-click to complete polygon
   const handleMapDoubleClick = useCallback(event => {
@@ -345,6 +469,15 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
         setDisplayingUploadedGeoJSON(false);
       }
 
+      // Bulk single-tree mode: append the manual point to the list.
+      if (isMultiSingleTree) {
+        onAddPoint?.({ longitude: lng, latitude: lat });
+        setViewState({ ...viewState, longitude: lng, latitude: lat });
+        setShowSuccessFeedback(true);
+        setTimeout(() => setShowSuccessFeedback(false), 2000);
+        return;
+      }
+
       const point = {
         longitude: lng,
         latitude: lat
@@ -383,7 +516,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
           latitude={latitude}
           anchor="bottom"
         >
-          <MapPin color="#007A49" size={24} />
+          <MapPin color={markerColor} size={24} style={markerStyle} />
         </Marker>
       );
     } else if (firstFeature.geometry.type === 'Polygon') {
@@ -410,12 +543,28 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
     }
   };
 
-  return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+  const markerColor = mapStyleMode === 'satellite' ? '#ffffff' : '#007A49';
+  const markerStyle: React.CSSProperties = mapStyleMode === 'satellite'
+    ? { filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.85))' }
+    : {};
+
+  const containerStyle: React.CSSProperties = isFullscreen
+    ? {
+        position: 'fixed',
+        inset: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 9999,
+        background: '#000',
+      }
+    : { position: 'relative', width: '100%', height: '100%' };
+
+  const mapContent = (
+    <div style={containerStyle}>
       <Map
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
-        mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+        mapStyle={MAP_STYLES[mapStyleMode] as any}
         onClick={handleMapClick}
         onDblClick={handleMapDoubleClick}
         style={{ width: '100%', height: '100%' }}
@@ -428,11 +577,109 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
           trackUserLocation={true}
         />
 
+        {/* Selected site boundary (non-interactive) */}
+        {siteGeometry && (
+          <Source id="site-boundary" type="geojson" data={siteGeometry as any}>
+            <Layer
+              id="site-boundary-fill"
+              type="fill"
+              paint={{ 'fill-color': markerColor, 'fill-opacity': mapStyleMode === 'satellite' ? 0.12 : 0.08 }}
+            />
+            <Layer
+              id="site-boundary-line"
+              type="line"
+              paint={{ 'line-color': markerColor, 'line-width': 2, 'line-dasharray': [3, 2] }}
+            />
+          </Source>
+        )}
+
+        {/* Existing interventions overlay (non-interactive) */}
+        {existingFeatureCollections.polygons.features.length > 0 && (
+          <Source id="existing-interventions-polygons" type="geojson" data={existingFeatureCollections.polygons as any}>
+            <Layer
+              id="existing-interventions-polygon-fill"
+              type="fill"
+              paint={{ 'fill-color': '#f59e0b', 'fill-opacity': mapStyleMode === 'satellite' ? 0.28 : 0.2 }}
+            />
+            <Layer
+              id="existing-interventions-polygon-outline"
+              type="line"
+              paint={{ 'line-color': '#b45309', 'line-width': 1.5 }}
+            />
+          </Source>
+        )}
+        {existingFeatureCollections.points.features.length > 0 && (
+          <Source id="existing-interventions-points" type="geojson" data={existingFeatureCollections.points as any}>
+            <Layer
+              id="existing-interventions-point-halo"
+              type="circle"
+              paint={{
+                'circle-radius': 8,
+                'circle-color': '#f59e0b',
+                'circle-opacity': 0.25,
+              }}
+            />
+            <Layer
+              id="existing-interventions-point"
+              type="circle"
+              paint={{
+                'circle-radius': 4,
+                'circle-color': '#b45309',
+                'circle-stroke-width': 1.5,
+                'circle-stroke-color': '#ffffff',
+              }}
+            />
+          </Source>
+        )}
+
         {/* Render uploaded GeoJSON */}
         {renderUploadedGeoJSON()}
 
+        {/* Bulk single-tree mode: render every marked tree as a numbered pin.
+            Clicking a pin removes that tree. */}
+        {isMultiSingleTree && markedPoints.map((point, index) => (
+          <Marker
+            key={index}
+            longitude={point.longitude}
+            latitude={point.latitude}
+            anchor="bottom"
+          >
+            <button
+              type="button"
+              title={`${tagPrefix}${index + 1} (click to remove)`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemovePoint?.(index);
+              }}
+              style={{
+                position: 'relative',
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+              }}
+            >
+              <MapPin color={markerColor} size={28} style={markerStyle} />
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '2px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  color: mapStyleMode === 'satellite' ? '#0f766e' : '#ffffff',
+                  pointerEvents: 'none',
+                }}
+              >
+                {index + 1}
+              </span>
+            </button>
+          </Marker>
+        ))}
+
         {/* Display marker if in point mode and marker exists (and not displaying uploaded) */}
-        {selectionMode === 'point' && marker && !displayingUploadedGeoJSON && (
+        {selectionMode === 'point' && marker && !displayingUploadedGeoJSON && !isMultiSingleTree && (
           <Marker
             longitude={marker.longitude}
             latitude={marker.latitude}
@@ -460,7 +707,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
               updateGeoJSON(pointGeoJSON);
             }}
           >
-            <MapPin color="#007A49" size={24} />
+            <MapPin color={markerColor} size={24} style={markerStyle} />
           </Marker>
         )}
 
@@ -562,6 +809,96 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
           </>
         )}
       </Map>
+
+      {/* Top-right control cluster: layer toggle + fullscreen */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '12px',
+          right: '12px',
+          zIndex: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}
+      >
+        {/* Basemap layer toggle (pill switch) */}
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '999px',
+            padding: '4px',
+            display: 'flex',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            border: '1px solid rgba(0,0,0,0.06)',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setMapStyleMode('streets')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
+              mapStyleMode === 'streets'
+                ? 'bg-slate-900 text-white'
+                : 'text-slate-600 hover:bg-slate-100'
+            }`}
+            aria-pressed={mapStyleMode === 'streets'}
+          >
+            <MapIcon size={14} /> Streets
+          </button>
+          <button
+            type="button"
+            onClick={() => setMapStyleMode('satellite')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
+              mapStyleMode === 'satellite'
+                ? 'bg-slate-900 text-white'
+                : 'text-slate-600 hover:bg-slate-100'
+            }`}
+            aria-pressed={mapStyleMode === 'satellite'}
+          >
+            <Satellite size={14} /> Satellite
+          </button>
+        </div>
+
+        {/* Fullscreen toggle */}
+        <button
+          type="button"
+          onClick={() => setIsFullscreen(prev => !prev)}
+          title={isFullscreen ? 'Exit fullscreen (Esc)' : 'Open fullscreen'}
+          aria-label={isFullscreen ? 'Exit fullscreen' : 'Open fullscreen'}
+          className="flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-900 text-xs font-medium px-3 py-2 rounded-lg border border-slate-200/80 transition-colors"
+          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
+        >
+          {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+          <span>{isFullscreen ? 'Normal view' : 'Fullscreen'}</span>
+        </button>
+
+        {/* Done button (only in fullscreen) — disabled until a selection exists.
+            In bulk single-tree mode the selection is the marked-points list,
+            not the single geoJSON. */}
+        {isFullscreen && (() => {
+          const hasSelection = isMultiSingleTree ? markedPoints.length > 0 : Boolean(geoJSON);
+          return (
+            <button
+              type="button"
+              onClick={() => setIsFullscreen(false)}
+              disabled={!hasSelection}
+              title={
+                !hasSelection
+                  ? (isMultiSingleTree ? 'Mark at least one tree first' : 'Select a location first')
+                  : 'Return to form'
+              }
+              className={`text-xs font-semibold px-4 py-2 rounded-lg transition-colors ${
+                !hasSelection
+                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              }`}
+              style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+            >
+              Done
+            </button>
+          );
+        })()}
+      </div>
 
       {/* Mode selection toggle and controls */}
       <div style={{
@@ -759,8 +1096,34 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
         }}>
           <div style={{ fontSize: '18px' }}>✓</div>
           <div style={{ fontWeight: '600', fontSize: '14px' }}>
-            {selectionMode === 'point' ? 'Location selected!' : 'Polygon completed!'}
+            {isMultiSingleTree
+              ? 'Tree marked!'
+              : selectionMode === 'point' ? 'Location selected!' : 'Polygon completed!'}
           </div>
+        </div>
+      )}
+
+      {/* Bulk single-tree mode: marked-trees count badge */}
+      {isMultiSingleTree && (
+        <div style={{
+          position: 'absolute',
+          top: '12px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'white',
+          padding: '6px 14px',
+          borderRadius: '999px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          border: '1px solid rgba(0,0,0,0.06)',
+          zIndex: 2,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+        }}>
+          <MapPin size={14} className="text-teal-600" />
+          <span className="text-xs font-semibold text-slate-900">
+            {markedPoints.length} tree{markedPoints.length === 1 ? '' : 's'} marked
+          </span>
         </div>
       )}
 
@@ -802,6 +1165,12 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
       `}</style>
     </div>
   );
+
+  if (isFullscreen && typeof document !== 'undefined') {
+    return createPortal(mapContent, document.body);
+  }
+
+  return mapContent;
 };
 
 export default UnifiedMapComponent;

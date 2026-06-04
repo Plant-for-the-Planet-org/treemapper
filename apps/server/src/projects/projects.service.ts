@@ -1,5 +1,5 @@
 // src/projects/projects.service.ts
-import { Injectable, NotFoundException, ForbiddenException, ConflictException, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, ConflictException, BadRequestException, UnauthorizedException, InternalServerErrorException, HttpException } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
 import { project, projectMember, user, workspace, workspaceMember, projectInvites, bulkInvite, image } from '../database/schema';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -431,7 +431,11 @@ export class ProjectsService {
       }
       return payload
     } catch (error) {
-      return null;
+      if (error instanceof NotFoundException) {
+        return null;
+      }
+      console.error('getMemberRoleFromUid failed', { projectUid, userId, error });
+      throw error;
     }
   }
 
@@ -732,7 +736,7 @@ export class ProjectsService {
     };
   }
 
-  async expireInvite(token: string, userData: User) {
+  async expireInvite(token: string, userData: User, projectId: number) {
     try {
       const invite = await this.drizzleService.db
         .select({
@@ -743,6 +747,7 @@ export class ProjectsService {
           and(
             eq(projectInvites.token, token),
             eq(projectInvites.status, 'pending'),
+            eq(projectInvites.projectId, projectId),
           )
         )
         .then(results => results[0] || null);
@@ -892,14 +897,26 @@ export class ProjectsService {
         };
       }
 
-      await this.drizzleService.db
+      const [updated] = await this.drizzleService.db
         .update(bulkInvite)
         .set({ deletedAt: new Date(), expiresAt: new Date(), discardedAt: new Date(), discardedById: myMembership.userId })
         .where(
           and(
-            eq(bulkInvite.uid, uid)
+            eq(bulkInvite.uid, uid),
+            eq(bulkInvite.projectId, myMembership.projectId),
           )
-        );
+        )
+        .returning({ id: bulkInvite.id });
+
+      if (!updated) {
+        return {
+          message: 'Link not found',
+          statusCode: 404,
+          error: 'not_found',
+          data: null,
+          code: 'invite_link_not_found',
+        };
+      }
 
       return {
         message: 'Link removed successfully',
@@ -956,14 +973,22 @@ export class ProjectsService {
         .orderBy(desc(projectInvites.createdAt))
         .limit(1);
       if (!inviteResult.length) {
-        throw new NotFoundException('Invitation not found');
+        throw new NotFoundException({
+          message: "We couldn't find this invitation. The link may be invalid or the invitation may have been removed.",
+          code: 'invitation_not_found',
+        });
       }
 
       const result = inviteResult[0];
 
-      // Verify email matches
+      // Verify the logged-in account matches the account the invite was sent to.
+      // Use 403 (not 401) so the mobile client does not treat this as an expired
+      // token and trigger a refresh-and-retry loop.
       if (result.invite.email.toLowerCase() !== email.toLowerCase()) {
-        throw new UnauthorizedException('Email does not match invitation');
+        throw new ForbiddenException({
+          message: 'This invitation is not meant for this account. Please log in with the account it was sent to and try again.',
+          code: 'email_mismatch',
+        });
       }
 
       // Check if invite is expired
@@ -998,12 +1023,15 @@ export class ProjectsService {
       };
 
     } catch (error) {
-      if (error instanceof UnauthorizedException || error instanceof NotFoundException) {
+      if (error instanceof HttpException) {
         throw error;
       }
 
       console.error('Error fetching project invite status:', error);
-      throw new Error('Failed to fetch invitation details');
+      throw new InternalServerErrorException({
+        message: 'Something went wrong while loading the invitation. Please try again.',
+        code: 'invite_status_failed',
+      });
     }
   }
 
@@ -1023,22 +1051,41 @@ export class ProjectsService {
         .innerJoin(project, eq(projectInvites.projectId, project.id))
         .innerJoin(workspace, eq(project.workspaceId, workspace.id))
         .innerJoin(user, eq(projectInvites.invitedById, user.id))
-        .where(
-          and(
-            eq(projectInvites.token, token),
-            eq(projectInvites.email, email),
-            eq(projectInvites.status, 'pending'),
-          )
-        )
+        .where(eq(projectInvites.token, token))
+        .orderBy(desc(projectInvites.createdAt))
+        .limit(1)
         .then(results => results[0] || null);
 
       if (!invite) {
         return {
-          message: 'Invitation not found or already processed',
+          message: "We couldn't find this invitation. The link may be invalid or the invitation may have been removed.",
           statusCode: 404,
           error: "not_found",
           data: null,
           code: 'invitation_not_found',
+        };
+      }
+
+      // The invite is tied to a specific email. If the logged-in account is
+      // different, tell the user to switch accounts rather than failing vaguely.
+      if (invite.invite.email.toLowerCase() !== email.toLowerCase()) {
+        return {
+          message: 'This invitation is not meant for this account. Please log in with the account it was sent to and try again.',
+          statusCode: 403,
+          error: "forbidden",
+          data: null,
+          code: 'email_mismatch',
+        };
+      }
+
+      // Already accepted, declined, or cancelled.
+      if (invite.invite.status !== 'pending') {
+        return {
+          message: 'This invitation is no longer available. It may have already been used, declined, or cancelled.',
+          statusCode: 409,
+          error: "conflict",
+          data: null,
+          code: 'invitation_not_pending',
         };
       }
 
@@ -1063,7 +1110,7 @@ export class ProjectsService {
         //     )
         //   )
         return {
-          message: 'Invitation has expired',
+          message: 'This invitation has expired. Please ask the project owner to send you a new invite.',
           statusCode: 400,
           error: "expired",
           data: null,
@@ -1098,7 +1145,7 @@ export class ProjectsService {
 
       if (existingProjectMember) {
         return {
-          message: 'You are already a member of this project',
+          message: 'You are already a member of this project.',
           statusCode: 409,
           error: "conflict",
           data: null,
@@ -1175,7 +1222,7 @@ export class ProjectsService {
     } catch (error) {
       console.error('Error accepting invite:', error);
       return {
-        message: 'Failed to accept invitation',
+        message: 'Something went wrong while accepting the invitation. Please try again.',
         statusCode: 500,
         error: error.message || "internal_server_error",
         data: null,
@@ -1380,15 +1427,16 @@ export class ProjectsService {
     }
   }
 
-  async updateMemberExtraPermissions(projectUid: string, memberUserUid: string, dto: UpdateExtraPermissionsDto) {
+  async updateMemberExtraPermissions(memberUserUid: string, myMembership: ProjectGuardResponse, dto: UpdateExtraPermissionsDto) {
     try {
-      const [projectData] = await this.drizzleService.db
-        .select({ id: project.id })
-        .from(project)
-        .where(eq(project.uid, projectUid))
-        .limit(1);
-      if (!projectData) {
-        return { message: 'Project not found', statusCode: 404, error: 'not_found', data: null };
+      if (!myMembership || !['owner', 'admin'].includes(myMembership.role)) {
+        return {
+          message: 'You do not have permission to update extra permissions',
+          statusCode: 403,
+          error: 'forbidden',
+          data: null,
+          code: 'update_extra_permissions_denied',
+        };
       }
       const [targetUser] = await this.drizzleService.db
         .select({ id: user.id })
@@ -1403,7 +1451,7 @@ export class ProjectsService {
         .set({ extraPermissions: dto.extraPermissions, updatedAt: new Date() })
         .where(
           and(
-            eq(projectMember.projectId, projectData.id),
+            eq(projectMember.projectId, myMembership.projectId),
             eq(projectMember.userId, targetUser.id),
           )
         )
@@ -1478,12 +1526,19 @@ export class ProjectsService {
         };
       }
 
+      const removedAt = new Date();
       await this.drizzleService.db
-        .delete(projectMember)
+        .update(projectMember)
+        .set({
+          deletedAt: removedAt,
+          status: 'inactive',
+          updatedAt: removedAt,
+        })
         .where(
           and(
             eq(projectMember.projectId, myMembership.projectId),
-            eq(projectMember.userId, memberToRemove.user.id)
+            eq(projectMember.userId, memberToRemove.user.id),
+            isNull(projectMember.deletedAt)
           )
         );
 
@@ -1602,7 +1657,10 @@ export class ProjectsService {
         .where(eq(bulkInvite.token, token))
 
       if (!inviteResult.length) {
-        throw new NotFoundException('Invitation not found');
+        throw new NotFoundException({
+          message: 'This invite link is invalid or has been removed.',
+          code: 'invitation_not_found',
+        });
       }
 
       const result = inviteResult[0];
@@ -1640,12 +1698,15 @@ export class ProjectsService {
       };
 
     } catch (error) {
-      if (error instanceof UnauthorizedException || error instanceof NotFoundException) {
+      if (error instanceof HttpException) {
         throw error;
       }
 
       console.error('Error fetching project invite status:', error);
-      throw new Error('Failed to fetch invitation details');
+      throw new InternalServerErrorException({
+        message: 'Something went wrong while loading the invitation. Please try again.',
+        code: 'invite_status_failed',
+      });
     }
   }
 
@@ -1673,7 +1734,7 @@ export class ProjectsService {
 
       if (!invite) {
         return {
-          message: 'Invitation link is invalid or has been processed',
+          message: 'This invite link is invalid or is no longer active.',
           statusCode: 404,
           error: "not_found",
           data: null,
@@ -1683,7 +1744,7 @@ export class ProjectsService {
 
       if (new Date(invite.invite.expiresAt) < new Date()) {
         return {
-          message: 'Invitation has expired',
+          message: 'This invite link has expired. Please ask the project owner for a new link.',
           statusCode: 400,
           error: "expired",
           data: null,
@@ -1697,7 +1758,7 @@ export class ProjectsService {
           const emailDomain = email.substring(email.indexOf('@'));
           if (!invite.invite.emailDomainRestrictions.includes(emailDomain)) {
             return {
-              message: 'Your email domain is not authorized for this invitation',
+              message: 'This invite link is restricted to a different email domain, so this account cannot join. Please log in with an allowed account.',
               statusCode: 403,
               error: "forbidden",
               data: null,
@@ -1706,7 +1767,7 @@ export class ProjectsService {
           }
         } catch (error) {
           return {
-            message: 'Invalid email format',
+            message: "We couldn't read your email address. Please try logging in again.",
             statusCode: 400,
             error: "bad_request",
             data: null,
@@ -1741,7 +1802,7 @@ export class ProjectsService {
 
       if (existingProjectMember) {
         return {
-          message: 'You are already a member of this project',
+          message: 'You are already a member of this project.',
           statusCode: 409,
           error: "conflict",
           data: null,
@@ -1815,7 +1876,7 @@ export class ProjectsService {
     } catch (error) {
       console.error('Error accepting link invite:', error);
       return {
-        message: 'Failed to accept invitation',
+        message: 'Something went wrong while accepting the invitation. Please try again.',
         statusCode: 500,
         error: error.message || "internal_server_error",
         data: null,
@@ -1991,6 +2052,7 @@ export class ProjectsService {
       isPersonal: (value: any) => this.cleanBooleanValue(value),
       isPrimary: (value: any) => this.cleanBooleanValue(value),
       approvalBoardEnabled: (value: any) => this.cleanBooleanValue(value),
+      apiEnabled: (value: any) => this.cleanBooleanValue(value),
 
       // JSON fields
       metadata: (value: any) => this.cleanJsonValue(value),

@@ -184,7 +184,7 @@ export const recordTypeEnum = pgEnum('record_type', [
 export const imageEntityEnum = pgEnum('image_entity', ['project', 'site', 'user', 'intervention', 'tree', 'species', 'feedback']);
 export const treeTypeEnum = pgEnum('tree_enum', ['single', 'sample', 'plot']);
 export const imageTypeEnum = pgEnum('image_type', ['before', 'during', 'after', 'detail', 'overview', 'progress', 'aerial', 'ground', 'record']);
-export const interventionStatusEnum = pgEnum('intervention_status', ['planned', 'active', 'completed', 'failed', 'on-hold', 'cancelled']);
+export const interventionStatusEnum = pgEnum('intervention_status', ['planned', 'planning', 'active', 'completed', 'failed', 'on-hold', 'cancelled']);
 export const feedbackTypeEnum = pgEnum('feedback_type', ['feedback', 'issue', 'translation_fix']);
 export const feedbackStatusEnum = pgEnum('feedback_status', ['pending', 'reviewed', 'resolved', 'dismissed']);
 export const migrationStatusEnum = pgEnum('migration_status', [
@@ -318,7 +318,8 @@ export const user = pgTable('user', {
   migratedAt: timestamp('migrated_at', { withTimezone: true }),
   existingPlanetUser: boolean('existing_planet_user').default(false),
   workspaceRole: workspaceRoleEnum('workspace_role').default('member'),
-  v3ApprovedAt: timestamp('v3_approved_at', { withTimezone: true })
+  v3ApprovedAt: timestamp('v3_approved_at', { withTimezone: true }),
+  lastActiveAt: timestamp('last_active_at', { withTimezone: true })
 }, () => ({
   emailFormat: check('email_format', sql`email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'`),
 }));
@@ -519,6 +520,36 @@ export const notifications = pgTable('notifications', {
     sql`retry_count >= 0 AND retry_count <= 10`),
 }));
 
+// One row per physical device (deviceId is the client-generated id stored on
+// the device). On app open the mobile app upserts this row: if the same
+// deviceId logs in as a different user, ownership (userId) is reassigned.
+// Used for push delivery (oneSignalId) and, later, a web device-management view.
+export const userDevice = pgTable('user_device', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  deviceId: text('device_id').notNull().unique(),
+  userId: integer('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  oneSignalId: text('one_signal_id'),
+  deviceOs: text('device_os'),
+  deviceName: text('device_name'),
+  deviceModel: text('device_model'),
+  osVersion: text('os_version'),
+  appVersion: text('app_version'),
+  locale: text('locale'),
+  timezone: text('timezone'),
+  notificationPermission: boolean('notification_permission').default(true).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  lastActiveAt: timestamp('last_active_at', { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  userDevicesIdx: index('user_device_user_idx').on(table.userId),
+  oneSignalIdx: index('user_device_one_signal_idx')
+    .on(table.oneSignalId)
+    .where(sql`one_signal_id IS NOT NULL`),
+  lastActiveIdx: index('user_device_last_active_idx').on(table.lastActiveAt),
+}));
+
 export const auditLog = pgTable('audit_log', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
@@ -577,6 +608,7 @@ export const project = pgTable('project', {
   migratedProject: boolean('migrated_project').default(false),
   status: projectStatusEnum('status').notNull().default('active'),
   approvalBoardEnabled: boolean('approval_board_enabled').default(false).notNull(),
+  apiEnabled: boolean('api_enabled').default(false).notNull(),
   flag: boolean('flag').default(false),
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
   metadata: jsonb('metadata'),
@@ -598,6 +630,23 @@ export const project = pgTable('project', {
     sql`is_primary = false OR (is_primary = true AND is_active = true)`),
   flaggedProjectReason: check('flagged_project_reason',
     sql`flag = false OR flag_reason IS NOT NULL`),
+}));
+
+
+export const projectApiKey = pgTable('project_api_key', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+  keyHash: text('key_hash').notNull().unique(),
+  keyPrefix: text('key_prefix').notNull(),
+  createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  projectKeyUnique: uniqueIndex('project_api_key_project_unique').on(table.projectId),
+  keyHashIdx: index('project_api_key_hash_idx').on(table.keyHash),
 }));
 
 
@@ -962,7 +1011,7 @@ export const intervention = pgTable('intervention', {
   metadata: jsonb('metadata'),
   migratedIntervention: boolean('migrated_intervention').default(false),
   reviewStatus: reviewStatusEnum('review_status'),
-  submittedAt: timestamp('submitted_at', { withTimezone: true }), //REMOVE
+  submittedAt: timestamp('submitted_at', { withTimezone: true }),
   approvedAt: timestamp('approved_at', { withTimezone: true }),
   approvedById: integer('approved_by_id').references(() => user.id, { onDelete: 'set null' }),
   rejectedAt: timestamp('rejected_at', { withTimezone: true }),
@@ -1447,6 +1496,18 @@ export const projectRelations = relations(project, ({ one, many }) => ({
   interventions: many(intervention),
   projectSpecies: many(projectSpecies),
   speciesRequests: many(speciesRequest),
+  apiKey: one(projectApiKey),
+}));
+
+export const projectApiKeyRelations = relations(projectApiKey, ({ one }) => ({
+  project: one(project, {
+    fields: [projectApiKey.projectId],
+    references: [project.id],
+  }),
+  createdBy: one(user, {
+    fields: [projectApiKey.createdById],
+    references: [user.id],
+  }),
 }));
 
 export const projectMemberRelations = relations(projectMember, ({ one }) => ({

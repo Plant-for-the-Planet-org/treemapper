@@ -13,12 +13,6 @@ export const getMobileHealth = async () => {
   return result;
 };
 
-export const uploadInterventionImage = async (location_id: string, coordinate_id: string, params: any) => {
-  const uri = `${postUrlApi.imageUpload}/${location_id}/coordinates/${coordinate_id}`
-  const result = await fetchPutCall(uri, params);
-  return result;
-};
-
 export const getMobileUserDetails = async () => {
   const uri = `${getUrlMobileApi.getUserDetails}`;
   const result = await fetchGetCall(uri, true);
@@ -37,11 +31,6 @@ export const getMobileInviteStatusEmail = async (id: string) => {
   return result;
 };
 
-export const updateApiUserDetails = async (params: any) => {
-  const uri = `${postUrlNewApi.updateUserDetails}`;
-  const result = await fetchPostCall(uri, params);
-  return result;
-};
 
 export const createMobileProject = async (params: any) => {
   const uri = `${postUrlNewApi.createNewProject}`;
@@ -86,17 +75,9 @@ export const mobileInterventionImageUplaod = async (params) => {
   return result;
 };
 
-export const remeasurement = async (tree_id: string, params: any) => {
-  const uri = `${postUrlApi.remeasurement}/${tree_id}/event`
-  const result = await fetchPostCall(uri, params);
-  return result;
-};
-
 export const remeasuremenMobile = async (tree_id: string, params: any) => {
   const uri = `${postUrlNewApi.remeasurement}/${tree_id}/remeasure`
   const result = await fetchPutCall(uri, params);
-  console.log("🔵 remeasuremenMobile API Response:");
-  console.log("  Result:", JSON.stringify(result, null, 2));
   return result;
 };
 
@@ -105,20 +86,6 @@ export const deleteAccount = async () => {
   const result = await fetchDeleteCall(uri);
   return result;
 };
-
-
-export const skipRemeasurement = async (tree_id: string, params: any) => {
-  const uri = `${postUrlApi.skipRemeasurement}/${tree_id}/event`
-  const result = await fetchPostCall(uri, params);
-  return result;
-};
-
-export const getUserDetails = async () => {
-  const uri = `${getUrlApi.getUserDetails}`;
-  const result = await fetchGetCall(uri, true);
-  return result;
-};
-
 
 
 export const getAreaName = async (coords: number[],) => {
@@ -133,27 +100,6 @@ export const getAllSpeciesAchieve = async () => {
   return result;
 };
 
-export const getServerIntervention = async (uri?: string) => {
-  const url = uri.length > 0 ? `${getUrlApi.getBaseTestUrl}/${uri}` : getUrlApi.getAllPlantLocations
-  const result = await fetchGetCall(url, true);
-  return result;
-};
-
-
-export const createUserProfile = async (params: any) => {
-  const uri = `${postUrlApi.signupService}`;
-  const result = await fetchPostCall(uri, params, false);
-  return result;
-};
-
-export const updateProjectDetails = async (d: { i: number, f: string, id: string }) => {
-  const uri = `${postUrlApi.updateProjectInF}/${d.id}`;
-  const result = await fetchPutCall(uri, {
-    "revisionPeriodicityLevel": d.f,
-    "intensity": d.i
-  });
-  return result;
-};
 
 export const addUserSpeciesToServer = async (params: any) => {
   const uri = `${postUrlApi.addUserSpecies}`;
@@ -170,13 +116,6 @@ export const removeUserSpeciesToServer = async (id: any) => {
 
 
 
-export const sendFeatureRequest = async () => {
-  const uri = `${postUrlNewApi.sendFeatureRequest}`;
-  const result = await fetchPostCall(uri, {});
-  return result;
-};
-
-
 export const updateServerSpeciesDetail = async (params: any, id: string) => {
   const uri = `${postUrlApi.addUserSpecies}/${id}`;
   const result = await fetchPutCall(uri, params);
@@ -184,8 +123,8 @@ export const updateServerSpeciesDetail = async (params: any, id: string) => {
 };
 
 
-export const createNewSite = async (pid: string, params: any) => {
-  const uri = `${postUrlApi.createNewSite}/${pid}/sites`
+export const createNewSite = async (projectId: string, params: any) => {
+  const uri = `${postUrlNewApi.createSite}/${projectId}/sites`
   const result = await fetchPostCall(uri, params);
   return result;
 };
@@ -198,7 +137,6 @@ export const getMobileInterventions = async (page: string) => {
 };
 
 export const getSingleIntervention = async (interventionId: string) => {
-  console.log("Fetching intervention ID:", interventionId);
   const uri = `${getUrlMobileApi.getSingleIntervention}/${interventionId}`;
   const result = await fetchGetCall(uri, true);
   return result;
@@ -213,7 +151,6 @@ const getImageAsBase64 = async (fileUri: string): Promise<string> => {
     });
     return base64;
   } catch (error) {
-    console.warn('Failed to read image file, using fallback:', error);
     return sampleTreeBase64; // Fallback to default base64 image
   }
 };
@@ -241,7 +178,6 @@ const getImageAsBase64Enhanced = async (fileUri: string): Promise<{ success: boo
       data: base64
     };
   } catch (error) {
-    console.warn('Failed to read image file:', error);
     return {
       success: false,
       data: sampleTreeBase64,
@@ -262,7 +198,6 @@ const getFileInfo = async (fileUri: string) => {
       uri: fileInfo.uri
     };
   } catch (error) {
-    console.error('Error getting file info:', error);
     return {
       exists: false,
       size: 0,
@@ -379,7 +314,6 @@ export const uploadViaAPIWithFileSystem = async (selectedImage: string, uploadUr
     };
 
   } catch (error: any) {
-    console.error('Upload error:', error);
     return {
       success: false,
       error: error.message || 'Upload failed',
@@ -390,24 +324,15 @@ export const uploadViaAPIWithFileSystem = async (selectedImage: string, uploadUr
 
 //GET PROJECT
 
-export const getUserProjects = async (newBackend: boolean) => {
+export const getUserProjects = async () => {
   let result: { responseData: any, responseError: boolean }
-  if (newBackend) {
-    let { response, success } = await getAllMobileProjects()
-    if (success) {
-      result = { responseData: response.data, responseError: false }
-    } else {
-      result = { responseData: null, responseError: false }
-
-    }
+  let { response, success } = await getAllMobileProjects()
+  if (success) {
+    result = { responseData: response.data, responseError: false }
   } else {
-    let { response, success } = await getAllProjects()
-    if (success) {
-      result = { responseData: response, responseError: false }
-    } else {
-      result = { responseData: null, responseError: false }
-
-    }
+    // Failed/offline fetch. Signal an error so callers do not mistake this for
+    // an empty (zero-project) account and wipe local data during sync.
+    result = { responseData: null, responseError: true }
   }
   return result
 }
@@ -425,36 +350,21 @@ export const getPersonalProject = async () => {
   return result;
 };
 
-export const getAllProjects = async () => {
-  const uri = `${getUrlApi.getAllProjects}`;
-  const result = await fetchGetCall(uri, true);
-  return result;
-};
-
-
-
 // Species
 
-export const getUserAllSpeceis = async (newBackend: boolean, id?: string) => {
+export const getUserAllSpeceis = async (id?: string) => {
   let result: { responseData: any, responseError: boolean }
-  if (newBackend && id) {
+  if (id) {
     let { response, success } = await getUserProjectSpecies(id)
     if (success) {
       result = { responseData: response.data, responseError: false }
     } else {
       result = { responseData: null, responseError: false }
-
     }
+    return result
   } else {
-    let { response, success } = await getUserSpecies()
-    if (success) {
-      result = { responseData: response, responseError: false }
-    } else {
-      result = { responseData: null, responseError: false }
-
-    }
+    return { responseData: null, responseError: false }
   }
-  return result
 }
 
 
@@ -475,7 +385,7 @@ export const getUserProjectSpecies = async (id: string) => {
 
 //Post intervention
 export const uploadAllIntervention = async (params: any) => {
-  let { response, success } = await uploadMobileIntervention(params)
+  const { response, success, status } = await uploadMobileIntervention(params)
   if (success && response.data && response.data.id) {
     return {
       responseData: {
@@ -491,16 +401,25 @@ export const uploadAllIntervention = async (params: any) => {
           "updated": new Date(),
           "status": "pending"
         }]
-      }, responseError: false
+      }, responseError: false, status
     }
   } else {
-    return { responseData: null, responseError: true }
+    // Surface the HTTP status so the sync loop can tell a payload the server
+    // rejected (4xx, never retryable) from a transient failure (5xx/network).
+    return { responseData: null, responseError: true, status }
   }
 }
 
 export const uploadMobileIntervention = async (params: any) => {
   const uri = `${postUrlNewApi.uploadMobileIntervention}/${params.plantProject}/intervention`;
   const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+// Record (upload) a planned single-tree intervention that already exists on the server.
+export const recordPlannedIntervention = async (projectId: string, interventionId: string, params: any) => {
+  const uri = `${postUrlNewApi.recordPlannedIntervention}/${projectId}/intervention/${interventionId}/record`;
+  const result = await fetchPutCall(uri, params);
   return result;
 };
 
@@ -519,12 +438,6 @@ export const acceptLinkInvite = async (params: any) => {
 
 export const registerUserDevice = async (params: DeviceRegistrationParams) => {
   const uri = `${postUrlNewApi.registerDevice}`;
-  const result = await fetchPostCall(uri, params);
-  return result;
-};
-
-export const uploadIntervention = async (params: any) => {
-  const uri = `${postUrlApi.uploadIntervention}`;
   const result = await fetchPostCall(uri, params);
   return result;
 };

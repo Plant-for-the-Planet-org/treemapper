@@ -37,4 +37,8 @@ export type PlotAttributes = PLOT_COMPLEXITY | PLOT_SHAPE | PLOT_TYPE;
 
 
 export type LAST_SCREEN = "FORM" | "LOCATION" | "SPECIES" | "TOTAL_TREES" | "TREE_DETAILS" | "LOCAL_FORM" | "DYNAMIC_FORM" | "PREVIEW"
-export type FIX_REQUIRED = "NO" | "PROJECT_ID_MISSING" | "UNKNOWN" 
+// "UNKNOWN": local body conversion failed (corrupt record). "SERVER_REJECTED":
+// the server returned a 4xx for this payload, so retrying the same data can
+// never succeed. Both quarantine the record out of the sync queue until the
+// user edits it (editing resets fix_required to "NO").
+export type FIX_REQUIRED = "NO" | "PROJECT_ID_MISSING" | "UNKNOWN" | "SERVER_REJECTED"

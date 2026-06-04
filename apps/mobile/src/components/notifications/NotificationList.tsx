@@ -68,7 +68,7 @@ const NotificationList = () => {
         setPagination(data.pagination)
       }
     } catch (error) {
-      console.log('Error loading notifications:', error)
+      console.error('Error loading notifications:', error)
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -105,7 +105,7 @@ const NotificationList = () => {
           )
         )
       } catch (error) {
-        console.log('Error marking notification as read:', error)
+        console.error('Error marking notification as read:', error)
       }
     }
 

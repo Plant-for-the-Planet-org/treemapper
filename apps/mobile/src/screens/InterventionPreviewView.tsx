@@ -47,7 +47,6 @@ const InterventionPreviewView = () => {
   const [loading, setLoading] = useState(true)
   const DeviceLocation = useSelector((state: RootState) => state.gpsState.user_location)
   const UserType = useSelector((state: RootState) => state.userState.type)
-  const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
 
   const toast = useToast()
   const realm = useRealm()
@@ -80,14 +79,12 @@ const InterventionPreviewView = () => {
   const refreshInterventionData = async () => {
     try {
       // Only refresh for synced interventions
-      console.log("InterventionData?.status", InterventionData?.status)
       if (InterventionData?.status !== 'SYNCED') {
         return
       }
 
       // Check internet connectivity
       const netInfo = await NetInfo.fetch()
-      console.log("netInfo.isConnected", netInfo.isConnected)
       if (!netInfo.isConnected) {
         return
       }
@@ -96,13 +93,11 @@ const InterventionPreviewView = () => {
 
       // Fetch intervention data from server
       const { response, success } = await getSingleIntervention(interventionID)
-      console.log("Refresh intervention response:", response, success)
       if (success && response?.data) {
         const interventionData = response.data
         // Get server's updated_at timestamp
         const serverUpdatedAt = convertDateToTimestamp(interventionData.updatedAt || interventionData.editedAt)
         const localLastEdited = InterventionData?.last_updated_at || 0
-        console.log("Timestamps - Server:", serverUpdatedAt, "Local:", localLastEdited)
         // Compare timestamps - if server has newer data, update local
         if (serverUpdatedAt > localLastEdited) {
           const convertedIntervention = convertInventoryToIntervention(interventionData)
@@ -118,7 +113,6 @@ const InterventionPreviewView = () => {
         }
       }
     } catch (error) {
-      console.log("Error refreshing intervention data:", error)
       addNewLog({
         logType: 'INTERVENTION',
         message: `Error refreshing intervention ${interventionID}`,
@@ -148,8 +142,7 @@ const InterventionPreviewView = () => {
 
 
   const showInitialToast = () => {
-    const canUse = v3Approved || UserType === 'tpo'
-    if (canUse && !!InterventionData && !InterventionData.project_id && InterventionData.status !== 'SYNCED') {
+    if (!!InterventionData && !InterventionData.project_id && InterventionData.status !== 'SYNCED' && UserType) {
       toast.show("Project not assign")
     }
   }
@@ -229,22 +222,21 @@ const InterventionPreviewView = () => {
                 (x, y) => {
                   scrollViewRef.current.scrollTo({ y: y - 100, animated: true });
                 },
-                (error) => console.log('Measure failed', error)
+                (error) => {}
               );
             }
           }
         }, 1000);
       }
     } catch (error) {
-      console.log("error", error)
+      console.error("error", error)
     }
   }, [highlightedTree])
 
 
 
   const navigateToNext = async () => {
-    const canUse = v3Approved || UserType === 'tpo'
-    if (canUse && !InterventionData.project_id) {
+    if (!InterventionData.project_id && UserType) {
       toast.show("Please assign project")
       return
     }
@@ -339,7 +331,6 @@ const InterventionPreviewView = () => {
         {InterventionData.location.coordinates.length > 0 && <InterventionArea data={InterventionData} />}
         <InterventionBasicInfo
           data={InterventionData}
-          v3Approved={v3Approved}
           userType={UserType}
         />
         {InterventionData.sample_trees.length > 0 && (
