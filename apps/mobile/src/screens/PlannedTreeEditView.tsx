@@ -28,13 +28,13 @@ import { measurementValidation } from 'src/utils/constants/measurementValidation
 import { convertMeasurements, getConvertedDiameter, getConvertedHeight } from 'src/utils/constants/measurements'
 import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import getDistanceBetween, { formatDistance } from 'src/utils/helpers/getDistanceBetween'
-import { SCALE_20 } from 'src/utils/constants/spacing'
+import SatelliteIconWrapper from 'src/components/map/SatelliteIconWrapper'
+import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import { useToast } from 'react-native-toast-notifications'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
 import HeightIcon from 'assets/images/svg/HeightIcon.svg'
 import WidthIcon from 'assets/images/svg/WidthIcon.svg'
 import MapPin from 'assets/images/svg/MapPin.svg'
-import UserLocationIcon from 'assets/images/svg/UserLocationIcon.svg'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -53,10 +53,11 @@ const PlannedTreeEditView = () => {
 
   const { country, v3Approved } = useSelector((state: RootState) => state.userState)
   const userLocation = useSelector((state: RootState) => state.gpsState.user_location)
+  const mainMapView = useSelector((state: RootState) => state.displayMapState.mainMapView)
   const imageDetails = useSelector((state: RootState) => state.cameraState)
   const isNonISUCountry: boolean = nonISUCountries.includes(country)
 
-  const { updateSampleTreeDetails, updateSampleTreeImage, updatePlannedTreeLocation, saveIntervention } = useInterventionManagement()
+  const { updateSampleTreeDetails, updateSampleTreeImage, saveIntervention } = useInterventionManagement()
 
   const [imageId, setImageId] = useState('')
   const [openEditModal, setOpenEditModal] = useState<{ label: EditLabels, value: string, type: KeyboardType, open: boolean }>({ label: '', value: '', type: 'default', open: false })
@@ -65,7 +66,6 @@ const PlannedTreeEditView = () => {
   const [showIncorrectRatioAlert, setShowIncorrectRatioAlert] = useState(false)
 
   const cameraRef = useRef<CameraRef>(null)
-  const framed = useRef(false)
   const [liveLocation, setLiveLocation] = useState<[number, number] | null>(null)
 
   const treeHasLocation = !!tree && !(tree.latitude === 0 && tree.longitude === 0)
@@ -129,20 +129,16 @@ const PlannedTreeEditView = () => {
     )
   }
 
-  // Center on the tree as soon as the map mounts, then reframe to include the
-  // user the first time a live position arrives.
+  // This map is read only: the user can't pan it, so we keep both the tree and
+  // the user framed at all times. Reframe on mount and on every position update
+  // (and whenever the satellite layer toggles re-mounts the map).
   useEffect(() => {
     if (!treeHasLocation) {
       return
     }
-    if (liveLocation && !framed.current) {
-      framed.current = true
-      const timer = setTimeout(fitBoth, 300)
-      return () => clearTimeout(timer)
-    }
-    const timer = setTimeout(centerOnTree, 300)
+    const timer = setTimeout(liveLocation ? fitBoth : centerOnTree, 300)
     return () => clearTimeout(timer)
-  }, [liveLocation, treeHasLocation])
+  }, [liveLocation, treeHasLocation, mainMapView])
 
   if (!tree) {
     return (
@@ -175,15 +171,6 @@ const PlannedTreeEditView = () => {
     navigation.navigate('TakePicture', { id: newID, screen: 'EDIT_SAMPLE_TREE' })
   }
 
-  const useCurrentLocation = async () => {
-    if (!userLocation || userLocation[0] === 0) {
-      toast.show('Current location not available yet')
-      return
-    }
-    ctaHaptic()
-    await updatePlannedTreeLocation(interventionId, tree.tree_id, userLocation[0], userLocation[1])
-  }
-
   const adjustOnMap = () => {
     navigation.navigate('PlannedTreeLocation', { interventionId, treeId: tree.tree_id })
   }
@@ -213,12 +200,7 @@ const PlannedTreeEditView = () => {
         setShowInputError(!!validationObject.heightErrorMessage)
         hasError = validationObject.heightErrorMessage.length > 0
         if (!hasError) {
-          if (validate && !validationObject.isRatioCorrect) {
-            setShowIncorrectRatioAlert(true)
-            hasError = true
-          } else {
-            finalDetails.specie_height = getConvertedHeight(Number(updatedHeight), isNonISUCountry)
-          }
+          finalDetails.specie_height = getConvertedHeight(Number(updatedHeight), isNonISUCountry)
         }
       } else {
         setInputErrorMessage('Please input correct height')
@@ -236,12 +218,7 @@ const PlannedTreeEditView = () => {
         setShowInputError(!!validationObject.diameterErrorMessage)
         hasError = validationObject.diameterErrorMessage.length > 0
         if (!hasError) {
-          if (validate && !validationObject.isRatioCorrect) {
-            setShowIncorrectRatioAlert(true)
-            hasError = true
-          } else {
-            finalDetails.specie_diameter = getConvertedDiameter(Number(updatedWidth), isNonISUCountry)
-          }
+          finalDetails.specie_diameter = getConvertedDiameter(Number(updatedWidth), isNonISUCountry)
         }
       } else {
         setInputErrorMessage('Please input correct diameter')
@@ -251,7 +228,7 @@ const PlannedTreeEditView = () => {
     }
 
     const handleTagValidation = () => {
-      const regex = /[^a-zA-Z0-9]/g
+      const regex = /[^a-zA-Z0-9-]/g
       if (regex.test(openEditModal.value)) {
         setInputErrorMessage('Please input a valid tag')
         setShowInputError(true)
@@ -300,6 +277,10 @@ const PlannedTreeEditView = () => {
       toast.show('Please add a tree image')
       return
     }
+    if (!tree.specie_height || !tree.specie_diameter) {
+      toast.show('Please add height and width')
+      return
+    }
     await saveIntervention(interventionId)
     dispatch(updateNewIntervention())
     navigation.goBack()
@@ -344,7 +325,13 @@ const PlannedTreeEditView = () => {
                 style={styles.map}
                 logo={false}
                 attribution={false}
-                mapStyle={MapStyle}>
+                scaleBar={false}
+                dragPan={false}
+                touchZoom={false}
+                doubleTapZoom={false}
+                touchRotate={false}
+                touchPitch={false}
+                mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
                 <Camera ref={cameraRef} maxZoom={18} />
                 <UserLocation minDisplacement={1} />
                 {liveCoord && (
@@ -371,18 +358,13 @@ const PlannedTreeEditView = () => {
                   <Text style={styles.distanceText}>{distanceLabel}</Text>
                 </View>
               )}
-              <TouchableOpacity style={styles.recenterBtn} onPress={fitBoth}>
-                <UserLocationIcon width={SCALE_20} height={SCALE_20} />
-              </TouchableOpacity>
+              <SatelliteIconWrapper bottom={12} />
             </View>
           )}
 
           <View style={styles.locationBtnRow}>
-            <TouchableOpacity style={styles.locationBtn} onPress={useCurrentLocation}>
-              <Text style={styles.locationBtnLabel}>Use current location</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.locationBtn, styles.locationBtnAlt]} onPress={adjustOnMap}>
-              <Text style={[styles.locationBtnLabel, styles.locationBtnLabelAlt]}>Adjust on map</Text>
+            <TouchableOpacity style={styles.locationBtn} onPress={adjustOnMap}>
+              <Text style={styles.locationBtnLabel}>Update location</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -598,22 +580,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.TEXT_COLOR,
   },
-  recenterBtn: {
-    position: 'absolute',
-    bottom: 12,
-    right: 12,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.WHITE,
-    shadowColor: Colors.BLACK,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
-  },
   locationBtnRow: {
     flexDirection: 'row',
     marginTop: 12,
@@ -625,21 +591,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY_DARK,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
-  },
-  locationBtnAlt: {
-    backgroundColor: Colors.WHITE,
-    borderWidth: 1,
-    borderColor: Colors.PRIMARY_DARK,
-    marginRight: 0,
   },
   locationBtnLabel: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     fontSize: 14,
     color: Colors.WHITE,
-  },
-  locationBtnLabelAlt: {
-    color: Colors.PRIMARY_DARK,
   },
   btnContainer: {
     width: '100%',

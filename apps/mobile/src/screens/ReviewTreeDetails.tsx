@@ -226,7 +226,7 @@ const ReviewTreeDetails = () => {
         };
 
         const handleTagValidation = () => {
-            const regex = /[^a-zA-Z0-9]/g;
+            const regex = /[^a-zA-Z0-9-]/g;
             const isValidId = regex.test(openEditModal.value)
             if (isValidId) {
                 setInputErrorMessage("Please input a valid TagId");

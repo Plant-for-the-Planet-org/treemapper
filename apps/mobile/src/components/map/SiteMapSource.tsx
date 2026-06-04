@@ -15,6 +15,9 @@ const polyline: StyleProp<LineLayerStyle> = {
 
 interface Props {
   isSatellite: boolean
+  // When set, only the boundary of this site is drawn (e.g. the site picked
+  // for an intervention). When omitted, all sites are drawn (home map).
+  siteId?: string
 }
 
 const toPolygonFeature = (geometry: any) => {
@@ -66,6 +69,9 @@ const SiteMapSource = (props: Props) => {
           if (!siteDetails?.geometry) {
             continue
           }
+          if (props.siteId && siteDetails.id !== props.siteId) {
+            continue
+          }
           const parsedData = JSON.parse(siteDetails.geometry)
           // Stored geometry can be a FeatureCollection, a Feature, or a bare geometry.
           if (parsedData?.type === 'FeatureCollection' && Array.isArray(parsedData.features)) {
@@ -92,7 +98,7 @@ const SiteMapSource = (props: Props) => {
       console.error('error occurred at siteGeojson', error)
     }
     return reducedSites
-  }, [projects, projectAdded])
+  }, [projects, projectAdded, props.siteId])
 
   return (
     <GeoJSONSource id={'projectSites'} data={{

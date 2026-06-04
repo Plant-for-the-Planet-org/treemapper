@@ -4,8 +4,8 @@ import React from 'react'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
-import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
-import { SCALE_36 } from 'src/utils/constants/spacing'
+import UploadSpecieIcon from 'assets/images/svg/UploadSpecieIcon.svg'
+import { SCALE_56 } from 'src/utils/constants/spacing'
 import InterventionIconSwitch from '../intervention/InterventionIconSwitch'
 import i18next from 'src/locales/index'
 import { updateFilePath } from 'src/utils/helpers/fileSystemHelper'
@@ -30,7 +30,7 @@ const CarouselItem = (props: Props) => {
       onPress(data.intervention_id, data.tree_id)
     }}>
       <View style={styles.imageWrapper}>
-        {hasImage ? <ExpoImage.Image cachePolicy='memory-disk' style={styles.imageContainer} source={{ uri: uri }} /> : <SingleTreeIcon width={SCALE_36} height={SCALE_36} />
+        {hasImage ? <ExpoImage.Image cachePolicy='memory-disk' style={styles.imageContainer} source={{ uri: uri }} /> : <UploadSpecieIcon width={SCALE_56} height={SCALE_56} />
         }
       </View>
       <View style={styles.sectionWrapper}>

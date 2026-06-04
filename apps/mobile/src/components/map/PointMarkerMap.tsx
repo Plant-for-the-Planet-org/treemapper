@@ -28,6 +28,7 @@ import { Map, Camera, CameraRef, MapRef, UserLocation, Marker } from '@maplibre/
 import SatelliteIconWrapper from './SatelliteIconWrapper'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import MapZoomScale from './MapZoomScale'
+import SiteMapSource from './SiteMapSource'
 import MapPin from 'assets/images/svg/MapPin.svg'
 import { Colors } from 'src/utils/constants'
 
@@ -39,10 +40,11 @@ interface Props {
   form_id: string
   interventionKey: INTERVENTION_TYPE
   tree_details: SampleTree[]
+  siteId?: string
 }
 
 const PointMarkerMap = (props: Props) => {
-  const { tree_details, interventionKey, form_id } = props
+  const { tree_details, interventionKey, form_id, siteId } = props
   const [geoJSON, setGeoJSON] = useState(null)
   const [alertModal, setAlertModal] = useState(false)
   const [outOfBoundary, setOutOfBoundary] = useState(false)
@@ -270,6 +272,12 @@ const PointMarkerMap = (props: Props) => {
         mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
         <Camera ref={cameraRef} maxZoom={18} />
         <UserLocation heading minDisplacement={1} />
+        {/* Boundary of the site picked for this intervention, outline only.
+            site_id is 'other' (or empty) when no real site was chosen --
+            in that case no boundary is drawn. */}
+        {!!siteId && siteId !== 'other' && (
+          <SiteMapSource isSatellite={mainMapView === 'SATELLITE'} siteId={siteId} />
+        )}
         {geoJSON && (
           <MapShapeSource
             geoJSON={[geoJSON]}
