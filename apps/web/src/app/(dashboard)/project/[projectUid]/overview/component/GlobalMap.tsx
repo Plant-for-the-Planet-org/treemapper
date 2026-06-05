@@ -23,9 +23,11 @@ import {
     User,
     History,
     ArrowRight,
+    ChevronRight,
 } from 'lucide-react';
 import * as turf from '@turf/turf';
 import { getAllMapInterevntions, getProjectSitesMap } from '@shared-core/fetchApi/api.fetch';
+import { cdnUrl } from '@/lib/cdn';
 import { baseUrl } from '@shared-core/fetchApi/api.url';
 
 // ==================== TYPES ====================
@@ -234,19 +236,42 @@ const buildTreeImageUrl = (tree: MapTree): string | null => {
     if (tree.migratedTree && /\.(jpe?g|png)$/i.test(tree.image)) {
         return `https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${tree.image}`;
     }
-    return `${process.env.NEXT_PUBLIC_CDN}/tree/${tree.image}`;
+    return cdnUrl('tree', tree.image);
 };
 
 // Scientific species reference image lives under the CDN's `species/` folder.
 const buildSpeciesImageUrl = (image?: string): string | null => {
-    if (!image) return null;
-    if (/^https?:\/\//i.test(image)) return image;
-    return `${process.env.NEXT_PUBLIC_CDN}/species/${image}`;
+    return cdnUrl('species', image);
 };
 
-// Format a stored length (in cm) into a friendly m / cm label.
-const formatLength = (v?: number | null): string | null =>
-    v == null ? null : v >= 100 ? `${(v / 100).toFixed(2)} m` : `${v} cm`;
+const formatHeight = (v?: number | null): string | null =>
+    v == null ? null : `${v} m`;
+
+const formatWidth = (v?: number | null): string | null =>
+    v == null ? null : `${v} cm`;
+
+// Format an area in m² into a human-readable label.
+// >= 10,000 m² (1 ha) → show in hectares; otherwise m².
+const formatArea = (sqm: number): string =>
+    sqm >= 10_000
+        ? `${(sqm / 10_000).toFixed(2)} ha`
+        : `${sqm.toFixed(2)} m²`;
+
+// Resolve the display area for an intervention. Prefers the stored value;
+// falls back to computing from the polygon geometry when it is missing.
+const resolveArea = (intervention: MapIntervention): string => {
+    if (intervention.area) return formatArea(intervention.area);
+    if (
+        intervention.location.type === 'Polygon' ||
+        intervention.location.type === 'MultiPolygon'
+    ) {
+        try {
+            const sqm = turf.area(intervention.location as any);
+            if (sqm > 0) return formatArea(sqm);
+        } catch { /* ignore */ }
+    }
+    return '—';
+};
 
 // First-letter initials for an avatar fallback when no photo is available.
 const initialsOf = (name?: string | null): string => {
@@ -442,7 +467,10 @@ const InterventionSidebar: React.FC<{
     onToggleType: (t: string) => void;
     onToggleStatus: (s: string) => void;
     total: number;
-}> = ({ interventions, selectedId, onSelect, hidSearch, onHidSearch, types, statuses, activeTypes, activeStatuses, onToggleType, onToggleStatus, total }) => {
+    sites: SiteFeature[];
+    selectedSiteId: number | null;
+    onSelectSite: (id: number | null) => void;
+}> = ({ interventions, selectedId, onSelect, hidSearch, onHidSearch, types, statuses, activeTypes, activeStatuses, onToggleType, onToggleStatus, total, sites, selectedSiteId, onSelectSite }) => {
     const [filterOpen, setFilterOpen] = useState(false);
     const listRef = useRef<HTMLDivElement>(null);
     const allTypesActive = types.every(t => activeTypes.has(t));
@@ -457,8 +485,28 @@ const InterventionSidebar: React.FC<{
 
     return (
         <div className="absolute top-4 left-4 bottom-20 z-40 w-72 flex flex-col bg-white border border-gray-100" style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)' }}>
-            {/* Header: search + filter */}
+            {/* Header: site selector + search + filter */}
             <div className="shrink-0 border-b border-gray-100">
+                {sites.length > 0 && (
+                    <div className="flex items-center gap-2 px-3 pt-3 pb-1 border-b border-gray-100">
+                        <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                        <select
+                            value={selectedSiteId ?? ''}
+                            onChange={e => onSelectSite(e.target.value ? Number(e.target.value) : null)}
+                            className="flex-1 text-sm outline-none bg-transparent text-gray-700 cursor-pointer truncate"
+                        >
+                            <option value="">All sites</option>
+                            {sites.map(s => (
+                                <option key={s.id} value={s.id}>{s.properties.name}</option>
+                            ))}
+                        </select>
+                        {selectedSiteId != null && (
+                            <button onClick={() => onSelectSite(null)} className="text-gray-400 hover:text-gray-600 shrink-0">
+                                <X className="w-3.5 h-3.5" />
+                            </button>
+                        )}
+                    </div>
+                )}
                 <div className="flex items-center gap-2 px-3 pt-3 pb-2">
                     <Search className="w-4 h-4 text-gray-400 shrink-0" />
                     <input
@@ -576,7 +624,9 @@ const InterventionSidebar: React.FC<{
                         <div className="text-xs text-gray-500 capitalize mb-1">{i.type.replace(/-/g, ' ')}</div>
                         <div className="flex items-center gap-3 text-xs text-gray-400">
                             <span>{(i.totalTreeCount ?? 0).toLocaleString()} trees</span>
-                            {i.area && <span>{i.area.toFixed(1)} m²</span>}
+                            {(i.area || i.location.type === 'Polygon' || i.location.type === 'MultiPolygon') && (
+                                <span>{resolveArea(i)}</span>
+                            )}
                         </div>
                     </button>
                 ))}
@@ -729,8 +779,8 @@ const TreeListItem: React.FC<{ tree: MapTree; onSelect: (tree: MapTree) => void 
     const [imgErr, setImgErr] = useState(false);
     const photo = buildTreeImageUrl(tree);
     const statusColor = getTreeStatusColor(tree.status);
-    const height = formatLength(tree.height);
-    const width = formatLength(tree.width);
+    const height = formatHeight(tree.height);
+    const width = formatWidth(tree.width);
     const species = tree.speciesName || tree.commonName;
     const coords = tree.location?.type === 'Point'
         ? `${tree.location.coordinates[0]}, ${tree.location.coordinates[1]}`
@@ -802,7 +852,7 @@ const InterventionPanel: React.FC<{
     onZoomTo?: (intervention: MapIntervention) => void;
     onSelectTree: (tree: MapTree) => void;
 }> = ({ intervention, trees, isLoading = false, onClose, onZoomTo, onSelectTree }) => {
-    const centroidText = useMemo(() => {
+    const centroidCoords = useMemo(() => {
         try {
             let c: any;
             if (intervention.centroid) {
@@ -812,9 +862,9 @@ const InterventionPanel: React.FC<{
             } else {
                 c = turf.centroid(intervention.location as any).geometry.coordinates;
             }
-            return `${c[0].toFixed(5)}, ${c[1].toFixed(5)}`;
+            return { lat: c[1].toFixed(5), lng: c[0].toFixed(5) };
         } catch {
-            return '—';
+            return null;
         }
     }, [intervention]);
 
@@ -887,25 +937,32 @@ const InterventionPanel: React.FC<{
                         <div className="text-xs text-gray-400 mb-0.5">Start date</div>
                         <div className="text-sm text-gray-800">{formatDate(intervention.interventionStartDate)}</div>
                     </div>
-                    <div>
-                        <div className="text-xs text-gray-400 mb-0.5">Area</div>
-                        <div className="text-sm text-gray-800">{intervention.area ? `${intervention.area.toFixed(2)} m²` : '—'}</div>
-                    </div>
+                    {(intervention.location.type === 'Polygon' || intervention.location.type === 'MultiPolygon') && (
+                        <div>
+                            <div className="text-xs text-gray-400 mb-0.5">Area</div>
+                            <div className="text-sm text-gray-800">{resolveArea(intervention)}</div>
+                        </div>
+                    )}
                     <div>
                         <div className="text-xs text-gray-400 mb-0.5">Total trees</div>
                         <div className="text-sm font-medium text-gray-800">{intervention.totalTreeCount?.toLocaleString() ?? 0}</div>
                     </div>
-                    <div>
-                        <div className="text-xs text-gray-400 mb-0.5">Sample trees</div>
-                        <div className="text-sm text-gray-800">{intervention.totalSampleTreeCount ?? '—'}</div>
-                    </div>
+                    {!!intervention.totalSampleTreeCount && (
+                        <div>
+                            <div className="text-xs text-gray-400 mb-0.5">Sample trees</div>
+                            <div className="text-sm text-gray-800">{intervention.totalSampleTreeCount}</div>
+                        </div>
+                    )}
                 </div>
 
-                {/* Centroid with copy */}
+                {/* Geo Coordinates with copy */}
                 <div className="px-4 pt-3">
-                    <div className="text-xs text-gray-400 mb-0.5">Centroid</div>
+                    <div className="text-xs text-gray-400 mb-1">Geo Coordinates</div>
                     <div className="flex items-center gap-2">
-                        <span className="text-sm font-mono text-gray-700 truncate">{centroidText}</span>
+                        <div className="flex gap-3 text-sm font-mono text-gray-700">
+                            <span><span className="text-xs text-gray-400 mr-1">Lat</span>{centroidCoords?.lat ?? '—'}</span>
+                            <span><span className="text-xs text-gray-400 mr-1">Lng</span>{centroidCoords?.lng ?? '—'}</span>
+                        </div>
                         <CopyButton value={JSON.stringify(intervention.location)} title="Copy GeoJSON coordinates" />
                     </div>
                 </div>
@@ -963,13 +1020,101 @@ const DetailStat: React.FC<{
     </div>
 );
 
+const RecordsPanel: React.FC<{
+    records: TreeRecord[];
+    isLoadingRecords: boolean;
+    onClose: () => void;
+}> = ({ records, isLoadingRecords, onClose }) => (
+    <motion.div
+        initial={{ scale: 0.95, opacity: 0, x: 8 }}
+        animate={{ scale: 1, opacity: 1, x: 0 }}
+        exit={{ scale: 0.95, opacity: 0, x: 8 }}
+        className="absolute top-4 right-[calc(20rem+1.5rem)] w-72 bg-white rounded-2xl shadow-2xl border border-gray-200 z-30 flex flex-col max-h-[calc(100vh-2rem)]"
+    >
+        <div className="px-4 pt-3.5 pb-3 border-b border-gray-100 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-1.5 text-sm font-medium text-gray-900">
+                <History className="w-4 h-4 text-gray-400" />
+                Records
+                {!isLoadingRecords && (
+                    <span className="text-gray-400 font-normal">({records.length})</span>
+                )}
+            </div>
+            <button
+                onClick={onClose}
+                className="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+                <X className="w-4 h-4" />
+            </button>
+        </div>
+        <div
+            className="overflow-y-auto flex-1 min-h-0 overscroll-contain px-4 py-3"
+            onWheel={(e) => e.stopPropagation()}
+            style={{ scrollbarWidth: 'thin', scrollbarColor: '#e5e7eb transparent' }}
+        >
+            {isLoadingRecords ? (
+                <div className="flex items-center gap-2 py-4 text-gray-400">
+                    <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
+                    <span className="text-xs">Loading records...</span>
+                </div>
+            ) : records.length === 0 ? (
+                <div className="py-3 text-xs text-gray-400">No records yet</div>
+            ) : (
+                <ol className="relative border-l border-gray-200 ml-1.5 space-y-3">
+                    {records.map(rec => {
+                        const recH = formatHeight(rec.height);
+                        const recW = formatWidth(rec.width);
+                        const statusChanged = rec.newStatus && rec.newStatus !== rec.previousStatus;
+                        return (
+                            <li key={rec.id} className="ml-4">
+                                <span
+                                    className="absolute -left-[5px] w-2.5 h-2.5 rounded-full ring-2 ring-white"
+                                    style={{ backgroundColor: getTreeStatusColor(rec.newStatus || '') }}
+                                />
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-xs font-medium text-gray-700 capitalize">
+                                        {rec.recordType?.replace(/_/g, ' ') || 'Record'}
+                                    </span>
+                                    {rec.recordedAt && (
+                                        <span className="text-[11px] text-gray-400">{formatDate(rec.recordedAt)}</span>
+                                    )}
+                                </div>
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-gray-500">
+                                    {recH && <span className="inline-flex items-center gap-0.5"><Ruler className="w-3 h-3" /> {recH}</span>}
+                                    {recW && <span>⌀ {recW}</span>}
+                                    {statusChanged && (
+                                        <span className="inline-flex items-center gap-1 capitalize">
+                                            {rec.previousStatus || '—'}
+                                            <ArrowRight className="w-3 h-3" />
+                                            {rec.newStatus}
+                                        </span>
+                                    )}
+                                </div>
+                                {rec.statusReason && (
+                                    <div className="text-[11px] text-gray-400 mt-0.5">Reason: {rec.statusReason}</div>
+                                )}
+                                {rec.notes && (
+                                    <div className="text-[11px] text-gray-500 mt-0.5">{rec.notes}</div>
+                                )}
+                                {rec.recordedByName && (
+                                    <div className="text-[11px] text-gray-400 mt-0.5">by {rec.recordedByName}</div>
+                                )}
+                            </li>
+                        );
+                    })}
+                </ol>
+            )}
+        </div>
+    </motion.div>
+);
+
 const TreeTooltip: React.FC<{
     tree: MapTree;
     onClose: () => void;
     isLoadingDetail?: boolean;
     records?: TreeRecord[];
     isLoadingRecords?: boolean;
-}> = ({ tree, onClose, isLoadingDetail = false, records = [], isLoadingRecords = false }) => {
+    onViewRecords?: () => void;
+}> = ({ tree, onClose, isLoadingDetail = false, records = [], isLoadingRecords = false, onViewRecords }) => {
     const statusColor = getTreeStatusColor(tree.status);
     const treeImage = buildTreeImageUrl(tree);
     const speciesImage = buildSpeciesImageUrl(tree.speciesImage);
@@ -979,8 +1124,8 @@ const TreeTooltip: React.FC<{
     const showTreeImage = treeImage && !treeImgError;
     const showSpeciesImage = speciesImage && !speciesImgError;
 
-    const height = formatLength(tree.height);
-    const width = formatLength(tree.width);
+    const height = formatHeight(tree.height);
+    const width = formatWidth(tree.width);
     const coords = tree.location?.type === 'Point'
         ? `${tree.location.coordinates[1].toFixed(6)}, ${tree.location.coordinates[0].toFixed(6)}`
         : null;
@@ -990,7 +1135,7 @@ const TreeTooltip: React.FC<{
             initial={{ scale: 0.95, opacity: 0, y: 8 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 8 }}
-            className="absolute top-4 right-4 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 z-30 overflow-hidden max-h-[85vh] flex flex-col"
+            className="absolute top-4 right-4 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 z-30 flex flex-col max-h-[calc(100vh-2rem)] overflow-hidden"
         >
             {/* Image header / banner */}
             <div className="relative h-40 shrink-0 bg-gradient-to-br from-emerald-50 to-gray-100">
@@ -1031,7 +1176,11 @@ const TreeTooltip: React.FC<{
                 </button>
             </div>
 
-            <div className="overflow-y-auto">
+            <div
+                className="overflow-y-auto flex-1 min-h-0 overscroll-contain"
+                onWheel={(e) => e.stopPropagation()}
+                style={{ scrollbarWidth: 'thin', scrollbarColor: '#e5e7eb transparent' }}
+            >
                 {/* Title */}
                 <div className="px-4 pt-3.5 pb-3 border-b border-gray-100">
                     <div className="font-semibold text-gray-900 leading-tight">{tree.tag || tree.hid}</div>
@@ -1129,67 +1278,28 @@ const TreeTooltip: React.FC<{
                     )}
                 </div>
 
-                {/* Records / remeasurements */}
+                {/* Records CTA */}
                 <div className="px-4 pb-4 border-t border-gray-100 pt-3">
-                    <div className="text-sm font-medium text-gray-900 flex items-center gap-1.5 mb-2">
-                        <History className="w-4 h-4 text-gray-400" />
-                        Records
-                        {!isLoadingRecords && (
-                            <span className="text-gray-400 font-normal">({records.length})</span>
-                        )}
-                    </div>
-
                     {isLoadingRecords ? (
-                        <div className="flex items-center gap-2 py-4 text-gray-400">
+                        <div className="flex items-center gap-2 py-2 text-gray-400">
                             <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
                             <span className="text-xs">Loading records...</span>
                         </div>
-                    ) : records.length === 0 ? (
-                        <div className="py-3 text-xs text-gray-400">No records yet</div>
                     ) : (
-                        <ol className="relative border-l border-gray-200 ml-1.5 space-y-3">
-                            {records.map(rec => {
-                                const recH = formatLength(rec.height);
-                                const recW = formatLength(rec.width);
-                                const statusChanged = rec.newStatus && rec.newStatus !== rec.previousStatus;
-                                return (
-                                    <li key={rec.id} className="ml-4">
-                                        <span
-                                            className="absolute -left-[5px] w-2.5 h-2.5 rounded-full ring-2 ring-white"
-                                            style={{ backgroundColor: getTreeStatusColor(rec.newStatus || tree.status) }}
-                                        />
-                                        <div className="flex items-center justify-between gap-2">
-                                            <span className="text-xs font-medium text-gray-700 capitalize">
-                                                {rec.recordType?.replace(/_/g, ' ') || 'Record'}
-                                            </span>
-                                            {rec.recordedAt && (
-                                                <span className="text-[11px] text-gray-400">{formatDate(rec.recordedAt)}</span>
-                                            )}
-                                        </div>
-                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-gray-500">
-                                            {recH && <span className="inline-flex items-center gap-0.5"><Ruler className="w-3 h-3" /> {recH}</span>}
-                                            {recW && <span>⌀ {recW}</span>}
-                                            {statusChanged && (
-                                                <span className="inline-flex items-center gap-1 capitalize">
-                                                    {rec.previousStatus || '—'}
-                                                    <ArrowRight className="w-3 h-3" />
-                                                    {rec.newStatus}
-                                                </span>
-                                            )}
-                                        </div>
-                                        {rec.statusReason && (
-                                            <div className="text-[11px] text-gray-400 mt-0.5">Reason: {rec.statusReason}</div>
-                                        )}
-                                        {rec.notes && (
-                                            <div className="text-[11px] text-gray-500 mt-0.5">{rec.notes}</div>
-                                        )}
-                                        {rec.recordedByName && (
-                                            <div className="text-[11px] text-gray-400 mt-0.5">by {rec.recordedByName}</div>
-                                        )}
-                                    </li>
-                                );
-                            })}
-                        </ol>
+                        <button
+                            onClick={onViewRecords}
+                            disabled={records.length === 0 || !onViewRecords}
+                            className="w-full flex items-center justify-between group py-1 disabled:opacity-40 disabled:cursor-default"
+                        >
+                            <div className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
+                                <History className="w-4 h-4 text-gray-400" />
+                                Records
+                                <span className="text-gray-400 font-normal">({records.length})</span>
+                            </div>
+                            {records.length > 0 && (
+                                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                            )}
+                        </button>
                     )}
                 </div>
             </div>
@@ -1207,6 +1317,7 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
     const [trees, setTrees] = useState<MapTree[]>([]);
     const [sites, setSites] = useState<SiteFeatureCollection>({ type: 'FeatureCollection', features: [] });
     const [showSiteBoundaries, setShowSiteBoundaries] = useState(true);
+    const [selectedSiteId, setSelectedSiteId] = useState<number | null>(null);
     const [bounds, setBounds] = useState<ProjectMapBounds | null>(null);
     const [hidSearch, setHidSearch] = useState('');
     const [filters, setFilters] = useState<{
@@ -1228,6 +1339,7 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
     // id so a stale fetch from a previous tree never shows under the new one.
     const [treeRecords, setTreeRecords] = useState<{ treeId: number; records: TreeRecord[] } | null>(null);
     const [isLoadingRecords, setIsLoadingRecords] = useState(false);
+    const [showTreeRecords, setShowTreeRecords] = useState(false);
     // Full intervention detail (intervention + owner + trees) fetched on select,
     // and the loading flag that drives the panel loader.
     const [detail, setDetail] = useState<InterventionDetailResponse | null>(null);
@@ -1277,6 +1389,21 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
             console.warn('Failed to load site boundaries:', err);
         }
     }, [projectId, token]);
+
+    const handleSelectSite = useCallback((id: number | null) => {
+        setSelectedSiteId(id);
+        if (id == null) return;
+        const site = sites.features.find(s => s.id === id);
+        if (!site) return;
+        try {
+            const [minLng, minLat, maxLng, maxLat] = turf.bbox(site.geometry as any);
+            mapRef.current?.fitBounds([minLng, minLat, maxLng, maxLat], {
+                padding: { top: 80, bottom: 80, left: 320, right: 80 },
+                duration: 1000,
+                maxZoom: 16,
+            });
+        } catch { /* ignore */ }
+    }, [sites.features]);
 
     useEffect(() => { loadSites(); }, [loadSites]);
 
@@ -1639,7 +1766,7 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
     }
 
     return (
-        <div className="relative w-full h-full" style={{ clipPath: 'inset(0 round 12px)' }}>
+        <div className="relative w-full h-full">
             <Map
                 ref={mapRef}
                 onLoad={handleMapLoad}
@@ -1778,9 +1905,9 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                                 'fill-color': FILL_COLOR,
                                 'fill-opacity': [
                                     'case',
-                                    ['feature-state', 'selected'], 0.65,
-                                    ['feature-state', 'hover'], 0.58,
-                                    0.50,
+                                    ['feature-state', 'selected'], 0.50,
+                                    ['feature-state', 'hover'], 0.40,
+                                    0.30,
                                 ],
                             }}
                         />
@@ -1976,7 +2103,7 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                 )}
             </AnimatePresence>
 
-            {/* Sidebar - search, filter + scrollable intervention list */}
+            {/* Sidebar - site selector + search + filter + scrollable intervention list */}
             <InterventionSidebar
                 interventions={filteredInterventions}
                 selectedId={mapState.selectedInterventionId}
@@ -1990,6 +2117,9 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                 onToggleType={toggleType}
                 onToggleStatus={toggleStatus}
                 total={interventions.length}
+                sites={sites.features}
+                selectedSiteId={selectedSiteId}
+                onSelectSite={handleSelectSite}
             />
 
             {/* Intervention detail panel - top right. Hidden while a tree
@@ -2024,7 +2154,23 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                         isLoadingDetail={isLoadingTreeDetail}
                         records={treeRecords?.treeId === selectedTree.id ? treeRecords.records : []}
                         isLoadingRecords={isLoadingRecords || treeRecords?.treeId !== selectedTree.id}
-                        onClose={() => setMapState(prev => ({ ...prev, selectedTreeId: null, showTreeDetails: false }))}
+                        onViewRecords={() => setShowTreeRecords(v => !v)}
+                        onClose={() => {
+                            setShowTreeRecords(false);
+                            setMapState(prev => ({ ...prev, selectedTreeId: null, showTreeDetails: false }));
+                        }}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Records panel - slides in to the left of the tree tooltip */}
+            <AnimatePresence>
+                {selectedTree && mapState.showTreeDetails && showTreeRecords && (
+                    <RecordsPanel
+                        key={`records-${selectedTree.id}`}
+                        records={treeRecords?.treeId === selectedTree.id ? treeRecords.records : []}
+                        isLoadingRecords={isLoadingRecords || treeRecords?.treeId !== selectedTree.id}
+                        onClose={() => setShowTreeRecords(false)}
                     />
                 )}
             </AnimatePresence>

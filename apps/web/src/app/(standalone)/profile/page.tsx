@@ -15,6 +15,7 @@ import { useToken } from '@/context/useTokenContext';
 import { generatePreSignUrl, getMyDetails, updateUserAvatar, updateUserDetails } from '@shared-core/fetchApi/api.fetch';
 import { useUserStore } from '@shared-core/store/useUserStore';
 import { logout } from '@/lib/logout';
+import { cdnUrl } from '@/lib/cdn';
 import { Card, CardContent } from '@/components/ui/card';
 
 
@@ -70,7 +71,6 @@ const ProfileSettings = ({ goBack }: { goBack?: () => void }) => {
   const fetchUserDetails = async () => {
     const response = await getMyDetails(accessToken);
     if (response.statusCode === 200) {
-      console.log('Fetched user details:', response.data);
       setProfile({ ...response.data });
     }
   };
@@ -187,7 +187,7 @@ const ProfileSettings = ({ goBack }: { goBack?: () => void }) => {
       }
 
       // Update user avatar in database
-      const avatarUrl = `${process.env.NEXT_PUBLIC_CDN}/profile/${presignedResponse.data.data.fileName}`;
+      const avatarUrl = cdnUrl('profile', presignedResponse.data.data.fileName) ?? '';
       const avatarUpdateResponse = await updateUserAvatar(accessToken, {
         avatarUrl: avatarUrl
       });
@@ -232,15 +232,15 @@ const ProfileSettings = ({ goBack }: { goBack?: () => void }) => {
         setFile(null);
       }
 
-      // Prepare payload for profile update (excluding image if it's a blob URL)
-      const payload = { ...profile };
-      if (payload.image && payload.image.startsWith('blob:')) {
-        delete payload.image;
-      }
-      // Don't include image in payload if it was just uploaded via updateUserAvatar
-      // The image field should already be updated in the profile state
+      const payload = {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        displayName: profile.displayName,
+        bio: profile.bio,
+        url: profile.url,
+        isPrivate: profile.isPrivate,
+      };
 
-      // Update other profile details
       await updateUserDetails(accessToken, payload);
       
       // Refresh user details to get the latest data

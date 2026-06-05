@@ -47,7 +47,10 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const User = useUserStore((state) => state.user);
-  const [inviteFound, setInviteFound] = useState(false)
+  // Computed: true as soon as auth is confirmed and an invite param is in the URL.
+  // Using state for this was the bug — when User was already in the store,
+  // initializeApp was skipped and inviteFound was never set.
+  const inviteFound = !!accessToken && !!(searchParams.get('project-invite') || searchParams.get('project-link'));
   // Simplified state management
   const [appState, setAppState] = useState<LoadingState>('idle');
   const [retryCount, setRetryCount] = useState(3);
@@ -64,14 +67,14 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
   const isStandaloneRoute = currentSection !== 'default';
 
   useEffect(() => {
-    if (!tokenLoading && !user) {
+    if (!tokenLoading && !accessToken) {
       // Preserve current URL with parameters when redirecting to login
       const currentPath = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
       const returnTo = encodeURIComponent(currentPath);
       router.push(`/login?returnTo=${returnTo}`);
       return;
     }
-  }, [user, tokenLoading, router, searchParams, pathname]);
+  }, [accessToken, tokenLoading, router, searchParams, pathname]);
 
   // Set default project and workspace when data is available
   useEffect(() => {
@@ -153,8 +156,8 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
       const projectInviteId = searchParams.get('project-invite');
       const projectLinkInviteId = searchParams.get('project-link');
       if (projectInviteId || projectLinkInviteId) {
-        setInviteFound(true)
-        return
+        setAppState('success');
+        return;
       }
       // Step 2: Check if user needs onboarding
       if (!userData.primaryWorkspaceUid) {
@@ -248,7 +251,7 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
   }
 
   // Show loading for initial authentication
-  if (tokenLoading || !user) {
+  if (tokenLoading || !accessToken) {
     return (
       <div className="flex justify-center items-center h-full w-full" style={{ width: '100vw', height: '100vh' }}>
         <Spinner />

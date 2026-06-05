@@ -9,6 +9,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
+import { v3CdnUrl } from 'src/utils/cdnUrl'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import { updateImageDetails } from 'src/store/slice/takePictureSlice'
@@ -63,7 +64,7 @@ const SpecieInfoImageSection = (props: Props) => {
         <View style={styles.imageContainer}>
           <ExpoImage.Image
             source={{
-              uri: image.includes('/') ? `${image}` : v3Approved ? `${process.env.EXPO_PUBLIC_V3_CDN_URL}/species/${image}` : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/species/default/${image}`,
+              uri: image.includes('/') ? `${image}` : v3Approved ? (v3CdnUrl('species', image) ?? '') : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/species/default/${image}`,
             }}
             style={styles.imageView}
             contentFit="cover"

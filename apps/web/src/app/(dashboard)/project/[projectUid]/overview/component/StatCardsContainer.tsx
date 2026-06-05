@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Leaf, Sprout, Map, Activity, TrendingUp, TrendingDown } from 'lucide-react';
-import { LineChart, Line, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts';
 import { getDashboardKpis } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore'
 import { useToken } from '@/context/useTokenContext'
@@ -21,13 +21,30 @@ const ShimmerCard = () => (
   </Card>
 );
 
+const formatMonth = (yyyyMM: string) => {
+  const [year, month] = yyyyMM.split('-');
+  const d = new Date(Number(year), Number(month) - 1, 1);
+  return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+};
+
+const SparkTooltip = ({ active, payload }: any) => {
+  if (!active || !payload?.length) return null;
+  const { v, month } = payload[0].payload;
+  return (
+    <div className="bg-white border border-gray-200 rounded px-2 py-1 text-xs shadow-sm pointer-events-none">
+      {month && <p className="text-gray-400">{formatMonth(month)}</p>}
+      <p className="font-semibold text-gray-900">{formatNumber(v)}</p>
+    </div>
+  );
+};
+
 interface StatCardProps {
   title: string;
   value: string | number;
   icon: React.ElementType;
   changePercent: number;
   vf: string;
-  sparkData: { v: number }[];
+  sparkData: { v: number; month?: string }[];
   loading?: boolean;
 }
 
@@ -52,26 +69,33 @@ const StatCard = ({ title, value, icon: Icon, changePercent, vf, sparkData, load
 
         <p className="text-xl font-bold text-gray-900 mb-2 tracking-tight">{value}</p>
 
-        <div className="flex items-center justify-between gap-2">
-          <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full ${changeBg} flex-shrink-0`}>
-            <ChangeIcon size={12} className={changeColor} />
-            <span className={`text-xs font-medium ${changeColor}`}>
-              {Math.floor(Math.abs(changePercent))}% <span className="opacity-60">12m</span>
-            </span>
+        <div className="space-y-0.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full ${changeBg} flex-shrink-0`}>
+              <ChangeIcon size={12} className={changeColor} />
+              <span className={`text-xs font-medium ${changeColor}`}>
+                {Math.floor(Math.abs(changePercent))}%
+              </span>
+            </div>
+            <div className="flex-1 h-7">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={sparkData}>
+                  <Tooltip content={<SparkTooltip />} cursor={false} />
+                  <Line
+                    type="monotone"
+                    dataKey="v"
+                    stroke={sparkColor}
+                    strokeWidth={1.5}
+                    dot={false}
+                    isAnimationActive={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div className="flex-1 h-7">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={sparkData}>
-                <Line
-                  type="monotone"
-                  dataKey="v"
-                  stroke={sparkColor}
-                  strokeWidth={1.5}
-                  dot={false}
-                  isAnimationActive={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="flex justify-between">
+            <span className="text-[10px] text-gray-400">vs prev year</span>
+            <span className="text-[10px] text-gray-400">12-month trend</span>
           </div>
         </div>
       </CardContent>
@@ -85,7 +109,7 @@ interface StatItem {
   changePercent: number;
   vf: string;
   icon: React.ElementType;
-  sparkData: { v: number }[];
+  sparkData: { v: number; month?: string }[];
 }
 
 const emptySpark = Array.from({ length: 12 }, () => ({ v: 0 }));
@@ -95,8 +119,8 @@ const StatCardsContainer = ({ setTotalTrees }: { setTotalTrees: (n: number) => v
   const [overview, setOverview] = useState<StatItem[]>([
     { title: 'Trees Planted', value: '0', changePercent: 0, vf: '', icon: Leaf, sparkData: emptySpark },
     { title: 'Species Planted', value: '0', changePercent: 0, vf: '', icon: Sprout, sparkData: emptySpark },
-    { title: 'Area Covered', value: '0 ha', changePercent: 0, vf: '', icon: Map, sparkData: emptySpark },
-    { title: 'Field Data Collectors', value: '0', changePercent: 0, vf: '', icon: Activity, sparkData: emptySpark },
+    { title: 'Restoration Area', value: '0 ha', changePercent: 0, vf: '', icon: Map, sparkData: emptySpark },
+    { title: 'Active Contributors', value: '0', changePercent: 0, vf: '', icon: Activity, sparkData: emptySpark },
   ]);
 
   const selectedProject = useProjectStore(state => state.selectedProject);
@@ -131,14 +155,14 @@ const StatCardsContainer = ({ setTotalTrees }: { setTotalTrees: (n: number) => v
 
         const toSpark = (key: 'trees' | 'species' | 'area' | 'contributors') =>
           monthlyHistory.length
-            ? monthlyHistory.map((m: any) => ({ v: Number(m[key] ?? 0) }))
+            ? monthlyHistory.map((m: any) => ({ v: Number(m[key] ?? 0), month: m.month }))
             : emptySpark;
 
         setOverview([
           { title: 'Trees Planted', value: formatNumber(Number(totalTreesPlanted)), ...parseChange(totalTreesPlantedChange), icon: Leaf, sparkData: toSpark('trees') },
           { title: 'Species Planted', value: totalSpeciesPlanted, ...parseChange(totalSpeciesPlantedChange), icon: Sprout, sparkData: toSpark('species') },
-          { title: 'Area Covered', value: `${formatNumber(Number(totalAreaCovered))} ha`, ...parseChange(totalAreaCoveredChange), icon: Map, sparkData: toSpark('area') },
-          { title: 'Field Data Collectors', value: totalContributors, ...parseChange(totalContributorsChange), icon: Activity, sparkData: toSpark('contributors') },
+          { title: 'Restoration Area', value: `${formatNumber(Number(totalAreaCovered))} ha`, ...parseChange(totalAreaCoveredChange), icon: Map, sparkData: toSpark('area') },
+          { title: 'Active Contributors', value: totalContributors, ...parseChange(totalContributorsChange), icon: Activity, sparkData: toSpark('contributors') },
         ]);
       }
     } catch (error) {

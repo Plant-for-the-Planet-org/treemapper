@@ -690,6 +690,8 @@ export class ProjectsService {
         joinedAt: projectMember.joinedAt,
         invitedAt: projectMember.invitedAt,
         extraPermissions: projectMember.extraPermissions,
+        siteAccess: projectMember.siteAccess,
+        restrictedSites: projectMember.restrictedSites,
         user: {
           name: user.displayName,
           email: user.email,

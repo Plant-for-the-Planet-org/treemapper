@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Trees, Leaf, Calendar, Camera, Pen, Activity } from 'lucide-react';
+import { cdnUrl } from '@/lib/cdn';
 import { Card, CardContent, Badge, Button } from './ui';
 import { FileUploadDialog } from './FileUploadDialog';
 import EditTreeModal from './EditTreeModal';
@@ -95,7 +96,7 @@ export const TreeCard = ({
                 src={
                   localTree.migratedTree && /\.(jpe?g|png)$/i.test(localTree.image)
                     ? `https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${localTree.image}`
-                    : `${process.env.NEXT_PUBLIC_CDN}/tree/${localTree.image}`
+                    : (cdnUrl('tree', localTree.image) ?? '')
                 }
                 alt={`Tree ${localTree.tag || localTree.hid}`}
                 className="w-full h-24 object-cover rounded-md"
@@ -152,7 +153,7 @@ export const TreeCard = ({
                   <p className="text-sm text-gray-900">{localTree.height ?? '—'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Width (m)</p>
+                  <p className="text-xs text-gray-500">Width (cm)</p>
                   <p className="text-sm text-gray-900">{localTree.width ?? '—'}</p>
                 </div>
               </div>

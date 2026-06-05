@@ -1,13 +1,12 @@
 'use client'
 
-import { ChevronRight, BarChart2, MoreVertical, CalendarIcon, Plus, Upload } from 'lucide-react'
+import { ChevronRight, BarChart2, MoreVertical, Plus, Upload } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import useProjectStore from '@shared-core/store/useProjectStore'
-import DateRangePicker from './DateRangePicker'
 import InterventionDateRangePicker from './InterventionDateRangePicker'
 import { Button } from '@/components/ui/button'
 import { SidebarTrigger } from '@/components/ui/sidebar'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useRegisteredTopBarActions } from './TopBarActions'
 import { cn } from '@/lib/utils'
@@ -166,40 +165,15 @@ export default function DashboardTopBar() {
         )
       )}
       {isOverview && isAdminOrOwner && (
-        isMobile ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem disabled>
-                <CalendarIcon size={14} />
-                <span>All Time</span>
-                <span className="ml-auto text-[10px] text-muted-foreground/60">Soon</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push(dataExplorePath)}>
-                <BarChart2 size={14} />
-                Data Explorer
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <div className="flex items-center gap-2">
-            <DateRangePicker />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push(dataExplorePath)}
-              className="h-8 gap-1.5 text-xs font-normal text-primary border-primary/30 hover:bg-primary/10 hover:text-primary"
-            >
-              <BarChart2 size={14} />
-              Data Explorer
-            </Button>
-          </div>
-        )
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => router.push(dataExplorePath)}
+          className="h-8 gap-1.5 text-xs font-normal text-primary border-primary/30 hover:bg-primary/10 hover:text-primary"
+        >
+          <BarChart2 size={14} />
+          <span className="hidden sm:inline">Data Explorer</span>
+        </Button>
       )}
     </div>
   )

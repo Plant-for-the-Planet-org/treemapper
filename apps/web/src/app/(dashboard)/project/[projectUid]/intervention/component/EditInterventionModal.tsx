@@ -21,6 +21,7 @@ import {
 } from '@shared-core/fetchApi/api.fetch';
 import UnifiedMapComponent from '@/component/MapSelect';
 import useProjectStore from '@shared-core/store/useProjectStore';
+import { cdnUrl } from '@/lib/cdn';
 
 const TABS = [
   { id: 'basic', label: 'Basic Info', icon: Info },
@@ -509,7 +510,7 @@ export default function EditInterventionModal({
                         <img
                           src={
                             imagePreview ||
-                            `${process.env.NEXT_PUBLIC_CDN}/intervention/${formData.image}`
+                            (cdnUrl('intervention', formData.image) ?? '')
                           }
                           alt="Intervention"
                           className="w-full h-52 object-cover rounded-lg border border-gray-200"

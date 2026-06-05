@@ -21,6 +21,7 @@ export class R2Service {
   private s3Client: S3Client;
   private bucketName: string;
   private publicUrl: string;
+  private mode: string;
 
   constructor(private configService: ConfigService) {
     // Initialize S3 client with R2 configuration
@@ -30,9 +31,12 @@ export class R2Service {
     const bucketName = this.configService.get<string>('R2_BUCKET_NAME');
     const publicUrl = this.configService.get<string>('R2_PUBLIC_URL');
 
-    if (!endpoint || !accessKeyId || !secretAccessKey || !bucketName || !publicUrl) {
+    const mode = this.configService.get<string>('MODE');
+    if (!endpoint || !accessKeyId || !secretAccessKey || !bucketName || !publicUrl || !mode) {
       throw new Error('Missing required R2 configuration environment variables');
     }
+
+    this.mode = mode;
 
     this.s3Client = new S3Client({
       region: 'auto', // Cloudflare R2 uses 'auto' region
@@ -59,10 +63,9 @@ export class R2Service {
       const fileExtension = dto.fileName.split('.').pop();
       const uniqueFileName = `${timestamp}-${randomString}.${fileExtension}`;
       
-      // Construct full key path (with optional folder)
-      const key = dto.folder 
-        ? `${dto.folder}/${uniqueFileName}` 
-        : uniqueFileName;
+      const key = dto.folder
+        ? `${this.mode}/${dto.folder}/${uniqueFileName}`
+        : `${this.mode}/${uniqueFileName}`;
 
       // Create the PutObject command
       const command = new PutObjectCommand({

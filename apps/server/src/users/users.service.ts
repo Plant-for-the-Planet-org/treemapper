@@ -312,7 +312,7 @@ export class UsersService {
             const result = await this.r2Service.generatePresignedUrl({
                 fileName: dto.fileName,
                 fileType: dto.fileType,
-                folder: `${process.env.IS_PRODUCTION === 'true' ? "production" : "development"}/${dto.folder}`,
+                folder: dto.folder,
             });
             return {
                 success: true,
@@ -444,40 +444,27 @@ export class UsersService {
         return result[0];
     }
 
-    private prepareUpdateData(updateUserDto: UpdateUserDto): Partial<typeof user.$inferInsert> {
-        // Create a clean copy of the DTO
-        const updateData: any = {
-            ...updateUserDto,
-        };
+    private prepareUpdateData(dto: any): Partial<typeof user.$inferInsert> {
+        const ALLOWED: (keyof typeof user.$inferInsert)[] = [
+            'firstName', 'lastName', 'displayName', 'bio', 'isPrivate', 'locale', 'country', 'type',
+        ];
 
-        // Remove undefined and null values (optional - depends on your requirements)
-        Object.keys(updateData).forEach(key => {
-            if (updateData[key] === undefined || updateData[key] === null) {
-                delete updateData[key];
+        const updateData: any = {};
+
+        for (const key of ALLOWED) {
+            const value = dto[key];
+            if (value !== undefined && value !== null) {
+                updateData[key] = value;
             }
-        });
-
-        // Additional validation/transformation can go here
-        // For example, ensure email is lowercase
-        if (updateData.email) {
-            updateData.email = updateData.email.toLowerCase();
         }
-        Object.keys(updateData).forEach(key => {
-            const value = updateData[key];
 
-            if (
-                value === undefined ||
-                value === null ||
-                (typeof value === 'object' &&
-                    value !== null &&
-                    !Array.isArray(value) &&
-                    Object.keys(value).length === 0)
-            ) {
-                delete updateData[key];
-            }
-        });
+        // Frontend sends `url`; DB column is `website`
+        if (dto.url !== undefined && dto.url !== null && dto.url !== '') {
+            updateData.website = dto.url;
+        } else if (dto.url === '') {
+            updateData.website = null;
+        }
 
-        console.log("Prepared update data:", updateData);
         return updateData;
     }
 

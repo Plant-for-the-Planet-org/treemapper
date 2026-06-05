@@ -3,6 +3,20 @@ import Map, { NavigationControl, Marker, GeolocateControl, Source, Layer } from 
 import { MapPin, AlertTriangle, Info, Layers } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
+const STREET_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+const SATELLITE_STYLE = {
+  version: 8 as const,
+  sources: {
+    'esri-satellite': {
+      type: 'raster' as const,
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: '© Esri'
+    }
+  },
+  layers: [{ id: 'esri-satellite-layer', type: 'raster' as const, source: 'esri-satellite' }]
+};
+
 interface Props {
   geoJSON: any; // GeoJSON data or geometry from parent
   trees?: any[]; // sample trees to plot as points
@@ -28,6 +42,7 @@ const MapDisplayComponent = ({ geoJSON, trees = [] }: Props) => {
   const [error, setError] = useState(null);
   const [processedGeoJSON, setProcessedGeoJSON] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [isSatellite, setIsSatellite] = useState(false);
 
   // Initial viewport settings
   const [viewState, setViewState] = useState({
@@ -294,7 +309,7 @@ const MapDisplayComponent = ({ geoJSON, trees = [] }: Props) => {
         ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
-        mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+        mapStyle={isSatellite ? SATELLITE_STYLE : STREET_STYLE}
         style={{ width: '100%', height: '100%' }}
         scrollZoom={false}
         attributionControl={false}
@@ -343,6 +358,14 @@ const MapDisplayComponent = ({ geoJSON, trees = [] }: Props) => {
           );
         })}
       </Map>
+
+      {/* Satellite toggle */}
+      <button
+        onClick={() => setIsSatellite(prev => !prev)}
+        className="absolute bottom-2 left-2 px-2.5 py-1 bg-white border border-gray-200 rounded shadow-sm text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+      >
+        {isSatellite ? 'Map' : 'Satellite'}
+      </button>
 
       {/* Info toggle button */}
       {geometryInfo && (

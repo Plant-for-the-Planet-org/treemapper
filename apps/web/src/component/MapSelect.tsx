@@ -1,8 +1,29 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Map, { NavigationControl, Marker, GeolocateControl, Source, Layer } from 'react-map-gl/maplibre';
-import { MapPin, RotateCcw } from 'lucide-react';
+import { MapPin, RotateCcw, Layers } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as turf from '@turf/turf';
+
+const SATELLITE_STYLE = {
+  version: 8 as const,
+  sources: {
+    'esri-satellite': {
+      type: 'raster' as const,
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: 'Tiles &copy; Esri &mdash; Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    }
+  },
+  layers: [{
+    id: 'esri-satellite-layer',
+    type: 'raster' as const,
+    source: 'esri-satellite',
+    minzoom: 0,
+    maxzoom: 20
+  }]
+};
+
+const BASIC_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 
 interface Props {
   updateGeoJSON: (geoJSON: any) => void;
@@ -60,6 +81,8 @@ const CoordinateInput = ({ manualCoords, onCoordChange, onSetCoordinates }) => {
 };
 
 const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) => {
+  const mapRef = useRef(null);
+
   // Initial viewport settings
   const [viewState, setViewState] = useState({
     longitude: -100,
@@ -91,6 +114,8 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
 
   // State for area error
   const [areaError, setAreaError] = useState<string | null>(null);
+
+  const [isSatellite, setIsSatellite] = useState(false);
 
   // Max area in hectares
   const MAX_AREA_HECTARES = 1000000;
@@ -175,15 +200,17 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
   };
 
   // Check if click is near the first point (to close polygon)
-  const isNearFirstPoint = useCallback((lngLat, firstPoint, zoom) => {
-    if (!firstPoint) return false;
-    // Threshold decreases as zoom increases (more precise at higher zoom)
-    const threshold = 20 / Math.pow(2, zoom - 10);
+  const isNearFirstPoint = useCallback((lngLat, firstPoint) => {
+    if (!firstPoint || !mapRef.current) return false;
+    const map = (mapRef.current as any).getMap();
+    const firstPixel = map.project([firstPoint.longitude, firstPoint.latitude]);
+    const clickPixel = map.project([lngLat.lng, lngLat.lat]);
+    const PIXEL_THRESHOLD = 20;
     const distance = Math.sqrt(
-      Math.pow(lngLat.lng - firstPoint.longitude, 2) +
-      Math.pow(lngLat.lat - firstPoint.latitude, 2)
+      Math.pow(clickPixel.x - firstPixel.x, 2) +
+      Math.pow(clickPixel.y - firstPixel.y, 2)
     );
-    return distance < threshold;
+    return distance < PIXEL_THRESHOLD;
   }, []);
 
   // Handle map click based on current mode
@@ -225,7 +252,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
         setPolygonPoints([{ longitude: lngLat.lng, latitude: lngLat.lat }]);
       } else {
         // Check if clicking near first point to close polygon (need at least 3 points)
-        if (polygonPoints.length >= 3 && isNearFirstPoint(lngLat, polygonPoints[0], viewState.zoom)) {
+        if (polygonPoints.length >= 3 && isNearFirstPoint(lngLat, polygonPoints[0])) {
           // Auto-complete the polygon
           const completedPolygonGeoJSON = {
             type: 'Polygon',
@@ -254,7 +281,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
         }
       }
     }
-  }, [mode, drawingPolygon, displayingUploadedGeoJSON, polygonPoints, viewState.zoom, isNearFirstPoint, updateGeoJSON, MAX_AREA_HECTARES]);
+  }, [mode, drawingPolygon, displayingUploadedGeoJSON, polygonPoints, isNearFirstPoint, updateGeoJSON, MAX_AREA_HECTARES]);
 
   // Reset polygon drawing
   const resetPolygon = () => {
@@ -400,9 +427,10 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
   return (
     <div className="relative w-full h-full">
       <Map
+        ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
-        mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+        mapStyle={isSatellite ? SATELLITE_STYLE : BASIC_STYLE}
         onClick={handleMapClick}
         style={{ width: '100%', height: '100%' }}
         cursor={mode === 'polygon' && drawingPolygon ? 'crosshair' : 'default'}
@@ -706,6 +734,17 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
           </div>
         )
       }
+
+      {/* Layer toggle */}
+      <button
+        type="button"
+        onClick={() => setIsSatellite(prev => !prev)}
+        title={isSatellite ? 'Switch to basic map' : 'Switch to satellite'}
+        className="absolute bottom-2.5 left-2.5 z-10 bg-white border border-gray-300 rounded-md shadow-md p-1.5 hover:bg-gray-50 transition-colors flex items-center gap-1.5 text-xs font-medium text-gray-700"
+      >
+        <Layers className="w-4 h-4" />
+        {isSatellite ? 'Basic' : 'Satellite'}
+      </button>
     </div >
   );
 };

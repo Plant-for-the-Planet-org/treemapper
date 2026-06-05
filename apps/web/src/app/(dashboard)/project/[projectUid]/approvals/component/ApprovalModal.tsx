@@ -19,6 +19,7 @@ import {
   getThreadComments,
 } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
+import { cdnUrl } from '@/lib/cdn';
 import {
   Dialog,
   DialogContent,
@@ -518,7 +519,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                                       src={
                                         typeof t.image === 'string' && t.image.startsWith('http')
                                           ? t.image
-                                          : `${process.env.NEXT_PUBLIC_CDN}/tree/${t.image}`
+                                          : (cdnUrl('tree', t.image) ?? '')
                                       }
                                       alt={t.species || t.hid || 'Tree image'}
                                       className="w-full h-24 object-cover rounded-md"
@@ -528,7 +529,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                                 <div className="font-medium truncate">{t.species || 'Unknown'}</div>
                                 <div className="text-muted-foreground">{t.tag ? `Tag: ${t.tag}` : t.hid ? `ID: ${t.hid}` : ''}</div>
                                 <div className="mt-1 text-xs text-foreground/80">
-                                  {t.height !== undefined ? `${t.height} m` : '-'} · {t.width !== undefined ? `${t.width} m` : '-'}
+                                  {t.height !== undefined ? `${t.height} m` : '-'} · {t.width !== undefined ? `${t.width} cm` : '-'}
                                 </div>
                               </div>
                             ))}

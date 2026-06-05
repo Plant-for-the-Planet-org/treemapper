@@ -10,6 +10,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
+import { v3CdnUrl } from 'src/utils/cdnUrl'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { updateImageDetails } from 'src/store/slice/takePictureSlice'
 
@@ -61,7 +62,7 @@ const InterventionCoverImage = (props: Props) => {
   }
 
 
-  const uri = isCDN ? v3Approved ? `${process.env.EXPO_PUBLIC_V3_CDN_URL}/tree/${image}` : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${image}` : image
+  const uri = isCDN ? v3Approved ? (v3CdnUrl('tree', image) ?? '') : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${image}` : image
   return (
     <View style={styles.container}>
       {uri.length > 0 && <View style={styles.wrapper}>

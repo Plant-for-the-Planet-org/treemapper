@@ -173,7 +173,7 @@ export class ProjectSpeciesService {
 
         // Aggregated intervention data
         interventionUsageCount: sql<number>`COUNT(DISTINCT ${intervention.id})`,
-        totalSpecimenCount: sql<number>`COALESCE(SUM(${interventionSpecies.speciesCount}), 0)`,
+        totalSpecimenCount: sql<number>`COALESCE(SUM(CASE WHEN ${intervention.id} IS NOT NULL THEN ${interventionSpecies.speciesCount} ELSE 0 END), 0)`,
 
         // Latest activity dates
         lastUsedAt: sql<Date>`MAX(${interventionSpecies.createdAt})`,

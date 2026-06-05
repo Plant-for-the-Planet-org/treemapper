@@ -8,7 +8,8 @@
       "Bash(grep -rln \"map/all\\\\|'map'\\\\|\\\\\"map\\\\\"\\\\|map/tree\" apps/server/src/interventions/)",
       "Bash(ls apps/server/src/sites/)",
       "Bash(ls apps/server/src/site/)",
-      "Bash(grep -rln \"@Controller\\('sites'\\)\\\\|@Controller\\('site'\\)\\\\|class Site\" apps/server/src)"
+      "Bash(grep -rln \"@Controller\\('sites'\\)\\\\|@Controller\\('site'\\)\\\\|class Site\" apps/server/src)",
+      "Bash(yarn type-check *)"
     ]
   }
 }

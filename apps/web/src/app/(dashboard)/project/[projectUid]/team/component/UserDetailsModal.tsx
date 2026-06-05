@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Calendar, Clock, Shield, User, Mail, AlertCircle, Trash2, Save, CheckCircle, Key, X } from 'lucide-react'
+import { Calendar, Shield, User, Mail, AlertCircle, Trash2, Save, CheckCircle, Key, X, Clock } from 'lucide-react'
 import { expireInvite, removeProjectMember, updateUserRole, updateMemberExtraPermissions } from '@shared-core/fetchApi/api.fetch'
 import { useToken } from '@/context/useTokenContext'
 import useProjectStore from '@shared-core/store/useProjectStore'
@@ -214,7 +214,6 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh, isImpersonatin
               <InfoItem icon={Mail} label="Email" value={user.email} />
               <InfoItem icon={Calendar} label={user.status !== 'Pending' ? 'Member since' : 'Invited at'} value={formatDate(user.joinedDate)} />
               {user.invitedBy && <InfoItem icon={User} label="Invited by" value={user.invitedBy} />}
-              {user.lastActive && <InfoItem icon={Clock} label="Last activity" value={formatDate(user.lastActive)} />}
             </div>
           </div>
 
