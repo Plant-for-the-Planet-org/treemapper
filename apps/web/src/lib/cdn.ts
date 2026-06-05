@@ -1,4 +1,4 @@
-const CDN_BASE = process.env.NEXT_PUBLIC_CDN ?? ''
+const CDN_BASE = `${process.env.NEXT_PUBLIC_CDN_BASE}/${process.env.NEXT_PUBLIC_MODE ?? 'development'}`
 
 /**
  * Build a full CDN URL for a stored filename.

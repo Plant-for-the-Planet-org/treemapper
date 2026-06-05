@@ -12,6 +12,7 @@ import { IScientificSpecies } from 'src/types/interface/app.interface'
 import * as ExpoImage from 'expo-image';
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
+import { v3CdnUrl } from 'src/utils/cdnUrl'
 
 interface SpecieCardProps {
   item: PlantedSpecies | IScientificSpecies
@@ -58,7 +59,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
               <ExpoImage.Image
                 cachePolicy='memory-disk'
                 source={{
-                  uri: item.image.includes('/') ? `${item.image}` : v3Approved ? `${process.env.EXPO_PUBLIC_V3_CDN_URL}/species/${item.image}` : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/species/default/${item.image}`,
+                  uri: item.image.includes('/') ? `${item.image}` : v3Approved ? (v3CdnUrl('species', item.image) ?? '') : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/species/default/${item.image}`,
                 }}
                 style={styles.imageView}
               />

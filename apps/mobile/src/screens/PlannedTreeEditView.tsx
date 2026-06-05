@@ -10,6 +10,7 @@ import { useObject } from '@realm/react'
 import { Map, Camera, CameraRef, UserLocation, Marker, GeoJSONSource, Layer } from '@maplibre/maplibre-react-native'
 
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import { v3CdnUrl } from 'src/utils/cdnUrl'
 import { InterventionData, SampleTree } from 'src/types/interface/slice.interface'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { RootState } from 'src/store'
@@ -159,7 +160,7 @@ const PlannedTreeEditView = () => {
   const localImage = updateFilePath(tree.image_url)
   const cdnUri = tree.cdn_image_url
     ? (v3Approved
-      ? `${process.env.EXPO_PUBLIC_V3_CDN_URL}/tree/${tree.cdn_image_url}`
+      ? (v3CdnUrl('tree', tree.cdn_image_url) ?? '')
       : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${tree.cdn_image_url}`)
     : ''
   const imageUri = tree.image_url ? localImage : cdnUri

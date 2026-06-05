@@ -22,6 +22,7 @@ import { nonISUCountries } from 'src/utils/constants/appConstant'
 import { INTERVENTION_STATUS } from 'src/types/type/app.type'
 import { convertMeasurements } from 'src/utils/constants/measurements'
 import { updateFilePath } from 'src/utils/helpers/fileSystemHelper'
+import { v3CdnUrl } from 'src/utils/cdnUrl'
 import * as ExpoImage from 'expo-image';
 
 interface Props {
@@ -72,7 +73,7 @@ const SampleTreePreviewList = (props: Props) => {
   const hasDetails = sampleTress && sampleTress.length > 0
   const renderCard = () => {
     return sampleTress.map((details, i) => {
-      let uri = details.cdn_image_url ? v3Approved?`${process.env.EXPO_PUBLIC_V3_CDN_URL}/tree/${details.cdn_image_url}`:`${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${details.cdn_image_url}` : updateFilePath(details.image_url)
+      let uri = details.cdn_image_url ? v3Approved?(v3CdnUrl('tree', details.cdn_image_url) ?? ''):`${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${details.cdn_image_url}` : updateFilePath(details.image_url)
       if (details.cdn_image_url === '' && details.image_url === '') {
         uri = ''
       }
