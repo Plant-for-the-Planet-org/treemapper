@@ -108,7 +108,7 @@ const PointMarkerMap = (props: Props) => {
   }
 
   const handleCamera = () => {
-    if (currentUserLocation[0] === 0) {
+    if (!currentUserLocation || currentUserLocation[0] === 0) {
       return
     }
     if (cameraRef?.current) {
@@ -121,7 +121,7 @@ const PointMarkerMap = (props: Props) => {
   }
 
   const handleCamera2 = () => {
-    if (currentUserLocation[0] === 0) {
+    if (!currentUserLocation || currentUserLocation[0] === 0) {
       return
     }
     if (cameraRef?.current) {
