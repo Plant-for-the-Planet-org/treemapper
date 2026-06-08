@@ -99,7 +99,8 @@ const PolygonMarkerMap = (props: Props) => {
   const handleCameraView = () => {
     if (cameraRef?.current) {
       const { bounds, key } = MapBounds
-      if (key === 'POLYGON_MAP') {
+      const hasValidBounds = Array.isArray(bounds) && bounds.length === 4 && bounds.every(Number.isFinite)
+      if (key === 'POLYGON_MAP' && hasValidBounds) {
         cameraRef.current.fitBounds(
           [bounds[0], bounds[1]],
           [bounds[2], bounds[3]],

@@ -125,7 +125,9 @@ const AddOptionModal = (props: Props) => {
       coming_soon: false,
       onPress: () => {
         if (checkWhetherProjectIsSelected()) {
-          provideLocation()
+          // No pre-navigation location fetch here: the marker screen acquires
+          // location itself on mount. Firing getCurrentPositionAsync now raced
+          // the destination's own location consumers and crashed Android.
           navigation.navigate('InterventionForm', {
             id: 'single-tree-registration',
           })
@@ -140,7 +142,8 @@ const AddOptionModal = (props: Props) => {
       coming_soon: false,
       onPress: () => {
         if (checkWhetherProjectIsSelected()) {
-          provideLocation()
+          // No pre-navigation location fetch here (see single-tree note above):
+          // the marker screen acquires location itself on mount.
           navigation.navigate('InterventionForm', {
             id: 'multi-tree-registration',
           })

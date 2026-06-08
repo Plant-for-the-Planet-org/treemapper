@@ -95,7 +95,8 @@ const PointMarkerMap = (props: Props) => {
   const handleCameraViewChange = () => {
     if (cameraRef?.current) {
       const { bounds, key } = MapBounds
-      if (key === 'POINT_MAP') {
+      const hasValidBounds = Array.isArray(bounds) && bounds.length === 4 && bounds.every(Number.isFinite)
+      if (key === 'POINT_MAP' && hasValidBounds) {
         cameraRef.current.fitBounds(
           [bounds[0], bounds[1], bounds[2], bounds[3]],
           { padding: { top: 40, right: 40, bottom: 40, left: 40 }, duration: 1000 },
