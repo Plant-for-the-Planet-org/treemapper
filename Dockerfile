@@ -40,6 +40,8 @@ ENV TURBO_TELEMETRY_DISABLED=1
 # Heroku config vars are available as environment variables during build
 # For local builds, these can be passed via --build-arg
 ARG NEXT_PUBLIC_CDN
+ARG NEXT_PUBLIC_CDN_BASE
+ARG NEXT_PUBLIC_MODE
 ARG NEXT_PUBLIC_SERVER_URL
 ARG NEXT_PUBLIC_AUTH0_CLIENT_ID
 
@@ -47,6 +49,8 @@ ARG NEXT_PUBLIC_AUTH0_CLIENT_ID
 # These will be inlined into the client bundle during next build
 # Using ARG allows Heroku config vars (available as env vars) to be passed
 ENV NEXT_PUBLIC_CDN=${NEXT_PUBLIC_CDN}
+ENV NEXT_PUBLIC_CDN_BASE=${NEXT_PUBLIC_CDN_BASE}
+ENV NEXT_PUBLIC_MODE=${NEXT_PUBLIC_MODE}
 ENV NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL}
 ENV NEXT_PUBLIC_AUTH0_CLIENT_ID=${NEXT_PUBLIC_AUTH0_CLIENT_ID}
 
