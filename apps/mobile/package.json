@@ -36,7 +36,7 @@
     "@turf/distance": "6.5.0",
     "@turf/helpers": "6.5.0",
     "@turf/turf": "7.3.1",
-    "axios": "1.13.2",
+    "axios": "1.16.0",
     "d3-shape": "3.2.0",
     "dashboard": "*",
     "expo": "55.0.26",
