@@ -163,7 +163,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         <UserCog size={14} className="mr-2" />
         Edit profile
       </DropdownMenuItem>
-      {canImpersonate && (
+      {/* {canImpersonate && (
         <DropdownMenuItem onClick={() => updateRoute('workspace')}>
           <UserCheck size={14} className="mr-2" />
           Impersonate user
@@ -178,7 +178,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
           <UserCheck size={14} className="mr-2" />
           Exit impersonation
         </DropdownMenuItem>
-      )}
+      )} */}
       <DropdownMenuItem
         onClick={() => logout({ accessToken, impersonating: isImpersonating })}
         className="text-destructive focus:text-destructive"
@@ -219,9 +219,9 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
       ? [{
         label: 'Admin',
         items: [
-          ...(isAdminOrOwner ? [{ icon: SlidersHorizontal, label: 'Project settings', id: 'settings' }] : []),
-          ...(isWorkspaceManager ? [{ icon: Building, label: 'Workspace', id: 'workspace' }] : []),
-          ...((canImpersonate || isWorkspaceManager) ? [{ icon: UserCheck, label: 'Impersonate', id: 'impersonate' }] : []),
+          ...(isAdminOrOwner ? [{ icon: SlidersHorizontal, label: 'Project settings', id: 'settings' }] : [])
+          // ...(isWorkspaceManager ? [{ icon: Building, label: 'Workspace', id: 'workspace' }] : []),
+          // ...((canImpersonate || isWorkspaceManager) ? [{ icon: UserCheck, label: 'Impersonate', id: 'impersonate' }] : []),
         ],
       }]
       : []),
