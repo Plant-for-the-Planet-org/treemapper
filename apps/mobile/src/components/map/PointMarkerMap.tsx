@@ -72,11 +72,11 @@ const PointMarkerMap = (props: Props) => {
 
   useEffect(() => {
     if (!mapRender) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         handleCameraViewChange()
-      }, 300);
+      }, 300)
+      return () => clearTimeout(timer)
     }
-
   }, [MapBounds])
 
 
@@ -295,7 +295,7 @@ const PointMarkerMap = (props: Props) => {
         )}
       </Map>
       <SatelliteIconWrapper low />
-      <MapZoomScale mapRef={mapRef} position="top-left" padTop={20} />
+      {/* <MapZoomScale mapRef={mapRef} position="top-left" padTop={20} /> */}
       <CustomButton
         label={i18next.t('label.tree_map_marking_btn')}
         containerStyle={styles.btnContainer}

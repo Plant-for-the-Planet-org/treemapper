@@ -55,7 +55,7 @@ const useLocationPermission = () => {
   }
 
   const fetchAndDispatchLocation = async () => {
-    getLastKnowLocation()
+    await getLastKnowLocation()
     const userLocationDetails = await Location.getCurrentPositionAsync({
       accuracy: Location.LocationAccuracy.Highest
     })

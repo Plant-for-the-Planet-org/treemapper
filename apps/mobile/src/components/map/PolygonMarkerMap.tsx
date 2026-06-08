@@ -76,9 +76,10 @@ const PolygonMarkerMap = (props: Props) => {
 
   useEffect(() => {
     if (!mapRender) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         handleCameraView()
-      }, 300);
+      }, 300)
+      return () => clearTimeout(timer)
     }
   }, [MapBounds])
 
