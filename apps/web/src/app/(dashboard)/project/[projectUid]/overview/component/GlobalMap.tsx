@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,11 +25,13 @@ import {
     History,
     ArrowRight,
     ChevronRight,
+    Maximize2,
 } from 'lucide-react';
 import * as turf from '@turf/turf';
 import { getAllMapInterevntions, getProjectSitesMap } from '@shared-core/fetchApi/api.fetch';
 import { cdnUrl } from '@/lib/cdn';
 import { baseUrl } from '@shared-core/fetchApi/api.url';
+import usePolling from '@/hooks/usePolling';
 
 // ==================== TYPES ====================
 interface MapIntervention {
@@ -1120,9 +1123,19 @@ const TreeTooltip: React.FC<{
     const speciesImage = buildSpeciesImageUrl(tree.speciesImage);
     const [treeImgError, setTreeImgError] = useState(false);
     const [speciesImgError, setSpeciesImgError] = useState(false);
+    const [isImageFullscreen, setIsImageFullscreen] = useState(false);
 
     const showTreeImage = treeImage && !treeImgError;
     const showSpeciesImage = speciesImage && !speciesImgError;
+
+    useEffect(() => {
+        if (!isImageFullscreen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIsImageFullscreen(false);
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [isImageFullscreen]);
 
     const height = formatHeight(tree.height);
     const width = formatWidth(tree.width);
@@ -1140,12 +1153,22 @@ const TreeTooltip: React.FC<{
             {/* Image header / banner */}
             <div className="relative h-40 shrink-0 bg-gradient-to-br from-emerald-50 to-gray-100">
                 {showTreeImage ? (
-                    <img
-                        src={treeImage as string}
-                        alt={tree.tag || tree.hid}
-                        className="w-full h-full object-cover"
-                        onError={() => setTreeImgError(true)}
-                    />
+                    <button
+                        type="button"
+                        onClick={() => setIsImageFullscreen(true)}
+                        className="group w-full h-full block cursor-zoom-in"
+                        title="View full screen"
+                    >
+                        <img
+                            src={treeImage as string}
+                            alt={tree.tag || tree.hid}
+                            className="w-full h-full object-cover"
+                            onError={() => setTreeImgError(true)}
+                        />
+                        <span className="absolute bottom-3 right-3 w-7 h-7 flex items-center justify-center rounded-full bg-black/45 text-white opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm">
+                            <Maximize2 className="w-3.5 h-3.5" />
+                        </span>
+                    </button>
                 ) : isLoadingDetail ? (
                     <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
                         <Loader2 className="w-7 h-7 animate-spin" strokeWidth={1.5} />
@@ -1303,6 +1326,38 @@ const TreeTooltip: React.FC<{
                     )}
                 </div>
             </div>
+
+            {/* Fullscreen image viewer — portaled to <body> so it sits above
+                every mounted screen, free of the tooltip's transformed parent. */}
+            {typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
+                    {isImageFullscreen && showTreeImage && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsImageFullscreen(false)}
+                            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-sm cursor-zoom-out p-6"
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setIsImageFullscreen(false)}
+                                className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/30 transition-colors"
+                                title="Close"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                            <img
+                                src={treeImage as string}
+                                alt={tree.tag || tree.hid}
+                                onClick={(e) => e.stopPropagation()}
+                                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl cursor-default"
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </motion.div>
     );
 };
@@ -1318,6 +1373,9 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
     const [sites, setSites] = useState<SiteFeatureCollection>({ type: 'FeatureCollection', features: [] });
     const [showSiteBoundaries, setShowSiteBoundaries] = useState(true);
     const [selectedSiteId, setSelectedSiteId] = useState<number | null>(null);
+    // Id of an intervention the poller detected as newly registered; an effect
+    // (declared after selectIntervention) auto-selects it once state settles.
+    const [autoSelectId, setAutoSelectId] = useState<number | null>(null);
     const [bounds, setBounds] = useState<ProjectMapBounds | null>(null);
     const [hidSearch, setHidSearch] = useState('');
     const [filters, setFilters] = useState<{
@@ -1380,6 +1438,53 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
 
     useEffect(() => { loadInterventions(); }, [loadInterventions]);
 
+    // Mirror of `interventions` for the silent poller, so it can diff against
+    // the current set without re-creating the polling timer on every change.
+    const interventionsRef = useRef<MapIntervention[]>([]);
+    useEffect(() => { interventionsRef.current = interventions; }, [interventions]);
+
+    // Silent background refresh of the interventions layer. Unlike
+    // `loadInterventions` it deliberately does NOT show the loading overlay,
+    // does NOT re-fit the map (preserving the user's pan/zoom and any open
+    // panel/selection), and leaves errors silent so a transient poll failure
+    // never wipes the map. New types/statuses are auto-enabled in the filters
+    // so freshly uploaded interventions stay visible by default.
+    const refreshInterventions = useCallback(async () => {
+        try {
+            const response = await fetchProjectInterventions(projectId, token);
+            const loaded = response.data.interventions;
+            const prevTypes = new Set(interventionsRef.current.map(i => i.type));
+            const prevStatuses = new Set(interventionsRef.current.map(i => i.status));
+            const newTypes = [...new Set(loaded.filter(i => !prevTypes.has(i.type)).map(i => i.type))];
+            const newStatuses = [...new Set(loaded.filter(i => !prevStatuses.has(i.status)).map(i => i.status))];
+            if (newTypes.length || newStatuses.length) {
+                setFilters(prev => ({
+                    types: new Set([...prev.types, ...newTypes]),
+                    statuses: new Set([...prev.statuses, ...newStatuses]),
+                }));
+            }
+
+            // Detect interventions that appeared since the last poll (a new
+            // registration from the field). Only after a baseline exists, so
+            // the first load never auto-selects. If several arrive at once,
+            // pick the most recently registered one and treat it as selected:
+            // the effect below flies the map to it and opens its detail panel.
+            const prevIds = new Set(interventionsRef.current.map(i => i.id));
+            const fresh = loaded.filter(i => !prevIds.has(i.id));
+            if (interventionsRef.current.length > 0 && fresh.length > 0) {
+                const newest = fresh.reduce((latest, i) =>
+                    new Date(i.registrationDate || 0).getTime() >
+                    new Date(latest.registrationDate || 0).getTime() ? i : latest
+                , fresh[0]);
+                setAutoSelectId(newest.id);
+            }
+
+            setInterventions(loaded);
+        } catch (err) {
+            console.warn('Silent intervention refresh failed:', err);
+        }
+    }, [projectId, token]);
+
     const loadSites = useCallback(async () => {
         try {
             const collection = await fetchProjectSites(projectId, token);
@@ -1407,6 +1512,13 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
 
     useEffect(() => { loadSites(); }, [loadSites]);
 
+    // Auto-refresh map data every 30s so interventions uploaded from the field
+    // appear without a manual refresh. Both calls are silent and viewport-safe.
+    usePolling(() => {
+        refreshInterventions();
+        loadSites();
+    }, 30_000, !!projectId);
+
     useEffect(() => {
         if (mapLoaded && bounds && interventions.length > 0) {
             try {
@@ -1419,14 +1531,20 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
         }
     }, [mapLoaded, bounds, interventions.length]);
 
-    // Interventions filtered by HID search and type/status
+    // Interventions filtered by HID search and type/status, newest first.
+    // Sort by registration date (when it was added), falling back to the
+    // intervention start date when registration date is missing.
     const filteredInterventions = useMemo(() => {
-        return interventions.filter(i => {
-            if (hidSearch && !i.hid.toLowerCase().includes(hidSearch.toLowerCase())) return false;
-            if (!filters.types.has(i.type)) return false;
-            if (!filters.statuses.has(i.status)) return false;
-            return true;
-        });
+        const addedTime = (i: MapIntervention) =>
+            new Date(i.registrationDate || i.interventionStartDate || 0).getTime();
+        return interventions
+            .filter(i => {
+                if (hidSearch && !i.hid.toLowerCase().includes(hidSearch.toLowerCase())) return false;
+                if (!filters.types.has(i.type)) return false;
+                if (!filters.statuses.has(i.status)) return false;
+                return true;
+            })
+            .sort((a, b) => addedTime(b) - addedTime(a));
     }, [interventions, hidSearch, filters]);
 
     const polygonGeoJSON = useMemo(() => ({
@@ -1526,6 +1644,17 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
             prevSelectedIdRef.current = intervention.id;
         } catch { /* ignore */ }
     }, []);
+
+    // When the poller flags a newly registered intervention, select it just as
+    // if the user had clicked it: the map flies to it and its detail panel
+    // (with trees) loads via the existing selection effects. Runs once the
+    // interventions state already contains the new item, then clears the flag.
+    useEffect(() => {
+        if (autoSelectId == null) return;
+        const target = interventions.find(i => i.id === autoSelectId);
+        if (target) selectIntervention(target);
+        setAutoSelectId(null);
+    }, [autoSelectId, interventions, selectIntervention]);
 
     const handleMapLoad = useCallback(() => {
         setMapLoaded(true);
