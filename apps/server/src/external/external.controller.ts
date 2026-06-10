@@ -1,13 +1,18 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse as SwaggerApiResponse } from '@nestjs/swagger';
 import { Public } from 'src/auth/public.decorator';
 import { ExternalService } from './external.service';
 import { SuccessResponse, ErrorResponse } from '../common/interfaces/response.interface';
 import { ResponseUtil } from '../common/utils/response.util';
+import { IpRateLimit, IpRateLimitGuard } from '../common/guards/ip-rate-limit.guard';
 
 @ApiTags('External')
 @Controller('external')
 @Public()
+// Public, read-only and unauthenticated: cap per-IP traffic so it cannot be
+// used to scrape or to hammer the dyno during a live event.
+@UseGuards(IpRateLimitGuard)
+@IpRateLimit({ limit: 30, windowMs: 60 * 1000, name: 'external' })
 export class ExternalController {
   constructor(private readonly externalService: ExternalService) {}
 

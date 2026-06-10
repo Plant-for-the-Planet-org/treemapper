@@ -175,6 +175,7 @@ export class CreateInterventionDto {
   @ApiPropertyOptional({ example: 'restoration-2024' })
   @IsOptional()
   @IsString()
+  @MaxLength(255)
   tag?: string;
 
 
@@ -339,6 +340,7 @@ export class CreateInterventionBulkDto {
   @ApiPropertyOptional({ example: 'restoration-2024' })
   @IsOptional()
   @IsString()
+  @MaxLength(255)
   tag?: string;
 }
 
@@ -945,6 +947,7 @@ export class EditTreeSpeciesDto {
 export class EditTreeDto {
   @IsOptional()
   @IsString()
+  @MaxLength(255)
   tag?: string;
 
   @IsOptional()

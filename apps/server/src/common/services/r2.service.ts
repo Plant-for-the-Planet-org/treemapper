@@ -1,7 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+// Raster image types only. Note: image/svg+xml is deliberately excluded -- SVGs
+// can carry inline script and would execute if rendered on the dashboard. These
+// match what the mobile/web clients actually send (jpeg, png, gif, webp).
+export const ALLOWED_IMAGE_MIME_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/heic',
+  'image/heif',
+];
+
+const SAFE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'];
 
 export interface PresignedUrlResponse {
   uploadUrl: string;
@@ -56,11 +71,20 @@ export class R2Service {
   async generatePresignedUrl(
     dto: GeneratePresignedUrlDto,
   ): Promise<PresignedUrlResponse> {
+    // Authoritative server-side validation: reject anything that is not a
+    // whitelisted raster image, so the signed URL cannot be used to upload
+    // HTML/JS/SVG (or an arbitrary content type) that later renders on the
+    // dashboard. Covers every caller of this method.
+    if (!dto.fileType || !ALLOWED_IMAGE_MIME_TYPES.includes(dto.fileType.toLowerCase())) {
+      throw new BadRequestException('Unsupported file type');
+    }
+
     try {
       // Generate unique filename to prevent conflicts
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 8);
-      const fileExtension = dto.fileName.split('.').pop();
+      const rawExtension = (dto.fileName.split('.').pop() || '').toLowerCase();
+      const fileExtension = SAFE_EXTENSIONS.includes(rawExtension) ? rawExtension : 'jpg';
       const uniqueFileName = `${timestamp}-${randomString}.${fileExtension}`;
       
       const key = dto.folder

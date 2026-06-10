@@ -8,7 +8,7 @@ import { User } from './entities/user.entity';
 import { eq, and, isNull } from 'drizzle-orm';
 import { generateUid } from 'src/util/uidGenerator';
 import { UserCacheService } from '../cache/user-cache.service';
-import { R2Service } from 'src/common/services/r2.service';
+import { R2Service, ALLOWED_IMAGE_MIME_TYPES } from 'src/common/services/r2.service';
 import { CreatePresignedUrlDto } from './dto/signed-url.dto';
 import { randomPastTimestamp } from 'src/util/randomTimeStamp';
 import { AuditService } from '../audit/audit.service';
@@ -305,8 +305,7 @@ export class UsersService {
             if (!dto.fileName || !dto.fileType) {
                 throw new BadRequestException('fileName and fileType are required');
             }
-            const allowedTypes = ['image/'];
-            if (!allowedTypes.some(type => dto.fileType.startsWith(type))) {
+            if (!ALLOWED_IMAGE_MIME_TYPES.includes(dto.fileType.toLowerCase())) {
                 throw new BadRequestException('File type not allowed');
             }
             const result = await this.r2Service.generatePresignedUrl({
