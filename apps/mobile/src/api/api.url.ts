@@ -33,6 +33,7 @@ export const postUrlNewApi = {
   acceptBulkInvite: `${mobileBaseUrl}/mobile/invites/accept/link`,
   registerDevice: `${mobileBaseUrl}/users/devices`,
   submitFeedback: `${mobileBaseUrl}/mobile/feedback`,
+  monitoringPlot: `${mobileBaseUrl}/monitoring-plots/projects`,
 };
 
 export const getUrlMobileApi = {

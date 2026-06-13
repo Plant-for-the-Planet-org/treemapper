@@ -118,6 +118,8 @@ export const getUrlApi = {
   getWorkspaceReviewQueue: `${baseUrl}/approval-board/workspaces`,
   getWorkspaceSiteReviewQueue: `${baseUrl}/approval-board/workspaces`,
   projectApiKey: `${baseUrl}/projects`,
+  // Monitoring plots (shared base for all verbs)
+  monitoringPlots: `${baseUrl}/monitoring-plots`,
 } as const;
 
 export const patchUrlApi = {

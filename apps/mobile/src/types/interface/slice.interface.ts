@@ -435,6 +435,7 @@ export interface PlantTimeLine {
   width_unit: string
   image: string
   timeline_id: string
+  sync_status: 'NOT_SYNCED' | 'SYNCED'
 }
 
 
@@ -495,6 +496,7 @@ export interface PlantedPlotSpecies {
   details_updated_at: number
   latitude: number
   longitude: number
+  server_tree_id: string
 }
 
 

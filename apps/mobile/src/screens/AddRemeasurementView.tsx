@@ -33,7 +33,7 @@ const AddRemeasurementView = () => {
 
     useEffect(() => {
         if (plantID) {
-            const getPlantDetails = plotDetails.plot_plants.find(el => el.plot_plant_id === plantID)
+            const getPlantDetails = plotDetails?.plot_plants.find(el => el.plot_plant_id === plantID)
             if (getPlantDetails) {
                 setSelectedTimeline(getPlantDetails)
             }
@@ -117,12 +117,19 @@ const AddRemeasurementView = () => {
                         data={selectedTimeline ? selectedTimeline.timeline : []} />
                 </View>
             </View>
-            {selectedTimeline.is_alive && <CustomButton
+            {/* Remeasurement is only allowed once THIS plant is synced (has a
+                server tree id): each new measurement uploads on its own, which
+                needs the plant's tree to already exist remotely. A plant added
+                after the plot was synced has no server tree id until it uploads. */}
+            {!!selectedTimeline.server_tree_id && selectedTimeline.is_alive && <CustomButton
                 label="Add New Measurement"
                 containerStyle={styles.btnContainer}
                 pressHandler={handleSelection}
                 hideFadeIn
             />}
+            {!selectedTimeline.server_tree_id && (
+                <Text style={styles.syncHint}>Sync this plant to add remeasurements.</Text>
+            )}
         </SafeAreaView>
     )
 }
@@ -146,6 +153,16 @@ const styles = StyleSheet.create({
         height: 70,
         position: 'absolute',
         bottom: 30,
+    },
+    syncHint: {
+        position: 'absolute',
+        bottom: 40,
+        alignSelf: 'center',
+        textAlign: 'center',
+        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        color: Colors.TEXT_LIGHT,
+        fontSize: 14,
+        paddingHorizontal: 20,
     },
     imageWrapper: {
         backgroundColor: Colors.SAPPHIRE_BLUE,

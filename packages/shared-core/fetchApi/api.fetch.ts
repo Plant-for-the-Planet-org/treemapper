@@ -1105,3 +1105,64 @@ export const addTreeRemeasurement = async (
   const result = await fetchPostCall(uri, data, token);
   return result;
 };
+
+
+// ---------------------------------------------------------------------------
+// Monitoring plots
+// ---------------------------------------------------------------------------
+
+// List all monitoring plots for a project (thin list view).
+export const getProjectMonitoringPlots = async (token: string, projectUid: string) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Full detail of one plot: geometry, plants + timelines, observations, species.
+export const getMonitoringPlotDetail = async (token: string, projectUid: string, plotUid: string) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/plots/${plotUid}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Edit a plot's metadata. Returns the refreshed detail.
+export const updateMonitoringPlot = async (token: string, projectUid: string, plotUid: string, params: any) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/plots/${plotUid}`
+  const result = await fetchPatchCall(uri, params, token)
+  return result
+}
+
+// Soft-delete a plot.
+export const deleteMonitoringPlot = async (token: string, projectUid: string, plotUid: string) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/plots/${plotUid}`
+  const result = await fetchDeleteCall(uri, token)
+  return result
+}
+
+// List a project's plot groups with their member plots.
+export const getMonitoringPlotGroups = async (token: string, projectUid: string) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/groups`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Create a plot group (optionally attaching plots by uid).
+export const createMonitoringPlotGroup = async (token: string, projectUid: string, params: any) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/groups`
+  const result = await fetchPostCall(uri, params, token)
+  return result
+}
+
+// Rename a group and/or set its exact member plots.
+export const updateMonitoringPlotGroup = async (token: string, projectUid: string, groupUid: string, params: any) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/groups/${groupUid}`
+  const result = await fetchPatchCall(uri, params, token)
+  return result
+}
+
+// Soft-delete a group (member plots untouched).
+export const deleteMonitoringPlotGroup = async (token: string, projectUid: string, groupUid: string) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/groups/${groupUid}`
+  const result = await fetchDeleteCall(uri, token)
+  return result
+}

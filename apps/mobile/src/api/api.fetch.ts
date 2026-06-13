@@ -477,3 +477,21 @@ export const submitFeedback = async (params: any) => {
   return result;
 };
 
+export const uploadMonitoringPlot = async (projectUid: string, params: any) => {
+  const uri = `${postUrlNewApi.monitoringPlot}/${projectUid}/upload`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+export const uploadPlotRemeasurement = async (projectUid: string, params: any) => {
+  const uri = `${postUrlNewApi.monitoringPlot}/${projectUid}/remeasure`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+export const addPlotPlants = async (projectUid: string, params: any) => {
+  const uri = `${postUrlNewApi.monitoringPlot}/${projectUid}/plants`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+

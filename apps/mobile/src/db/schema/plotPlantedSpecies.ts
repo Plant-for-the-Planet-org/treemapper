@@ -18,6 +18,8 @@ export const PlotPlantedSpecies: ObjectSchema = {
     details_updated_at: { type: 'double' },
     latitude: 'double',
     longitude: 'double',
+    // Server tree uid, set once the plot is synced. Remeasurements target this tree.
+    server_tree_id: { type: 'string', default: '' },
   }
 };
 

@@ -176,7 +176,13 @@ const CreatePlotMapDetail = (props: Props) => {
       toast.show('Selected point is close to already existing point')
       return
     }
-    await updatePlotPlantLocation(plotId, plantId, centerCoordinates[1], centerCoordinates[0])
+    // updatePlotPlantLocation refuses a synced plant (it is read-only on device);
+    // only navigate on a real update so we don't pretend a blocked edit succeeded.
+    const updated = await updatePlotPlantLocation(plotId, plantId, centerCoordinates[1], centerCoordinates[0])
+    if (!updated) {
+      toast.show("This plant is already synced and its location can't be changed.")
+      return
+    }
     navigation.replace("PlotDetails", { id: plotId })
   }
 
