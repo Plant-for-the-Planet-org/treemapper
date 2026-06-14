@@ -30,6 +30,29 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
+// ---------- Approval settings helpers ----------
+
+// Default approval config: gate every source and require site approval. Only
+// effective when the master switch (approvalBoardEnabled) is on.
+const DEFAULT_APPROVAL_SETTINGS = {
+  sources: { web: true, bulk: true, mobile: true },
+  siteApprovalRequired: true,
+}
+
+// Fill any missing fields so the UI never reads undefined off a legacy/partial value.
+const normalizeApprovalSettings = (value: any) => {
+  const sources = (value && typeof value === 'object' && value.sources) || {}
+  return {
+    sources: {
+      web: typeof sources.web === 'boolean' ? sources.web : true,
+      bulk: typeof sources.bulk === 'boolean' ? sources.bulk : true,
+      mobile: typeof sources.mobile === 'boolean' ? sources.mobile : true,
+    },
+    siteApprovalRequired:
+      value && typeof value.siteApprovalRequired === 'boolean' ? value.siteApprovalRequired : true,
+  }
+}
+
 // ---------- Field components ----------
 
 const InputField = ({ label, name, value, onChange, type = 'text', placeholder = '', icon: Icon = null, validation = {} as { error?: string; hint?: string }, required = false, disabled = false, maxLength, ...props }: any) => {
@@ -476,7 +499,19 @@ const ApiSettings = ({ projectUid, accessToken, canEdit, apiEnabled, onApiToggle
   )
 }
 
-const FeaturesSettings = ({ projectData, handleToggleChange, handleSubmit, loading, canEdit, projectUid, accessToken, onApiToggle }: any) => (
+const SubToggleRow = ({ label, description, checked, onToggle, disabled }: any) => (
+  <div className="flex items-center justify-between gap-3 py-2">
+    <div className="min-w-0">
+      <p className="text-sm font-medium text-foreground">{label}</p>
+      {description && <p className="text-xs text-muted-foreground">{description}</p>}
+    </div>
+    <Switch checked={checked} onCheckedChange={onToggle} disabled={disabled} />
+  </div>
+)
+
+const FeaturesSettings = ({ projectData, handleToggleChange, handleApprovalSourceToggle, handleSiteApprovalToggle, handleSubmit, loading, canEdit, projectUid, accessToken, onApiToggle }: any) => {
+  const approvalSettings = normalizeApprovalSettings(projectData.approvalSettings)
+  return (
   <div className="space-y-4">
     <FeatureToggle
       icon={Shield}
@@ -494,6 +529,47 @@ const FeaturesSettings = ({ projectData, handleToggleChange, handleSubmit, loadi
           <li className="flex items-start gap-1.5"><span className="text-primary">•</span><span>Team members can track their submission status in the Approvals tab</span></li>
         </ul>
       </div>
+
+      {projectData.approvalBoardEnabled && (
+        <div className="mt-4 space-y-3">
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-xs font-medium text-foreground mb-1">Require approval for interventions from</p>
+            <p className="text-xs text-muted-foreground mb-2">Only the sources you turn on here need approval. Others are published right away.</p>
+            <div className="divide-y divide-border">
+              <SubToggleRow
+                label="Web dashboard"
+                description="Interventions created in the web app"
+                checked={approvalSettings.sources.web}
+                onToggle={() => handleApprovalSourceToggle('web')}
+                disabled={!canEdit}
+              />
+              <SubToggleRow
+                label="Bulk upload"
+                description="Interventions imported from CSV or custom formats"
+                checked={approvalSettings.sources.bulk}
+                onToggle={() => handleApprovalSourceToggle('bulk')}
+                disabled={!canEdit}
+              />
+              <SubToggleRow
+                label="Mobile app"
+                description="Interventions and plots recorded in the TreeMapper app"
+                checked={approvalSettings.sources.mobile}
+                onToggle={() => handleApprovalSourceToggle('mobile')}
+                disabled={!canEdit}
+              />
+            </div>
+          </div>
+          <div className="rounded-lg border border-border p-3">
+            <SubToggleRow
+              label="Require approval for sites"
+              description="New sites must be approved before they appear on the map"
+              checked={approvalSettings.siteApprovalRequired}
+              onToggle={handleSiteApprovalToggle}
+              disabled={!canEdit}
+            />
+          </div>
+        </div>
+      )}
     </FeatureToggle>
 
     {/* TODO: wire leaderboardEnabled to the API (add to prepareDataForApi + backend field) — currently UI-only */}
@@ -526,7 +602,8 @@ const FeaturesSettings = ({ projectData, handleToggleChange, handleSubmit, loadi
 
     <SaveBar onClick={handleSubmit} loading={loading} disabled={!canEdit} />
   </div>
-)
+  )
+}
 
 // ---------- Section: Danger Zone ----------
 
@@ -639,6 +716,7 @@ const ProjectSettings = () => {
     name: '', slug: '', type: '', ecosystem: '', scale: '', target: '', website: '', videoUrl: '',
     description: '', purpose: '', classification: '', intensity: '', revisionPeriodicity: '', country: '',
     image: null, location: null, originalGeometry: null, metadata: {}, approvalBoardEnabled: false,
+    approvalSettings: DEFAULT_APPROVAL_SETTINGS,
     leaderboardEnabled: true, bulkUploadEnabled: true, apiEnabled: false,
   })
 
@@ -680,6 +758,7 @@ const ProjectSettings = () => {
           originalGeometry: result.data.originalGeometry || null,
           metadata: result.data.metadata || {},
           approvalBoardEnabled: result.data.approvalBoardEnabled ?? false,
+          approvalSettings: normalizeApprovalSettings(result.data.approvalSettings),
           leaderboardEnabled: result.data.leaderboardEnabled ?? true,
           bulkUploadEnabled: result.data.bulkUploadEnabled ?? true,
           apiEnabled: result.data.apiEnabled ?? false,
@@ -785,6 +864,31 @@ const ProjectSettings = () => {
     setProjectData((prev: any) => ({ ...prev, [fieldName]: !prev[fieldName] }))
   }
 
+  // Toggle one intervention source (web/bulk/mobile) under approvalSettings.sources
+  const handleApprovalSourceToggle = (sourceKey: 'web' | 'bulk' | 'mobile') => {
+    setProjectData((prev: any) => {
+      const settings = normalizeApprovalSettings(prev.approvalSettings)
+      return {
+        ...prev,
+        approvalSettings: {
+          ...settings,
+          sources: { ...settings.sources, [sourceKey]: !settings.sources[sourceKey] },
+        },
+      }
+    })
+  }
+
+  // Toggle whether sites require approval
+  const handleSiteApprovalToggle = () => {
+    setProjectData((prev: any) => {
+      const settings = normalizeApprovalSettings(prev.approvalSettings)
+      return {
+        ...prev,
+        approvalSettings: { ...settings, siteApprovalRequired: !settings.siteApprovalRequired },
+      }
+    })
+  }
+
   const handleApiToggle = async (next: boolean) => {
     if (!canEdit) { toast.error('You do not have permission to update project settings.'); return }
     setProjectData((prev: any) => ({ ...prev, apiEnabled: next }))
@@ -834,6 +938,7 @@ const ProjectSettings = () => {
     }
     if (data.originalGeometry) cleaned.originalGeometry = data.originalGeometry
     if (typeof data.approvalBoardEnabled === 'boolean') cleaned.approvalBoardEnabled = data.approvalBoardEnabled
+    if (data.approvalSettings) cleaned.approvalSettings = normalizeApprovalSettings(data.approvalSettings)
     return cleaned
   }
 
@@ -866,7 +971,7 @@ const ProjectSettings = () => {
       case 'location':
         return <LocationSettings handleLocationUpdate={handleLocationUpdate} existingGeoJSON={projectData.originalGeometry} loading={loading} canEdit={canEdit} />
       case 'features':
-        return <FeaturesSettings projectData={projectData} handleToggleChange={handleToggleChange} handleSubmit={handleSubmit} loading={loading} canEdit={canEdit} projectUid={selectedProject?.uid} accessToken={accessToken} onApiToggle={handleApiToggle} />
+        return <FeaturesSettings projectData={projectData} handleToggleChange={handleToggleChange} handleApprovalSourceToggle={handleApprovalSourceToggle} handleSiteApprovalToggle={handleSiteApprovalToggle} handleSubmit={handleSubmit} loading={loading} canEdit={canEdit} projectUid={selectedProject?.uid} accessToken={accessToken} onApiToggle={handleApiToggle} />
       case 'danger':
         return <DangerZone projectData={projectData} showDeleteConfirm={showDeleteConfirm} setShowDeleteConfirm={setShowDeleteConfirm} handleDeleteProject={handleDeleteProject} canEdit={canEdit} />
       default:

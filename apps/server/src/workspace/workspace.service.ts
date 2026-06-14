@@ -13,8 +13,12 @@ import { User } from 'src/users/entities/user.entity';
 import { ProjectCacheService } from 'src/cache/project-cache.service';
 import { AuditService } from 'src/audit/audit.service';
 
-type WorkspaceSettingsPatch = Omit<Partial<WorkspaceSettings>, 'notifications'> & {
+type WorkspaceSettingsPatch = Omit<Partial<WorkspaceSettings>, 'notifications' | 'approvalSettings'> & {
   notifications?: Partial<WorkspaceSettings['notifications']>;
+  approvalSettings?: {
+    sources?: Partial<WorkspaceSettings['approvalSettings']['sources']>;
+    siteApprovalRequired?: boolean;
+  };
 };
 
 const IMPERSONATION_TTL_MS = 30 * 60 * 1000;
@@ -465,6 +469,15 @@ export class WorkspaceService {
       notifications: {
         ...current.notifications,
         ...(patch.notifications ?? {}),
+      },
+      approvalSettings: {
+        sources: {
+          ...current.approvalSettings.sources,
+          ...(patch.approvalSettings?.sources ?? {}),
+        },
+        siteApprovalRequired:
+          patch.approvalSettings?.siteApprovalRequired ??
+          current.approvalSettings.siteApprovalRequired,
       },
     };
 

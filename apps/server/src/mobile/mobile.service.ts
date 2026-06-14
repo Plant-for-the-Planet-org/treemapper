@@ -9,6 +9,7 @@ import { CaptureStatus } from 'src/interventions/interventions.service';
 import { project, projectMember, workspace, site, scientificSpecies, intervention, tree, interventionSpecies, user, auditLog, workspaceMember, projectSpecies, notifications, migrationRequest, treeRecord, image, feedback } from 'src/database/schema';
 import { CreateFeedbackDto } from './dto/feedback.dto';
 import { RecordPlannedInterventionDto } from './dto/record-planned-intervention.dto';
+import { interventionRequiresApproval, siteRequiresApproval } from '../approval-board/approval.util';
 import { booleanValid } from '@turf/boolean-valid';
 import { getType } from '@turf/invariant';
 import { ExtendedUser, User } from 'src/users/entities/user.entity';
@@ -1570,6 +1571,9 @@ export class MobileService {
             originalGeometry: geometry, // Store original for reference
             createdAt: new Date(),
             updatedAt: new Date(),
+            ...(siteRequiresApproval(projectData) && {
+              reviewStatus: 'pending',
+            }),
           })
           .returning();
 
@@ -2050,9 +2054,12 @@ export class MobileService {
 
       const uid = generateUid('inv');
 
-      // Check if project has approval board enabled
+      // Check if project requires approval for mobile-created interventions
       const [projectData] = await this.drizzleService.db
-        .select({ approvalBoardEnabled: project.approvalBoardEnabled })
+        .select({
+          approvalBoardEnabled: project.approvalBoardEnabled,
+          approvalSettings: project.approvalSettings,
+        })
         .from(project)
         .where(eq(project.id, membership.projectId))
         .limit(1);
@@ -2080,7 +2087,8 @@ export class MobileService {
         totalTreeCount: createInterventionDto.type === 'single-tree-registration' ? 1 : totalCount,
         flag: flag,
         flagReason: flagReason,
-        ...(projectData?.approvalBoardEnabled && {
+        source: 'mobile',
+        ...(interventionRequiresApproval(projectData, 'mobile') && {
           reviewStatus: 'pending',
           submittedAt: now,
         }),

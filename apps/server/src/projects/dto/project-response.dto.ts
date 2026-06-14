@@ -25,6 +25,7 @@ export class ProjectResponseDto {
   isActive: boolean;
   isPublic: boolean;
   approvalBoardEnabled: boolean;
+  approvalSettings?: import('../../database/schema').ProjectApprovalSettings;
   intensity?: string;
   revisionPeriodicityLevel?: string;
   metadata?: any;

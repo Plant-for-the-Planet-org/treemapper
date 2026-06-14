@@ -263,6 +263,15 @@ export const reviewCommentAuthorRoleEnum = pgEnum('review_comment_author_role', 
   'contributor',
 ]);
 
+// Where an intervention was created from. Used to gate which sources require
+// approval (see project.approvalSettings) and for audit/display.
+export const interventionSourceEnum = pgEnum('intervention_source', [
+  'web',
+  'bulk',
+  'mobile',
+  'migration',
+]);
+
 export const formStatusEnum = pgEnum('form_status', ['draft', 'published']);
 // Which sites a form is shown for: every site, only interventions with no site,
 // or the specific sites listed in `form.siteIds`.
@@ -394,8 +403,29 @@ export const user = pgTable('user', {
 
 
 
+// Intervention sources that can be independently gated by the approval board.
+// 'migration' is never gated, so it is excluded here.
+export const APPROVAL_GATED_SOURCES = ['web', 'bulk', 'mobile'] as const;
+export type ApprovalGatedSource = (typeof APPROVAL_GATED_SOURCES)[number];
+
+// Per-project, granular approval configuration. Only takes effect when the
+// master switch (project.approvalBoardEnabled) is on.
+export type ProjectApprovalSettings = {
+  // Which intervention sources require approval before being published.
+  sources: Record<ApprovalGatedSource, boolean>;
+  // Whether newly created sites require approval before being published.
+  siteApprovalRequired: boolean;
+};
+
+export const DEFAULT_PROJECT_APPROVAL_SETTINGS: ProjectApprovalSettings = {
+  sources: { web: true, bulk: true, mobile: true },
+  siteApprovalRequired: true,
+};
+
 export type WorkspaceSettings = {
   approvalBoardEnabled: boolean;
+  // Default approval settings new projects inherit when created in this workspace.
+  approvalSettings: ProjectApprovalSettings;
   defaultProjectVisibility: 'public' | 'private';
   allowMemberInvites: boolean;
   requireApprovalForNewProjects: boolean;
@@ -410,6 +440,7 @@ export type WorkspaceSettings = {
 
 export const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettings = {
   approvalBoardEnabled: false,
+  approvalSettings: DEFAULT_PROJECT_APPROVAL_SETTINGS,
   defaultProjectVisibility: 'private',
   allowMemberInvites: false,
   requireApprovalForNewProjects: false,
@@ -676,6 +707,10 @@ export const project = pgTable('project', {
   migratedProject: boolean('migrated_project').default(false),
   status: projectStatusEnum('status').notNull().default('active'),
   approvalBoardEnabled: boolean('approval_board_enabled').default(false).notNull(),
+  approvalSettings: jsonb('approval_settings')
+    .$type<ProjectApprovalSettings>()
+    .default(DEFAULT_PROJECT_APPROVAL_SETTINGS)
+    .notNull(),
   apiEnabled: boolean('api_enabled').default(false).notNull(),
   flag: boolean('flag').default(false),
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
@@ -1079,6 +1114,7 @@ export const intervention = pgTable('intervention', {
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
   metadata: jsonb('metadata'),
   migratedIntervention: boolean('migrated_intervention').default(false),
+  source: interventionSourceEnum('source'),
   reviewStatus: reviewStatusEnum('review_status'),
   submittedAt: timestamp('submitted_at', { withTimezone: true }),
   approvedAt: timestamp('approved_at', { withTimezone: true }),

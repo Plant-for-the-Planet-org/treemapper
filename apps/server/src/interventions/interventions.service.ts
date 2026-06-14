@@ -44,6 +44,7 @@ import { ProjectGuardResponse } from 'src/projects/projects.service';
 import { interventionConfigurationSeedData } from 'src/database/schema/interventionConfig';
 import { error } from 'console';
 import { AuditService } from '../audit/audit.service';
+import { interventionRequiresApproval, publishedInterventionFilter, publishedSiteFilter } from '../approval-board/approval.util';
 
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 
@@ -852,9 +853,12 @@ export class InterventionsService {
         projectSiteId = siteData[0].id;
       }
 
-      // Check if project has approval board enabled
+      // Check if project requires approval for web-created interventions
       const [projectData] = await this.drizzleService.db
-        .select({ approvalBoardEnabled: project.approvalBoardEnabled })
+        .select({
+          approvalBoardEnabled: project.approvalBoardEnabled,
+          approvalSettings: project.approvalSettings,
+        })
         .from(project)
         .where(eq(project.id, membership.projectId))
         .limit(1);
@@ -878,7 +882,8 @@ export class InterventionsService {
         metadata: createInterventionDto.metadata || null,
         image: createInterventionDto.image || null,
         totalTreeCount: treeCount,
-        ...(projectData?.approvalBoardEnabled && {
+        source: 'web',
+        ...(interventionRequiresApproval(projectData, 'web') && {
           reviewStatus: 'pending',
           submittedAt: now,
         }),
@@ -1054,6 +1059,7 @@ export class InterventionsService {
         image: null,
         description: dto.description || null,
         totalTreeCount,
+        source: 'web',
       };
 
       const result = await this.drizzleService.db
@@ -1205,6 +1211,7 @@ export class InterventionsService {
             image: null,
             description: dto.description || null,
             totalTreeCount: 1,
+            source: 'web',
           };
 
           const inserted = await tx.insert(intervention).values(interventionData).returning();
@@ -1754,13 +1761,17 @@ export class InterventionsService {
         projectSiteId = siteData[0].id;
       }
 
-      // Check if project has approval board enabled
+      // Check if project requires approval for bulk-uploaded interventions
       const [projectData] = await this.drizzleService.db
-        .select({ approvalBoardEnabled: project.approvalBoardEnabled })
+        .select({
+          approvalBoardEnabled: project.approvalBoardEnabled,
+          approvalSettings: project.approvalSettings,
+        })
         .from(project)
         .where(eq(project.id, membership.projectId))
         .limit(1);
       const now = new Date();
+      const bulkRequiresApproval = interventionRequiresApproval(projectData, 'bulk');
 
       const transformedInterventions: any[] = [];
       const interventionSpeciesData: any[] = [];
@@ -1801,7 +1812,8 @@ export class InterventionsService {
           metadata: el.metadata || null,
           totalTreeCount: treeCount,
           totalSampleTreeCount: 0,
-          ...(projectData?.approvalBoardEnabled && {
+          source: 'bulk',
+          ...(bulkRequiresApproval && {
             reviewStatus: 'pending',
             submittedAt: now,
           }),
@@ -2850,6 +2862,8 @@ async interventionEdit(
             and(
               eq(intervention.projectId, projectId),
               isNull(intervention.deletedAt),
+              // Only show approved (or never-gated) interventions on the map
+              publishedInterventionFilter(),
               // Enhanced location validation
               sql`${intervention.location} IS NOT NULL`,
               sql`ST_IsValid(${intervention.location}) = true`,

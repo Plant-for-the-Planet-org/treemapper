@@ -1,7 +1,7 @@
 // src/projects/projects.service.ts
 import { Injectable, NotFoundException, ForbiddenException, ConflictException, BadRequestException, UnauthorizedException, InternalServerErrorException, HttpException } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
-import { project, projectMember, user, workspace, workspaceMember, projectInvites, bulkInvite, image } from '../database/schema';
+import { project, projectMember, user, workspace, workspaceMember, projectInvites, bulkInvite, image, DEFAULT_PROJECT_APPROVAL_SETTINGS, ProjectApprovalSettings } from '../database/schema';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { ProjectMembership, ServiceResponse, UpdateProjectDto } from './dto/update-project.dto';
 import { AddProjectMemberDto } from './dto/add-project-member.dto';
@@ -466,6 +466,26 @@ export class ProjectsService {
     }
   }
 
+  /**
+   * Whether a project belongs to the Plant-for-the-Planet platform workspace.
+   * Platform projects have stricter approval rules: only a superadmin may
+   * approve interventions/sites or grant approval permissions.
+   */
+  async isPlatformProject(projectId: number): Promise<boolean> {
+    try {
+      const [row] = await this.drizzleService.db
+        .select({ slug: workspace.slug, type: workspace.type })
+        .from(project)
+        .innerJoin(workspace, eq(project.workspaceId, workspace.id))
+        .where(eq(project.id, projectId))
+        .limit(1);
+      if (!row) return false;
+      return row.slug === 'platform-projects' || row.type === 'platform';
+    } catch {
+      return false;
+    }
+  }
+
   async createProject(createProjectDto: CreateProjectDto, userData: User): Promise<any> {
     try {
       if (!userData.primaryWorkspaceUid) {
@@ -485,6 +505,7 @@ export class ProjectsService {
 
       const projectStatus = workspaceSettings?.requireApprovalForNewProjects ? 'in_review' : 'active';
       const approvalBoardEnabled = workspaceSettings?.approvalBoardEnabled ?? false;
+      const approvalSettings = workspaceSettings?.approvalSettings ?? DEFAULT_PROJECT_APPROVAL_SETTINGS;
 
       let locationValue: any = null;
       if (createProjectDto.location) {
@@ -519,6 +540,7 @@ export class ProjectsService {
             originalGeometry: createProjectDto.location,
             status: projectStatus,
             approvalBoardEnabled: approvalBoardEnabled,
+            approvalSettings: approvalSettings,
             isPersonal: false,
           })
           .returning();
@@ -1440,6 +1462,25 @@ export class ProjectsService {
           code: 'update_extra_permissions_denied',
         };
       }
+      // On platform projects, only a superadmin decides who can approve, so any
+      // change to a member's extra permissions there is restricted to superadmins.
+      const isPlatform = await this.isPlatformProject(myMembership.projectId);
+      if (isPlatform) {
+        const [caller] = await this.drizzleService.db
+          .select({ type: user.type })
+          .from(user)
+          .where(eq(user.id, myMembership.userId))
+          .limit(1);
+        if (caller?.type !== 'superadmin') {
+          return {
+            message: 'On platform projects, only a super admin can change approval permissions',
+            statusCode: 403,
+            error: 'forbidden',
+            data: null,
+            code: 'platform_extra_permissions_superadmin_only',
+          };
+        }
+      }
       const [targetUser] = await this.drizzleService.db
         .select({ id: user.id })
         .from(user)
@@ -1918,6 +1959,7 @@ export class ProjectsService {
           updatedAt: project.updatedAt,
           location: project.originalGeometry,
           approvalBoardEnabled: project.approvalBoardEnabled,
+          approvalSettings: project.approvalSettings,
         })
         .from(project)
         .where(eq(project.id, projectId));
@@ -2054,6 +2096,7 @@ export class ProjectsService {
       isPersonal: (value: any) => this.cleanBooleanValue(value),
       isPrimary: (value: any) => this.cleanBooleanValue(value),
       approvalBoardEnabled: (value: any) => this.cleanBooleanValue(value),
+      approvalSettings: (value: any) => this.cleanApprovalSettingsValue(value),
       apiEnabled: (value: any) => this.cleanBooleanValue(value),
 
       // JSON fields
@@ -2078,6 +2121,28 @@ export class ProjectsService {
     updateData.updatedAt = new Date();
 
     return updateData;
+  }
+
+  /**
+   * Normalize approval settings into a complete, valid object. Missing fields
+   * fall back to the defaults so a partial payload never corrupts the stored
+   * shape.
+   */
+  private cleanApprovalSettingsValue(value: any): ProjectApprovalSettings | null {
+    if (!value || typeof value !== 'object') return null;
+    const sources = (value.sources && typeof value.sources === 'object') ? value.sources : {};
+    const def = DEFAULT_PROJECT_APPROVAL_SETTINGS;
+    return {
+      sources: {
+        web: typeof sources.web === 'boolean' ? sources.web : def.sources.web,
+        bulk: typeof sources.bulk === 'boolean' ? sources.bulk : def.sources.bulk,
+        mobile: typeof sources.mobile === 'boolean' ? sources.mobile : def.sources.mobile,
+      },
+      siteApprovalRequired:
+        typeof value.siteApprovalRequired === 'boolean'
+          ? value.siteApprovalRequired
+          : def.siteApprovalRequired,
+    };
   }
 
   /**

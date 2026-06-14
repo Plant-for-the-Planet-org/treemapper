@@ -8,6 +8,7 @@ import { and, eq, inArray, sql } from 'drizzle-orm';
 import { getType } from '@turf/invariant';
 import { DrizzleService } from '../database/drizzle.service';
 import { AuditService } from '../audit/audit.service';
+import { interventionRequiresApproval } from '../approval-board/approval.util';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
 import { generateUid } from 'src/util/uidGenerator';
 import { generateParentHID } from 'src/util/hidGenerator';
@@ -103,8 +104,13 @@ export class MonitoringPlotsService {
       const speciesByKey = await this.resolvePlotSpecies(plants);
 
       // Approval board gating, mirroring the intervention upload flow.
+      // Plots are registered from the field (mobile), so they follow the
+      // 'mobile' source toggle.
       const [projectData] = await this.drizzleService.db
-        .select({ approvalBoardEnabled: project.approvalBoardEnabled })
+        .select({
+          approvalBoardEnabled: project.approvalBoardEnabled,
+          approvalSettings: project.approvalSettings,
+        })
         .from(project)
         .where(eq(project.id, membership.projectId))
         .limit(1);
@@ -142,7 +148,8 @@ export class MonitoringPlotsService {
         metadata: dto.metadata || null,
         totalTreeCount: plants.length,
         totalSampleTreeCount: 0,
-        ...(projectData?.approvalBoardEnabled && {
+        source: 'mobile',
+        ...(interventionRequiresApproval(projectData, 'mobile') && {
           reviewStatus: 'pending',
           submittedAt: now,
         }),

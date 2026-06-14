@@ -28,11 +28,47 @@ class UpdateNotificationSettingsDto {
   onProfileActivity?: boolean;
 }
 
+class UpdateApprovalSourcesDto {
+  @ApiPropertyOptional({ description: 'Require approval for web-created interventions' })
+  @IsOptional()
+  @IsBoolean()
+  web?: boolean;
+
+  @ApiPropertyOptional({ description: 'Require approval for bulk-uploaded interventions' })
+  @IsOptional()
+  @IsBoolean()
+  bulk?: boolean;
+
+  @ApiPropertyOptional({ description: 'Require approval for mobile-created interventions' })
+  @IsOptional()
+  @IsBoolean()
+  mobile?: boolean;
+}
+
+class UpdateApprovalSettingsDto {
+  @ApiPropertyOptional({ type: UpdateApprovalSourcesDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UpdateApprovalSourcesDto)
+  sources?: UpdateApprovalSourcesDto;
+
+  @ApiPropertyOptional({ description: 'Require approval for newly created sites' })
+  @IsOptional()
+  @IsBoolean()
+  siteApprovalRequired?: boolean;
+}
+
 export class UpdateWorkspaceSettingsDto {
   @ApiPropertyOptional({ description: 'Auto-enable approval board on all new projects created in this workspace' })
   @IsOptional()
   @IsBoolean()
   approvalBoardEnabled?: boolean;
+
+  @ApiPropertyOptional({ type: UpdateApprovalSettingsDto, description: 'Default approval settings new projects inherit' })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UpdateApprovalSettingsDto)
+  approvalSettings?: UpdateApprovalSettingsDto;
 
   @ApiPropertyOptional({ description: 'Default visibility for new projects', enum: ['public', 'private'] })
   @IsOptional()

@@ -13,6 +13,7 @@ import {
 } from '../database/schema/index';
 import { eq, and, or, desc, asc, sql, isNull, inArray, ilike, isNotNull } from 'drizzle-orm';
 import { generateUid } from '../util/uidGenerator';
+import { CacheService } from '../cache/cache.service';
 import {
   ReviewQueueQueryDto,
   MakeDecisionDto,
@@ -36,7 +37,25 @@ export class ApprovalBoardService {
   constructor(
     private readonly drizzleService: DrizzleService,
     private readonly authzService: AuthzService,
+    private readonly cacheService: CacheService,
   ) {}
+
+  // Drop the public/external interventions cache so a newly approved (or
+  // rejected) intervention is reflected immediately on the external API.
+  private async invalidateExternalInterventions(projectId: number): Promise<void> {
+    try {
+      const [proj] = await this.drizzleService.db
+        .select({ uid: project.uid })
+        .from(project)
+        .where(eq(project.id, projectId))
+        .limit(1);
+      if (proj?.uid) {
+        await this.cacheService.delete(`external:interventions:${proj.uid}`);
+      }
+    } catch {
+      // Cache invalidation is best-effort; the entry expires on its own.
+    }
+  }
 
   // ================== Review Queue (Admin) ==================
 
@@ -199,7 +218,8 @@ export class ApprovalBoardService {
     adminId: number,
     dto: MakeDecisionDto,
   ): Promise<InterventionReviewSummary> {
-    return this.drizzleService.db.transaction(async (tx) => {
+    const decisionProjectId = { value: 0 };
+    const result = await this.drizzleService.db.transaction(async (tx) => {
       const [inv] = await tx
         .select()
         .from(intervention)
@@ -213,6 +233,7 @@ export class ApprovalBoardService {
           `Cannot make decision: intervention is in '${inv.reviewStatus}' state (must be 'in_review')`,
         );
       }
+      decisionProjectId.value = inv.projectId;
 
       const now = new Date();
 
@@ -255,6 +276,11 @@ export class ApprovalBoardService {
 
       return this.getInterventionReviewStatus(interventionUid, tx);
     });
+
+    if (decisionProjectId.value) {
+      await this.invalidateExternalInterventions(decisionProjectId.value);
+    }
+    return result;
   }
 
   // ================== Comments ==================

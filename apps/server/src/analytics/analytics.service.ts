@@ -21,6 +21,7 @@ import {
   InterventionExportResponse,
 } from './dto/analytics.dto';
 import { intervention, projectMember, project, tree, user, site, interventionSpecies, scientificSpecies, projectSpecies } from '../database/schema';
+import { publishedInterventionFilter, publishedSiteFilter } from '../approval-board/approval.util';
 import { console } from 'inspector';
 
 
@@ -411,6 +412,7 @@ export class AnalyticsService {
             eq(intervention.projectId, projectId),
             gte(intervention.interventionStartDate, twelveMonthsAgo),
             isNull(intervention.deletedAt),
+            publishedInterventionFilter(),
           ))
           .groupBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`)
           .orderBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`),
@@ -426,6 +428,7 @@ export class AnalyticsService {
             eq(intervention.projectId, projectId),
             gte(intervention.interventionStartDate, twelveMonthsAgo),
             isNull(intervention.deletedAt),
+            publishedInterventionFilter(),
           ))
           .groupBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`)
           .orderBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`),
@@ -440,6 +443,7 @@ export class AnalyticsService {
             eq(intervention.projectId, projectId),
             gte(intervention.interventionStartDate, twelveMonthsAgo),
             isNull(intervention.deletedAt),
+            publishedInterventionFilter(),
           ))
           .groupBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`)
           .orderBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`),
@@ -461,6 +465,7 @@ export class AnalyticsService {
             eq(site.projectId, projectId),
             gte(site.createdAt, twelveMonthsAgo),
             isNull(site.deletedAt),
+            publishedSiteFilter(),
           ))
           .groupBy(sql`DATE_TRUNC('month', ${site.createdAt})`)
           .orderBy(sql`DATE_TRUNC('month', ${site.createdAt})`),
@@ -484,6 +489,7 @@ export class AnalyticsService {
             isNull(intervention.siteId),
             gte(intervention.interventionStartDate, twelveMonthsAgo),
             isNull(intervention.deletedAt),
+            publishedInterventionFilter(),
           ))
           .groupBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`)
           .orderBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`),
@@ -539,7 +545,8 @@ export class AnalyticsService {
           and(
             eq(intervention.projectId, projectId),
             lte(intervention.interventionStartDate, endDate),
-            isNull(intervention.deletedAt)
+            isNull(intervention.deletedAt),
+            publishedInterventionFilter()
           )
         ),
 
@@ -559,7 +566,8 @@ export class AnalyticsService {
           and(
             eq(site.projectId, projectId),
             lte(site.createdAt, endDate),
-            isNull(site.deletedAt)
+            isNull(site.deletedAt),
+            publishedSiteFilter()
           )
         ),
 
@@ -581,7 +589,8 @@ export class AnalyticsService {
             eq(intervention.type, 'multi-tree-registration'),
             isNull(intervention.siteId),
             lte(intervention.interventionStartDate, endDate),
-            isNull(intervention.deletedAt)
+            isNull(intervention.deletedAt),
+            publishedInterventionFilter()
           )
         ),
     ]);
@@ -604,7 +613,8 @@ export class AnalyticsService {
         and(
           eq(intervention.projectId, projectId),
           lte(intervention.interventionStartDate, endDate),
-          isNull(intervention.deletedAt)
+          isNull(intervention.deletedAt),
+          publishedInterventionFilter()
         )
       );
 
@@ -620,7 +630,8 @@ export class AnalyticsService {
           eq(intervention.projectId, projectId),
           gte(intervention.interventionStartDate, startOfMonth),
           lte(intervention.interventionStartDate, endDate),
-          isNull(intervention.deletedAt)
+          isNull(intervention.deletedAt),
+          publishedInterventionFilter()
         )
       );
 
