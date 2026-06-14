@@ -49,6 +49,8 @@ export const getUrlMobileApi = {
   getNotifications: `${mobileBaseUrl}/mobile/notifications`,
   getUnreadNotificationCount: `${mobileBaseUrl}/mobile/notifications/unread-count`,
   getSingleIntervention: `${mobileBaseUrl}/mobile/intervention`,
+  // Project-scoped forms built on the web app. Same /projects API as sites.
+  getProjectForms: `${mobileBaseUrl}/projects`,
 };
 
 

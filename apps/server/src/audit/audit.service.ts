@@ -45,7 +45,8 @@ export class AuditService {
     'bulk_invite': 'bulk_invite',
     'image': 'image',
     'notifications': 'notification',
-    'migration': 'migration'
+    'migration': 'migration',
+    'form': 'form'
   };
 
   constructor(private readonly drizzleService: DrizzleService) {}

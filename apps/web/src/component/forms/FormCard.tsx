@@ -3,7 +3,9 @@
 import React, { useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Form } from '@/forms/types'
-import { deleteFormById } from '@/forms/storage'
+import { deleteForm } from '@/forms/storage'
+import { useToken } from '@/context/useTokenContext'
+import { toast } from 'react-toastify'
 import { FileText, MoreVertical, Pencil, Trash2, Globe, FileEdit } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -25,15 +27,24 @@ export default function FormCard({ form, onDeleted }: FormCardProps) {
   const router = useRouter()
   const params = useParams()
   const projectUid = params.projectUid as string
+  const { accessToken } = useToken()
   const [showMenu, setShowMenu] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const totalFields = form.sections.reduce((acc, s) => acc + s.fields.length, 0)
 
-  const handleDelete = () => {
-    deleteFormById(form.id)
-    setShowDeleteDialog(false)
-    onDeleted()
+  const handleDelete = async () => {
+    setDeleting(true)
+    try {
+      await deleteForm(accessToken, projectUid, form.id)
+      setShowDeleteDialog(false)
+      onDeleted()
+    } catch {
+      toast.error('Could not delete the form. Please try again.')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -113,12 +124,14 @@ export default function FormCard({ form, onDeleted }: FormCardProps) {
           <DialogHeader>
             <DialogTitle>Delete form?</DialogTitle>
             <DialogDescription>
-              "{form.name}" will be permanently deleted. This action cannot be undone.
+              &quot;{form.name}&quot; will be permanently deleted. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={deleting}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+              {deleting ? 'Deleting...' : 'Delete'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

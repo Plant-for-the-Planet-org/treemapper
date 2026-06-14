@@ -23,7 +23,7 @@ import bbox from '@turf/bbox'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useObject, useRealm } from '@realm/react'
+import { useObject, useQuery, useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import InterventionDeleteContainer from 'src/components/previewIntervention/InterventionDeleteContainer'
 import ExportGeoJSONButton from 'src/components/intervention/ExportGeoJSON'
@@ -36,9 +36,14 @@ import i18next from 'i18next'
 import { useToast } from 'react-native-toast-notifications'
 import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAdditionalData'
 import InterventionMetaData from 'src/components/previewIntervention/InterventionMetaData'
+import InterventionFormsRequired from 'src/components/previewIntervention/InterventionFormsRequired'
+import { ProjectFormData } from 'src/types/interface/projectForm.interface'
+import { formMatchesIntervention } from 'src/utils/helpers/formHelper/formConditions'
+import { getConfirmedFormIds } from 'src/utils/helpers/formHelper/buildFormMetaData'
 import DeleteModal from 'src/components/common/DeleteModal'
 import NetInfo from '@react-native-community/netinfo'
-import { getSingleIntervention } from 'src/api/api.fetch'
+import { getSingleIntervention, getProjectForms } from 'src/api/api.fetch'
+import useFormsData from 'src/hooks/realm/useFormsData'
 import { convertInventoryToIntervention } from 'src/utils/helpers/interventionHelper/legacyInventoryIntervention'
 import { convertDateToTimestamp } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 
@@ -62,6 +67,47 @@ const InterventionPreviewView = () => {
   )
   const { saveIntervention, updateInterventionMetaData, resetIntervention, addNewIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
+
+  // Forms targeted at this intervention (by site + intervention type). Cached
+  // forms are reactive, so confirming a form re-renders and unblocks Save.
+  const projectForms = useQuery<ProjectFormData>(
+    RealmSchema.ProjectForm,
+    (collection) => collection.filtered('project_id == $0', InterventionData?.project_id || ''),
+    [InterventionData?.project_id],
+  )
+  const matchingForms = [...projectForms].filter((form) =>
+    formMatchesIntervention(
+      {
+        site_assignment: form.site_assignment,
+        site_ids: [...form.site_ids],
+        intervention_assignment: form.intervention_assignment,
+        intervention_types: [...form.intervention_types],
+      },
+      InterventionData?.site_id || '',
+      InterventionData?.intervention_type || '',
+    ),
+  )
+  const confirmedFormIds = getConfirmedFormIds(InterventionData?.meta_data || '{}')
+  const { upsertProjectForms } = useFormsData()
+
+  // Refresh cached forms for this project when online, so a just-registered
+  // intervention sees its required forms even if the Forms screen was never
+  // opened. Offline simply keeps the cached forms (and the gate uses those).
+  const refreshProjectForms = async () => {
+    const projectId = InterventionData?.project_id
+    if (!projectId) return
+    const netInfo = await NetInfo.fetch()
+    if (!netInfo.isConnected) return
+    try {
+      const { response, success } = await getProjectForms(projectId)
+      const data = Array.isArray(response) ? response : response?.data
+      if (success && Array.isArray(data)) {
+        await upsertProjectForms(projectId, data)
+      }
+    } catch (error) {
+      // keep cached forms on failure
+    }
+  }
   const scrollViewRef = useRef(null); // Reference for the ScrollView
   const childRefs = useRef([]);
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -135,6 +181,7 @@ const InterventionPreviewView = () => {
     checkIsTree()
     showInitialToast()
     refreshInterventionData()
+    refreshProjectForms()
     if (route.params.id === 'review') {
       setupMetaData()
     }
@@ -238,6 +285,12 @@ const InterventionPreviewView = () => {
   const navigateToNext = async () => {
     if (!InterventionData.project_id && UserType) {
       toast.show("Please assign project")
+      return
+    }
+    // Every form targeting this intervention must be completed before save.
+    const pendingForm = matchingForms.find((form) => !confirmedFormIds.has(form.id))
+    if (pendingForm) {
+      toast.show("Please complete the required form(s)")
       return
     }
     await saveIntervention(InterventionData.intervention_id)
@@ -344,6 +397,12 @@ const InterventionPreviewView = () => {
           />
         )}
         {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} />}
+        <InterventionFormsRequired
+          forms={matchingForms}
+          interventionId={InterventionData.intervention_id}
+          confirmedIds={confirmedFormIds}
+          canEdit={InterventionData.status !== 'SYNCED'}
+        />
         <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id} canEdit={InterventionData.status === 'INITIALIZED'} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
         {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>{i18next.t("label.collected_using")}{InterventionData.is_legacy ? '1.0.8' : Application.nativeApplicationVersion}</Text>}

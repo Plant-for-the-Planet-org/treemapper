@@ -22,6 +22,7 @@ import { ApprovalBoardModule } from './approval-board/approval-board.module';
 import { ExternalModule } from './external/external.module';
 import { PublicApiModule } from './public-api/public-api.module';
 import { MonitoringPlotsModule } from './monitoring-plots/monitoring-plots.module';
+import { FormsModule } from './forms/forms.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { MonitoringPlotsModule } from './monitoring-plots/monitoring-plots.modul
     ExternalModule,
     PublicApiModule,
     MonitoringPlotsModule,
+    FormsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

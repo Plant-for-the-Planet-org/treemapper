@@ -51,6 +51,13 @@ const SideBarList = (props: Props) => {
       key: 'additional_data'
     },
     {
+      label: t('label.forms'),
+      screen: 'Forms',
+      icon: <AdditionalDataIcon width={SCALE_24} height={SCALE_24} />,
+      visible: true,
+      key: 'forms'
+    },
+    {
       label: t('label.offline_maps'),
       screen: 'OfflineMap',
       icon: <OfflineMapIcon width={SCALE_24} height={SCALE_24} />,

@@ -60,7 +60,56 @@ interface Intervention {
   site?: { name: string; status?: string };
   treeCount: number;
   species?: Species[];
+  // Intervention metadata blob (jsonb from the API). Holds `public` and
+  // `private` sections; only `public` is surfaced on the card.
+  metadata?: Record<string, unknown>;
 }
+
+interface PublicMetaField {
+  label: string;
+  value: string;
+}
+
+const isJsonObject = (str: string): boolean => {
+  try {
+    const parsed = JSON.parse(str);
+    return typeof parsed === 'object' && parsed !== null;
+  } catch {
+    return false;
+  }
+};
+
+// Flatten the intervention's public metadata into a label/value list. Mirrors
+// the parsing in the mobile InterventionMetaData component so the same answer
+// shapes render consistently: plain strings, { value, label } entries, and
+// JSON-encoded values that wrap their answer in `{ value }`. Private metadata
+// is intentionally ignored here.
+const getPublicMetadata = (metadata?: Record<string, unknown>): PublicMetaField[] => {
+  const out: PublicMetaField[] = [];
+  const pub = metadata?.public;
+  if (!pub || typeof pub !== 'object' || Array.isArray(pub)) return out;
+
+  Object.entries(pub as Record<string, unknown>).forEach(([key, value]) => {
+    if (key === 'isEntireSite') return;
+
+    if (typeof value === 'string') {
+      if (value.trim()) out.push({ label: key, value });
+      return;
+    }
+
+    if (value && typeof value === 'object') {
+      const entry = value as { value?: unknown; label?: string };
+      if (entry.value === undefined || entry.value === null || !entry.label) return;
+      const rawValue = String(entry.value);
+      const resolved = isJsonObject(rawValue)
+        ? String((JSON.parse(rawValue) as { value?: unknown }).value ?? '')
+        : rawValue;
+      if (resolved.trim()) out.push({ label: entry.label, value: resolved });
+    }
+  });
+
+  return out;
+};
 
 interface InterventionCardProps {
   intervention: Intervention;
@@ -99,6 +148,9 @@ export const InterventionCard = ({
   const title = isTreeRegistration
     ? `${intervention.treeCount.toLocaleString('en-US')} ${intervention.treeCount === 1 ? 'Tree' : 'Trees'}`
     : intervention.type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+  // Public form answers / metadata to surface on the card (all of them).
+  const publicMeta = getPublicMetadata(intervention.metadata);
 
   return (
     <Card
@@ -197,6 +249,18 @@ export const InterventionCard = ({
                   </span>
                 )}
               </div>
+
+              {/* Public metadata: form answers and other public fields */}
+              {publicMeta.length > 0 && (
+                <div className="flex flex-col gap-0.5 pt-1 mt-0.5 border-t border-border/40">
+                  {publicMeta.map((field) => (
+                    <div key={field.label} className="flex items-start gap-1.5 min-w-0">
+                      <span className="font-medium text-foreground/70 truncate max-w-[45%]">{field.label}:</span>
+                      <span className="truncate">{field.value}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

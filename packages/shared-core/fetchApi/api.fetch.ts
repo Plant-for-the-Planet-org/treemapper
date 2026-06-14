@@ -1166,3 +1166,45 @@ export const deleteMonitoringPlotGroup = async (token: string, projectUid: strin
   const result = await fetchDeleteCall(uri, token)
   return result
 }
+
+
+// ---------------------------------------------------------------------------
+// Forms (custom data-collection forms, project-scoped)
+// ---------------------------------------------------------------------------
+
+// List a project's forms. Optional status filter ('draft' | 'published').
+export const getProjectForms = async (token: string, projectUid: string, status?: 'draft' | 'published') => {
+  const uri = status
+    ? `${getUrlApi.projectForms}/${projectUid}/forms?status=${status}`
+    : `${getUrlApi.projectForms}/${projectUid}/forms`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Full detail of one form (sections + fields tree).
+export const getProjectForm = async (token: string, projectUid: string, formUid: string) => {
+  const uri = `${getUrlApi.projectForms}/${projectUid}/forms/${formUid}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Create a form. Returns the created form with its server-assigned uid.
+export const createProjectForm = async (token: string, projectUid: string, params: any) => {
+  const uri = `${postUrlApi.projectForms}/${projectUid}/forms`
+  const result = await fetchPostCall(uri, params, token)
+  return result
+}
+
+// Update a form (name, description, status, targeting, schema).
+export const updateProjectForm = async (token: string, projectUid: string, formUid: string, params: any) => {
+  const uri = `${patchUrlApi.projectForms}/${projectUid}/forms/${formUid}`
+  const result = await fetchPatchCall(uri, params, token)
+  return result
+}
+
+// Soft-delete a form.
+export const deleteProjectForm = async (token: string, projectUid: string, formUid: string) => {
+  const uri = `${deleteUrlApi.projectForms}/${projectUid}/forms/${formUid}`
+  const result = await fetchDeleteCall(uri, token)
+  return result
+}

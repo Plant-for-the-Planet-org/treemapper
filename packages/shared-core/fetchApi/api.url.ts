@@ -61,6 +61,8 @@ export const postUrlApi = {
   addAdminSiteComment: `${baseUrl}/approval-board/projects`,
   addFieldWorkerSiteComment: `${baseUrl}/approval-board/sites`,
   generateProjectApiKey: `${baseUrl}/projects`,
+  // Forms (project-scoped)
+  projectForms: `${baseUrl}/projects`,
 } as const;
 
 
@@ -120,6 +122,8 @@ export const getUrlApi = {
   projectApiKey: `${baseUrl}/projects`,
   // Monitoring plots (shared base for all verbs)
   monitoringPlots: `${baseUrl}/monitoring-plots`,
+  // Forms (project-scoped; shared base for all verbs)
+  projectForms: `${baseUrl}/projects`,
 } as const;
 
 export const patchUrlApi = {
@@ -134,6 +138,8 @@ export const patchUrlApi = {
   deleteLink: `${baseUrl}/projects`,
   updateProjectSettings: `${baseUrl}/projects`,
   userDetails: `${baseUrl}/users/me`,
+  // Forms (project-scoped)
+  projectForms: `${baseUrl}/projects`,
 
 } as const;
 
@@ -144,6 +150,8 @@ export const deleteUrlApi = {
   deleteProject: `${baseUrl}/projects`,
   deleteProjectImage: `${baseUrl}/projects`,
   revokeProjectApiKey: `${baseUrl}/projects`,
+  // Forms (project-scoped)
+  projectForms: `${baseUrl}/projects`,
 } as const;
 
 export const putUrlApi = {

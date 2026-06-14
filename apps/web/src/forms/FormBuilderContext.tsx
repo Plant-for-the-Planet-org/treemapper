@@ -1,8 +1,8 @@
 'use client'
 
-import React, { createContext, useContext, useReducer, useCallback } from 'react'
+import React, { createContext, useContext, useReducer } from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import { Form, FormSection, FormField, FieldType, ConditionalRule, FieldOption } from './types'
+import { Form, FormSection, FormField, FieldType, FieldConfig, ConditionalRule, FieldOption, BaseField, isChoiceField } from './types'
 import { createDefaultField, createDefaultSection } from './defaults'
 import { arrayMove } from '@dnd-kit/sortable'
 
@@ -17,13 +17,14 @@ interface BuilderState {
 
 type Action =
   | { type: 'SET_FORM'; form: Form }
-  | { type: 'UPDATE_META'; payload: Partial<Pick<Form, 'name' | 'description' | 'status'>> }
+  | { type: 'UPDATE_META'; payload: Partial<Pick<Form, 'name' | 'description' | 'status' | 'siteAssignment' | 'siteIds' | 'interventionAssignment' | 'interventionTypes'>> }
   | { type: 'ADD_SECTION' }
   | { type: 'UPDATE_SECTION'; sectionId: string; payload: Partial<Pick<FormSection, 'title' | 'description' | 'collapsed'>> }
   | { type: 'REMOVE_SECTION'; sectionId: string }
   | { type: 'REORDER_SECTIONS'; activeId: string; overId: string }
   | { type: 'ADD_FIELD'; sectionId: string; fieldType: FieldType; atIndex?: number }
-  | { type: 'UPDATE_FIELD'; sectionId: string; fieldId: string; payload: Partial<FormField> }
+  | { type: 'UPDATE_FIELD'; sectionId: string; fieldId: string; payload: Partial<BaseField> }
+  | { type: 'UPDATE_FIELD_CONFIG'; sectionId: string; fieldId: string; config: FieldConfig }
   | { type: 'REMOVE_FIELD'; sectionId: string; fieldId: string }
   | { type: 'REORDER_FIELDS'; sectionId: string; activeId: string; overId: string }
   | { type: 'MOVE_FIELD'; fromSectionId: string; toSectionId: string; fieldId: string; toIndex: number }
@@ -43,11 +44,25 @@ function findSectionIndex(sections: FormSection[], sectionId: string) {
   return sections.findIndex(s => s.id === sectionId)
 }
 
-function updateFieldInSection(section: FormSection, fieldId: string, payload: Partial<FormField>): FormSection {
+/** Replace one field inside a section by running it through `fn`. */
+function mapField(section: FormSection, fieldId: string, fn: (field: FormField) => FormField): FormSection {
   return {
     ...section,
-    fields: section.fields.map(f => f.id === fieldId ? { ...f, ...payload } : f),
+    fields: section.fields.map(f => (f.id === fieldId ? fn(f) : f)),
   }
+}
+
+/**
+ * Next stable option value (`option_N`). Derived from the highest existing
+ * `option_N` so deleting then adding never reuses a value, which keeps option
+ * values unique as submission keys. Labels stay free-form and decoupled.
+ */
+function nextOptionValue(options: FieldOption[]): { value: string; index: number } {
+  const max = options.reduce((m, o) => {
+    const match = /^option_(\d+)$/.exec(o.value)
+    return match ? Math.max(m, Number(match[1])) : m
+  }, 0)
+  return { value: `option_${max + 1}`, index: max + 1 }
 }
 
 function reducer(state: BuilderState, action: Action): BuilderState {
@@ -113,15 +128,35 @@ function reducer(state: BuilderState, action: Action): BuilderState {
       const sIdx = findSectionIndex(state.form.sections, action.sectionId)
       if (sIdx === -1) return state
       const sections = [...state.form.sections]
-      sections[sIdx] = updateFieldInSection(sections[sIdx], action.fieldId, action.payload)
+      sections[sIdx] = mapField(sections[sIdx], action.fieldId, f => ({ ...f, ...action.payload }))
+      return dirty({ ...state.form, sections })
+    }
+
+    case 'UPDATE_FIELD_CONFIG': {
+      const sIdx = findSectionIndex(state.form.sections, action.sectionId)
+      if (sIdx === -1) return state
+      const sections = [...state.form.sections]
+      // Config is validated against the field type at the dispatch site (the
+      // properties panel narrows on `field.type`), so a wholesale replace is safe.
+      sections[sIdx] = mapField(sections[sIdx], action.fieldId, f => ({ ...f, config: action.config } as FormField))
       return dirty({ ...state.form, sections })
     }
 
     case 'REMOVE_FIELD': {
       const sIdx = findSectionIndex(state.form.sections, action.sectionId)
       if (sIdx === -1) return state
-      const sections = [...state.form.sections]
-      sections[sIdx] = { ...sections[sIdx], fields: sections[sIdx].fields.filter(f => f.id !== action.fieldId) }
+      const sections = state.form.sections.map(s => {
+        // Drop the field from its section, and drop any condition (on any field)
+        // that referenced it so we never leave dangling targetFieldId pointers.
+        const fields = (s.id === action.sectionId
+          ? s.fields.filter(f => f.id !== action.fieldId)
+          : s.fields
+        ).map(f => {
+          const kept = f.conditions.filter(c => c.targetFieldId !== action.fieldId)
+          return kept.length === f.conditions.length ? f : { ...f, conditions: kept }
+        })
+        return { ...s, fields }
+      })
       const newSelected =
         state.selectedFieldId === action.fieldId
           ? { selectedFieldId: null, selectedSectionId: null }
@@ -160,15 +195,11 @@ function reducer(state: BuilderState, action: Action): BuilderState {
       const sIdx = findSectionIndex(state.form.sections, action.sectionId)
       if (sIdx === -1) return state
       const sections = [...state.form.sections]
-      const field = sections[sIdx].fields.find(f => f.id === action.fieldId)
-      if (!field) return state
-      const newOption: FieldOption = {
-        id: uuidv4(),
-        label: `Option ${field.options.length + 1}`,
-        value: `option_${field.options.length + 1}`,
-      }
-      sections[sIdx] = updateFieldInSection(sections[sIdx], action.fieldId, {
-        options: [...field.options, newOption],
+      sections[sIdx] = mapField(sections[sIdx], action.fieldId, f => {
+        if (!isChoiceField(f)) return f
+        const { value, index } = nextOptionValue(f.config.options)
+        const newOption: FieldOption = { id: uuidv4(), label: `Option ${index}`, value }
+        return { ...f, config: { options: [...f.config.options, newOption] } }
       })
       return dirty({ ...state.form, sections })
     }
@@ -177,12 +208,18 @@ function reducer(state: BuilderState, action: Action): BuilderState {
       const sIdx = findSectionIndex(state.form.sections, action.sectionId)
       if (sIdx === -1) return state
       const sections = [...state.form.sections]
-      const field = sections[sIdx].fields.find(f => f.id === action.fieldId)
-      if (!field) return state
-      sections[sIdx] = updateFieldInSection(sections[sIdx], action.fieldId, {
-        options: field.options.map(o =>
-          o.id === action.optionId ? { ...o, label: action.label, value: action.label.toLowerCase().replace(/\s+/g, '_') } : o
-        ),
+      // Only the label is editable; `value` is a stable submission key set at
+      // creation, so editing a label can never collide with another option.
+      sections[sIdx] = mapField(sections[sIdx], action.fieldId, f => {
+        if (!isChoiceField(f)) return f
+        return {
+          ...f,
+          config: {
+            options: f.config.options.map(o =>
+              o.id === action.optionId ? { ...o, label: action.label } : o
+            ),
+          },
+        }
       })
       return dirty({ ...state.form, sections })
     }
@@ -191,10 +228,9 @@ function reducer(state: BuilderState, action: Action): BuilderState {
       const sIdx = findSectionIndex(state.form.sections, action.sectionId)
       if (sIdx === -1) return state
       const sections = [...state.form.sections]
-      const field = sections[sIdx].fields.find(f => f.id === action.fieldId)
-      if (!field) return state
-      sections[sIdx] = updateFieldInSection(sections[sIdx], action.fieldId, {
-        options: field.options.filter(o => o.id !== action.optionId),
+      sections[sIdx] = mapField(sections[sIdx], action.fieldId, f => {
+        if (!isChoiceField(f)) return f
+        return { ...f, config: { options: f.config.options.filter(o => o.id !== action.optionId) } }
       })
       return dirty({ ...state.form, sections })
     }
@@ -203,8 +239,9 @@ function reducer(state: BuilderState, action: Action): BuilderState {
       const sIdx = findSectionIndex(state.form.sections, action.sectionId)
       if (sIdx === -1) return state
       const sections = [...state.form.sections]
-      sections[sIdx] = updateFieldInSection(sections[sIdx], action.fieldId, {
-        options: action.options,
+      sections[sIdx] = mapField(sections[sIdx], action.fieldId, f => {
+        if (!isChoiceField(f)) return f
+        return { ...f, config: { options: action.options } }
       })
       return dirty({ ...state.form, sections })
     }
@@ -213,8 +250,6 @@ function reducer(state: BuilderState, action: Action): BuilderState {
       const sIdx = findSectionIndex(state.form.sections, action.sectionId)
       if (sIdx === -1) return state
       const sections = [...state.form.sections]
-      const field = sections[sIdx].fields.find(f => f.id === action.fieldId)
-      if (!field) return state
       const newCondition: ConditionalRule = {
         id: uuidv4(),
         targetFieldId: '',
@@ -222,9 +257,10 @@ function reducer(state: BuilderState, action: Action): BuilderState {
         value: '',
         action: 'show',
       }
-      sections[sIdx] = updateFieldInSection(sections[sIdx], action.fieldId, {
-        conditions: [...field.conditions, newCondition],
-      })
+      sections[sIdx] = mapField(sections[sIdx], action.fieldId, f => ({
+        ...f,
+        conditions: [...f.conditions, newCondition],
+      }))
       return dirty({ ...state.form, sections })
     }
 
@@ -232,13 +268,12 @@ function reducer(state: BuilderState, action: Action): BuilderState {
       const sIdx = findSectionIndex(state.form.sections, action.sectionId)
       if (sIdx === -1) return state
       const sections = [...state.form.sections]
-      const field = sections[sIdx].fields.find(f => f.id === action.fieldId)
-      if (!field) return state
-      sections[sIdx] = updateFieldInSection(sections[sIdx], action.fieldId, {
-        conditions: field.conditions.map(c =>
+      sections[sIdx] = mapField(sections[sIdx], action.fieldId, f => ({
+        ...f,
+        conditions: f.conditions.map(c =>
           c.id === action.conditionId ? { ...c, ...action.payload } : c
         ),
-      })
+      }))
       return dirty({ ...state.form, sections })
     }
 
@@ -246,11 +281,10 @@ function reducer(state: BuilderState, action: Action): BuilderState {
       const sIdx = findSectionIndex(state.form.sections, action.sectionId)
       if (sIdx === -1) return state
       const sections = [...state.form.sections]
-      const field = sections[sIdx].fields.find(f => f.id === action.fieldId)
-      if (!field) return state
-      sections[sIdx] = updateFieldInSection(sections[sIdx], action.fieldId, {
-        conditions: field.conditions.filter(c => c.id !== action.conditionId),
-      })
+      sections[sIdx] = mapField(sections[sIdx], action.fieldId, f => ({
+        ...f,
+        conditions: f.conditions.filter(c => c.id !== action.conditionId),
+      }))
       return dirty({ ...state.form, sections })
     }
 

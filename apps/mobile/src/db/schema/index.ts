@@ -32,6 +32,8 @@ import { Species } from './species'
 import { RemeasurementDate } from './remeasurementDates'
 import { PlantLocationHistory } from './plantLocationHistory'
 import { ImageData } from './image'
+import { ProjectForm } from './projectForm'
+import { FormPrefill } from './formPrefill'
 
 export default [
   MonitoringPlot,
@@ -68,4 +70,6 @@ export default [
   PlantLocationHistory,
   RemeasurementDate,
   ImageData,
+  ProjectForm,
+  FormPrefill,
 ]

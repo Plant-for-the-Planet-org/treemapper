@@ -62,6 +62,14 @@ export type RootStackParamList = {
   PlotGallery: PlotGalleryView
   PlannedTreeEdit: PlannedTreeEditView
   PlannedTreeLocation: PlannedTreeLocationView
+  Forms: undefined
+  FormDetail: FormDetailView
+}
+
+type FormDetailView = {
+  formId: string
+  mode: 'prefill' | 'intervention'
+  interventionId?: string
 }
 
 type PlannedTreeEditView = {

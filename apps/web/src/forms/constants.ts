@@ -15,10 +15,44 @@ export const FIELD_TYPE_META: FieldTypeMeta[] = [
   { type: 'dropdown', label: 'Dropdown', description: 'Select one from a list', icon: 'ChevronDown', color: 'bg-green-50 text-green-600 border-green-200' },
   { type: 'checkbox', label: 'Checkbox', description: 'Multi-select from options', icon: 'CheckSquare', color: 'bg-teal-50 text-teal-600 border-teal-200' },
   { type: 'radio', label: 'Radio', description: 'Single choice from options', icon: 'CircleDot', color: 'bg-indigo-50 text-indigo-600 border-indigo-200' },
-  { type: 'signature', label: 'Signature', description: 'Handwritten signature pad', icon: 'PenLine', color: 'bg-pink-50 text-pink-600 border-pink-200' },
-  { type: 'slider', label: 'Slider', description: 'Numeric range selection', icon: 'SlidersHorizontal', color: 'bg-yellow-50 text-yellow-600 border-yellow-200' },
-  { type: 'rating', label: 'Rating', description: 'Star or icon-based rating', icon: 'Star', color: 'bg-amber-50 text-amber-600 border-amber-200' },
 ]
+
+// Intervention type values, mirroring the backend `interventionTypeEnum`. Used
+// by the form targeting dropdown. Labels are derived from the value so the list
+// stays in one place.
+export const INTERVENTION_TYPE_VALUES = [
+  'assisting-seed-rain',
+  'control-livestock',
+  'direct-seeding',
+  'enrichment-planting',
+  'fencing',
+  'fire-patrol',
+  'fire-suppression',
+  'firebreaks',
+  'generic-tree-registration',
+  'grass-suppression',
+  'liberating-regenerant',
+  'maintenance',
+  'marking-regenerant',
+  'multi-tree-registration',
+  'other-intervention',
+  'plot-plant-registration',
+  'removal-invasive-species',
+  'sample-tree-registration',
+  'single-tree-registration',
+  'soil-improvement',
+  'stop-tree-harvesting',
+] as const
+
+/** "removal-invasive-species" -> "Removal Invasive Species" */
+export function interventionTypeLabel(value: string): string {
+  return value.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+}
+
+export const INTERVENTION_TYPE_OPTIONS = INTERVENTION_TYPE_VALUES.map(value => ({
+  value,
+  label: interventionTypeLabel(value),
+}))
 
 export const CONDITION_OPERATORS = [
   { value: 'equals', label: 'equals' },
@@ -28,10 +62,4 @@ export const CONDITION_OPERATORS = [
   { value: 'less_than', label: 'is less than' },
   { value: 'is_empty', label: 'is empty' },
   { value: 'is_not_empty', label: 'is not empty' },
-]
-
-export const RATING_ICONS = [
-  { value: 'star', label: 'Stars' },
-  { value: 'heart', label: 'Hearts' },
-  { value: 'thumbs', label: 'Thumbs' },
 ]

@@ -4,15 +4,7 @@ import React from 'react'
 import { useDraggable } from '@dnd-kit/core'
 import { FIELD_TYPE_META, FieldTypeMeta } from '@/forms/constants'
 import { FieldType } from '@/forms/types'
-import {
-  Type, Hash, Calendar, ChevronDown, CheckSquare,
-  CircleDot, PenLine, SlidersHorizontal, Star
-} from 'lucide-react'
-
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  Type, Hash, Calendar, ChevronDown, CheckSquare,
-  CircleDot, PenLine, SlidersHorizontal, Star,
-}
+import { getIconByName } from '@/forms/icons'
 
 interface PaletteItemProps {
   meta: FieldTypeMeta
@@ -25,7 +17,7 @@ function PaletteItem({ meta, onAdd }: PaletteItemProps) {
     data: { type: 'palette', fieldType: meta.type },
   })
 
-  const Icon = ICON_MAP[meta.icon]
+  const Icon = getIconByName(meta.icon)
 
   return (
     <div

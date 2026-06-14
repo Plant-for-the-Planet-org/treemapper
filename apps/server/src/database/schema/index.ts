@@ -66,7 +66,8 @@ export const auditEntityEnum = pgEnum('audit_entity', [
   'bulk_invite',
   'image',
   'notification',
-  'migration'
+  'migration',
+  'form'
 ]);
 
 
@@ -95,6 +96,63 @@ export interface InterventionSpeciesEntry {
 
 
 
+// ---------------------------------------------------------------------------
+// Form builder schema (stored as a JSONB blob on the `form` table)
+//
+// The web form builder edits a whole form in memory and saves it atomically,
+// so the section/field tree lives in one `schema` jsonb column rather than in
+// normalized tables. These types mirror the frontend `Form` types 1:1
+// (apps/web/src/forms/types.ts) so the same shape round-trips through the API.
+// ---------------------------------------------------------------------------
+export type FormFieldType = 'text' | 'number' | 'date' | 'dropdown' | 'checkbox' | 'radio';
+
+export type FormConditionOperator =
+  | 'equals'
+  | 'not_equals'
+  | 'contains'
+  | 'greater_than'
+  | 'less_than'
+  | 'is_empty'
+  | 'is_not_empty';
+
+export interface FormFieldOption {
+  id: string;
+  label: string;
+  value: string;
+}
+
+export interface FormConditionalRule {
+  id: string;
+  targetFieldId: string;
+  operator: FormConditionOperator;
+  value: string;
+  action: 'show' | 'hide';
+}
+
+export interface FormFieldDefinition {
+  id: string;
+  type: FormFieldType;
+  label: string;
+  placeholder: string;
+  helpText: string;
+  required: boolean;
+  conditions: FormConditionalRule[];
+  // Type-specific settings (text/number/date config or { options } for choices).
+  config: Record<string, any>;
+}
+
+export interface FormSectionDefinition {
+  id: string;
+  title: string;
+  description: string;
+  collapsed: boolean;
+  fields: FormFieldDefinition[];
+}
+
+export interface FormSchema {
+  sections: FormSectionDefinition[];
+}
+
 export const userTypeEnum = pgEnum('user_type', ['individual', 'tpo', "organization", 'other', "school", "superadmin"]);
 export const workspaceTypeEnum = pgEnum('workspace_type', ['platform', "private", 'development', 'premium']);
 
@@ -120,6 +178,7 @@ export const PROJECT_PERMISSIONS = [
   'approve_site',
   'add_site',
   'request_species',
+  'manage_form',
 ] as const;
 export type ProjectPermission = (typeof PROJECT_PERMISSIONS)[number];
 export const projectStatusEnum = pgEnum('project_status', ['active', 'in_review', 'suspended', 'disabled']);
@@ -203,6 +262,14 @@ export const reviewCommentAuthorRoleEnum = pgEnum('review_comment_author_role', 
   'admin',
   'contributor',
 ]);
+
+export const formStatusEnum = pgEnum('form_status', ['draft', 'published']);
+// Which sites a form is shown for: every site, only interventions with no site,
+// or the specific sites listed in `form.siteIds`.
+export const formSiteAssignmentEnum = pgEnum('form_site_assignment', ['all', 'none', 'specific']);
+// Which intervention types trigger a form: every type, or the specific types
+// listed in `form.interventionTypes`.
+export const formInterventionAssignmentEnum = pgEnum('form_intervention_assignment', ['all', 'specific']);
 
 
 
@@ -1290,6 +1357,41 @@ export const reviewComment = pgTable('review_comment', {
   threadCommentsIdx: index('review_comment_thread_idx').on(table.threadId, table.createdAt),
 }));
 
+export const form = pgTable('form', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+  createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description'),
+  status: formStatusEnum('status').notNull().default('draft'),
+  // Targeting: the form is shown after planting an intervention when both the
+  // site rule and the intervention-type rule match.
+  // - siteAssignment 'all'      -> any site (and site-less interventions)
+  //   'none'     -> only interventions recorded without a site
+  //   'specific' -> only the site uids in `siteIds`
+  siteAssignment: formSiteAssignmentEnum('site_assignment').notNull().default('all'),
+  // Site uids targeted when siteAssignment = 'specific'. Stored as uids (the same
+  // way project_member.restrictedSites does) so no join table is needed.
+  siteIds: text('site_ids').array().default([]),
+  // - interventionAssignment 'all' -> any intervention type
+  //   'specific' -> only the types in `interventionTypes`
+  interventionAssignment: formInterventionAssignmentEnum('intervention_assignment').notNull().default('all'),
+  interventionTypes: interventionTypeEnum('intervention_types').array().default([]),
+  // Whole section/field tree, shaped like FormSchema above.
+  schema: jsonb('schema').$type<FormSchema>().notNull().default(sql`'{"sections":[]}'::jsonb`),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+}, (table) => ({
+  projectFormsIdx: index('form_project_idx')
+    .on(table.projectId, table.status)
+    .where(sql`deleted_at IS NULL`),
+  publishedRequiresTimestamp: check('form_published_requires_timestamp',
+    sql`status != 'published' OR published_at IS NOT NULL`),
+}));
+
 export const userRelations = relations(user, ({ many }) => ({
   projectMemberships: many(projectMember),
   createdProjects: many(project, { relationName: 'createdBy' }),
@@ -1319,6 +1421,7 @@ export const userRelations = relations(user, ({ many }) => ({
   rejectedSites: many(site, { relationName: 'siteRejectedBy' }),
   closedReviewThreads: many(reviewThread, { relationName: 'closedBy' }),
   reviewComments: many(reviewComment, { relationName: 'commentAuthor' }),
+  createdForms: many(form, { relationName: 'formCreatedBy' }),
 }));
 
 export const scientificSpeciesRelations = relations(scientificSpecies, ({ one, many }) => ({
@@ -1611,6 +1714,19 @@ export const projectRelations = relations(project, ({ one, many }) => ({
   projectSpecies: many(projectSpecies),
   speciesRequests: many(speciesRequest),
   apiKey: one(projectApiKey),
+  forms: many(form),
+}));
+
+export const formRelations = relations(form, ({ one }) => ({
+  project: one(project, {
+    fields: [form.projectId],
+    references: [project.id],
+  }),
+  createdBy: one(user, {
+    fields: [form.createdById],
+    references: [user.id],
+    relationName: 'formCreatedBy',
+  }),
 }));
 
 export const projectApiKeyRelations = relations(projectApiKey, ({ one }) => ({

@@ -206,7 +206,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         { icon: Grid2x2, label: 'Plots', id: 'monitoring-plots' },
         { icon: Upload, label: 'Bulk Upload', id: 'bulkupload' },
         ...(!isContributor ? [{ icon: CheckSquare, label: 'Approvals', id: 'approvals' }] : []),
-        // ...(!isContributor ? [{ icon: FileText, label: 'Forms', id: 'forms' }] : []),
+        ...(!isContributor ? [{ icon: FileText, label: 'Forms', id: 'forms' }] : []),
       ],
     },
     {
