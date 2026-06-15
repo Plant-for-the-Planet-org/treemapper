@@ -50,7 +50,7 @@ export class AnalyticsController {
   }
 
   @Get('project-kpis/:id')
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner', 'admin', 'contributor')
   @UseGuards(ProjectPermissionsGuard)
   async getProjectKPIs(@Membership() membership: any): Promise<ProjectKPIsResponse> {
     return this.analyticsService.getProjectKPIs(membership.projectId);

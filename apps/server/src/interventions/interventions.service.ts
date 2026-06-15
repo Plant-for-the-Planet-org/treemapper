@@ -2825,6 +2825,7 @@ async interventionEdit(
             hid: intervention.hid,
             type: intervention.type,
             status: intervention.status,
+            captureStatus: intervention.captureStatus,
             registrationDate: intervention.registrationDate,
             interventionStartDate: intervention.interventionStartDate,
             interventionEndDate: intervention.interventionEndDate,
@@ -2850,6 +2851,14 @@ async interventionEdit(
             and(
               eq(intervention.projectId, projectId),
               isNull(intervention.deletedAt),
+              // Overview map shows only public, approved interventions.
+              // "Approved" includes interventions with no review (null) — these
+              // belong to projects without the approval board enabled.
+              eq(intervention.isPrivate, false),
+              or(
+                isNull(intervention.reviewStatus),
+                eq(intervention.reviewStatus, 'approved'),
+              ),
               // Enhanced location validation
               sql`${intervention.location} IS NOT NULL`,
               sql`ST_IsValid(${intervention.location}) = true`,
