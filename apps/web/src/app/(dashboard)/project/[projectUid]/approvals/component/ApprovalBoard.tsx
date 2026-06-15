@@ -15,22 +15,24 @@ import {
 } from '@shared-core/types/approval.types';
 import { ApprovalColumn } from './ApprovalColumn';
 import { ApprovalModal } from './ApprovalModal';
-import useApprovalStore from '@shared-core/store/useApprovalStore';
 import {
   getReviewQueue,
+  getSiteReviewQueue,
+  getWorkspaceReviewQueue,
+  getWorkspaceSiteReviewQueue,
   submitReviewDecision,
+  submitSiteReviewDecision,
   addAdminComment,
   addFieldWorkerComment,
-  getCurrentThread,
-  getSiteReviewQueue,
-  submitSiteReviewDecision,
   addAdminSiteComment,
   addFieldWorkerSiteComment,
-  getCurrentSiteThread,
+  getCurrentThread,
 } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useUserStore } from '@shared-core/store/useUserStore';
+import { Loader2, Search, X, CheckCircle2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import { toast } from 'react-toastify';
 import {
   DndContext,
@@ -45,11 +47,23 @@ import {
 import { ApprovalCard } from './ApprovalCard';
 import { SiteApprovalCard } from './SiteApprovalCard';
 
+// Scope tells the board where to load its queue from and how to resolve the
+// project for each mutation:
+// - project:   one project, queue scoped to it, role-based admin/field-worker.
+// - workspace: every project in the workspace, project resolved per item,
+//              always acting as an admin.
+export type ApprovalBoardScope =
+  | { kind: 'project'; projectUid: string; userRole: string }
+  | { kind: 'workspace'; workspaceUid: string };
+
 interface ApprovalBoardProps {
-  projectId: string;
-  userRole: string;
-  searchQuery?: string;
+  scope: ApprovalBoardScope;
+  // Optional page-level header rendered above the toolbar.
+  title?: string;
+  subtitle?: string;
 }
+
+type FilterMode = 'all' | 'mine';
 
 // Map a column's legacy status to a review decision for the API
 function mapColumnStatusToDecision(columnStatus: ApprovalStatus): ReviewDecision | null {
@@ -97,23 +111,94 @@ const COLUMN_DEFINITIONS: Omit<ApprovalBoardColumn, 'interventions' | 'sites' | 
   },
 ];
 
-export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
-  projectId,
-  userRole,
-  searchQuery = '',
-}) => {
-  const { accessToken } = useToken();
-  const {
-    approvals,
-    sites,
-    selectedApproval,
-    loading,
-    setApprovals,
-    setSites,
-    selectApproval,
-    setLoading,
-  } = useApprovalStore();
+// Map a raw review-queue row into the intervention shape the board renders.
+// projectUid/projectName are only present on the workspace queue; they are
+// undefined for the single-project queue, which is fine.
+function mapInterventionRow(item: any): InterventionApprovalData {
+  return {
+    interventionId: item.interventionId,
+    interventionUid: item.interventionUid,
+    interventionHid: item.interventionHid,
+    type: item.type,
+    createdBy: { id: item.userId, name: item.userName, email: '' },
+    approvalStatus: mapReviewStatusToLegacyStatus(item.reviewStatus),
+    reviewStatus: item.reviewStatus,
+    submittedForReviewAt: item.submittedAt ? new Date(item.submittedAt).toISOString() : null,
+    approvedAt: null,
+    rejectedAt: null,
+    approvedBy: null,
+    comments: [],
+    reviewComments: [],
+    reviewThreads: [],
+    history: [],
+    interventionData: {
+      description: item.interventionName || '',
+      location: null,
+      area: 0,
+      totalTreeCount: item.totalTreeCount || 0,
+      totalSampleTreeCount: item.totalSampleTreeCount || 0,
+      speciesCount: item.speciesCount || 0,
+      registrationDate: '',
+      interventionStartDate: '',
+      interventionEndDate: '',
+      image: null,
+    },
+    unresolvedIssuesCount: item.unresolvedIssuesCount || 0,
+    revisionCount: item.revisionCount || 0,
+    projectUid: item.projectUid,
+    projectName: item.projectName,
+  };
+}
 
+function mapSiteRow(item: any): SiteApprovalData {
+  return {
+    siteId: item.siteId,
+    siteUid: item.siteUid,
+    name: item.siteName || '',
+    description: item.description || null,
+    createdBy: { id: item.userId, name: item.userName, email: '' },
+    approvalStatus: mapReviewStatusToLegacyStatus(item.reviewStatus),
+    reviewStatus: item.reviewStatus,
+    currentThreadId: item.currentThreadId,
+    submittedForReviewAt: null,
+    approvedAt: null,
+    rejectedAt: null,
+    approvedBy: null,
+    comments: [],
+    history: [],
+    siteData: {
+      location: item.location || null,
+      area: item.area || null,
+      status: item.status || 'barren',
+      soilType: null,
+      elevation: null,
+      slope: null,
+      waterAccess: false,
+      accessibility: null,
+      plannedPlantingDate: null,
+      actualPlantingDate: null,
+      expectedTreeCount: null,
+      image: null,
+      createdAt: item.createdAt || '',
+      updatedAt: item.updatedAt || '',
+    },
+    projectUid: item.projectUid,
+    projectName: item.projectName,
+  };
+}
+
+export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({ scope, title, subtitle }) => {
+  const { accessToken } = useToken();
+  const currentUser = useUserStore((state) => state.user);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterMode, setFilterMode] = useState<FilterMode>('all');
+  const [approvals, setApprovals] = useState<InterventionApprovalData[]>([]);
+  const [sites, setSites] = useState<SiteApprovalData[]>([]);
+  const [selectedApproval, setSelectedApproval] = useState<
+    InterventionApprovalData | SiteApprovalData | null
+  >(null);
+  const [loading, setLoading] = useState(false);
   const [entityType, setEntityType] = useState<ApprovalEntityType>('intervention');
   const [columns, setColumns] = useState<ApprovalBoardColumn[]>([]);
   const [activeIntervention, setActiveIntervention] =
@@ -123,7 +208,18 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
   // Store the original column when drag starts, so we can compare on drop
   const dragOriginalColumnRef = useRef<ApprovalStatus | null>(null);
 
-  const isAdmin = userRole === 'owner' || userRole === 'admin';
+  // Workspace acts as admin across all projects. Project scope is role-based.
+  const isAdmin =
+    scope.kind === 'workspace'
+      ? true
+      : scope.userRole === 'owner' || scope.userRole === 'admin';
+
+  // The project to target for a mutation. Constant in project scope; carried on
+  // the item in workspace scope (queue spans many projects).
+  const resolveProjectUid = (item: { projectUid?: string }): string | undefined =>
+    scope.kind === 'project' ? scope.projectUid : item.projectUid;
+
+  const scopeReady = scope.kind === 'project' ? !!scope.projectUid : !!scope.workspaceUid;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -134,11 +230,21 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
   );
 
   useEffect(() => {
-    if (projectId && accessToken) {
+    if (scopeReady && accessToken) {
       loadApprovals();
       loadSites();
     }
-  }, [projectId, accessToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope.kind, scopeReady, accessToken]);
+
+  // "Mine" filter: best-effort client-side match on creator name, since the
+  // queue rows do not carry a stable user id for the signed-in reviewer.
+  const myName = (currentUser?.displayName || currentUser?.name || '').trim().toLowerCase();
+  const matchesFilterMode = (item: InterventionApprovalData | SiteApprovalData): boolean => {
+    if (filterMode === 'all') return true;
+    if (!myName) return true;
+    return item.createdBy.name.trim().toLowerCase() === myName;
+  };
 
   // Organize approvals into columns using reviewStatus only (single source of truth)
   useEffect(() => {
@@ -173,12 +279,20 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
       // Use reviewStatus as the sole source of truth for column assignment
       const interventions = approvals.filter((approval) => {
         if (!approval.reviewStatus) return false;
-        return columnReviewStatuses.includes(approval.reviewStatus) && matchesSearch(approval);
+        return (
+          columnReviewStatuses.includes(approval.reviewStatus) &&
+          matchesSearch(approval) &&
+          matchesFilterMode(approval)
+        );
       });
 
       const sitesList = sites.filter((site) => {
         if (!site.reviewStatus) return false;
-        return columnReviewStatuses.includes(site.reviewStatus) && matchesSearch(site);
+        return (
+          columnReviewStatuses.includes(site.reviewStatus) &&
+          matchesSearch(site) &&
+          matchesFilterMode(site)
+        );
       });
 
       return {
@@ -190,63 +304,24 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     });
 
     setColumns(updatedColumns);
-  }, [approvals, sites, entityType, searchQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [approvals, sites, entityType, searchQuery, filterMode, myName]);
 
   const loadApprovals = async (opts?: { silent?: boolean }) => {
     const silent = opts?.silent ?? false;
     try {
       if (!silent) setLoading(true);
-      toast.error(null);
 
-      // Fetch all submitted interventions (backend returns all statuses except draft by default)
-      const response = await getReviewQueue(accessToken, projectId, {
-        limit: 100,
-        page: 1,
-      });
+      const response =
+        scope.kind === 'project'
+          ? await getReviewQueue(accessToken, scope.projectUid, { limit: 100, page: 1 })
+          : await getWorkspaceReviewQueue(accessToken, scope.workspaceUid, {
+              limit: 100,
+              page: 1,
+            });
 
       if (response.statusCode === 200 && response.data) {
-        const mappedInterventions: InterventionApprovalData[] = response.data.data.map(
-          (item: any) => ({
-            interventionId: item.interventionId,
-            interventionUid: item.interventionUid,
-            interventionHid: item.interventionHid,
-            type: item.type,
-            createdBy: {
-              id: item.userId,
-              name: item.userName,
-              email: '',
-            },
-            approvalStatus: mapReviewStatusToLegacyStatus(item.reviewStatus),
-            reviewStatus: item.reviewStatus,
-            submittedForReviewAt: item.submittedAt
-              ? new Date(item.submittedAt).toISOString()
-              : null,
-            approvedAt: null,
-            rejectedAt: null,
-            approvedBy: null,
-            comments: [],
-            reviewComments: [],
-            reviewThreads: [],
-            history: [],
-            interventionData: {
-              description: item.interventionName || '',
-              location: null,
-              area: 0,
-              totalTreeCount: item.totalTreeCount || 0,
-              totalSampleTreeCount: item.totalSampleTreeCount || 0,
-              speciesCount: item.speciesCount || 0,
-              registrationDate: '',
-              interventionStartDate: '',
-              interventionEndDate: '',
-              image: null,
-            },
-            unresolvedIssuesCount: item.unresolvedIssuesCount || 0,
-            revisionCount: item.revisionCount || 0,
-            currentThreadId: item.currentThreadId,
-          })
-        );
-
-        setApprovals(mappedInterventions);
+        setApprovals(response.data.data.map(mapInterventionRow));
       } else {
         toast.error(response.message || 'Failed to load approvals');
       }
@@ -259,41 +334,16 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
 
   const loadSites = async () => {
     try {
-      const response = await getSiteReviewQueue(accessToken, projectId, { limit: 100, page: 1 });
+      const response =
+        scope.kind === 'project'
+          ? await getSiteReviewQueue(accessToken, scope.projectUid, { limit: 100, page: 1 })
+          : await getWorkspaceSiteReviewQueue(accessToken, scope.workspaceUid, {
+              limit: 100,
+              page: 1,
+            });
+
       if (response.statusCode === 200 && response.data) {
-        const mappedSites: SiteApprovalData[] = response.data.data.map((item: any) => ({
-          siteId: item.siteId,
-          siteUid: item.siteUid,
-          name: item.siteName || '',
-          description: item.description || null,
-          createdBy: { id: item.userId, name: item.userName, email: '' },
-          approvalStatus: mapReviewStatusToLegacyStatus(item.reviewStatus),
-          reviewStatus: item.reviewStatus,
-          currentThreadId: item.currentThreadId,
-          submittedForReviewAt: null,
-          approvedAt: null,
-          rejectedAt: null,
-          approvedBy: null,
-          comments: [],
-          history: [],
-          siteData: {
-            location: item.location || null,
-            area: item.area || null,
-            status: item.status || 'barren',
-            soilType: null,
-            elevation: null,
-            slope: null,
-            waterAccess: false,
-            accessibility: null,
-            plannedPlantingDate: null,
-            actualPlantingDate: null,
-            expectedTreeCount: null,
-            image: null,
-            createdAt: item.createdAt || '',
-            updatedAt: item.updatedAt || '',
-          },
-        }));
-        setSites(mappedSites);
+        setSites(response.data.data.map(mapSiteRow));
       }
     } catch (err: any) {
       toast.error(err.message || 'Failed to load sites');
@@ -303,10 +353,10 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
   const handleCardClick = (id: number) => {
     if (entityType === 'intervention') {
       const intervention = approvals.find((a) => a.interventionId === id);
-      if (intervention) selectApproval(intervention);
+      if (intervention) setSelectedApproval(intervention);
     } else {
       const site = sites.find((s) => s.siteId === id);
-      if (site) selectApproval(site);
+      if (site) setSelectedApproval(site);
     }
   };
 
@@ -316,6 +366,9 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     _isInternal: boolean
   ): Promise<boolean> => {
     if (!selectedApproval || !isInterventionApproval(selectedApproval)) return false;
+
+    const projectUid = resolveProjectUid(selectedApproval);
+    if (!projectUid) return false;
 
     const decision = mapColumnStatusToDecision(newStatus);
     if (!decision) {
@@ -328,7 +381,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
 
       const response = await submitReviewDecision(
         accessToken,
-        projectId,
+        projectUid,
         selectedApproval.interventionUid,
         {
           decision: decision as 'approved' | 'rejected' | 'changes_requested',
@@ -342,7 +395,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
 
       if (response.statusCode === 200 || response.statusCode === 201) {
         await loadApprovals();
-        selectApproval(null);
+        setSelectedApproval(null);
         return true;
       }
 
@@ -356,11 +409,11 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     }
   };
 
-  const handleCommentAdd = async (
-    comment: string,
-    _isInternal: boolean
-  ): Promise<boolean> => {
+  const handleCommentAdd = async (comment: string, _isInternal: boolean): Promise<boolean> => {
     if (!selectedApproval || !isInterventionApproval(selectedApproval)) return false;
+
+    const projectUid = resolveProjectUid(selectedApproval);
+    if (!projectUid) return false;
 
     try {
       // Get current thread UID
@@ -386,7 +439,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
 
       let response;
       if (isAdmin) {
-        response = await addAdminComment(accessToken, projectId, threadUid, commentDto);
+        response = await addAdminComment(accessToken, projectUid, threadUid, commentDto);
       } else {
         response = await addFieldWorkerComment(accessToken, threadUid, commentDto);
       }
@@ -412,6 +465,10 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     _isInternal: boolean
   ): Promise<boolean> => {
     if (!selectedApproval || !isSiteApproval(selectedApproval)) return false;
+
+    const projectUid = resolveProjectUid(selectedApproval);
+    if (!projectUid) return false;
+
     const decision = mapColumnStatusToDecision(newStatus);
     if (!decision) {
       toast.error('Cannot move to this status');
@@ -421,13 +478,13 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
       setLoading(true);
       const response = await submitSiteReviewDecision(
         accessToken,
-        projectId,
+        projectUid,
         selectedApproval.siteUid,
         { decision: decision as 'in_review' | 'approved' | 'rejected', note: comment || undefined }
       );
       if (response.statusCode === 200 || response.statusCode === 201) {
         await loadSites();
-        selectApproval(null);
+        setSelectedApproval(null);
         return true;
       }
       toast.error(response.message || 'Failed to update site status');
@@ -445,13 +502,26 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     _isInternal: boolean
   ): Promise<boolean> => {
     if (!selectedApproval || !isSiteApproval(selectedApproval)) return false;
+
+    const projectUid = resolveProjectUid(selectedApproval);
+    if (!projectUid) return false;
+
     try {
       const commentDto = { type: 'general' as const, message: comment };
       let response;
       if (isAdmin) {
-        response = await addAdminSiteComment(accessToken, projectId, selectedApproval.siteUid, commentDto);
+        response = await addAdminSiteComment(
+          accessToken,
+          projectUid,
+          selectedApproval.siteUid,
+          commentDto
+        );
       } else {
-        response = await addFieldWorkerSiteComment(accessToken, selectedApproval.siteUid, commentDto);
+        response = await addFieldWorkerSiteComment(
+          accessToken,
+          selectedApproval.siteUid,
+          commentDto
+        );
       }
       if (response.statusCode === 200 || response.statusCode === 201) {
         // Refresh quietly; keep the modal open. The modal refreshes its
@@ -541,9 +611,11 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
       if (entityType === 'intervention') {
         const intervention = approvals.find((a) => a.interventionId === activeId);
         if (!intervention) return;
+        const projectUid = resolveProjectUid(intervention);
+        if (!projectUid) return;
         const response = await submitReviewDecision(
           accessToken,
-          projectId,
+          projectUid,
           intervention.interventionUid,
           { decision: decision as 'approved' | 'rejected' | 'changes_requested' }
         );
@@ -555,12 +627,11 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
       } else {
         const site = sites.find((s) => s.siteId === activeId);
         if (!site) return;
-        const response = await submitSiteReviewDecision(
-          accessToken,
-          projectId,
-          site.siteUid,
-          { decision: decision as 'in_review' | 'approved' | 'rejected' }
-        );
+        const projectUid = resolveProjectUid(site);
+        if (!projectUid) return;
+        const response = await submitSiteReviewDecision(accessToken, projectUid, site.siteUid, {
+          decision: decision as 'in_review' | 'approved' | 'rejected',
+        });
         if (response.statusCode === 200 || response.statusCode === 201) {
           await loadSites();
         } else {
@@ -574,35 +645,78 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+  const activeItems = entityType === 'intervention' ? approvals : sites;
+  const awaitingCount = activeItems.filter((i) => {
+    const s = mapReviewStatusToLegacyStatus(i.reviewStatus || 'pending');
+    return s === 'new_request' || s === 'in_review';
+  }).length;
+
+  const segBtn = (active: boolean) =>
+    cn(
+      'rounded-md px-3 py-1 text-xs font-medium transition-colors',
+      active ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
     );
-  }
 
   return (
     <>
-      {/* Entity Type Filter */}
-      <div className="mb-5 flex items-center gap-3">
-        <span className="text-sm font-medium text-muted-foreground">Show:</span>
-        <div className="flex gap-2">
-          <Button
-            variant={entityType === 'intervention' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setEntityType('intervention')}
-          >
-            Interventions ({approvals.length})
-          </Button>
-          <Button
-            variant={entityType === 'site' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setEntityType('site')}
-          >
-            Sites ({sites.length})
-          </Button>
+      {/* Page header */}
+      {title && (
+        <div className="mb-4">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-semibold text-foreground">{title}</h1>
+            {awaitingCount > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                <CheckCircle2 size={12} />
+                {awaitingCount} awaiting review
+              </span>
+            )}
+          </div>
+          {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
         </div>
+      )}
+
+      {/* Toolbar */}
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <div className="relative w-full max-w-xs">
+          <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search HID, site or type..."
+            className="h-9 pl-9 pr-9"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Entity toggle */}
+        <div className="inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5">
+          <button type="button" className={segBtn(entityType === 'intervention')} onClick={() => setEntityType('intervention')}>
+            Interventions
+          </button>
+          <button type="button" className={segBtn(entityType === 'site')} onClick={() => setEntityType('site')}>
+            Sites
+          </button>
+        </div>
+
+        {/* Scope filter */}
+        <div className="inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5">
+          <button type="button" className={segBtn(filterMode === 'all')} onClick={() => setFilterMode('all')}>
+            All
+          </button>
+          <button type="button" className={segBtn(filterMode === 'mine')} onClick={() => setFilterMode('mine')}>
+            Mine
+          </button>
+        </div>
+
+        {loading && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
       </div>
 
       <DndContext
@@ -636,9 +750,17 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
         intervention={selectedApproval}
         isOpen={!!selectedApproval}
         isAdmin={isAdmin}
-        onClose={() => selectApproval(null)}
-        onStatusChange={selectedApproval && isSiteApproval(selectedApproval) ? handleSiteStatusChange : handleStatusChange}
-        onCommentAdd={selectedApproval && isSiteApproval(selectedApproval) ? handleSiteCommentAdd : handleCommentAdd}
+        onClose={() => setSelectedApproval(null)}
+        onStatusChange={
+          selectedApproval && isSiteApproval(selectedApproval)
+            ? handleSiteStatusChange
+            : handleStatusChange
+        }
+        onCommentAdd={
+          selectedApproval && isSiteApproval(selectedApproval)
+            ? handleSiteCommentAdd
+            : handleCommentAdd
+        }
       />
     </>
   );

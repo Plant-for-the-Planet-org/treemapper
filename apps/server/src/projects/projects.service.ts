@@ -515,13 +515,32 @@ export class ProjectsService {
 
   async createProject(createProjectDto: CreateProjectDto, userData: User): Promise<any> {
     try {
-      if (!userData.primaryWorkspaceUid) {
+      // Prefer the workspace explicitly chosen on the client; fall back to the
+      // user's primary workspace for legacy callers that don't send one.
+      const targetWorkspaceUid = createProjectDto.workspaceUid ?? userData.primaryWorkspaceUid;
+      if (!targetWorkspaceUid) {
         throw new ForbiddenException('User does not have a primary workspace set');
       }
-      const workspaceId = await this.projectCacheService.getWorkspaceId(userData.primaryWorkspaceUid);
+      const workspaceId = await this.projectCacheService.getWorkspaceId(targetWorkspaceUid);
       if (!workspaceId) {
         throw new NotFoundException('Workspace not found');
       }
+
+      // A user can only create projects in a workspace they actively belong to.
+      // If they aren't a member yet, add them as one (below, in the same
+      // transaction as the project insert) instead of rejecting.
+      const [membership] = await this.drizzleService.db
+        .select({ role: workspaceMember.role })
+        .from(workspaceMember)
+        .where(
+          and(
+            eq(workspaceMember.workspaceId, workspaceId),
+            eq(workspaceMember.userId, userData.id),
+            eq(workspaceMember.status, 'active'),
+          ),
+        )
+        .limit(1);
+      const needsWorkspaceMembership = !membership;
 
       const [workspaceData] = await this.drizzleService.db
         .select({ settings: workspace.settings })
@@ -581,6 +600,22 @@ export class ProjectsService {
             projectRole: 'owner',
             joinedAt: new Date(),
           });
+
+        // Ensure the creator belongs to the target workspace. Mirrors the
+        // workspaceMember shape used elsewhere in this service.
+        if (needsWorkspaceMembership) {
+          await tx
+            .insert(workspaceMember)
+            .values({
+              uid: generateUid('workmem'),
+              workspaceId: workspaceId,
+              userId: userData.id,
+              role: 'member',
+              status: 'active',
+              joinedAt: new Date(),
+            })
+            .onConflictDoNothing();
+        }
 
         this.notificationService.createNotification({
           userId: userData.id,

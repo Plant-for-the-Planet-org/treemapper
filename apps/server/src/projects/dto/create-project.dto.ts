@@ -45,6 +45,13 @@ export class CreateProjectDto {
   @MaxLength(36)
   uid?: string;
 
+  // Workspace the project should be created in. When omitted the server
+  // falls back to the user's primaryWorkspaceUid (legacy behaviour).
+  @IsOptional()
+  @IsString()
+  @MaxLength(36)
+  workspaceUid?: string;
+
 
   @IsOptional()
   @IsString()

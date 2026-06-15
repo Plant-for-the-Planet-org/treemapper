@@ -1,30 +1,18 @@
 'use client'
 
 import React from 'react'
-import { SiteApprovalData } from '@shared-core/types/approval.types'
+import { SiteApprovalData, mapReviewStatusToLegacyStatus } from '@shared-core/types/approval.types'
 import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Calendar, MapPin, TreesIcon, User } from 'lucide-react'
+import { Clock, Maximize2, TreeDeciduous, MapPin, MessageSquare } from 'lucide-react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
+import { STATUS_STYLES, REVIEW_STATUS_PILL, avatarColor, initials, titleCase } from './approvalUi'
 
 interface SiteApprovalCardProps {
   site: SiteApprovalData
   onClick: () => void
   isDragging?: boolean
-}
-
-const statusVariant = (status: string): 'default' | 'secondary' | 'outline' => {
-  switch (status) {
-    case 'planted':
-    case 'reforestation':
-      return 'default'
-    case 'planting':
-      return 'secondary'
-    default:
-      return 'outline'
-  }
 }
 
 export const SiteApprovalCard: React.FC<SiteApprovalCardProps> = ({ site, onClick, isDragging = false }) => {
@@ -35,75 +23,92 @@ export const SiteApprovalCard: React.FC<SiteApprovalCardProps> = ({ site, onClic
 
   const style = { transform: CSS.Transform.toString(transform), transition }
 
-  const formatType = (type: string) =>
-    type.split(/[-_]/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+  const legacyStatus = mapReviewStatusToLegacyStatus(site.reviewStatus || 'pending')
+  const accent = STATUS_STYLES[legacyStatus]
+  const pill = site.reviewStatus ? REVIEW_STATUS_PILL[site.reviewStatus] : undefined
 
-  const formatDate = (date: string | null) => {
-    if (!date) return 'N/A'
-    try { return format(new Date(date), 'MMM dd, yyyy') } catch { return date }
-  }
+  const commentsCount = site.comments?.length || 0
+  const creator = site.createdBy?.name || 'Unknown'
+  const area = site.siteData?.area
 
   return (
     <Card
       ref={setNodeRef}
       style={style}
+      size="sm"
       {...attributes}
       {...listeners}
-      className={`p-3 cursor-pointer hover:shadow-md hover:border-border/80 transition-all gap-2 ${
-        isDragging || isSortableDragging ? 'opacity-50 scale-105' : ''
-      }`}
+      className={cn(
+        'gap-2.5 px-3.5 cursor-pointer ring-foreground/[0.07] hover:ring-foreground/15 hover:shadow-md transition-all duration-200',
+        (isDragging || isSortableDragging) && 'opacity-60 shadow-lg ring-2 ' + accent.ring
+      )}
       onClick={onClick}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0">
-          {site.projectName && (
-            <div className="text-xs text-muted-foreground truncate mb-0.5">{site.projectName}</div>
-          )}
-          <h4 className="font-semibold text-foreground text-sm line-clamp-1">{site.name}</h4>
-          <p className="text-xs text-muted-foreground mt-0.5">{site.siteUid}</p>
+      {/* Top row: UID + status pill */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className={cn('text-xs font-semibold tracking-tight truncate', accent.text)}>
+            {site.siteUid}
+          </span>
+          <Clock size={11} className="text-muted-foreground/70 shrink-0" />
         </div>
+        {pill ? (
+          <span className={cn('shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium', pill.className)}>
+            {pill.label}
+          </span>
+        ) : (
+          <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+            {titleCase(site.siteData.status)}
+          </span>
+        )}
       </div>
 
-      <Badge variant={statusVariant(site.siteData.status)} className="self-start">
-        {formatType(site.siteData.status)}
-      </Badge>
+      {/* Title */}
+      <h4 className="text-sm font-semibold text-foreground leading-snug line-clamp-2">{site.name}</h4>
 
       {site.description && (
-        <p className="text-xs text-muted-foreground line-clamp-2">{site.description}</p>
+        <p className="text-[11px] text-muted-foreground line-clamp-2">{site.description}</p>
       )}
 
-      <div className="space-y-1.5 text-xs text-foreground/80">
-        {site.siteData.area && (
-          <div className="flex items-center gap-1.5">
-            <MapPin size={12} className="text-muted-foreground" />
-            <span>{(site.siteData.area / 10000).toFixed(2)} hectares</span>
-          </div>
+      {/* Stats */}
+      <div className="flex items-center gap-3 text-[11px] text-muted-foreground flex-wrap">
+        {!!area && (
+          <span className="flex items-center gap-1">
+            <Maximize2 size={12} />{(area / 10000).toFixed(2)} ha
+          </span>
         )}
-        {site.siteData.expectedTreeCount && (
-          <div className="flex items-center gap-1.5">
-            <TreesIcon size={12} className="text-muted-foreground" />
-            <span>{site.siteData.expectedTreeCount.toLocaleString()} trees planned</span>
-          </div>
-        )}
-        <div className="flex items-center gap-1.5">
-          <User size={12} className="text-muted-foreground" />
-          <span>{site.createdBy.name}</span>
-        </div>
-        {site.siteData.plannedPlantingDate && (
-          <div className="flex items-center gap-1.5">
-            <Calendar size={12} className="text-muted-foreground" />
-            <span>Planned: {formatDate(site.siteData.plannedPlantingDate)}</span>
-          </div>
+        {!!site.siteData?.expectedTreeCount && (
+          <span className="flex items-center gap-1">
+            <TreeDeciduous size={12} />{site.siteData.expectedTreeCount.toLocaleString()}
+          </span>
         )}
       </div>
 
-      {site.comments.length > 0 && (
-        <div className="pt-2 border-t border-border">
-          <span className="text-xs text-muted-foreground">
-            {site.comments.length} comment{site.comments.length !== 1 ? 's' : ''}
-          </span>
+      {/* Project line */}
+      {site.projectName && (
+        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+          <MapPin size={12} className="shrink-0" />
+          <span className="truncate">{site.projectName}</span>
         </div>
       )}
+
+      {/* Footer */}
+      <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className={cn(
+            'flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold',
+            avatarColor(creator)
+          )}>
+            {initials(creator)}
+          </span>
+          <span className="text-xs text-foreground/80 truncate max-w-[120px]">{creator}</span>
+        </div>
+        {commentsCount > 0 && (
+          <span className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
+            <MessageSquare size={12} />{commentsCount}
+          </span>
+        )}
+      </div>
     </Card>
   )
 }

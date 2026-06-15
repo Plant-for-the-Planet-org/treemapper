@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { ApprovalBoard } from './component/ApprovalBoard';
-import { ApprovalFilters } from './component/ApprovalFilters';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { checkProjectRequiresApproval } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
@@ -14,7 +13,6 @@ export default function ApprovalsPage() {
   const { accessToken } = useToken();
   const selectedProject = useProjectStore((state) => state.selectedProject);
   const { requiresApproval, setRequiresApproval } = useApprovalStore();
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (selectedProject && accessToken) {
@@ -48,10 +46,6 @@ export default function ApprovalsPage() {
       // On error, assume approval board is available (don't block access)
       setRequiresApproval(false);
     }
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
   };
 
   if (!selectedProject) {
@@ -90,19 +84,14 @@ export default function ApprovalsPage() {
 
   return (
     <div className="p-6">
-      <div className="mb-5">
-        <h1 className="text-xl font-semibold text-foreground mb-1">Approval board</h1>
-        <p className="text-sm text-muted-foreground">
-          Review and manage intervention approvals for {selectedProject.name}
-        </p>
-      </div>
-
-      <ApprovalFilters onSearch={handleSearch} />
-
       <ApprovalBoard
-        projectId={selectedProject.uid}
-        userRole={selectedProject.role || 'contributor'}
-        searchQuery={searchQuery}
+        scope={{
+          kind: 'project',
+          projectUid: selectedProject.uid,
+          userRole: selectedProject.userRole || 'contributor',
+        }}
+        title="Approval board"
+        subtitle="Review and triage intervention submissions. Drag cards between columns or open one for full detail."
       />
     </div>
   );
