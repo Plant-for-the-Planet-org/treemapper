@@ -23,6 +23,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { getDisplayInterventionStatus } from '@/lib/interventionStatus';
 import { Dialog, DialogHeader, DialogContent, DialogTitle } from './ui/Dialog';
 import { EditableField } from './EditableField';
 import { FileUploadDialog, FileUploadMapDialog } from './FileUploadDialog';
@@ -317,11 +318,15 @@ export const InterventionDetails = ({
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 @lg:gap-3">
-              {intervention.status && (
-                <Badge variant={intervention.status === 'completed' ? 'default' : 'secondary'} className="capitalize">
-                  {intervention.status.replace(/-/g, ' ')}
-                </Badge>
-              )}
+              {(() => {
+                const displayStatus = getDisplayInterventionStatus(intervention.status);
+                if (!displayStatus) return null;
+                return (
+                  <Badge variant={displayStatus === 'completed' ? 'default' : 'secondary'} className="capitalize">
+                    {displayStatus.replace(/-/g, ' ')}
+                  </Badge>
+                );
+              })()}
               <Badge
                 variant="outline"
                 className={cn(

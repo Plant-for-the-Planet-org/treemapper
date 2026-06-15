@@ -30,6 +30,7 @@ import {
 import * as turf from '@turf/turf';
 import { getAllMapInterevntions, getProjectSitesMap } from '@shared-core/fetchApi/api.fetch';
 import { cdnUrl } from '@/lib/cdn';
+import { getDisplayInterventionStatus } from '@/lib/interventionStatus';
 import { baseUrl } from '@shared-core/fetchApi/api.url';
 import usePolling from '@/hooks/usePolling';
 
@@ -656,15 +657,21 @@ const InterventionSidebar: React.FC<{
                     >
                         <div className="flex items-start justify-between gap-2 mb-1">
                             <span className="font-mono text-xs font-semibold text-gray-800 truncate">{i.hid}</span>
-                            <span
-                                className="text-xs px-1.5 py-0.5 rounded-full shrink-0 capitalize leading-none"
-                                style={i.status === 'complete' || i.status === 'completed' ? {
-                                    backgroundColor: 'rgba(0,122,73,0.1)',
-                                    color: '#007A49',
-                                } : undefined}
-                            >
-                                {i.status}
-                            </span>
+                            {(() => {
+                                const displayStatus = getDisplayInterventionStatus(i.status);
+                                if (!displayStatus) return null;
+                                return (
+                                    <span
+                                        className="text-xs px-1.5 py-0.5 rounded-full shrink-0 capitalize leading-none"
+                                        style={displayStatus === 'complete' || displayStatus === 'completed' ? {
+                                            backgroundColor: 'rgba(0,122,73,0.1)',
+                                            color: '#007A49',
+                                        } : undefined}
+                                    >
+                                        {displayStatus}
+                                    </span>
+                                );
+                            })()}
                         </div>
                         <div className="text-xs text-gray-500 capitalize mb-1">{i.type.replace(/-/g, ' ')}</div>
                         <div className="flex items-center gap-3 text-xs text-gray-400">
@@ -913,7 +920,8 @@ const InterventionPanel: React.FC<{
         }
     }, [intervention]);
 
-    const isComplete = intervention.status === 'complete' || intervention.status === 'completed';
+    const displayStatus = getDisplayInterventionStatus(intervention.status);
+    const isComplete = displayStatus === 'complete' || displayStatus === 'completed';
 
     return (
         <motion.div
@@ -932,14 +940,16 @@ const InterventionPanel: React.FC<{
                             <span className="text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize">
                                 {intervention.type.replace(/-/g, ' ')}
                             </span>
-                            <span
-                                className="text-[11px] px-2 py-0.5 rounded-full capitalize"
-                                style={isComplete
-                                    ? { backgroundColor: 'rgba(0,122,73,0.1)', color: BRAND }
-                                    : { backgroundColor: '#f3f4f6', color: '#374151' }}
-                            >
-                                {intervention.status}
-                            </span>
+                            {displayStatus && (
+                                <span
+                                    className="text-[11px] px-2 py-0.5 rounded-full capitalize"
+                                    style={isComplete
+                                        ? { backgroundColor: 'rgba(0,122,73,0.1)', color: BRAND }
+                                        : { backgroundColor: '#f3f4f6', color: '#374151' }}
+                                >
+                                    {displayStatus}
+                                </span>
+                            )}
                         </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">

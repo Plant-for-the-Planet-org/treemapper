@@ -30,6 +30,7 @@ import {
     ArrowRight
 } from 'lucide-react';
 import { getMyProjectMember, ownerrhsipTranferCall } from '@shared-core/fetchApi/api.fetch';
+import { getDisplayInterventionStatus } from '@/lib/interventionStatus';
 
 // Types
 interface User {
@@ -345,13 +346,18 @@ const OwnershipTransferModal = ({
                                     <Badge variant="outline" className="capitalize">
                                         {intervention.type?.replace('-', ' ')}
                                     </Badge>
-                                    <Badge className={
-                                        intervention.status === 'active' ? 'bg-green-100 text-green-800' :
-                                            intervention.status === 'planned' ? 'bg-blue-100 text-blue-800' :
-                                                'bg-gray-100 text-gray-800'
-                                    }>
-                                        {intervention.status}
-                                    </Badge>
+                                    {(() => {
+                                        const displayStatus = getDisplayInterventionStatus(intervention.status);
+                                        if (!displayStatus) return null;
+                                        return (
+                                            <Badge className={
+                                                displayStatus === 'active' ? 'bg-green-100 text-green-800' :
+                                                    'bg-gray-100 text-gray-800'
+                                            }>
+                                                {displayStatus}
+                                            </Badge>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                             <div className="space-y-2">
