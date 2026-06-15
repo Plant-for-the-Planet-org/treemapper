@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import Link from 'next/link';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,7 +14,6 @@ import {
     Loader2,
     X,
     Search,
-    Filter,
     Plus,
     Minus,
     Layers,
@@ -23,12 +23,33 @@ import {
     User,
     History,
     ArrowRight,
+    ArrowLeft,
     ChevronRight,
+    Sprout,
+    Shield,
+    Target,
+    Leaf,
+    Download,
+    CloudCheck,
+    CloudAlert,
+    type LucideIcon,
 } from 'lucide-react';
 import * as turf from '@turf/turf';
 import { getAllMapInterevntions, getProjectSitesMap } from '@shared-core/fetchApi/api.fetch';
 import { cdnUrl } from '@/lib/cdn';
 import { baseUrl } from '@shared-core/fetchApi/api.url';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 // ==================== TYPES ====================
 interface MapIntervention {
@@ -37,6 +58,7 @@ interface MapIntervention {
     hid: string;
     type: string;
     status: string;
+    captureStatus?: string;
     registrationDate: string;
     interventionStartDate: string;
     interventionEndDate: string;
@@ -203,6 +225,25 @@ const getInterventionColor = (type: string): string => {
     return colors[type] ?? BRAND;
 };
 
+// Intervention type -> icon, mirroring the interventions list page so the
+// overview reads consistently with the rest of the dashboard.
+const interventionTypeIcons: Record<string, LucideIcon> = {
+    'enrichment-planting': Trees,
+    'direct-seeding': Sprout,
+    'removal-invasive-species': Shield,
+    'maintenance': Activity,
+    'fencing': Shield,
+    'fire-patrol': Shield,
+    'soil-improvement': Leaf,
+    'grass-suppression': Leaf,
+    'single-tree-registration': Trees,
+    'multi-tree-registration': Trees,
+    'other-intervention': Target,
+};
+
+const getInterventionIcon = (type: string): LucideIcon =>
+    interventionTypeIcons[type] ?? Target;
+
 const getTreeStatusColor = (status: string): string => {
     const colors: Record<string, string> = {
         alive: '#10b981',
@@ -250,12 +291,16 @@ const formatHeight = (v?: number | null): string | null =>
 const formatWidth = (v?: number | null): string | null =>
     v == null ? null : `${v} cm`;
 
+// Group a number with thousands separators, up to `digits` decimals.
+const formatNum = (n: number, digits = 0): string =>
+    n.toLocaleString('en-US', { maximumFractionDigits: digits });
+
 // Format an area in m² into a human-readable label.
-// >= 10,000 m² (1 ha) → show in hectares; otherwise m².
+// >= 10,000 m² (1 ha) → show in hectares; otherwise m². Thousands grouped.
 const formatArea = (sqm: number): string =>
     sqm >= 10_000
-        ? `${(sqm / 10_000).toFixed(2)} ha`
-        : `${sqm.toFixed(2)} m²`;
+        ? `${formatNum(sqm / 10_000, 2)} ha`
+        : `${formatNum(sqm, 2)} m²`;
 
 // Resolve the display area for an intervention. Prefers the stored value;
 // falls back to computing from the polygon geometry when it is missing.
@@ -301,7 +346,7 @@ const zoomToIntervention = (intervention: MapIntervention, mapRef: any) => {
         if (intervention.location.type === 'Polygon' || intervention.location.type === 'MultiPolygon') {
             const [minLng, minLat, maxLng, maxLat] = turf.bbox(intervention.location as any);
             mapRef.fitBounds([minLng, minLat, maxLng, maxLat], {
-                padding: { top: 80, bottom: 80, left: 320, right: 80 },
+                padding: { top: 80, bottom: 80, left: 80, right: 80 },
                 duration: 1000,
                 maxZoom: 18,
             });
@@ -454,28 +499,60 @@ const fetchInterventionDetail = async (
 
 // ==================== COMPONENTS ====================
 
+// Sync / capture indicator, matching the interventions list page: a planning
+// badge, a green cloud-check when fully synced, or an amber cloud-alert when not.
+const SyncStatus: React.FC<{ status: string; captureStatus?: string }> = ({ status, captureStatus }) => {
+    if (status === 'planning') {
+        return (
+            <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">
+                Planning
+            </Badge>
+        );
+    }
+    if (captureStatus === 'complete') {
+        return <CloudCheck className="h-3.5 w-3.5 text-primary" aria-label="Synced" />;
+    }
+    return <CloudAlert className="h-3.5 w-3.5 text-amber-600" aria-label="Not synced" />;
+};
+
+// Site filter dropdown. Rendered as a map overlay (top-left) rather than inside
+// the list, so it reads as a map control.
+const SiteSelect: React.FC<{
+    sites: SiteFeature[];
+    selectedSiteId: number | null;
+    onSelectSite: (id: number | null) => void;
+}> = ({ sites, selectedSiteId, onSelectSite }) => {
+    if (sites.length === 0) return null;
+    return (
+        <Select
+            value={selectedSiteId != null ? String(selectedSiteId) : 'all'}
+            onValueChange={v => onSelectSite(v === 'all' ? null : Number(v))}
+        >
+            <SelectTrigger size="sm" className="w-[200px] bg-background/95 shadow-md border-border">
+                <span className="flex items-center gap-2 min-w-0">
+                    <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <SelectValue placeholder="All sites" />
+                </span>
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="all">All sites</SelectItem>
+                {sites.map(s => (
+                    <SelectItem key={s.id} value={String(s.id)}>{s.properties.name}</SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+    );
+};
+
 const InterventionSidebar: React.FC<{
     interventions: MapIntervention[];
     selectedId: number | null;
     onSelect: (intervention: MapIntervention) => void;
     hidSearch: string;
     onHidSearch: (v: string) => void;
-    types: string[];
-    statuses: string[];
-    activeTypes: Set<string>;
-    activeStatuses: Set<string>;
-    onToggleType: (t: string) => void;
-    onToggleStatus: (s: string) => void;
     total: number;
-    sites: SiteFeature[];
-    selectedSiteId: number | null;
-    onSelectSite: (id: number | null) => void;
-}> = ({ interventions, selectedId, onSelect, hidSearch, onHidSearch, types, statuses, activeTypes, activeStatuses, onToggleType, onToggleStatus, total, sites, selectedSiteId, onSelectSite }) => {
-    const [filterOpen, setFilterOpen] = useState(false);
+}> = ({ interventions, selectedId, onSelect, hidSearch, onHidSearch, total }) => {
     const listRef = useRef<HTMLDivElement>(null);
-    const allTypesActive = types.every(t => activeTypes.has(t));
-    const allStatusesActive = statuses.every(s => activeStatuses.has(s));
-    const hasFilter = hidSearch || !allTypesActive || !allStatusesActive;
 
     useEffect(() => {
         if (selectedId == null) return;
@@ -484,154 +561,91 @@ const InterventionSidebar: React.FC<{
     }, [selectedId]);
 
     return (
-        <div className="absolute top-4 left-4 bottom-20 z-40 w-72 flex flex-col bg-white border border-gray-100" style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)' }}>
-            {/* Header: site selector + search + filter */}
-            <div className="shrink-0 border-b border-gray-100">
-                {sites.length > 0 && (
-                    <div className="flex items-center gap-2 px-3 pt-3 pb-1 border-b border-gray-100">
-                        <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                        <select
-                            value={selectedSiteId ?? ''}
-                            onChange={e => onSelectSite(e.target.value ? Number(e.target.value) : null)}
-                            className="flex-1 text-sm outline-none bg-transparent text-gray-700 cursor-pointer truncate"
-                        >
-                            <option value="">All sites</option>
-                            {sites.map(s => (
-                                <option key={s.id} value={s.id}>{s.properties.name}</option>
-                            ))}
-                        </select>
-                        {selectedSiteId != null && (
-                            <button onClick={() => onSelectSite(null)} className="text-gray-400 hover:text-gray-600 shrink-0">
+        <div className="col-span-1 h-full flex flex-col bg-card text-card-foreground border border-border rounded-2xl overflow-hidden">
+            {/* Header: search */}
+            <div className="shrink-0 border-b border-border">
+                <div className="px-3 pt-3 pb-2">
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                        <Input
+                            value={hidSearch}
+                            onChange={e => onHidSearch(e.target.value)}
+                            placeholder="Search by HID..."
+                            className="h-9 pl-8 pr-8"
+                        />
+                        {hidSearch && (
+                            <Button
+                                variant="ghost"
+                                size="icon-xs"
+                                onClick={() => onHidSearch('')}
+                                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground"
+                            >
                                 <X className="w-3.5 h-3.5" />
-                            </button>
+                            </Button>
                         )}
                     </div>
-                )}
-                <div className="flex items-center gap-2 px-3 pt-3 pb-2">
-                    <Search className="w-4 h-4 text-gray-400 shrink-0" />
-                    <input
-                        value={hidSearch}
-                        onChange={e => onHidSearch(e.target.value)}
-                        placeholder="Search by HID..."
-                        className="flex-1 text-sm outline-none bg-transparent placeholder-gray-400"
-                    />
-                    {hidSearch && (
-                        <button onClick={() => onHidSearch('')} className="text-gray-400 hover:text-gray-600">
-                            <X className="w-3.5 h-3.5" />
-                        </button>
-                    )}
-                    <button
-                        onClick={() => setFilterOpen(o => !o)}
-                        className="p-1 rounded transition-colors"
-                        style={{ color: filterOpen || hasFilter ? '#007A49' : undefined }}
-                    >
-                        <Filter className="w-3.5 h-3.5" />
-                    </button>
                 </div>
-                <div className="px-3 pb-2 flex items-center gap-2">
-                    <span className="text-xs text-gray-500">
+                <div className="px-3 pb-2">
+                    <span className="text-xs text-muted-foreground">
                         {interventions.length === total
-                            ? `${total} interventions`
-                            : `${interventions.length} of ${total} shown`}
+                            ? `${formatNum(total)} interventions`
+                            : `${formatNum(interventions.length)} of ${formatNum(total)} shown`}
                     </span>
-                    {hasFilter && interventions.length < total && (
-                        <span className="text-xs bg-amber-50 text-amber-600 border border-amber-200 px-1.5 py-0.5 rounded-full">filtered</span>
-                    )}
                 </div>
-
-                <AnimatePresence>
-                    {filterOpen && (
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden border-t border-gray-100"
-                        >
-                            <div className="px-3 py-3 space-y-3">
-                                {types.length > 0 && (
-                                    <div>
-                                        <div className="text-xs font-medium text-gray-500 mb-1.5">Type</div>
-                                        <div className="flex flex-wrap gap-1">
-                                            {types.map(t => (
-                                                <button
-                                                    key={t}
-                                                    onClick={() => onToggleType(t)}
-                                                    className="text-xs px-2 py-0.5 rounded-full border transition-colors"
-                                                    style={activeTypes.has(t) ? {
-                                                        backgroundColor: 'rgba(0,122,73,0.08)',
-                                                        borderColor: 'rgba(0,122,73,0.4)',
-                                                        color: '#007A49',
-                                                    } : undefined}
-                                                >
-                                                    {t.replace(/-/g, ' ')}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                {statuses.length > 0 && (
-                                    <div>
-                                        <div className="text-xs font-medium text-gray-500 mb-1.5">Status</div>
-                                        <div className="flex flex-wrap gap-1">
-                                            {statuses.map(s => (
-                                                <button
-                                                    key={s}
-                                                    onClick={() => onToggleStatus(s)}
-                                                    className="text-xs px-2 py-0.5 rounded-full border transition-colors capitalize"
-                                                    style={activeStatuses.has(s) ? {
-                                                        backgroundColor: 'rgba(0,122,73,0.08)',
-                                                        borderColor: 'rgba(0,122,73,0.4)',
-                                                        color: '#007A49',
-                                                    } : undefined}
-                                                >
-                                                    {s}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
             </div>
 
             {/* Scrollable intervention list */}
-            <div ref={listRef} className="flex-1 overflow-y-auto p-2 space-y-0.5">
-                {interventions.map(i => (
-                    <button
-                        key={i.id}
-                        data-id={i.id}
-                        onClick={() => onSelect(i)}
-                        className="w-full text-left px-3 py-2.5 rounded-lg border transition-all"
-                        style={selectedId === i.id ? {
-                            borderColor: 'rgba(0,122,73,0.35)',
-                            backgroundColor: 'rgba(0,122,73,0.06)',
-                        } : undefined}
-                    >
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                            <span className="font-mono text-xs font-semibold text-gray-800 truncate">{i.hid}</span>
-                            <span
-                                className="text-xs px-1.5 py-0.5 rounded-full shrink-0 capitalize leading-none"
-                                style={i.status === 'complete' || i.status === 'completed' ? {
-                                    backgroundColor: 'rgba(0,122,73,0.1)',
-                                    color: '#007A49',
-                                } : undefined}
-                            >
-                                {i.status}
-                            </span>
-                        </div>
-                        <div className="text-xs text-gray-500 capitalize mb-1">{i.type.replace(/-/g, ' ')}</div>
-                        <div className="flex items-center gap-3 text-xs text-gray-400">
-                            <span>{(i.totalTreeCount ?? 0).toLocaleString()} trees</span>
-                            {(i.area || i.location.type === 'Polygon' || i.location.type === 'MultiPolygon') && (
-                                <span>{resolveArea(i)}</span>
+            <div ref={listRef} className="flex-1 overflow-y-auto p-2 space-y-1.5">
+                {interventions.map(i => {
+                    const Icon = getInterventionIcon(i.type);
+                    const selected = selectedId === i.id;
+                    const hasArea = i.area || i.location.type === 'Polygon' || i.location.type === 'MultiPolygon';
+                    return (
+                        <Card
+                            key={i.id}
+                            data-id={i.id}
+                            onClick={() => onSelect(i)}
+                            className={cn(
+                                'py-0 gap-0 rounded-lg shadow-none ring-0 border cursor-pointer transition-colors',
+                                selected ? 'bg-primary/10 border-primary/30' : 'border-border hover:bg-muted/50',
                             )}
-                        </div>
-                    </button>
-                ))}
+                        >
+                            <CardContent className="p-2.5">
+                                <div className="flex items-start gap-2.5">
+                                    <div className={cn(
+                                        'p-2 rounded-md shrink-0',
+                                        selected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
+                                    )}>
+                                        <Icon className="h-4 w-4" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between gap-1.5 mb-1">
+                                            <span className="font-mono text-[11px] bg-muted px-1.5 py-0.5 rounded text-foreground/80 truncate">
+                                                {i.hid}
+                                            </span>
+                                            <span className="shrink-0">
+                                                <SyncStatus status={i.status} captureStatus={i.captureStatus} />
+                                            </span>
+                                        </div>
+                                        <div className="text-xs text-muted-foreground capitalize truncate mb-1">
+                                            {i.type.replace(/-/g, ' ')}
+                                        </div>
+                                        <div className="flex items-center gap-x-3 gap-y-1 flex-wrap text-xs text-muted-foreground">
+                                            <span className="flex items-center gap-1">
+                                                <Trees className="h-3 w-3" />
+                                                <span className="font-medium text-foreground/80">{(i.totalTreeCount ?? 0).toLocaleString()}</span>
+                                                <span>trees</span>
+                                            </span>
+                                            {hasArea && <span>{resolveArea(i)}</span>}
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    );
+                })}
                 {interventions.length === 0 && (
-                    <div className="py-10 text-center text-xs text-gray-400">No interventions match filters</div>
+                    <div className="py-10 text-center text-xs text-muted-foreground">No interventions found</div>
                 )}
             </div>
         </div>
@@ -647,14 +661,14 @@ const ErrorDisplay: React.FC<{
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
-        className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-white rounded-lg shadow-xl border border-red-200 max-w-md"
+        className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-popover text-popover-foreground rounded-lg shadow-xl border border-destructive/30 max-w-md"
     >
         <div className="p-4">
             <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                 <div className="flex-1">
-                    <h3 className="font-medium text-gray-900 mb-1">Map Error</h3>
-                    <p className="text-sm text-gray-600 mb-3">{error.message}</p>
+                    <h3 className="font-medium text-foreground mb-1">Map Error</h3>
+                    <p className="text-sm text-muted-foreground mb-3">{error.message}</p>
                     {error.recoverable && onRetry && (
                         <button
                             onClick={onRetry}
@@ -666,7 +680,7 @@ const ErrorDisplay: React.FC<{
                     )}
                 </div>
                 {onDismiss && (
-                    <button onClick={onDismiss} className="text-gray-400 hover:text-gray-600 shrink-0">
+                    <button onClick={onDismiss} className="text-muted-foreground hover:text-muted-foreground shrink-0">
                         <X className="w-4 h-4" />
                     </button>
                 )}
@@ -676,10 +690,10 @@ const ErrorDisplay: React.FC<{
 );
 
 const LoadingDisplay: React.FC<{ message?: string }> = ({ message = 'Loading map...' }) => (
-    <div className="absolute inset-0 bg-gray-50 flex items-center justify-center z-40">
+    <div className="absolute inset-0 bg-muted flex items-center justify-center z-40">
         <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-3" />
-            <p className="text-sm text-gray-500">{message}</p>
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">{message}</p>
         </div>
     </div>
 );
@@ -740,9 +754,9 @@ const CopyButton: React.FC<{ value: string; title?: string; className?: string }
             type="button"
             onClick={copy}
             title={copied ? 'Copied' : title}
-            className={`inline-flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors ${className ?? 'w-6 h-6'}`}
+            className={`inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors ${className ?? 'w-6 h-6'}`}
         >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
         </button>
     );
 };
@@ -758,14 +772,14 @@ const OwnerAvatar: React.FC<{ name?: string | null; image?: string | null; size?
                 alt={name ?? 'owner'}
                 referrerPolicy="no-referrer"
                 onError={() => setErr(true)}
-                className="rounded-full object-cover bg-gray-100 shrink-0"
+                className="rounded-full object-cover bg-muted shrink-0"
                 style={px}
             />
         );
     }
     return (
         <span
-            className="rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center font-medium shrink-0"
+            className="rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium shrink-0"
             style={{ ...px, fontSize: Math.max(10, size * 0.42) }}
         >
             {initialsOf(name)}
@@ -775,71 +789,43 @@ const OwnerAvatar: React.FC<{ name?: string | null; image?: string | null; size?
 
 // One tree in the panel's scrollable list. Shows the photo, identity, latest
 // measurements, owner, and a copy-coordinates action. Clicking opens the tree.
-const TreeListItem: React.FC<{ tree: MapTree; onSelect: (tree: MapTree) => void }> = ({ tree, onSelect }) => {
+// Compact grid cell for a sample tree: photo thumbnail with a status dot and a
+// label overlay. Clicking opens the tree detail; full data lives on the
+// intervention page.
+const TreeGridItem: React.FC<{ tree: MapTree; onSelect: (tree: MapTree) => void }> = ({ tree, onSelect }) => {
     const [imgErr, setImgErr] = useState(false);
     const photo = buildTreeImageUrl(tree);
     const statusColor = getTreeStatusColor(tree.status);
-    const height = formatHeight(tree.height);
-    const width = formatWidth(tree.width);
-    const species = tree.speciesName || tree.commonName;
-    const coords = tree.location?.type === 'Point'
-        ? `${tree.location.coordinates[0]}, ${tree.location.coordinates[1]}`
-        : '';
+    const label = tree.tag ? `Tag ${tree.tag}` : tree.hid;
 
     return (
         <button
             type="button"
             onClick={() => onSelect(tree)}
-            className="w-full text-left flex gap-3 p-2.5 rounded-xl border border-gray-100 hover:border-emerald-200 hover:bg-emerald-50/40 transition-colors"
+            title={label}
+            className="group relative aspect-square rounded-md overflow-hidden bg-muted border border-border hover:border-primary/40 transition-colors"
         >
-            {/* Thumbnail */}
-            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                {photo && !imgErr ? (
-                    <img
-                        src={photo}
-                        alt={tree.tag || tree.hid}
-                        loading="lazy"
-                        onError={() => setImgErr(true)}
-                        className="w-full h-full object-cover"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300">
-                        <Trees className="w-6 h-6" strokeWidth={1.5} />
-                    </div>
-                )}
-                <span
-                    className="absolute bottom-1 left-1 w-2.5 h-2.5 rounded-full ring-2 ring-white"
-                    style={{ backgroundColor: statusColor }}
-                    title={tree.status}
+            {photo && !imgErr ? (
+                <img
+                    src={photo}
+                    alt={label}
+                    loading="lazy"
+                    onError={() => setImgErr(true)}
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
                 />
-            </div>
-
-            {/* Details */}
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-medium text-gray-900 truncate">
-                        {tree.tag ? `Tag ${tree.tag}` : tree.hid}
-                    </span>
-                    <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 capitalize shrink-0">
-                        {tree.status}
-                    </span>
+            ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground/50">
+                    <Trees className="w-5 h-5" strokeWidth={1.5} />
                 </div>
-                {species && (
-                    <div className="text-xs text-gray-500 truncate italic">{species}</div>
-                )}
-                <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-500">
-                    {height && <span className="inline-flex items-center gap-0.5"><Ruler className="w-3 h-3" /> {height}</span>}
-                    {width && <span>⌀ {width}</span>}
-                    {!height && !width && <span className="text-gray-300">No measurements</span>}
-                </div>
-                <div className="flex items-center justify-between mt-1.5">
-                    <span className="flex items-center gap-1.5 min-w-0">
-                        <OwnerAvatar name={tree.ownerName} image={tree.ownerImage} size={18} />
-                        <span className="text-[11px] text-gray-500 truncate">{tree.ownerName || 'Unknown'}</span>
-                    </span>
-                    {coords && <CopyButton value={JSON.stringify(tree.location)} title="Copy GeoJSON coordinates" />}
-                </div>
-            </div>
+            )}
+            <span
+                className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full ring-2 ring-white/80 shadow"
+                style={{ backgroundColor: statusColor }}
+                title={tree.status}
+            />
+            <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent px-1.5 pt-3 pb-1 text-[10px] font-medium text-white truncate">
+                {label}
+            </span>
         </button>
     );
 };
@@ -848,10 +834,10 @@ const InterventionPanel: React.FC<{
     intervention: MapIntervention;
     trees: MapTree[];
     isLoading?: boolean;
+    projectUid: string;
     onClose: () => void;
-    onZoomTo?: (intervention: MapIntervention) => void;
     onSelectTree: (tree: MapTree) => void;
-}> = ({ intervention, trees, isLoading = false, onClose, onZoomTo, onSelectTree }) => {
+}> = ({ intervention, trees, isLoading = false, projectUid, onClose, onSelectTree }) => {
     const centroidCoords = useMemo(() => {
         try {
             let c: any;
@@ -868,141 +854,158 @@ const InterventionPanel: React.FC<{
         }
     }, [intervention]);
 
-    const isComplete = intervention.status === 'complete' || intervention.status === 'completed';
+    // Download the intervention geometry as a GeoJSON Feature, named by HID.
+    const downloadGeoJSON = () => {
+        const feature = {
+            type: 'Feature',
+            properties: {
+                hid: intervention.hid,
+                type: intervention.type,
+                totalTreeCount: intervention.totalTreeCount ?? 0,
+            },
+            geometry: intervention.location,
+        };
+        const blob = new Blob([JSON.stringify(feature, null, 2)], { type: 'application/geo+json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${intervention.hid}.geojson`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    };
 
     return (
-        <motion.div
-            initial={{ x: 340, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 340, opacity: 0 }}
-            className="absolute top-4 right-4 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 max-h-[88vh] flex flex-col overflow-hidden"
-            style={{ width: 380 }}
-        >
+        <div className="w-full h-full bg-card text-card-foreground flex flex-col overflow-hidden">
             {/* Header — no intervention photo; tree photos live in the list below */}
-            <div className="shrink-0 px-4 py-3 border-b border-gray-100">
+            <div className="shrink-0 px-4 py-3 border-b border-border">
                 <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                        <div className="font-semibold text-gray-900 truncate">{intervention.hid}</div>
+                        <div className="font-semibold text-foreground truncate">{intervention.hid}</div>
                         <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                            <span className="text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize">
+                            <Badge variant="secondary" className="capitalize">
                                 {intervention.type.replace(/-/g, ' ')}
-                            </span>
-                            <span
-                                className="text-[11px] px-2 py-0.5 rounded-full capitalize"
-                                style={isComplete
-                                    ? { backgroundColor: 'rgba(0,122,73,0.1)', color: BRAND }
-                                    : { backgroundColor: '#f3f4f6', color: '#374151' }}
-                            >
-                                {intervention.status}
-                            </span>
+                            </Badge>
                         </div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                        <button
-                            onClick={() => onZoomTo?.(intervention)}
-                            title="Zoom to intervention"
-                            className="w-7 h-7 flex items-center justify-center rounded-full text-gray-500 hover:text-emerald-700 hover:bg-gray-100 transition-colors"
-                        >
-                            <MapPin className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={onClose}
-                            title="Close"
-                            className="w-7 h-7 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    </div>
+                    <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={onClose}
+                        title="Close"
+                        className="rounded-full text-muted-foreground shrink-0"
+                    >
+                        <X className="w-4 h-4" />
+                    </Button>
                 </div>
             </div>
 
             {/* Scrollable body */}
             <div className="flex-1 overflow-y-auto">
-                {/* Owner */}
-                {intervention.owner?.displayName && (
-                    <div className="flex items-center gap-2 px-4 pt-3">
-                        <OwnerAvatar name={intervention.owner.displayName} image={intervention.owner.image} size={26} />
-                        <div className="min-w-0">
-                            <div className="text-[10px] uppercase tracking-wide text-gray-400 flex items-center gap-1">
-                                <User className="w-3 h-3" /> Owner
-                            </div>
-                            <div className="text-sm text-gray-800 truncate">{intervention.owner.displayName}</div>
-                        </div>
-                    </div>
-                )}
-
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-3 px-4 pt-3">
                     <div>
-                        <div className="text-xs text-gray-400 mb-0.5">Start date</div>
-                        <div className="text-sm text-gray-800">{formatDate(intervention.interventionStartDate)}</div>
+                        <div className="text-xs text-muted-foreground mb-0.5">Start date</div>
+                        <div className="text-sm text-foreground">{formatDate(intervention.interventionStartDate)}</div>
                     </div>
                     {(intervention.location.type === 'Polygon' || intervention.location.type === 'MultiPolygon') && (
                         <div>
-                            <div className="text-xs text-gray-400 mb-0.5">Area</div>
-                            <div className="text-sm text-gray-800">{resolveArea(intervention)}</div>
+                            <div className="text-xs text-muted-foreground mb-0.5">Area</div>
+                            <div className="text-sm text-foreground">{resolveArea(intervention)}</div>
                         </div>
                     )}
                     <div>
-                        <div className="text-xs text-gray-400 mb-0.5">Total trees</div>
-                        <div className="text-sm font-medium text-gray-800">{intervention.totalTreeCount?.toLocaleString() ?? 0}</div>
+                        <div className="text-xs text-muted-foreground mb-0.5">Total trees</div>
+                        <div className="text-sm font-medium text-foreground">{intervention.totalTreeCount?.toLocaleString() ?? 0}</div>
                     </div>
-                    {!!intervention.totalSampleTreeCount && (
-                        <div>
-                            <div className="text-xs text-gray-400 mb-0.5">Sample trees</div>
-                            <div className="text-sm text-gray-800">{intervention.totalSampleTreeCount}</div>
-                        </div>
-                    )}
                 </div>
 
-                {/* Geo Coordinates with copy */}
-                <div className="px-4 pt-3">
-                    <div className="text-xs text-gray-400 mb-1">Geo Coordinates</div>
-                    <div className="flex items-center gap-2">
-                        <div className="flex gap-3 text-sm font-mono text-gray-700">
-                            <span><span className="text-xs text-gray-400 mr-1">Lat</span>{centroidCoords?.lat ?? '—'}</span>
-                            <span><span className="text-xs text-gray-400 mr-1">Lng</span>{centroidCoords?.lng ?? '—'}</span>
+                {/* Coordinates — only for single points; a polygon has no single
+                    lat/lng, so we offer its geometry via the GeoJSON download. */}
+                {intervention.location.type === 'Point' && (
+                    <div className="px-4 pt-3">
+                        <div className="text-xs text-muted-foreground mb-1">Coordinates</div>
+                        <div className="flex items-center gap-2">
+                            <div className="flex gap-3 text-sm font-mono text-foreground">
+                                <span><span className="text-xs text-muted-foreground mr-1">Lat</span>{centroidCoords?.lat ?? '—'}</span>
+                                <span><span className="text-xs text-muted-foreground mr-1">Lng</span>{centroidCoords?.lng ?? '—'}</span>
+                            </div>
+                            <CopyButton value={`${centroidCoords?.lat ?? ''}, ${centroidCoords?.lng ?? ''}`} title="Copy coordinates" />
                         </div>
-                        <CopyButton value={JSON.stringify(intervention.location)} title="Copy GeoJSON coordinates" />
                     </div>
-                </div>
+                )}
 
                 {/* Description */}
                 {intervention.description && (
                     <div className="px-4 pt-3">
-                        <div className="text-xs text-gray-400 mb-0.5">Description</div>
-                        <p className="text-sm text-gray-700">{intervention.description}</p>
+                        <div className="text-xs text-muted-foreground mb-0.5">Description</div>
+                        <p className="text-sm text-foreground">{intervention.description}</p>
                     </div>
                 )}
 
-                {/* Trees */}
+                {/* Sample trees — compact grid. Full per-tree data lives on the
+                    intervention page; this is a quick visual + drill-in. */}
                 <div className="px-4 pt-4 pb-4">
                     <div className="flex items-center justify-between mb-2">
-                        <div className="text-sm font-medium text-gray-900">
-                            Trees {!isLoading && <span className="text-gray-400 font-normal">({trees.length})</span>}
+                        <div className="text-sm font-medium text-foreground">
+                            Sample trees {!isLoading && (
+                                <span className="text-muted-foreground font-normal">
+                                    ({intervention.totalSampleTreeCount && intervention.totalSampleTreeCount !== trees.length
+                                        ? `${formatNum(trees.length)} of ${formatNum(intervention.totalSampleTreeCount)}`
+                                        : formatNum(trees.length)})
+                                </span>
+                            )}
                         </div>
                     </div>
 
                     {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+                        <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
                             <Loader2 className="w-6 h-6 animate-spin" strokeWidth={1.5} />
                             <span className="text-xs mt-2">Loading details...</span>
                         </div>
                     ) : trees.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-8 text-gray-300">
-                            <Trees className="w-8 h-8" strokeWidth={1.5} />
-                            <span className="text-xs mt-1.5 text-gray-400">No trees recorded</span>
+                        <div className="flex items-center gap-1.5 py-1.5 text-xs text-muted-foreground">
+                            <Trees className="w-3.5 h-3.5 shrink-0" strokeWidth={1.5} />
+                            No sample trees recorded
                         </div>
                     ) : (
-                        <div className="space-y-2">
+                        <div className="grid grid-cols-3 gap-2">
                             {trees.map(tree => (
-                                <TreeListItem key={tree.id} tree={tree} onSelect={onSelectTree} />
+                                <TreeGridItem key={tree.id} tree={tree} onSelect={onSelectTree} />
                             ))}
                         </div>
                     )}
                 </div>
+
+                {/* Added by — secondary info, kept at the bottom */}
+                {intervention.owner?.displayName && (
+                    <div className="flex items-center gap-2 px-4 pt-1 pb-3">
+                        <OwnerAvatar name={intervention.owner.displayName} image={intervention.owner.image} size={26} />
+                        <div className="min-w-0">
+                            <div className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                                <User className="w-3 h-3" /> Added by
+                            </div>
+                            <div className="text-sm text-foreground truncate">{intervention.owner.displayName}</div>
+                        </div>
+                    </div>
+                )}
             </div>
-        </motion.div>
+
+            {/* Footer actions — always visible */}
+            <div className="shrink-0 border-t border-border p-3 flex gap-2">
+                <Button asChild variant="outline" size="sm" className="flex-1">
+                    <Link href={`/project/${projectUid}/intervention?id=${intervention.uid}`}>
+                        Manage
+                        <ArrowRight className="w-4 h-4" />
+                    </Link>
+                </Button>
+                <Button variant="outline" size="sm" onClick={downloadGeoJSON} title="Download GeoJSON">
+                    <Download className="w-4 h-4" />
+                    GeoJSON
+                </Button>
+            </div>
+        </div>
     );
 };
 
@@ -1012,99 +1015,12 @@ const DetailStat: React.FC<{
     value: React.ReactNode;
 }> = ({ icon, label, value }) => (
     <div className="flex items-start gap-2">
-        <div className="mt-0.5 text-gray-400 shrink-0">{icon}</div>
+        <div className="mt-0.5 text-muted-foreground shrink-0">{icon}</div>
         <div className="min-w-0">
-            <div className="text-[11px] uppercase tracking-wide text-gray-400">{label}</div>
-            <div className="text-sm text-gray-800 truncate">{value}</div>
+            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
+            <div className="text-sm text-foreground truncate">{value}</div>
         </div>
     </div>
-);
-
-const RecordsPanel: React.FC<{
-    records: TreeRecord[];
-    isLoadingRecords: boolean;
-    onClose: () => void;
-}> = ({ records, isLoadingRecords, onClose }) => (
-    <motion.div
-        initial={{ scale: 0.95, opacity: 0, x: 8 }}
-        animate={{ scale: 1, opacity: 1, x: 0 }}
-        exit={{ scale: 0.95, opacity: 0, x: 8 }}
-        className="absolute top-4 right-[calc(20rem+1.5rem)] w-72 bg-white rounded-2xl shadow-2xl border border-gray-200 z-30 flex flex-col max-h-[calc(100vh-2rem)]"
-    >
-        <div className="px-4 pt-3.5 pb-3 border-b border-gray-100 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-1.5 text-sm font-medium text-gray-900">
-                <History className="w-4 h-4 text-gray-400" />
-                Records
-                {!isLoadingRecords && (
-                    <span className="text-gray-400 font-normal">({records.length})</span>
-                )}
-            </div>
-            <button
-                onClick={onClose}
-                className="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-                <X className="w-4 h-4" />
-            </button>
-        </div>
-        <div
-            className="overflow-y-auto flex-1 min-h-0 overscroll-contain px-4 py-3"
-            onWheel={(e) => e.stopPropagation()}
-            style={{ scrollbarWidth: 'thin', scrollbarColor: '#e5e7eb transparent' }}
-        >
-            {isLoadingRecords ? (
-                <div className="flex items-center gap-2 py-4 text-gray-400">
-                    <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
-                    <span className="text-xs">Loading records...</span>
-                </div>
-            ) : records.length === 0 ? (
-                <div className="py-3 text-xs text-gray-400">No records yet</div>
-            ) : (
-                <ol className="relative border-l border-gray-200 ml-1.5 space-y-3">
-                    {records.map(rec => {
-                        const recH = formatHeight(rec.height);
-                        const recW = formatWidth(rec.width);
-                        const statusChanged = rec.newStatus && rec.newStatus !== rec.previousStatus;
-                        return (
-                            <li key={rec.id} className="ml-4">
-                                <span
-                                    className="absolute -left-[5px] w-2.5 h-2.5 rounded-full ring-2 ring-white"
-                                    style={{ backgroundColor: getTreeStatusColor(rec.newStatus || '') }}
-                                />
-                                <div className="flex items-center justify-between gap-2">
-                                    <span className="text-xs font-medium text-gray-700 capitalize">
-                                        {rec.recordType?.replace(/_/g, ' ') || 'Record'}
-                                    </span>
-                                    {rec.recordedAt && (
-                                        <span className="text-[11px] text-gray-400">{formatDate(rec.recordedAt)}</span>
-                                    )}
-                                </div>
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-gray-500">
-                                    {recH && <span className="inline-flex items-center gap-0.5"><Ruler className="w-3 h-3" /> {recH}</span>}
-                                    {recW && <span>⌀ {recW}</span>}
-                                    {statusChanged && (
-                                        <span className="inline-flex items-center gap-1 capitalize">
-                                            {rec.previousStatus || '—'}
-                                            <ArrowRight className="w-3 h-3" />
-                                            {rec.newStatus}
-                                        </span>
-                                    )}
-                                </div>
-                                {rec.statusReason && (
-                                    <div className="text-[11px] text-gray-400 mt-0.5">Reason: {rec.statusReason}</div>
-                                )}
-                                {rec.notes && (
-                                    <div className="text-[11px] text-gray-500 mt-0.5">{rec.notes}</div>
-                                )}
-                                {rec.recordedByName && (
-                                    <div className="text-[11px] text-gray-400 mt-0.5">by {rec.recordedByName}</div>
-                                )}
-                            </li>
-                        );
-                    })}
-                </ol>
-            )}
-        </div>
-    </motion.div>
 );
 
 const TreeTooltip: React.FC<{
@@ -1113,8 +1029,9 @@ const TreeTooltip: React.FC<{
     isLoadingDetail?: boolean;
     records?: TreeRecord[];
     isLoadingRecords?: boolean;
+    showRecords?: boolean;
     onViewRecords?: () => void;
-}> = ({ tree, onClose, isLoadingDetail = false, records = [], isLoadingRecords = false, onViewRecords }) => {
+}> = ({ tree, onClose, isLoadingDetail = false, records = [], isLoadingRecords = false, showRecords = false, onViewRecords }) => {
     const statusColor = getTreeStatusColor(tree.status);
     const treeImage = buildTreeImageUrl(tree);
     const speciesImage = buildSpeciesImageUrl(tree.speciesImage);
@@ -1131,14 +1048,18 @@ const TreeTooltip: React.FC<{
         : null;
 
     return (
-        <motion.div
-            initial={{ scale: 0.95, opacity: 0, y: 8 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 8 }}
-            className="absolute top-4 right-4 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 z-30 flex flex-col max-h-[calc(100vh-2rem)] overflow-hidden"
-        >
+        <div className="w-full h-full bg-card text-card-foreground flex flex-col overflow-hidden">
+            {/* Back to intervention */}
+            <button
+                onClick={onClose}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-2.5 border-b border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+                <ArrowLeft className="w-4 h-4" />
+                Back to intervention
+            </button>
+
             {/* Image header / banner */}
-            <div className="relative h-40 shrink-0 bg-gradient-to-br from-emerald-50 to-gray-100">
+            <div className="relative h-40 shrink-0 bg-muted">
                 {showTreeImage ? (
                     <img
                         src={treeImage as string}
@@ -1147,14 +1068,14 @@ const TreeTooltip: React.FC<{
                         onError={() => setTreeImgError(true)}
                     />
                 ) : isLoadingDetail ? (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                    <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground">
                         <Loader2 className="w-7 h-7 animate-spin" strokeWidth={1.5} />
                         <span className="text-xs mt-1.5">Loading photo...</span>
                     </div>
                 ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-300">
+                    <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/50">
                         <Trees className="w-10 h-10" strokeWidth={1.5} />
-                        <span className="text-xs mt-1.5 text-gray-400">No tree photo</span>
+                        <span className="text-xs mt-1.5 text-muted-foreground">No tree photo</span>
                     </div>
                 )}
 
@@ -1166,14 +1087,6 @@ const TreeTooltip: React.FC<{
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColor }} />
                     {tree.status}
                 </div>
-
-                {/* Close */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full bg-white/90 text-gray-500 hover:text-gray-800 hover:bg-white transition-colors backdrop-blur-sm"
-                >
-                    <X className="w-4 h-4" />
-                </button>
             </div>
 
             <div
@@ -1182,11 +1095,11 @@ const TreeTooltip: React.FC<{
                 style={{ scrollbarWidth: 'thin', scrollbarColor: '#e5e7eb transparent' }}
             >
                 {/* Title */}
-                <div className="px-4 pt-3.5 pb-3 border-b border-gray-100">
-                    <div className="font-semibold text-gray-900 leading-tight">{tree.tag || tree.hid}</div>
+                <div className="px-4 pt-3.5 pb-3 border-b border-border">
+                    <div className="font-semibold text-foreground leading-tight">{tree.tag || tree.hid}</div>
                     <div className="flex items-center gap-2 mt-1">
-                        {tree.tag && <span className="font-mono text-xs text-gray-400">{tree.hid}</span>}
-                        <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded capitalize">
+                        {tree.tag && <span className="font-mono text-xs text-muted-foreground">{tree.hid}</span>}
+                        <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded capitalize">
                             {tree.treeType}
                         </span>
                     </div>
@@ -1194,8 +1107,8 @@ const TreeTooltip: React.FC<{
 
                 {/* Species */}
                 {(tree.speciesName || tree.commonName) && (
-                    <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-emerald-50 flex items-center justify-center">
+                    <div className="px-4 py-3 border-b border-border flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-primary/10 flex items-center justify-center">
                             {showSpeciesImage ? (
                                 <img
                                     src={speciesImage as string}
@@ -1204,18 +1117,18 @@ const TreeTooltip: React.FC<{
                                     onError={() => setSpeciesImgError(true)}
                                 />
                             ) : (
-                                <Trees className="w-5 h-5 text-emerald-400" strokeWidth={1.5} />
+                                <Trees className="w-5 h-5 text-primary" strokeWidth={1.5} />
                             )}
                         </div>
                         <div className="min-w-0">
                             {tree.speciesName && (
-                                <div className="text-sm font-medium italic text-gray-800 truncate">{tree.speciesName}</div>
+                                <div className="text-sm font-medium italic text-foreground truncate">{tree.speciesName}</div>
                             )}
                             {tree.commonName && (
-                                <div className="text-xs text-gray-500 truncate">{tree.commonName}</div>
+                                <div className="text-xs text-muted-foreground truncate">{tree.commonName}</div>
                             )}
                             {tree.speciesFamily && (
-                                <div className="text-[11px] text-gray-400 truncate">{tree.speciesFamily}</div>
+                                <div className="text-[11px] text-muted-foreground truncate">{tree.speciesFamily}</div>
                             )}
                         </div>
                     </div>
@@ -1252,67 +1165,117 @@ const TreeTooltip: React.FC<{
                     )}
                 </div>
 
-                {/* Owner + coordinates */}
+                {/* Coordinates */}
                 <div className="px-4 pb-3.5 space-y-3">
-                    {tree.ownerName && (
-                        <div className="flex items-center gap-2">
-                            <OwnerAvatar name={tree.ownerName} image={tree.ownerImage} size={26} />
-                            <div className="min-w-0">
-                                <div className="text-[11px] uppercase tracking-wide text-gray-400 flex items-center gap-1">
-                                    <User className="w-3 h-3" /> Owner
-                                </div>
-                                <div className="text-sm text-gray-800 truncate">{tree.ownerName}</div>
-                            </div>
-                        </div>
-                    )}
                     {coords && (
                         <div>
-                            <div className="text-[11px] uppercase tracking-wide text-gray-400 flex items-center gap-1 mb-0.5">
+                            <div className="text-[11px] uppercase tracking-wide text-muted-foreground flex items-center gap-1 mb-0.5">
                                 <MapPin className="w-3 h-3" /> Coordinates
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-sm font-mono text-gray-700 truncate">{coords}</span>
+                                <span className="text-sm font-mono text-foreground truncate">{coords}</span>
                                 <CopyButton value={coords} title="Copy coordinates" />
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* Records CTA */}
-                <div className="px-4 pb-4 border-t border-gray-100 pt-3">
+                {/* Records — expandable timeline inline */}
+                <div className="px-4 pb-4 border-t border-border pt-3">
                     {isLoadingRecords ? (
-                        <div className="flex items-center gap-2 py-2 text-gray-400">
+                        <div className="flex items-center gap-2 py-2 text-muted-foreground">
                             <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
                             <span className="text-xs">Loading records...</span>
                         </div>
                     ) : (
-                        <button
-                            onClick={onViewRecords}
-                            disabled={records.length === 0 || !onViewRecords}
-                            className="w-full flex items-center justify-between group py-1 disabled:opacity-40 disabled:cursor-default"
-                        >
-                            <div className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
-                                <History className="w-4 h-4 text-gray-400" />
-                                Records
-                                <span className="text-gray-400 font-normal">({records.length})</span>
-                            </div>
-                            {records.length > 0 && (
-                                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                            )}
-                        </button>
+                        <>
+                            <button
+                                onClick={onViewRecords}
+                                disabled={records.length === 0 || !onViewRecords}
+                                className="w-full flex items-center justify-between group py-1 disabled:opacity-40 disabled:cursor-default"
+                            >
+                                <div className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                                    <History className="w-4 h-4 text-muted-foreground" />
+                                    Records
+                                    <span className="text-muted-foreground font-normal">({records.length})</span>
+                                </div>
+                                {records.length > 0 && (
+                                    <ChevronRight
+                                        className={cn(
+                                            'w-4 h-4 text-muted-foreground group-hover:text-muted-foreground transition-transform',
+                                            showRecords && 'rotate-90',
+                                        )}
+                                    />
+                                )}
+                            </button>
+
+                            <AnimatePresence initial={false}>
+                                {showRecords && records.length > 0 && (
+                                    <motion.ol
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="relative border-l border-border ml-1.5 mt-3 space-y-3 overflow-hidden"
+                                    >
+                                        {records.map(rec => {
+                                            const recH = formatHeight(rec.height);
+                                            const recW = formatWidth(rec.width);
+                                            const statusChanged = rec.newStatus && rec.newStatus !== rec.previousStatus;
+                                            return (
+                                                <li key={rec.id} className="ml-4">
+                                                    <span
+                                                        className="absolute -left-[5px] w-2.5 h-2.5 rounded-full ring-2 ring-white"
+                                                        style={{ backgroundColor: getTreeStatusColor(rec.newStatus || '') }}
+                                                    />
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <span className="text-xs font-medium text-foreground capitalize">
+                                                            {rec.recordType?.replace(/_/g, ' ') || 'Record'}
+                                                        </span>
+                                                        {rec.recordedAt && (
+                                                            <span className="text-[11px] text-muted-foreground">{formatDate(rec.recordedAt)}</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-muted-foreground">
+                                                        {recH && <span className="inline-flex items-center gap-0.5"><Ruler className="w-3 h-3" /> {recH}</span>}
+                                                        {recW && <span>⌀ {recW}</span>}
+                                                        {statusChanged && (
+                                                            <span className="inline-flex items-center gap-1 capitalize">
+                                                                {rec.previousStatus || '—'}
+                                                                <ArrowRight className="w-3 h-3" />
+                                                                {rec.newStatus}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {rec.statusReason && (
+                                                        <div className="text-[11px] text-muted-foreground mt-0.5">Reason: {rec.statusReason}</div>
+                                                    )}
+                                                    {rec.notes && (
+                                                        <div className="text-[11px] text-muted-foreground mt-0.5">{rec.notes}</div>
+                                                    )}
+                                                    {rec.recordedByName && (
+                                                        <div className="text-[11px] text-muted-foreground mt-0.5">by {rec.recordedByName}</div>
+                                                    )}
+                                                </li>
+                                            );
+                                        })}
+                                    </motion.ol>
+                                )}
+                            </AnimatePresence>
+                        </>
                     )}
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 };
 
-const MapLegend: React.FC = () => (
-     null
-);
-
 // ==================== MAIN COMPONENT ====================
-const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId, token }) => {
+const ProjectMap: React.FC<{
+    projectId: string;
+    token: string;
+    /** Optional overlay rendered at the map's top-right (e.g. the live-activity toggle). */
+    mapTopRight?: React.ReactNode;
+}> = ({ projectId, token, mapTopRight }) => {
     const [interventions, setInterventions] = useState<MapIntervention[]>([]);
     const [trees, setTrees] = useState<MapTree[]>([]);
     const [sites, setSites] = useState<SiteFeatureCollection>({ type: 'FeatureCollection', features: [] });
@@ -1320,10 +1283,6 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
     const [selectedSiteId, setSelectedSiteId] = useState<number | null>(null);
     const [bounds, setBounds] = useState<ProjectMapBounds | null>(null);
     const [hidSearch, setHidSearch] = useState('');
-    const [filters, setFilters] = useState<{
-        types: Set<string>;
-        statuses: Set<string>;
-    }>({ types: new Set(), statuses: new Set() });
     const [mapState, setMapState] = useState<MapState>({
         selectedInterventionId: null,
         selectedTreeId: null,
@@ -1331,6 +1290,9 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
     });
     const hoveredFeatureRef = React.useRef<{ source: string; id: number | string } | null>(null);
     const prevSelectedIdRef = React.useRef<number | null>(null);
+    // Whether the right detail pane was already open on the previous selection.
+    // Used to decide if camera framing must wait for the open/resize animation.
+    const paneWasOpenRef = React.useRef(false);
     // Tree ids whose full detail has already been fetched, so a re-click does
     // not refetch.
     const detailedTreeIdsRef = React.useRef<Set<number>>(new Set());
@@ -1356,15 +1318,6 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
             const response = await fetchProjectInterventions(projectId, token);
             const loaded = response.data.interventions;
             setInterventions(loaded);
-            setFilters(prev => {
-                if (prev.types.size === 0 && prev.statuses.size === 0) {
-                    return {
-                        types: new Set(loaded.map((i: MapIntervention) => i.type)),
-                        statuses: new Set(loaded.map((i: MapIntervention) => i.status)),
-                    };
-                }
-                return prev;
-            });
             setBounds(response.data.bounds);
         } catch (err: any) {
             setError({
@@ -1398,7 +1351,7 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
         try {
             const [minLng, minLat, maxLng, maxLat] = turf.bbox(site.geometry as any);
             mapRef.current?.fitBounds([minLng, minLat, maxLng, maxLat], {
-                padding: { top: 80, bottom: 80, left: 320, right: 80 },
+                padding: { top: 80, bottom: 80, left: 80, right: 80 },
                 duration: 1000,
                 maxZoom: 16,
             });
@@ -1411,7 +1364,7 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
         if (mapLoaded && bounds && interventions.length > 0) {
             try {
                 mapRef.current?.fitBounds(bounds.bounds, {
-                    padding: { top: 80, bottom: 80, left: 320, right: 80 },
+                    padding: { top: 80, bottom: 80, left: 80, right: 80 },
                     duration: 1500,
                     maxZoom: 15,
                 });
@@ -1419,15 +1372,18 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
         }
     }, [mapLoaded, bounds, interventions.length]);
 
-    // Interventions filtered by HID search and type/status
+    // Interventions filtered by HID search. The overview already receives only
+    // public, approved interventions from the server, so no further filtering.
     const filteredInterventions = useMemo(() => {
-        return interventions.filter(i => {
-            if (hidSearch && !i.hid.toLowerCase().includes(hidSearch.toLowerCase())) return false;
-            if (!filters.types.has(i.type)) return false;
-            if (!filters.statuses.has(i.status)) return false;
-            return true;
-        });
-    }, [interventions, hidSearch, filters]);
+        const q = hidSearch.toLowerCase();
+        const base = q
+            ? interventions.filter(i => i.hid.toLowerCase().includes(q))
+            : interventions;
+        // Recent first: most recently registered interventions at the top.
+        return [...base].sort(
+            (a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime(),
+        );
+    }, [interventions, hidSearch]);
 
     const polygonGeoJSON = useMemo(() => ({
         type: 'FeatureCollection' as const,
@@ -1478,25 +1434,6 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
             }),
     }), [filteredInterventions]);
 
-    const allTypes = useMemo(() => Array.from(new Set(interventions.map(i => i.type))), [interventions]);
-    const allStatuses = useMemo(() => Array.from(new Set(interventions.map(i => i.status))), [interventions]);
-
-    const toggleType = useCallback((type: string) => {
-        setFilters(prev => {
-            const t = new Set(prev.types);
-            t.has(type) ? t.delete(type) : t.add(type);
-            return { ...prev, types: t };
-        });
-    }, []);
-
-    const toggleStatus = useCallback((status: string) => {
-        setFilters(prev => {
-            const s = new Set(prev.statuses);
-            s.has(status) ? s.delete(status) : s.add(status);
-            return { ...prev, statuses: s };
-        });
-    }, []);
-
     const selectIntervention = useCallback((intervention: MapIntervention | null) => {
         const prevId = prevSelectedIdRef.current;
         const map = mapRef.current;
@@ -1513,7 +1450,8 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
             return;
         }
         setMapState(s => ({ ...s, selectedInterventionId: intervention.id, selectedTreeId: null, showTreeDetails: false }));
-        zoomToIntervention(intervention, map);
+        // Camera framing is handled by an effect once the right pane has opened
+        // and the map has resized, so the target stays centred in the visible map.
         try {
             if (prevId != null && map) {
                 map.setFeatureState({ source: 'interventions-points', id: prevId }, { selected: false });
@@ -1594,6 +1532,26 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
         () => interventions.find(i => i.id === mapState.selectedInterventionId),
         [interventions, mapState.selectedInterventionId],
     );
+
+    // Frame the selected intervention in the *visible* map. The right detail
+    // pane is a grid column, so selecting shrinks the map's span; if we fit
+    // before the grid reflows, the target drifts off-centre. When the pane is
+    // opening (closed -> open) we wait a beat for the reflow + canvas resize;
+    // when it is already open we fit immediately.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!selectedIntervention) { paneWasOpenRef.current = false; return; }
+        if (!map || !mapLoaded) return;
+        const wasOpen = paneWasOpenRef.current;
+        paneWasOpenRef.current = true;
+        const frame = () => {
+            try { map.resize(); } catch { /* map not ready */ }
+            zoomToIntervention(selectedIntervention, map);
+        };
+        if (wasOpen) { frame(); return; }
+        const t = setTimeout(frame, 90);
+        return () => clearTimeout(t);
+    }, [mapState.selectedInterventionId, mapLoaded, selectedIntervention]);
 
     // A single point at the selected intervention's location (centroid for
     // polygons) that drives the animated "pulse" ring on the map. Empty when
@@ -1712,6 +1670,18 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
     // Prefer the freshly fetched detail (richer: owner, resolved image) but fall
     // back to the bulk list item while the detail call is loading.
     const detailIntervention = detail?.intervention ?? selectedIntervention;
+    const rightPaneOpen = !!detailIntervention;
+
+    // The right detail pane is a grid column, so opening/closing it changes the
+    // map's span (and width). maplibre tracks size via ResizeObserver, but nudge
+    // a resize after the reflow so the canvas fills cleanly (covers the close
+    // case, where the framing effect bails out early).
+    useEffect(() => {
+        const id = setTimeout(() => {
+            try { mapRef.current?.resize(); } catch { /* map not ready */ }
+        }, 90);
+        return () => clearTimeout(id);
+    }, [rightPaneOpen]);
 
     // Animate a "pulse" ring on the selected intervention so it stands out on
     // the map. A radar-style ring repeatedly expands outward and fades. Runs
@@ -1748,11 +1718,11 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
 
     if (error && !error.recoverable) {
         return (
-            <div className="w-full h-screen flex items-center justify-center bg-gray-50">
+            <div className="w-full h-screen flex items-center justify-center bg-muted">
                 <div className="text-center max-w-sm">
                     <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
-                    <h2 className="text-lg font-semibold text-gray-900 mb-2">Unable to load map</h2>
-                    <p className="text-sm text-gray-500 mb-4">{error.message}</p>
+                    <h2 className="text-lg font-semibold text-foreground mb-2">Unable to load map</h2>
+                    <p className="text-sm text-muted-foreground mb-4">{error.message}</p>
                     <button
                         onClick={() => window.location.reload()}
                         className="text-white px-4 py-2 rounded-lg text-sm transition-opacity hover:opacity-90"
@@ -1766,7 +1736,22 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
     }
 
     return (
-        <div className="relative w-full h-full">
+        // 4-column grid mirroring the stat-card grid above, so the left list and
+        // right detail card line up exactly with the stat cards. Left = 1 col,
+        // map = 2 or 3 cols, right detail = 1 col when open.
+        <div className="w-full h-full grid grid-cols-4 grid-rows-1 gap-3">
+            {/* Left — interventions list (search + scrollable list) */}
+            <InterventionSidebar
+                interventions={filteredInterventions}
+                selectedId={mapState.selectedInterventionId}
+                onSelect={selectIntervention}
+                hidSearch={hidSearch}
+                onHidSearch={setHidSearch}
+                total={interventions.length}
+            />
+
+            {/* Center — map */}
+            <div className={cn('relative h-full rounded-2xl overflow-hidden', detailIntervention ? 'col-span-2' : 'col-span-3')}>
             <Map
                 ref={mapRef}
                 onLoad={handleMapLoad}
@@ -2083,9 +2068,7 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                             setMapState(prev => ({ ...prev, selectedTreeId: tree.id, showTreeDetails: true }));
                             const [lng, lat] = tree.location.coordinates as [number, number];
                             if (isFinite(lng) && isFinite(lat)) {
-                                // Recenter onto the tree, offset left so the detail
-                                // panel on the right does not cover the highlight.
-                                mapRef.current?.easeTo({ center: [lng, lat], offset: [-130, 0], duration: 600 });
+                                mapRef.current?.easeTo({ center: [lng, lat], duration: 600 });
                             }
                         }}
                     />
@@ -2103,108 +2086,100 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                 )}
             </AnimatePresence>
 
-            {/* Sidebar - site selector + search + filter + scrollable intervention list */}
-            <InterventionSidebar
-                interventions={filteredInterventions}
-                selectedId={mapState.selectedInterventionId}
-                onSelect={selectIntervention}
-                hidSearch={hidSearch}
-                onHidSearch={setHidSearch}
-                types={allTypes}
-                statuses={allStatuses}
-                activeTypes={filters.types}
-                activeStatuses={filters.statuses}
-                onToggleType={toggleType}
-                onToggleStatus={toggleStatus}
-                total={interventions.length}
-                sites={sites.features}
-                selectedSiteId={selectedSiteId}
-                onSelectSite={handleSelectSite}
-            />
-
-            {/* Intervention detail panel - top right. Hidden while a tree
-                detail is open so the two never overlap; closing the tree
-                returns to this panel. */}
-            <AnimatePresence>
-                {detailIntervention && !(selectedTree && mapState.showTreeDetails) && (
-                    <InterventionPanel
-                        intervention={detailIntervention}
-                        trees={detail?.trees ?? trees}
-                        isLoading={isLoadingDetail}
-                        onClose={() => selectIntervention(null)}
-                        onZoomTo={i => zoomToIntervention(i, mapRef.current)}
-                        onSelectTree={(tree) => {
-                            setMapState(prev => ({ ...prev, selectedTreeId: tree.id, showTreeDetails: true }));
-                            const map = mapRef.current;
-                            if (map && tree.location?.type === 'Point') {
-                                const [lng, lat] = tree.location.coordinates as [number, number];
-                                map.easeTo({ center: [lng, lat], zoom: Math.max(map.getZoom?.() ?? 16, 17), duration: 600 });
-                            }
-                        }}
+            {/* Site filter — map control, top-left */}
+            {sites.features.length > 0 && (
+                <div className="absolute top-3 left-3 z-20">
+                    <SiteSelect
+                        sites={sites.features}
+                        selectedSiteId={selectedSiteId}
+                        onSelectSite={handleSelectSite}
                     />
-                )}
-            </AnimatePresence>
+                </div>
+            )}
 
-            {/* Tree detail panel - replaces the intervention panel while open */}
-            <AnimatePresence>
-                {selectedTree && mapState.showTreeDetails && (
-                    <TreeTooltip
-                        key={selectedTree.id}
-                        tree={selectedTree}
-                        isLoadingDetail={isLoadingTreeDetail}
-                        records={treeRecords?.treeId === selectedTree.id ? treeRecords.records : []}
-                        isLoadingRecords={isLoadingRecords || treeRecords?.treeId !== selectedTree.id}
-                        onViewRecords={() => setShowTreeRecords(v => !v)}
-                        onClose={() => {
-                            setShowTreeRecords(false);
-                            setMapState(prev => ({ ...prev, selectedTreeId: null, showTreeDetails: false }));
-                        }}
-                    />
-                )}
-            </AnimatePresence>
-
-            {/* Records panel - slides in to the left of the tree tooltip */}
-            <AnimatePresence>
-                {selectedTree && mapState.showTreeDetails && showTreeRecords && (
-                    <RecordsPanel
-                        key={`records-${selectedTree.id}`}
-                        records={treeRecords?.treeId === selectedTree.id ? treeRecords.records : []}
-                        isLoadingRecords={isLoadingRecords || treeRecords?.treeId !== selectedTree.id}
-                        onClose={() => setShowTreeRecords(false)}
-                    />
-                )}
-            </AnimatePresence>
-
-            {/* Legend - bottom left */}
-            <MapLegend />
+            {/* Map top-right overlay slot (e.g. live-activity toggle) */}
+            {mapTopRight && (
+                <div className="absolute top-3 right-3 z-20">
+                    {mapTopRight}
+                </div>
+            )}
 
             {/* Zoom controls */}
             <div className="absolute bottom-10 right-3 z-20 flex flex-col gap-1.5">
                 {sites.features.length > 0 && (
-                    <button
+                    <Button
+                        variant="outline"
+                        size="icon-sm"
                         onClick={() => setShowSiteBoundaries(v => !v)}
-                        className="w-8 h-8 flex items-center justify-center bg-white hover:bg-gray-50 rounded-2xl shadow-md border border-gray-200 transition-colors mb-1"
+                        className={cn('rounded-full bg-background shadow-md mb-1', showSiteBoundaries ? 'text-amber-500' : 'text-muted-foreground')}
                         title={showSiteBoundaries ? 'Hide site boundaries' : 'Show site boundaries'}
-                        style={{ color: showSiteBoundaries ? SITE_BOUNDARY_COLOR : '#9ca3af' }}
                     >
                         <Layers size={16} strokeWidth={2.5} />
-                    </button>
+                    </Button>
                 )}
-                <button
+                <Button
+                    variant="outline"
+                    size="icon-sm"
                     onClick={() => mapRef.current?.zoomIn()}
-                    className="w-8 h-8 flex items-center justify-center bg-white hover:bg-gray-50 rounded-2xl shadow-md border border-gray-200 transition-colors"
+                    className="rounded-full bg-background shadow-md text-foreground"
                     title="Zoom in"
                 >
-                    <Plus size={17} className="text-gray-600" strokeWidth={2.5} />
-                </button>
-                <button
+                    <Plus size={17} strokeWidth={2.5} />
+                </Button>
+                <Button
+                    variant="outline"
+                    size="icon-sm"
                     onClick={() => mapRef.current?.zoomOut()}
-                    className="w-8 h-8 flex items-center justify-center bg-white hover:bg-gray-50 rounded-2xl shadow-md border border-gray-200 transition-colors"
+                    className="rounded-full bg-background shadow-md text-foreground"
                     title="Zoom out"
                 >
-                    <Minus size={17} className="text-gray-600" strokeWidth={2.5} />
-                </button>
+                    <Minus size={17} strokeWidth={2.5} />
+                </Button>
             </div>
+            </div>
+
+            {/* Right — detail pane (a 1-col grid cell, shown when something is
+                selected). Drills intervention -> tree -> records in place; the
+                map's col-span shrinks to make room. */}
+            {detailIntervention && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="col-span-1 h-full bg-card text-card-foreground border border-border rounded-2xl overflow-hidden flex flex-col"
+                >
+                    {selectedTree && mapState.showTreeDetails ? (
+                        <TreeTooltip
+                            key={selectedTree.id}
+                            tree={selectedTree}
+                            isLoadingDetail={isLoadingTreeDetail}
+                            records={treeRecords?.treeId === selectedTree.id ? treeRecords.records : []}
+                            isLoadingRecords={isLoadingRecords || treeRecords?.treeId !== selectedTree.id}
+                            showRecords={showTreeRecords}
+                            onViewRecords={() => setShowTreeRecords(v => !v)}
+                            onClose={() => {
+                                setShowTreeRecords(false);
+                                setMapState(prev => ({ ...prev, selectedTreeId: null, showTreeDetails: false }));
+                            }}
+                        />
+                    ) : (
+                        <InterventionPanel
+                            intervention={detailIntervention}
+                            trees={detail?.trees ?? trees}
+                            isLoading={isLoadingDetail}
+                            projectUid={projectId}
+                            onClose={() => selectIntervention(null)}
+                            onSelectTree={(tree) => {
+                                setMapState(prev => ({ ...prev, selectedTreeId: tree.id, showTreeDetails: true }));
+                                const map = mapRef.current;
+                                if (map && tree.location?.type === 'Point') {
+                                    const [lng, lat] = tree.location.coordinates as [number, number];
+                                    map.easeTo({ center: [lng, lat], zoom: Math.max(map.getZoom?.() ?? 16, 17), duration: 600 });
+                                }
+                            }}
+                        />
+                    )}
+                </motion.div>
+            )}
         </div>
     );
 };
