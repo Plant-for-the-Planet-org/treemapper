@@ -192,9 +192,10 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     setColumns(updatedColumns);
   }, [approvals, sites, entityType, searchQuery]);
 
-  const loadApprovals = async () => {
+  const loadApprovals = async (opts?: { silent?: boolean }) => {
+    const silent = opts?.silent ?? false;
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       toast.error(null);
 
       // Fetch all submitted interventions (backend returns all statuses except draft by default)
@@ -252,7 +253,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     } catch (err: any) {
       toast.error(err.message || 'Failed to load approvals');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -313,13 +314,13 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     newStatus: ApprovalStatus,
     comment: string,
     _isInternal: boolean
-  ) => {
-    if (!selectedApproval || !isInterventionApproval(selectedApproval)) return;
+  ): Promise<boolean> => {
+    if (!selectedApproval || !isInterventionApproval(selectedApproval)) return false;
 
     const decision = mapColumnStatusToDecision(newStatus);
     if (!decision) {
       toast.error('Cannot move to this status');
-      return;
+      return false;
     }
 
     try {
@@ -342,22 +343,26 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
       if (response.statusCode === 200 || response.statusCode === 201) {
         await loadApprovals();
         selectApproval(null);
-      } else {
-        toast.error(response.message || 'Failed to update status');
+        return true;
       }
+
+      toast.error(response.message || 'Failed to update status');
+      return false;
     } catch (err: any) {
       toast.error(err.message || 'Failed to update status');
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCommentAdd = async (comment: string, _isInternal: boolean) => {
-    if (!selectedApproval || !isInterventionApproval(selectedApproval)) return;
+  const handleCommentAdd = async (
+    comment: string,
+    _isInternal: boolean
+  ): Promise<boolean> => {
+    if (!selectedApproval || !isInterventionApproval(selectedApproval)) return false;
 
     try {
-      setLoading(true);
-
       // Get current thread UID
       let threadUid: string | undefined;
 
@@ -371,7 +376,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
 
       if (!threadUid) {
         toast.error('No active review thread found.');
-        return;
+        return false;
       }
 
       const commentDto = {
@@ -387,15 +392,17 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
       }
 
       if (response.statusCode === 200 || response.statusCode === 201) {
-        await loadApprovals();
-        selectApproval(null);
-      } else {
-        toast.error(response.message || 'Failed to add comment');
+        // Refresh card counts quietly; keep the modal open. The modal
+        // refreshes its own thread inline.
+        await loadApprovals({ silent: true });
+        return true;
       }
+
+      toast.error(response.message || 'Failed to add comment');
+      return false;
     } catch (err: any) {
       toast.error(err.message || 'Failed to add comment');
-    } finally {
-      setLoading(false);
+      return false;
     }
   };
 
@@ -403,12 +410,12 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     newStatus: ApprovalStatus,
     comment: string,
     _isInternal: boolean
-  ) => {
-    if (!selectedApproval || !isSiteApproval(selectedApproval)) return;
+  ): Promise<boolean> => {
+    if (!selectedApproval || !isSiteApproval(selectedApproval)) return false;
     const decision = mapColumnStatusToDecision(newStatus);
     if (!decision) {
       toast.error('Cannot move to this status');
-      return;
+      return false;
     }
     try {
       setLoading(true);
@@ -421,20 +428,24 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
       if (response.statusCode === 200 || response.statusCode === 201) {
         await loadSites();
         selectApproval(null);
-      } else {
-        toast.error(response.message || 'Failed to update site status');
+        return true;
       }
+      toast.error(response.message || 'Failed to update site status');
+      return false;
     } catch (err: any) {
       toast.error(err.message || 'Failed to update site status');
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSiteCommentAdd = async (comment: string, _isInternal: boolean) => {
-    if (!selectedApproval || !isSiteApproval(selectedApproval)) return;
+  const handleSiteCommentAdd = async (
+    comment: string,
+    _isInternal: boolean
+  ): Promise<boolean> => {
+    if (!selectedApproval || !isSiteApproval(selectedApproval)) return false;
     try {
-      setLoading(true);
       const commentDto = { type: 'general' as const, message: comment };
       let response;
       if (isAdmin) {
@@ -443,15 +454,16 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
         response = await addFieldWorkerSiteComment(accessToken, selectedApproval.siteUid, commentDto);
       }
       if (response.statusCode === 200 || response.statusCode === 201) {
+        // Refresh quietly; keep the modal open. The modal refreshes its
+        // own thread inline.
         await loadSites();
-        selectApproval(null);
-      } else {
-        toast.error(response.message || 'Failed to add comment');
+        return true;
       }
+      toast.error(response.message || 'Failed to add comment');
+      return false;
     } catch (err: any) {
       toast.error(err.message || 'Failed to add comment');
-    } finally {
-      setLoading(false);
+      return false;
     }
   };
 

@@ -304,7 +304,13 @@ export class ApprovalBoardService {
       throw new ForbiddenException('Intervention does not belong to this project');
     }
 
-    await this.authzService.assertProjectMembership(userId, inv.projectId);
+    // The admin path arrives with expectedProjectId set and is already authorized
+    // by ApprovalDecisionGuard (superadmin, workspace owner, project owner/admin,
+    // or an explicit approve permission). Only the unguarded field-worker path
+    // needs a direct project-membership check here.
+    if (expectedProjectId === undefined) {
+      await this.authzService.assertProjectMembership(userId, inv.projectId);
+    }
 
     if (inv.reviewStatus !== 'in_review') {
       throw new BadRequestException(
@@ -481,7 +487,13 @@ export class ApprovalBoardService {
       throw new ForbiddenException('Thread does not belong to this project');
     }
 
-    await this.authzService.assertProjectMembership(userId, thread.projectId);
+    // The admin path arrives with expectedProjectId set and is already authorized
+    // by ApprovalDecisionGuard (superadmin, workspace owner, project owner/admin,
+    // or an explicit approve permission). Only the unguarded field-worker path
+    // needs a direct project-membership check here.
+    if (expectedProjectId === undefined) {
+      await this.authzService.assertProjectMembership(userId, thread.projectId);
+    }
 
     if (thread.status !== 'open') {
       throw new BadRequestException('Cannot comment on a closed thread');

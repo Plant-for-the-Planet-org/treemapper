@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, FolderOpen, Globe, Mail, MapPin, Search, User as UserIcon, UserCheck } from 'lucide-react';
 import { getWorkspaceMembersApi, startImpersonationWork } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
-import { useUserStore } from '@shared-core/store/useUserStore';
+import useProjectStore from '@shared-core/store/useProjectStore';
 import { Avatar, Badge, Button, Card, CardContent, CardHeader, CardTitle, ConfirmationModal, Input } from './workspace-ui';
 
 interface UserDetail {
@@ -167,7 +167,7 @@ function UserRow({ user, token, goHome }: { user: UserDetail; token: string; goH
 
 export function MemberManagementSection({ goHome }: { goHome?: () => void }) {
   const { accessToken } = useToken();
-  const currentUser = useUserStore((state) => state.user);
+  const workspaceUid = useProjectStore((state) => state.selectedWorkspce?.uid);
   const defaultGoHome = () => { window.location.replace('/'); };
   const resolvedGoHome = goHome ?? defaultGoHome;
   const [users, setUsers] = useState<UserDetail[]>([]);
@@ -175,15 +175,17 @@ export function MemberManagementSection({ goHome }: { goHome?: () => void }) {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    if (!accessToken || !currentUser?.primaryWorkspaceUid) return;
+    if (!accessToken || !workspaceUid) return;
+    // Clear the previous workspace's members while the new list loads.
+    setUsers([]);
     setIsLoading(true);
-    getWorkspaceMembersApi(accessToken, currentUser.primaryWorkspaceUid)
+    getWorkspaceMembersApi(accessToken, workspaceUid)
       .then((res) => {
         const list = Array.isArray(res) ? res : res?.data;
         if (Array.isArray(list)) setUsers(list);
       })
       .finally(() => setIsLoading(false));
-  }, [accessToken, currentUser?.primaryWorkspaceUid]);
+  }, [accessToken, workspaceUid]);
 
   const filtered = search.trim()
     ? users.filter((u) => {

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter, useParams } from 'next/navigation'
 import {
-  Activity, ArrowLeft, Check, CheckSquare, ChevronDown, FolderOpen, Settings, UserCheck, Users,
+  Activity, ArrowLeft, Check, CheckSquare, ChevronDown, FolderOpen, Settings, Users,
 } from 'lucide-react'
 import { useToken } from '@/context/useTokenContext'
 import { useUserStore } from '@shared-core/store/useUserStore'
@@ -17,7 +17,6 @@ const SECTIONS = [
   { id: 'projects', label: 'Project Management', icon: FolderOpen },
   { id: 'approvals', label: 'Approvals', icon: CheckSquare },
   { id: 'activity', label: 'Activity & Audit', icon: Activity },
-  { id: 'impersonation', label: 'Impersonation', icon: UserCheck },
 ]
 
 export default function WorkspaceSidebar() {

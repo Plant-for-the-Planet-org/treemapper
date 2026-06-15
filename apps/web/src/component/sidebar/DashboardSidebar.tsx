@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils'
 import { useUserStore } from '@shared-core/store/useUserStore'
 import useProjectStore from '@shared-core/store/useProjectStore'
 import { useToken } from '@/context/useTokenContext'
-import { selectOrg, exitImpersonationWork } from '@shared-core/fetchApi/api.fetch'
+import { selectOrg, exitImpersonationWork, getMyAdminWorkspaces } from '@shared-core/fetchApi/api.fetch'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Button } from '@/components/ui/button'
 import NotificationBell from '@/component/header/NotificationIcon'
@@ -78,8 +78,20 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
   const projectRole = selectedProject?.userRole
   const isContributor = projectRole === 'contributor'
   const isAdminOrOwner = projectRole === 'admin' || projectRole === 'owner'
-  const workspaceRole = (selectedWorkspce as { userRole?: string } | null)?.userRole
-  const isWorkspaceManager = !!workspaceRole && workspaceRole !== 'member'
+
+  // The Workspace settings area is for people who own or admin at least one
+  // workspace -- regardless of which project is currently selected. We resolve
+  // that from the user's workspace list, not the selected workspace's role.
+  const [managesAnyWorkspace, setManagesAnyWorkspace] = useState(false)
+  useEffect(() => {
+    if (!accessToken) return
+    let cancelled = false
+    getMyAdminWorkspaces(accessToken).then(res => {
+      if (!cancelled) setManagesAnyWorkspace(Array.isArray(res?.data) && res.data.length > 0)
+    })
+    return () => { cancelled = true }
+  }, [accessToken])
+  const isWorkspaceManager = managesAnyWorkspace
 
   const activeRoute = (() => {
     const subpage = subpageFromPath(pathname)
@@ -220,9 +232,9 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
       ? [{
         label: 'Admin',
         items: [
-          ...(isAdminOrOwner ? [{ icon: SlidersHorizontal, label: 'Project settings', id: 'settings' }] : [])
-          // ...(isWorkspaceManager ? [{ icon: Building, label: 'Workspace', id: 'workspace' }] : []),
-          // ...((canImpersonate || isWorkspaceManager) ? [{ icon: UserCheck, label: 'Impersonate', id: 'impersonate' }] : []),
+          ...(isAdminOrOwner ? [{ icon: SlidersHorizontal, label: 'Project settings', id: 'settings' }] : []),
+          ...(isWorkspaceManager ? [{ icon: Building, label: 'Workspace', id: 'workspace' }] : []),
+          ...((canImpersonate || isWorkspaceManager) ? [{ icon: UserCheck, label: 'Impersonate', id: 'impersonate' }] : []),
         ],
       }]
       : []),

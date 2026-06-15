@@ -11,7 +11,9 @@
       "Bash(grep -rln \"@Controller\\('sites'\\)\\\\|@Controller\\('site'\\)\\\\|class Site\" apps/server/src)",
       "Bash(yarn type-check *)",
       "Bash(yarn db:generate)",
-      "Bash(echo \"=== exit: $? \\(empty above = clean\\) ===\")"
+      "Bash(echo \"=== exit: $? \\(empty above = clean\\) ===\")",
+      "Bash(awk 'NR>=360 && NR<=420' /Users/plant-214/Documents/pftp/treemapper/apps/server/src/database/schema/index.ts)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

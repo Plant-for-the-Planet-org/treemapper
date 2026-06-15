@@ -35,9 +35,8 @@ function resolveProjectUid(...sources: Array<Record<string, any> | undefined>): 
  *
  * Rules:
  *  - A superadmin (not impersonating) can act on any project.
- *  - On platform projects, project role alone is NOT enough: the member must
- *    hold the explicit approve permission, which only a superadmin can grant.
- *    This makes the superadmin the sole authority over who approves.
+ *  - On platform projects, project role alone is NOT enough: the caller must be
+ *    the workspace owner (or hold an explicitly granted approve permission).
  *  - On all other workspaces, the project owner/admin (or a member with the
  *    explicit approve permission) may act, matching the prior behavior.
  */
@@ -116,13 +115,19 @@ export class ApprovalDecisionGuard implements CanActivate {
     const isPlatform = await this.projectsService.isPlatformProject(membership.projectId);
 
     if (isPlatform) {
-      // Role alone never grants approval on platform projects.
-      if (!hasPerm) {
+      // On platform projects, only the workspace owner may approve/reject/review.
+      // Project role alone is not enough; an explicit approve permission still
+      // works for anyone a workspace owner / superadmin has granted it to.
+      const isWorkspaceOwner = await this.projectsService.isWorkspaceOwnerForProject(
+        membership.projectId,
+        userId,
+      );
+      if (!isWorkspaceOwner && !hasPerm) {
         this.logger.warn(
-          `[ApprovalGuard] DENY platform project: role=${membership.role} lacks approval permission`,
+          `[ApprovalGuard] DENY platform project: role=${membership.role} is not workspace owner and lacks approval permission`,
         );
         throw new ForbiddenException(
-          'On platform projects, approval rights must be granted by a super admin',
+          'On platform projects, only the workspace owner can approve, reject, or review.',
         );
       }
     } else if (!hasRole && !hasPerm) {

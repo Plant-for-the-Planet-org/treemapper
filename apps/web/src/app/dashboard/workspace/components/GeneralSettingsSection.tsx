@@ -8,7 +8,7 @@ import {
   getWorkspaceProjectsApi,
 } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
-import { useUserStore } from '@shared-core/store/useUserStore';
+import useProjectStore from '@shared-core/store/useProjectStore';
 import type { WorkspaceSettings } from '../types';
 import { DEFAULT_WORKSPACE_SETTINGS } from '../types';
 import {
@@ -89,7 +89,8 @@ function SectionHeader({
 
 export function GeneralSettingsSection() {
   const { accessToken } = useToken();
-  const currentUser = useUserStore((state) => state.user);
+  const selectedWorkspace = useProjectStore((state) => state.selectedWorkspce);
+  const workspaceUid = selectedWorkspace?.uid;
   const [settings, setSettings] = useState<WorkspaceSettings>(DEFAULT_WORKSPACE_SETTINGS);
   const [projects, setProjects] = useState<{ uid: string; name: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,12 +99,14 @@ export function GeneralSettingsSection() {
   const [savedOk, setSavedOk] = useState(false);
 
   useEffect(() => {
-    if (!accessToken || !currentUser?.primaryWorkspaceUid) return;
-    const uid = currentUser.primaryWorkspaceUid;
+    if (!accessToken || !workspaceUid) return;
+    // Reset to defaults so a previous workspace's settings never linger while loading.
+    setSettings(DEFAULT_WORKSPACE_SETTINGS);
+    setProjects([]);
     setIsLoading(true);
     Promise.all([
-      getWorkspaceSettings(accessToken, uid),
-      getWorkspaceProjectsApi(accessToken, uid),
+      getWorkspaceSettings(accessToken, workspaceUid),
+      getWorkspaceProjectsApi(accessToken, workspaceUid),
     ])
       .then(([settingsRes, projectsRes]) => {
         if (settingsRes?.data && !settingsRes.error) {
@@ -114,7 +117,7 @@ export function GeneralSettingsSection() {
         }
       })
       .finally(() => setIsLoading(false));
-  }, [accessToken, currentUser?.primaryWorkspaceUid]);
+  }, [accessToken, workspaceUid]);
 
   const patch = (update: Partial<WorkspaceSettings>) =>
     setSettings((prev) => ({ ...prev, ...update }));
@@ -134,11 +137,11 @@ export function GeneralSettingsSection() {
   };
 
   const confirmSave = async () => {
-    if (!currentUser?.primaryWorkspaceUid) return;
+    if (!workspaceUid) return;
     setIsSaving(true);
     const result = await updateWorkspaceSettings(
       accessToken,
-      currentUser.primaryWorkspaceUid,
+      workspaceUid,
       settings,
     );
     setIsSaving(false);

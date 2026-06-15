@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { getWorkspaceAuditLogs } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
-import { useUserStore } from '@shared-core/store/useUserStore';
+import useProjectStore from '@shared-core/store/useProjectStore';
 import type { AuditAction, AuditLogsResponse, WorkspaceAuditLog } from '../types';
 import { Button, Card, CardContent, CardHeader, CardTitle, Select, SelectItem } from './workspace-ui';
 
@@ -172,7 +172,7 @@ function UserAvatar({ name, image }: { name: string | null; image: string | null
 
 export function ActivityAuditSection() {
   const { accessToken } = useToken();
-  const currentUser = useUserStore((state) => state.user);
+  const workspaceUid = useProjectStore((state) => state.selectedWorkspce?.uid);
 
   const [logs, setLogs] = useState<WorkspaceAuditLog[]>([]);
   const [total, setTotal] = useState(0);
@@ -192,12 +192,12 @@ export function ActivityAuditSection() {
 
   const fetchLogs = useCallback(
     async (pageNum: number, append = false) => {
-      if (!accessToken || !currentUser?.primaryWorkspaceUid) return;
+      if (!accessToken || !workspaceUid) return;
       append ? setIsLoadingMore(true) : setIsLoading(true);
       setError(null);
 
       const f = filtersRef.current;
-      const res = await getWorkspaceAuditLogs(accessToken, currentUser.primaryWorkspaceUid, {
+      const res = await getWorkspaceAuditLogs(accessToken, workspaceUid, {
         page: pageNum,
         limit: PAGE_SIZE,
         action: f.action || undefined,
@@ -216,12 +216,13 @@ export function ActivityAuditSection() {
       setTotal(payload.total);
       setLogs((prev) => (append ? [...prev, ...payload.data] : payload.data));
     },
-    [accessToken, currentUser?.primaryWorkspaceUid],
+    [accessToken, workspaceUid],
   );
 
-  // initial load + re-load when filters change
+  // initial load + re-load when filters or the selected workspace change
   useEffect(() => {
     setPage(1);
+    setLogs([]);
     fetchLogs(1, false);
   }, [fetchLogs, filters]);
 

@@ -618,8 +618,6 @@ export class AnalyticsService {
         )
       );
 
-    const startOfMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
-
     const contributorStats = await this.drizzleService.db
       .select({
         totalContributors: sql<number>`COUNT(DISTINCT ${intervention.userId})`
@@ -628,7 +626,6 @@ export class AnalyticsService {
       .where(
         and(
           eq(intervention.projectId, projectId),
-          gte(intervention.interventionStartDate, startOfMonth),
           lte(intervention.interventionStartDate, endDate),
           isNull(intervention.deletedAt),
           publishedInterventionFilter()

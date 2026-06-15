@@ -486,6 +486,33 @@ export class ProjectsService {
     }
   }
 
+  /**
+   * Whether the user is the owner of the workspace that owns the project.
+   * On platform projects, only the workspace owner may approve/reject/review,
+   * so this is the authority check used by the approval guard.
+   */
+  async isWorkspaceOwnerForProject(projectId: number, userId: number): Promise<boolean> {
+    try {
+      const [member] = await this.drizzleService.db
+        .select({ role: workspaceMember.role })
+        .from(project)
+        .innerJoin(
+          workspaceMember,
+          and(
+            eq(workspaceMember.workspaceId, project.workspaceId),
+            eq(workspaceMember.userId, userId),
+            eq(workspaceMember.role, 'owner'),
+            eq(workspaceMember.status, 'active'),
+          ),
+        )
+        .where(eq(project.id, projectId))
+        .limit(1);
+      return !!member;
+    } catch {
+      return false;
+    }
+  }
+
   async createProject(createProjectDto: CreateProjectDto, userData: User): Promise<any> {
     try {
       if (!userData.primaryWorkspaceUid) {
@@ -1462,8 +1489,9 @@ export class ProjectsService {
           code: 'update_extra_permissions_denied',
         };
       }
-      // On platform projects, only a superadmin decides who can approve, so any
-      // change to a member's extra permissions there is restricted to superadmins.
+      // On platform projects, approval rights are controlled by the workspace
+      // owner (or a superadmin). A project admin cannot grant approval
+      // permissions there, so restrict this change accordingly.
       const isPlatform = await this.isPlatformProject(myMembership.projectId);
       if (isPlatform) {
         const [caller] = await this.drizzleService.db
@@ -1471,13 +1499,18 @@ export class ProjectsService {
           .from(user)
           .where(eq(user.id, myMembership.userId))
           .limit(1);
-        if (caller?.type !== 'superadmin') {
+        const isSuperAdmin = caller?.type === 'superadmin';
+        const isWorkspaceOwner = await this.isWorkspaceOwnerForProject(
+          myMembership.projectId,
+          myMembership.userId,
+        );
+        if (!isSuperAdmin && !isWorkspaceOwner) {
           return {
-            message: 'On platform projects, only a super admin can change approval permissions',
+            message: 'On platform projects, only the workspace owner can change approval permissions',
             statusCode: 403,
             error: 'forbidden',
             data: null,
-            code: 'platform_extra_permissions_superadmin_only',
+            code: 'platform_extra_permissions_workspace_owner_only',
           };
         }
       }

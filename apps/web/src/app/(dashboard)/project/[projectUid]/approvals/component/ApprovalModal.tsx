@@ -34,8 +34,6 @@ import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import {
   CheckCircle2,
-  XCircle,
-  Eye,
   MessageSquare,
   User,
   Calendar,
@@ -56,8 +54,8 @@ interface ApprovalModalProps {
     newStatus: ApprovalStatus,
     comment: string,
     isInternal: boolean
-  ) => void;
-  onCommentAdd: (comment: string, isInternal: boolean) => void;
+  ) => Promise<boolean> | void;
+  onCommentAdd: (comment: string, isInternal: boolean) => Promise<boolean> | void;
 }
 
 export const ApprovalModal: React.FC<ApprovalModalProps> = ({
@@ -76,6 +74,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
   const [currentThread, setCurrentThread] = useState<ReviewThread | null>(null);
   const [threadComments, setThreadComments] = useState<ReviewComment[]>([]);
   const [loadingThread, setLoadingThread] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [detailedData, setDetailedData] = useState<Record<string, any> | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
@@ -220,21 +219,35 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
     return `${icons[action] || ''} ${text}`;
   };
 
-  const handleStatusClick = (newStatus: ApprovalStatus) => {
-    setTargetStatus(newStatus);
-    setShowCommentForm(true);
-  };
+  const handleSubmit = async () => {
+    if (submitting) return;
 
-  const handleSubmit = () => {
     if (targetStatus) {
       if (targetStatus === 'rejected' && !comment.trim()) {
         alert('Comment is required when rejecting');
         return;
       }
-      onStatusChange(targetStatus, comment.trim(), isInternal);
+      setSubmitting(true);
+      const ok = await onStatusChange(targetStatus, comment.trim(), isInternal);
+      setSubmitting(false);
+      // Status change moves the card and the parent closes the modal.
+      // Keep the form on failure so the user can retry.
+      if (ok === false) return;
     } else {
       if (!comment.trim()) return;
-      onCommentAdd(comment.trim(), isInternal);
+      setSubmitting(true);
+      const ok = await onCommentAdd(comment.trim(), isInternal);
+      if (ok !== false) {
+        // Refresh the thread inline so the new comment shows without
+        // closing the modal or reloading the board.
+        if (isInterventionApproval(intervention)) {
+          await loadReviewThread();
+        } else if (isSiteApproval(intervention)) {
+          await loadSiteThread();
+        }
+      }
+      setSubmitting(false);
+      if (ok === false) return;
     }
 
     setComment('');
@@ -242,13 +255,6 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
     setShowCommentForm(false);
     setTargetStatus(null);
   };
-
-  const canApprove = isAdmin && intervention.approvalStatus !== 'approved';
-  const canReject = isAdmin && intervention.approvalStatus !== 'rejected';
-  const canMoveToReview =
-    isAdmin &&
-    intervention.approvalStatus !== 'in_review' &&
-    intervention.approvalStatus !== 'approved';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -1062,6 +1068,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
+                      disabled={submitting}
                       onClick={() => {
                         setShowCommentForm(false);
                         setTargetStatus(null);
@@ -1073,9 +1080,11 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     </Button>
                     <Button
                       onClick={handleSubmit}
-                      disabled={targetStatus === 'rejected' && !comment.trim()}
+                      disabled={
+                        submitting || (targetStatus === 'rejected' && !comment.trim())
+                      }
                     >
-                      Submit
+                      {submitting ? 'Submitting...' : 'Submit'}
                     </Button>
                   </div>
                 </div>
@@ -1092,29 +1101,6 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Add Comment
                   </Button>
-
-                  {isAdmin && (
-                    <div className="grid grid-cols-3 gap-2">
-                      {canMoveToReview && (
-                        <Button variant="secondary" onClick={() => handleStatusClick('in_review')}>
-                          <Eye className="h-4 w-4 mr-1" />
-                          Review
-                        </Button>
-                      )}
-                      {canApprove && (
-                        <Button onClick={() => handleStatusClick('approved')}>
-                          <CheckCircle2 className="h-4 w-4 mr-1" />
-                          Approve
-                        </Button>
-                      )}
-                      {canReject && (
-                        <Button variant="destructive" onClick={() => handleStatusClick('rejected')}>
-                          <XCircle className="h-4 w-4 mr-1" />
-                          Reject
-                        </Button>
-                      )}
-                    </div>
-                  )}
                 </div>
               )}
             </div>
