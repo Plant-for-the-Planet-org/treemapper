@@ -117,6 +117,12 @@ export const getTeamMemebers = async (token: string, id: string) => {
   return result
 }
 
+export const getProjectTeamActivity = async (token: string, id: string, limit = 20) => {
+  const uri = `${getUrlApi.teamMembers}/${id}/team-activity?limit=${limit}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
 
 export const getMyProjects = async (token: string) => {
   const uri = `${getUrlApi.projects}`
@@ -218,8 +224,8 @@ export const getUserProjectSites = async (token: string, id: string) => {
   return result
 }
 
-export const getProjectAnalytics = async (token: string, id: string) => {
-  const uri = `${getUrlApi.getProjectAnalytics}/${id}/leaderboard`
+export const getProjectAnalytics = async (token: string, id: string, pageSize?: number) => {
+  const uri = `${getUrlApi.getProjectAnalytics}/${id}/leaderboard${pageSize ? `?pageSize=${pageSize}` : ''}`
   const result = await fetchGetCall(uri, token)
   return result
 }

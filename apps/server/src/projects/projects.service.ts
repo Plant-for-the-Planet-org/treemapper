@@ -28,6 +28,7 @@ export interface ProjectMemberResponse {
   role: string;
   joinedAt: Date | null;
   invitedAt: Date | null;
+  lastActiveAt: Date | null;
   user: {
     uid: string;
     name: string | null;
@@ -773,6 +774,7 @@ export class ProjectsService {
         role: projectMember.projectRole,
         joinedAt: projectMember.joinedAt,
         invitedAt: projectMember.invitedAt,
+        lastActiveAt: projectMember.lastActiveAt,
         extraPermissions: projectMember.extraPermissions,
         siteAccess: projectMember.siteAccess,
         restrictedSites: projectMember.restrictedSites,
@@ -820,6 +822,10 @@ export class ProjectsService {
       members,
       invitations
     };
+  }
+
+  async getProjectTeamActivity(membership: ProjectGuardResponse, query: { page?: number; limit?: number } = {}) {
+    return this.auditLogsService.getProjectTeamActivity(membership.projectId, query);
   }
 
   async expireInvite(token: string, userData: User, projectId: number) {
