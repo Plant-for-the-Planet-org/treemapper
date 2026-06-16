@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
+import Map, { Source, Layer } from 'react-map-gl/maplibre';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Trees,
@@ -24,21 +24,56 @@ import {
     History,
     ArrowRight,
     ArrowLeft,
-    ChevronRight,
-    Sprout,
-    Shield,
-    Target,
-    Leaf,
     Download,
     CloudCheck,
     CloudAlert,
-    type LucideIcon,
 } from 'lucide-react';
 import * as turf from '@turf/turf';
-import { getAllMapInterevntions, getProjectSitesMap } from '@shared-core/fetchApi/api.fetch';
-import { cdnUrl } from '@/lib/cdn';
-import { baseUrl } from '@shared-core/fetchApi/api.url';
 import { cn } from '@/lib/utils';
+import type {
+    MapIntervention,
+    MapTree,
+    TreeRecord,
+    SiteFeature,
+    SiteFeatureCollection,
+    ProjectMapBounds,
+    InterventionDetailResponse,
+    MapState,
+    MapError,
+} from './map/types';
+import {
+    FILL_COLOR,
+    REST_COLOR,
+    SELECTED_COLOR,
+    BORDER_COLOR,
+    SITE_BOUNDARY_COLOR,
+    BASEMAP_STYLES,
+    BASEMAP_OPTIONS,
+    type BasemapKey,
+} from './map/constants';
+import {
+    getInterventionColor,
+    getInterventionIcon,
+    getTreeStatusColor,
+    formatDate,
+    buildTreeImageUrl,
+    buildSpeciesImageUrl,
+    formatHeight,
+    formatWidth,
+    formatNum,
+    resolveArea,
+    initialsOf,
+    getMarkerPosition,
+    zoomToIntervention,
+    createTreeIcon,
+} from './map/utils';
+import {
+    fetchProjectInterventions,
+    fetchProjectSites,
+    fetchTreeDetail,
+    fetchTreeRecords,
+    fetchInterventionDetail,
+} from './map/api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -50,452 +85,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-
-// ==================== TYPES ====================
-interface MapIntervention {
-    id: number;
-    uid: string;
-    hid: string;
-    type: string;
-    status: string;
-    captureStatus?: string;
-    registrationDate: string;
-    interventionStartDate: string;
-    interventionEndDate: string;
-    location: GeoJSON.Point | GeoJSON.Polygon | GeoJSON.MultiPolygon;
-    locationGeometryType?: 'Point' | 'Polygon' | 'MultiPolygon';
-    centroid?: GeoJSON.Point;
-    area?: number;
-    totalTreeCount: number;
-    totalSampleTreeCount: number;
-    description?: string;
-    image?: string;
-    owner?: { displayName: string | null; image: string | null } | null;
-}
-
-interface MapTree {
-    id: number;
-    uid: string;
-    hid: string;
-    tag?: string;
-    treeType: string;
-    location: GeoJSON.Point;
-    status: string;
-    speciesName?: string;
-    commonName?: string;
-    speciesImage?: string;
-    speciesFamily?: string;
-    height?: number;
-    width?: number;
-    currentHealthScore?: number;
-    plantingDate?: string;
-    lastMeasurementDate?: string;
-    image?: string;
-    migratedTree?: boolean;
-    ownerName?: string | null;
-    ownerImage?: string | null;
-}
-
-// A single remeasurement / status-change record for a tree.
-interface TreeRecord {
-    id: number;
-    uid: string;
-    recordType?: string;
-    recordedAt?: string;
-    previousStatus?: string | null;
-    newStatus?: string | null;
-    statusReason?: string | null;
-    height?: number | null;
-    width?: number | null;
-    notes?: string | null;
-    image?: string | null;
-    recordedByName?: string | null;
-}
-
-interface SiteFeature {
-    type: 'Feature';
-    id: number;
-    properties: {
-        id: number;
-        uid: string;
-        name: string;
-        status?: string;
-        area?: number | null;
-        centroid?: GeoJSON.Point;
-    };
-    geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon;
-}
-
-interface SiteFeatureCollection {
-    type: 'FeatureCollection';
-    features: SiteFeature[];
-    totalSites?: number;
-}
-
-interface ProjectMapBounds {
-    bounds: [number, number, number, number];
-    center: [number, number];
-}
-
-interface ProjectMapResponse {
-    interventions: MapIntervention[];
-    bounds: ProjectMapBounds;
-    totalInterventions: number;
-}
-
-interface InterventionDetailResponse {
-    intervention: MapIntervention;
-    trees: MapTree[];
-    bounds: ProjectMapBounds;
-}
-
-interface ApiResponse<T> {
-    success: boolean;
-    data: T;
-    message?: string;
-    error?: any;
-}
-
-interface MapState {
-    selectedInterventionId: number | null;
-    selectedTreeId: number | null;
-    showTreeDetails: boolean;
-}
-
-interface MapError {
-    type: 'network' | 'api' | 'mapbox' | 'geometry' | 'permission' | 'unknown';
-    message: string;
-    details?: any;
-    recoverable: boolean;
-}
-
-// ==================== UTILITY FUNCTIONS ====================
-const validateGeoJSONGeometry = (geometry: any): boolean => {
-    try {
-        if (!geometry || !geometry.type || !geometry.coordinates) return false;
-        switch (geometry.type) {
-            case 'Point':
-                return (
-                    Array.isArray(geometry.coordinates) &&
-                    geometry.coordinates.length >= 2 &&
-                    typeof geometry.coordinates[0] === 'number' &&
-                    typeof geometry.coordinates[1] === 'number' &&
-                    isFinite(geometry.coordinates[0]) &&
-                    isFinite(geometry.coordinates[1]) &&
-                    Math.abs(geometry.coordinates[0]) <= 180 &&
-                    Math.abs(geometry.coordinates[1]) <= 90
-                );
-            case 'Polygon':
-                return (
-                    Array.isArray(geometry.coordinates) &&
-                    geometry.coordinates.length > 0 &&
-                    Array.isArray(geometry.coordinates[0]) &&
-                    geometry.coordinates[0].length >= 3
-                );
-            case 'MultiPolygon':
-                return (
-                    Array.isArray(geometry.coordinates) &&
-                    geometry.coordinates.length > 0
-                );
-            default:
-                return false;
-        }
-    } catch {
-        return false;
-    }
-};
-
-const BRAND = '#007A49';
-const FILL_COLOR = '#68B030';
-const BORDER_COLOR = '#ffffff';
-// Site boundary outline — amber reads clearly over satellite imagery and
-// stays distinct from the green intervention polygons.
-const SITE_BOUNDARY_COLOR = '#FBBF24';
-
-const getInterventionColor = (type: string): string => {
-    const colors: Record<string, string> = {
-        'single-tree-registration': BRAND,
-        'multi-tree-registration': BRAND,
-        'direct-seeding': '#005c37',
-        'enrichment-planting': '#009a5c',
-        'maintenance': '#00b36b',
-        'monitoring': '#004d30',
-        'removal-invasive-species': '#c53030',
-    };
-    return colors[type] ?? BRAND;
-};
-
-// Intervention type -> icon, mirroring the interventions list page so the
-// overview reads consistently with the rest of the dashboard.
-const interventionTypeIcons: Record<string, LucideIcon> = {
-    'enrichment-planting': Trees,
-    'direct-seeding': Sprout,
-    'removal-invasive-species': Shield,
-    'maintenance': Activity,
-    'fencing': Shield,
-    'fire-patrol': Shield,
-    'soil-improvement': Leaf,
-    'grass-suppression': Leaf,
-    'single-tree-registration': Trees,
-    'multi-tree-registration': Trees,
-    'other-intervention': Target,
-};
-
-const getInterventionIcon = (type: string): LucideIcon =>
-    interventionTypeIcons[type] ?? Target;
-
-const getTreeStatusColor = (status: string): string => {
-    const colors: Record<string, string> = {
-        alive: '#10b981',
-        dead: '#dc2626',
-        sick: '#f59e0b',
-        unknown: '#6b7280',
-        removed: '#374151',
-    };
-    return colors[status] ?? '#6b7280';
-};
-
-const formatDate = (dateString: string): string => {
-    try {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-        });
-    } catch {
-        return 'Invalid date';
-    }
-};
-
-// Resolve the stored tree image key into a full CDN URL. Mirrors the logic in
-// TreeCard: migrated trees keep their legacy coordinate path, everything else
-// lives under the project CDN's `tree/` folder. A value that is already a full
-// URL is passed through untouched.
-const buildTreeImageUrl = (tree: MapTree): string | null => {
-    if (!tree.image) return null;
-    if (/^https?:\/\//i.test(tree.image)) return tree.image;
-    if (tree.migratedTree && /\.(jpe?g|png)$/i.test(tree.image)) {
-        return `https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${tree.image}`;
-    }
-    return cdnUrl('tree', tree.image);
-};
-
-// Scientific species reference image lives under the CDN's `species/` folder.
-const buildSpeciesImageUrl = (image?: string): string | null => {
-    return cdnUrl('species', image);
-};
-
-const formatHeight = (v?: number | null): string | null =>
-    v == null ? null : `${v} m`;
-
-const formatWidth = (v?: number | null): string | null =>
-    v == null ? null : `${v} cm`;
-
-// Group a number with thousands separators, up to `digits` decimals.
-const formatNum = (n: number, digits = 0): string =>
-    n.toLocaleString('en-US', { maximumFractionDigits: digits });
-
-// Format an area in m² into a human-readable label.
-// >= 10,000 m² (1 ha) → show in hectares; otherwise m². Thousands grouped.
-const formatArea = (sqm: number): string =>
-    sqm >= 10_000
-        ? `${formatNum(sqm / 10_000, 2)} ha`
-        : `${formatNum(sqm, 2)} m²`;
-
-// Resolve the display area for an intervention. Prefers the stored value;
-// falls back to computing from the polygon geometry when it is missing.
-const resolveArea = (intervention: MapIntervention): string => {
-    if (intervention.area) return formatArea(intervention.area);
-    if (
-        intervention.location.type === 'Polygon' ||
-        intervention.location.type === 'MultiPolygon'
-    ) {
-        try {
-            const sqm = turf.area(intervention.location as any);
-            if (sqm > 0) return formatArea(sqm);
-        } catch { /* ignore */ }
-    }
-    return '—';
-};
-
-// First-letter initials for an avatar fallback when no photo is available.
-const initialsOf = (name?: string | null): string => {
-    if (!name) return '?';
-    const parts = name.trim().split(/\s+/);
-    return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '?';
-};
-
-const getMarkerPosition = (intervention: MapIntervention): [number, number] => {
-    try {
-        if (intervention.location.type === 'Point') {
-            return intervention.location.coordinates as [number, number];
-        }
-        if (intervention.centroid) {
-            return intervention.centroid.coordinates as [number, number];
-        }
-        const centroid = turf.centroid(intervention.location as any);
-        return centroid.geometry.coordinates as [number, number];
-    } catch {
-        return [0, 0];
-    }
-};
-
-const zoomToIntervention = (intervention: MapIntervention, mapRef: any) => {
-    if (!mapRef) return;
-    try {
-        if (intervention.location.type === 'Polygon' || intervention.location.type === 'MultiPolygon') {
-            const [minLng, minLat, maxLng, maxLat] = turf.bbox(intervention.location as any);
-            mapRef.fitBounds([minLng, minLat, maxLng, maxLat], {
-                padding: { top: 80, bottom: 80, left: 80, right: 80 },
-                duration: 1000,
-                maxZoom: 18,
-            });
-        } else {
-            const [lng, lat] = getMarkerPosition(intervention);
-            if (isFinite(lng) && isFinite(lat)) {
-                mapRef.flyTo({ center: [lng, lat], zoom: 16, duration: 1000 });
-            }
-        }
-    } catch { /* ignore */ }
-};
-
-const calculateBounds = (interventions: MapIntervention[]): ProjectMapBounds => {
-    try {
-        if (interventions.length === 0) {
-            return { bounds: [-180, -85, 180, 85], center: [0, 0] };
-        }
-        const allCoords: number[][] = [];
-        interventions.forEach(i => {
-            if (i.location.type === 'Point') {
-                allCoords.push(i.location.coordinates as number[]);
-            } else {
-                try {
-                    const c = turf.centroid(i.location as any);
-                    allCoords.push(c.geometry.coordinates);
-                } catch { /* skip */ }
-            }
-        });
-        if (allCoords.length === 0) return { bounds: [-180, -85, 180, 85], center: [0, 0] };
-
-        const lngs = allCoords.map(c => c[0]);
-        const lats = allCoords.map(c => c[1]);
-        const minLng = Math.min(...lngs);
-        const maxLng = Math.max(...lngs);
-        const minLat = Math.min(...lats);
-        const maxLat = Math.max(...lats);
-        const lngPad = (maxLng - minLng) * 0.1 || 0.01;
-        const latPad = (maxLat - minLat) * 0.1 || 0.01;
-
-        return {
-            bounds: [minLng - lngPad, minLat - latPad, maxLng + lngPad, maxLat + latPad],
-            center: [(minLng + maxLng) / 2, (minLat + maxLat) / 2],
-        };
-    } catch {
-        return { bounds: [-180, -85, 180, 85], center: [0, 0] };
-    }
-};
-
-// ==================== API FUNCTIONS ====================
-const fetchProjectInterventions = async (projectId: string, token: string): Promise<ApiResponse<ProjectMapResponse>> => {
-    const response = await getAllMapInterevntions(token, projectId);
-    const apiData = response.data?.data || response.data;
-    const rawInterventions = apiData?.interventions || [];
-    const apiBounds = apiData?.bounds;
-
-    const processed = rawInterventions.map((i: any) => ({
-        ...i,
-        locationGeometryType: i.locationGeometryType || i.location?.type || 'Point',
-    }));
-
-    const valid = processed.filter((i: MapIntervention) => validateGeoJSONGeometry(i.location));
-    const dropped = processed.length - valid.length;
-    if (dropped > 0) {
-        console.warn(`${dropped} interventions skipped due to invalid geometry`);
-    }
-
-    const bounds = apiBounds?.bounds && apiBounds?.center
-        ? apiBounds
-        : calculateBounds(valid);
-
-    return {
-        success: true,
-        data: {
-            interventions: valid,
-            bounds,
-            totalInterventions: valid.length,
-        },
-    };
-};
-
-const fetchProjectSites = async (projectId: string, token: string): Promise<SiteFeatureCollection> => {
-    const response = await getProjectSitesMap(token, projectId);
-    // Endpoint returns { success, data: { type, features, totalSites } }.
-    const apiData = response.data?.data || response.data;
-    const features: SiteFeature[] = (apiData?.features || []).filter(
-        (f: SiteFeature) => validateGeoJSONGeometry(f.geometry),
-    );
-    return { type: 'FeatureCollection', features, totalSites: features.length };
-};
-
-// Responses are double-wrapped: a global interceptor adds an outer
-// { statusCode, message, data, code } envelope around the controller's own
-// { success, statusCode, data } envelope, so the real payload sits at
-// json.data.data. Peel both layers (and tolerate single- or no-wrap shapes).
-const unwrapApi = (json: any): any => json?.data?.data ?? json?.data ?? json;
-
-// Fetch full detail for a single tree. The bulk map/tree list only carries a
-// photo when tree.image is set, which is often empty; this endpoint resolves
-// the best available image (tree photo, then primary image, then latest record
-// photo) plus tag and species. Called lazily when a tree marker is clicked.
-const fetchTreeDetail = async (
-    treeHid: string,
-    projectId: string,
-    token?: string,
-): Promise<Partial<MapTree> | null> => {
-    const url = `${baseUrl}/interventions/trees/${treeHid}/${projectId}/detail`;
-    const headers: Record<string, string> = { Accept: 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    const response = await fetch(url, { headers });
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    const data = await response.json();
-    return unwrapApi(data) as Partial<MapTree> | null;
-};
-
-// Fetch the remeasurement / status-change records for a tree. Records are the
-// history rows (height, width, status change, notes) captured after planting.
-// Called lazily when a tree detail panel opens.
-const fetchTreeRecords = async (
-    treeHid: string,
-    projectId: string,
-    token?: string,
-): Promise<TreeRecord[]> => {
-    const url = `${baseUrl}/interventions/trees/${treeHid}/${projectId}/records`;
-    const headers: Record<string, string> = { Accept: 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    const response = await fetch(url, { headers });
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    const data = await response.json();
-    const payload = unwrapApi(data);
-    return Array.isArray(payload?.records) ? (payload.records as TreeRecord[]) : [];
-};
-
-// Fetch the full detail for an intervention: the intervention itself (with
-// owner + resolved photo) plus every tree in it (each with owner, latest
-// measurements, species and photo) and the map bounds for plotting markers.
-// Fired on every intervention select so the panel always shows fresh data.
-const fetchInterventionDetail = async (
-    interventionId: number,
-    projectId: string,
-    token?: string,
-): Promise<InterventionDetailResponse | null> => {
-    const url = `${baseUrl}/interventions/${projectId}/intervention/${interventionId}/detail`;
-    const headers: Record<string, string> = { Accept: 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    const response = await fetch(url, { headers });
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    const data = await response.json();
-    return unwrapApi(data) as InterventionDetailResponse | null;
-};
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Switch } from '@/components/ui/switch';
 
 // ==================== COMPONENTS ====================
 
@@ -697,46 +288,6 @@ const LoadingDisplay: React.FC<{ message?: string }> = ({ message = 'Loading map
         </div>
     </div>
 );
-
-const TreeMarker: React.FC<{
-    tree: MapTree;
-    isSelected: boolean;
-    onClick: () => void;
-}> = ({ tree, isSelected, onClick }) => {
-    const color = getTreeStatusColor(tree.status);
-    const [lng, lat] = tree.location.coordinates as [number, number];
-    if (!isFinite(lng) || !isFinite(lat) || Math.abs(lng) > 180 || Math.abs(lat) > 90) return null;
-
-    return (
-        <Marker longitude={lng} latitude={lat} onClick={onClick} style={{ zIndex: isSelected ? 20 : 1 }}>
-            <div className="relative flex items-center justify-center">
-                {/* Highlight ring for the selected tree */}
-                {isSelected && (
-                    <>
-                        <motion.span
-                            className="absolute rounded-full"
-                            style={{ border: `2px solid ${color}`, width: 38, height: 38 }}
-                            initial={{ scale: 0.6, opacity: 0.8 }}
-                            animate={{ scale: 1.4, opacity: 0 }}
-                            transition={{ duration: 1.4, repeat: Infinity, ease: 'easeOut' }}
-                        />
-                        <span
-                            className="absolute rounded-full"
-                            style={{ backgroundColor: color, opacity: 0.18, width: 32, height: 32 }}
-                        />
-                    </>
-                )}
-                <Trees
-                    size={isSelected ? 22 : 16}
-                    color={isSelected ? '#ffffff' : color}
-                    fill={color}
-                    strokeWidth={isSelected ? 2.5 : 2}
-                    className="relative cursor-pointer drop-shadow-sm transition-all"
-                />
-            </div>
-        </Marker>
-    );
-};
 
 // Small copy-to-clipboard button that briefly flips to a check on success.
 const CopyButton: React.FC<{ value: string; title?: string; className?: string }> = ({ value, title = 'Copy', className }) => {
@@ -970,7 +521,7 @@ const InterventionPanel: React.FC<{
                             No sample trees recorded
                         </div>
                     ) : (
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-4 gap-2">
                             {trees.map(tree => (
                                 <TreeGridItem key={tree.id} tree={tree} onSelect={onSelectTree} />
                             ))}
@@ -1029,9 +580,9 @@ const TreeTooltip: React.FC<{
     isLoadingDetail?: boolean;
     records?: TreeRecord[];
     isLoadingRecords?: boolean;
-    showRecords?: boolean;
-    onViewRecords?: () => void;
-}> = ({ tree, onClose, isLoadingDetail = false, records = [], isLoadingRecords = false, showRecords = false, onViewRecords }) => {
+    historyLoaded?: boolean;
+    onLoadHistory?: () => void;
+}> = ({ tree, onClose, isLoadingDetail = false, records = [], isLoadingRecords = false, historyLoaded = false, onLoadHistory }) => {
     const statusColor = getTreeStatusColor(tree.status);
     const treeImage = buildTreeImageUrl(tree);
     const speciesImage = buildSpeciesImageUrl(tree.speciesImage);
@@ -1049,53 +600,53 @@ const TreeTooltip: React.FC<{
 
     return (
         <div className="w-full h-full bg-card text-card-foreground flex flex-col overflow-hidden">
-            {/* Back to intervention */}
+            {/* Back to intervention (fixed) */}
             <button
                 onClick={onClose}
-                className="shrink-0 flex items-center gap-1.5 px-3 py-2.5 border-b border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="shrink-0 flex items-center gap-1.5 px-3 py-2 border-b border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
                 <ArrowLeft className="w-4 h-4" />
                 Back to intervention
             </button>
-
-            {/* Image header / banner */}
-            <div className="relative h-40 shrink-0 bg-muted">
-                {showTreeImage ? (
-                    <img
-                        src={treeImage as string}
-                        alt={tree.tag || tree.hid}
-                        className="w-full h-full object-cover"
-                        onError={() => setTreeImgError(true)}
-                    />
-                ) : isLoadingDetail ? (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground">
-                        <Loader2 className="w-7 h-7 animate-spin" strokeWidth={1.5} />
-                        <span className="text-xs mt-1.5">Loading photo...</span>
-                    </div>
-                ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/50">
-                        <Trees className="w-10 h-10" strokeWidth={1.5} />
-                        <span className="text-xs mt-1.5 text-muted-foreground">No tree photo</span>
-                    </div>
-                )}
-
-                {/* Status badge */}
-                <div
-                    className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium capitalize backdrop-blur-sm"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.9)', color: statusColor }}
-                >
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColor }} />
-                    {tree.status}
-                </div>
-            </div>
 
             <div
                 className="overflow-y-auto flex-1 min-h-0 overscroll-contain"
                 onWheel={(e) => e.stopPropagation()}
                 style={{ scrollbarWidth: 'thin', scrollbarColor: '#e5e7eb transparent' }}
             >
+                {/* Image header / banner — scrolls with the content */}
+                <div className="relative h-32 bg-muted">
+                    {showTreeImage ? (
+                        <img
+                            src={treeImage as string}
+                            alt={tree.tag || tree.hid}
+                            className="w-full h-full object-cover"
+                            onError={() => setTreeImgError(true)}
+                        />
+                    ) : isLoadingDetail ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground">
+                            <Loader2 className="w-7 h-7 animate-spin" strokeWidth={1.5} />
+                            <span className="text-xs mt-1.5">Loading photo...</span>
+                        </div>
+                    ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground/50">
+                            <Trees className="w-9 h-9" strokeWidth={1.5} />
+                            <span className="text-xs mt-1 text-muted-foreground">No tree photo</span>
+                        </div>
+                    )}
+
+                    {/* Status badge */}
+                    <div
+                        className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium capitalize backdrop-blur-sm"
+                        style={{ backgroundColor: 'rgba(255,255,255,0.9)', color: statusColor }}
+                    >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColor }} />
+                        {tree.status}
+                    </div>
+                </div>
+
                 {/* Title */}
-                <div className="px-4 pt-3.5 pb-3 border-b border-border">
+                <div className="px-4 pt-2.5 pb-2.5 border-b border-border">
                     <div className="font-semibold text-foreground leading-tight">{tree.tag || tree.hid}</div>
                     <div className="flex items-center gap-2 mt-1">
                         {tree.tag && <span className="font-mono text-xs text-muted-foreground">{tree.hid}</span>}
@@ -1107,8 +658,8 @@ const TreeTooltip: React.FC<{
 
                 {/* Species */}
                 {(tree.speciesName || tree.commonName) && (
-                    <div className="px-4 py-3 border-b border-border flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-primary/10 flex items-center justify-center">
+                    <div className="px-4 py-2.5 border-b border-border flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-primary/10 flex items-center justify-center">
                             {showSpeciesImage ? (
                                 <img
                                     src={speciesImage as string}
@@ -1122,7 +673,7 @@ const TreeTooltip: React.FC<{
                         </div>
                         <div className="min-w-0">
                             {tree.speciesName && (
-                                <div className="text-sm font-medium italic text-foreground truncate">{tree.speciesName}</div>
+                                <div className="text-sm font-medium text-foreground truncate">{tree.speciesName}</div>
                             )}
                             {tree.commonName && (
                                 <div className="text-xs text-muted-foreground truncate">{tree.commonName}</div>
@@ -1135,7 +686,7 @@ const TreeTooltip: React.FC<{
                 )}
 
                 {/* Details grid */}
-                <div className="px-4 py-3.5 grid grid-cols-2 gap-x-4 gap-y-3.5">
+                <div className="px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-2.5">
                     {height && (
                         <DetailStat icon={<Ruler className="w-4 h-4" />} label="Height" value={height} />
                     )}
@@ -1163,105 +714,83 @@ const TreeTooltip: React.FC<{
                             value={formatDate(tree.lastMeasurementDate)}
                         />
                     )}
-                </div>
-
-                {/* Coordinates */}
-                <div className="px-4 pb-3.5 space-y-3">
                     {coords && (
-                        <div>
-                            <div className="text-[11px] uppercase tracking-wide text-muted-foreground flex items-center gap-1 mb-0.5">
-                                <MapPin className="w-3 h-3" /> Coordinates
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-mono text-foreground truncate">{coords}</span>
-                                <CopyButton value={coords} title="Copy coordinates" />
+                        <div className="col-span-2 flex items-start gap-2">
+                            <div className="mt-0.5 text-muted-foreground shrink-0"><MapPin className="w-4 h-4" /></div>
+                            <div className="min-w-0 flex-1">
+                                <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Coordinates</div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-foreground truncate">{coords}</span>
+                                    <CopyButton value={coords} title="Copy coordinates" />
+                                </div>
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* Records — expandable timeline inline */}
-                <div className="px-4 pb-4 border-t border-border pt-3">
-                    {isLoadingRecords ? (
-                        <div className="flex items-center gap-2 py-2 text-muted-foreground">
-                            <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
-                            <span className="text-xs">Loading records...</span>
-                        </div>
-                    ) : (
-                        <>
-                            <button
-                                onClick={onViewRecords}
-                                disabled={records.length === 0 || !onViewRecords}
-                                className="w-full flex items-center justify-between group py-1 disabled:opacity-40 disabled:cursor-default"
-                            >
-                                <div className="text-sm font-medium text-foreground flex items-center gap-1.5">
-                                    <History className="w-4 h-4 text-muted-foreground" />
-                                    Records
-                                    <span className="text-muted-foreground font-normal">({records.length})</span>
-                                </div>
-                                {records.length > 0 && (
-                                    <ChevronRight
-                                        className={cn(
-                                            'w-4 h-4 text-muted-foreground group-hover:text-muted-foreground transition-transform',
-                                            showRecords && 'rotate-90',
-                                        )}
-                                    />
-                                )}
-                            </button>
+                {/* History — record timeline, loaded on demand */}
+                <div className="px-4 pb-3 border-t border-border pt-2.5">
+                    <div className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-2.5">
+                        <History className="w-4 h-4 text-muted-foreground" />
+                        History
+                        {historyLoaded && !isLoadingRecords && <span className="text-muted-foreground font-normal">({records.length})</span>}
+                    </div>
 
-                            <AnimatePresence initial={false}>
-                                {showRecords && records.length > 0 && (
-                                    <motion.ol
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: 'auto', opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        className="relative border-l border-border ml-1.5 mt-3 space-y-3 overflow-hidden"
-                                    >
-                                        {records.map(rec => {
-                                            const recH = formatHeight(rec.height);
-                                            const recW = formatWidth(rec.width);
-                                            const statusChanged = rec.newStatus && rec.newStatus !== rec.previousStatus;
-                                            return (
-                                                <li key={rec.id} className="ml-4">
-                                                    <span
-                                                        className="absolute -left-[5px] w-2.5 h-2.5 rounded-full ring-2 ring-white"
-                                                        style={{ backgroundColor: getTreeStatusColor(rec.newStatus || '') }}
-                                                    />
-                                                    <div className="flex items-center justify-between gap-2">
-                                                        <span className="text-xs font-medium text-foreground capitalize">
-                                                            {rec.recordType?.replace(/_/g, ' ') || 'Record'}
-                                                        </span>
-                                                        {rec.recordedAt && (
-                                                            <span className="text-[11px] text-muted-foreground">{formatDate(rec.recordedAt)}</span>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-muted-foreground">
-                                                        {recH && <span className="inline-flex items-center gap-0.5"><Ruler className="w-3 h-3" /> {recH}</span>}
-                                                        {recW && <span>⌀ {recW}</span>}
-                                                        {statusChanged && (
-                                                            <span className="inline-flex items-center gap-1 capitalize">
-                                                                {rec.previousStatus || '—'}
-                                                                <ArrowRight className="w-3 h-3" />
-                                                                {rec.newStatus}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {rec.statusReason && (
-                                                        <div className="text-[11px] text-muted-foreground mt-0.5">Reason: {rec.statusReason}</div>
-                                                    )}
-                                                    {rec.notes && (
-                                                        <div className="text-[11px] text-muted-foreground mt-0.5">{rec.notes}</div>
-                                                    )}
-                                                    {rec.recordedByName && (
-                                                        <div className="text-[11px] text-muted-foreground mt-0.5">by {rec.recordedByName}</div>
-                                                    )}
-                                                </li>
-                                            );
-                                        })}
-                                    </motion.ol>
-                                )}
-                            </AnimatePresence>
-                        </>
+                    {isLoadingRecords ? (
+                        <div className="flex items-center gap-2 py-1 text-muted-foreground">
+                            <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
+                            <span className="text-xs">Loading history...</span>
+                        </div>
+                    ) : !historyLoaded ? (
+                        <Button variant="outline" size="sm" className="w-full" onClick={onLoadHistory}>
+                            Show history
+                        </Button>
+                    ) : records.length === 0 ? (
+                        <div className="text-xs text-muted-foreground py-0.5">No history yet</div>
+                    ) : (
+                        <ol className="relative border-l border-border ml-1.5 space-y-3">
+                            {records.map(rec => {
+                                const recH = formatHeight(rec.height);
+                                const recW = formatWidth(rec.width);
+                                const statusChanged = rec.newStatus && rec.newStatus !== rec.previousStatus;
+                                return (
+                                    <li key={rec.id} className="ml-4">
+                                        <span
+                                            className="absolute -left-[5px] w-2.5 h-2.5 rounded-full ring-2 ring-card"
+                                            style={{ backgroundColor: getTreeStatusColor(rec.newStatus || '') }}
+                                        />
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="text-xs font-medium text-foreground capitalize">
+                                                {rec.recordType?.replace(/_/g, ' ') || 'Record'}
+                                            </span>
+                                            {rec.recordedAt && (
+                                                <span className="text-[11px] text-muted-foreground">{formatDate(rec.recordedAt)}</span>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-muted-foreground">
+                                            {recH && <span className="inline-flex items-center gap-0.5"><Ruler className="w-3 h-3" /> {recH}</span>}
+                                            {recW && <span>⌀ {recW}</span>}
+                                            {statusChanged && (
+                                                <span className="inline-flex items-center gap-1 capitalize">
+                                                    {rec.previousStatus || '—'}
+                                                    <ArrowRight className="w-3 h-3" />
+                                                    {rec.newStatus}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {rec.statusReason && (
+                                            <div className="text-[11px] text-muted-foreground mt-0.5">Reason: {rec.statusReason}</div>
+                                        )}
+                                        {rec.notes && (
+                                            <div className="text-[11px] text-muted-foreground mt-0.5">{rec.notes}</div>
+                                        )}
+                                        {rec.recordedByName && (
+                                            <div className="text-[11px] text-muted-foreground mt-0.5">by {rec.recordedByName}</div>
+                                        )}
+                                    </li>
+                                );
+                            })}
+                        </ol>
                     )}
                 </div>
             </div>
@@ -1280,6 +809,7 @@ const ProjectMap: React.FC<{
     const [trees, setTrees] = useState<MapTree[]>([]);
     const [sites, setSites] = useState<SiteFeatureCollection>({ type: 'FeatureCollection', features: [] });
     const [showSiteBoundaries, setShowSiteBoundaries] = useState(true);
+    const [basemap, setBasemap] = useState<BasemapKey>('satellite');
     const [selectedSiteId, setSelectedSiteId] = useState<number | null>(null);
     const [bounds, setBounds] = useState<ProjectMapBounds | null>(null);
     const [hidSearch, setHidSearch] = useState('');
@@ -1301,7 +831,6 @@ const ProjectMap: React.FC<{
     // id so a stale fetch from a previous tree never shows under the new one.
     const [treeRecords, setTreeRecords] = useState<{ treeId: number; records: TreeRecord[] } | null>(null);
     const [isLoadingRecords, setIsLoadingRecords] = useState(false);
-    const [showTreeRecords, setShowTreeRecords] = useState(false);
     // Full intervention detail (intervention + owner + trees) fetched on select,
     // and the loading flag that drives the panel loader.
     const [detail, setDetail] = useState<InterventionDetailResponse | null>(null);
@@ -1467,36 +996,20 @@ const ProjectMap: React.FC<{
 
     const handleMapLoad = useCallback(() => {
         setMapLoaded(true);
-        const map = mapRef.current;
-        if (!map) return;
-        const size = 24;
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        ctx.clearRect(0, 0, size, size);
-        ctx.fillStyle = 'rgba(255,255,255,1)';
-        // pine tree: top triangle
-        ctx.beginPath();
-        ctx.moveTo(12, 1);
-        ctx.lineTo(2, 10);
-        ctx.lineTo(22, 10);
-        ctx.closePath();
-        ctx.fill();
-        // pine tree: middle triangle
-        ctx.beginPath();
-        ctx.moveTo(12, 5);
-        ctx.lineTo(1, 16);
-        ctx.lineTo(23, 16);
-        ctx.closePath();
-        ctx.fill();
-        // trunk
-        ctx.fillRect(10, 15, 4, 7);
-        if (!map.hasImage('tree-icon')) {
-            map.addImage('tree-icon', ctx.getImageData(0, 0, size, size));
-        }
+        createTreeIcon(mapRef.current?.getMap?.() ?? mapRef.current);
     }, []);
+
+    // Switching basemaps calls setStyle, which drops custom images and layers.
+    // react-map-gl re-adds the Source/Layer children, but the tree-icon image is
+    // imperative — re-create it whenever a new style finishes loading.
+    useEffect(() => {
+        if (!mapLoaded) return;
+        const map = mapRef.current?.getMap?.() ?? mapRef.current;
+        if (!map?.on) return;
+        const ensure = () => createTreeIcon(map);
+        map.on('styledata', ensure);
+        return () => { map.off?.('styledata', ensure); };
+    }, [mapLoaded]);
 
     const handleMapClick = useCallback((event: any) => {
         const feature = event.features?.[0];
@@ -1518,6 +1031,20 @@ const ProjectMap: React.FC<{
             }
             return;
         }
+        // Sample tree click: open the tree detail and recenter on it.
+        if (layerId === 'trees-points-circle') {
+            const treeId = feature.properties?.id;
+            const tree = trees.find(t => t.id === treeId);
+            if (!tree) return;
+            setMapState(prev => ({ ...prev, selectedTreeId: tree.id, showTreeDetails: true }));
+            if (tree.location?.type === 'Point') {
+                const [lng, lat] = tree.location.coordinates as [number, number];
+                if (isFinite(lng) && isFinite(lat)) {
+                    mapRef.current?.easeTo({ center: [lng, lat], duration: 600 });
+                }
+            }
+            return;
+        }
         if (!feature.properties?.id) return;
         const intervention = interventions.find(i => i.id === feature.properties.id);
         if (!intervention) return;
@@ -1526,7 +1053,7 @@ const ProjectMap: React.FC<{
         } else {
             selectIntervention(intervention);
         }
-    }, [interventions, mapState.selectedInterventionId, selectIntervention]);
+    }, [interventions, trees, mapState.selectedInterventionId, selectIntervention]);
 
     const selectedIntervention = useMemo(
         () => interventions.find(i => i.id === mapState.selectedInterventionId),
@@ -1557,7 +1084,10 @@ const ProjectMap: React.FC<{
     // polygons) that drives the animated "pulse" ring on the map. Empty when
     // nothing is selected so the ring disappears.
     const selectedPulseGeoJSON = useMemo(() => {
-        if (!selectedIntervention) {
+        // Only pulse point interventions. For polygons the green outline + glow
+        // already signal selection; a ring on the centroid just reads as a stray
+        // dot in the middle of the shape.
+        if (!selectedIntervention || selectedIntervention.location.type !== 'Point') {
             return { type: 'FeatureCollection' as const, features: [] };
         }
         const [lng, lat] = getMarkerPosition(selectedIntervention);
@@ -1578,6 +1108,36 @@ const ProjectMap: React.FC<{
         () => trees.find(t => t.id === mapState.selectedTreeId),
         [trees, mapState.selectedTreeId],
     );
+
+    // Sample trees as a clickable GeoJSON layer (more reliable + performant than
+    // DOM markers). Colored by status; selection is driven by feature-state.
+    const treesGeoJSON = useMemo(() => ({
+        type: 'FeatureCollection' as const,
+        features: trees
+            .filter(t => t.location?.type === 'Point')
+            .map(t => ({
+                type: 'Feature' as const,
+                id: t.id,
+                properties: { id: t.id, color: getTreeStatusColor(t.status) },
+                geometry: t.location,
+            })),
+    }), [trees]);
+
+    // Keep the selected tree's feature-state in sync so the layer can highlight
+    // it (bigger dot + white ring).
+    const prevSelectedTreeIdRef = useRef<number | null>(null);
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map) return;
+        const prev = prevSelectedTreeIdRef.current;
+        try {
+            if (prev != null) map.setFeatureState({ source: 'trees-points', id: prev }, { selected: false });
+            if (mapState.selectedTreeId != null) {
+                map.setFeatureState({ source: 'trees-points', id: mapState.selectedTreeId }, { selected: true });
+            }
+        } catch { /* source not ready */ }
+        prevSelectedTreeIdRef.current = mapState.selectedTreeId;
+    }, [mapState.selectedTreeId, treesGeoJSON]);
 
     // When a tree marker is clicked, fetch its full detail once and merge the
     // result (resolved image, tag, species) back into the tree. The bulk list
@@ -1608,34 +1168,31 @@ const ProjectMap: React.FC<{
         return () => { cancelled = true; };
     }, [mapState.selectedTreeId, trees, projectId, token]);
 
-    // When a tree detail panel opens, lazily load its remeasurement records.
-    // Records are kept separate from the tree object and tagged with the tree id
-    // so a slow response for an earlier tree never renders under a newer one.
+    // Tree history (remeasurement records) is loaded on demand, not on select —
+    // reset it whenever the open tree changes so each tree starts collapsed.
     useEffect(() => {
+        setTreeRecords(null);
+        setIsLoadingRecords(false);
+    }, [mapState.selectedTreeId]);
+
+    // Fetch the selected tree's history when the user asks. Tagged with the tree
+    // id so a slow response for an earlier tree never renders under a newer one.
+    const loadTreeHistory = useCallback(async () => {
         const id = mapState.selectedTreeId;
-        if (id == null || !mapState.showTreeDetails) {
-            setTreeRecords(null);
-            setIsLoadingRecords(false);
-            return;
-        }
+        if (id == null) return;
         const tree = trees.find(t => t.id === id);
         if (!tree) return;
-        let cancelled = false;
         setIsLoadingRecords(true);
-        setTreeRecords(null);
-        (async () => {
-            try {
-                const records = await fetchTreeRecords(tree.hid, projectId, token);
-                if (!cancelled) setTreeRecords({ treeId: id, records });
-            } catch (err) {
-                console.warn('Failed to load tree records:', err);
-                if (!cancelled) setTreeRecords({ treeId: id, records: [] });
-            } finally {
-                if (!cancelled) setIsLoadingRecords(false);
-            }
-        })();
-        return () => { cancelled = true; };
-    }, [mapState.selectedTreeId, mapState.showTreeDetails, trees, projectId, token]);
+        try {
+            const records = await fetchTreeRecords(tree.hid, projectId, token);
+            setTreeRecords({ treeId: id, records });
+        } catch (err) {
+            console.warn('Failed to load tree records:', err);
+            setTreeRecords({ treeId: id, records: [] });
+        } finally {
+            setIsLoadingRecords(false);
+        }
+    }, [mapState.selectedTreeId, trees, projectId, token]);
 
     // When an intervention is selected (map marker or sidebar list), fetch its
     // full detail and plot its trees. A loader covers the panel while the call
@@ -1755,30 +1312,7 @@ const ProjectMap: React.FC<{
             <Map
                 ref={mapRef}
                 onLoad={handleMapLoad}
-                mapStyle={{
-                    version: 8,
-                    name: 'Satellite',
-                    bearing: 0,
-                    pitch: 0,
-                    sources: {
-                        imagery: {
-                            type: 'raster',
-                            tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
-                            tileSize: 256,
-                            minzoom: 0,
-                            maxzoom: 18,
-                        },
-                    },
-                    layers: [
-                        {
-                            id: 'imagery',
-                            type: 'raster',
-                            source: 'imagery',
-                            minzoom: 0,
-                            layout: { visibility: 'visible' },
-                        },
-                    ],
-                }}
+                mapStyle={BASEMAP_STYLES[basemap]}
                 initialViewState={{
                     longitude: bounds?.center[0] ?? 0,
                     latitude: bounds?.center[1] ?? 0,
@@ -1791,6 +1325,7 @@ const ProjectMap: React.FC<{
                     'interventions-points-clusters',
                     'interventions-points-circle',
                     'interventions-centroids-circle',
+                    'trees-points-circle',
                 ]}
                 onClick={handleMapClick}
                 onMouseMove={event => {
@@ -1861,60 +1396,77 @@ const ProjectMap: React.FC<{
                     </Source>
                 )}
 
-                {/* Polygon fills — visible from zoom 9 */}
+                {/* Polygon fills — visible from zoom 9. Refined treatment:
+                    soft green glow (hover/select only) -> soft fill -> white
+                    casing -> crisp green outline. The casing keeps the edge
+                    legible on satellite, light and dark basemaps alike. */}
                 {polygonGeoJSON.features.length > 0 && (
                     <Source id="interventions-polygons" type="geojson" data={polygonGeoJSON}>
-                        {/* Outer glow — only on hover/select */}
+                        {/* Soft green glow — subtle lift on hover/select */}
                         <Layer
                             id="interventions-polygons-glow"
                             type="line"
                             minzoom={9}
                             paint={{
-                                'line-color': BORDER_COLOR,
-                                'line-width': 10,
-                                'line-blur': 6,
+                                'line-color': ['case', ['feature-state', 'selected'], SELECTED_COLOR, REST_COLOR],
+                                'line-width': 8,
+                                'line-blur': 5,
                                 'line-opacity': [
                                     'case',
-                                    ['feature-state', 'selected'], 0.30,
-                                    ['feature-state', 'hover'], 0.15,
+                                    ['feature-state', 'selected'], 0.45,
+                                    ['feature-state', 'hover'], 0.20,
                                     0,
                                 ],
                             }}
                         />
-                        {/* Semi-transparent fill */}
+                        {/* Fill — fully transparent (border-only, Felt-style:
+                            the outline carries the shape on every basemap, and
+                            hover/select are shown via the edge, not a fill).
+                            Kept as a layer so the polygon interior stays
+                            clickable — a 0-opacity fill still registers clicks. */}
                         <Layer
                             id="interventions-polygons-fill"
                             type="fill"
                             minzoom={9}
                             paint={{
                                 'fill-color': FILL_COLOR,
-                                'fill-opacity': [
-                                    'case',
-                                    ['feature-state', 'selected'], 0.50,
-                                    ['feature-state', 'hover'], 0.40,
-                                    0.30,
-                                ],
+                                'fill-opacity': 0,
                             }}
                         />
-                        {/* White border */}
+                        {/* White casing under the outline — only on satellite,
+                            where the line needs separating from busy imagery. On
+                            the light/dark vector basemaps the line reads on its
+                            own, and a white halo would over-brighten on dark. */}
                         <Layer
-                            id="interventions-polygons-outline"
+                            id="interventions-polygons-casing"
                             type="line"
                             minzoom={9}
                             paint={{
                                 'line-color': BORDER_COLOR,
                                 'line-width': [
                                     'case',
-                                    ['feature-state', 'selected'], 3,
-                                    ['feature-state', 'hover'], 2.5,
-                                    2,
+                                    ['feature-state', 'selected'], 5,
+                                    ['feature-state', 'hover'], 4.5,
+                                    3.5,
                                 ],
-                                'line-opacity': [
+                                'line-opacity': basemap === 'satellite' ? 0.7 : 0,
+                                'line-blur': 0.5,
+                            }}
+                        />
+                        {/* Crisp green outline */}
+                        <Layer
+                            id="interventions-polygons-outline"
+                            type="line"
+                            minzoom={9}
+                            paint={{
+                                'line-color': ['case', ['feature-state', 'selected'], SELECTED_COLOR, REST_COLOR],
+                                'line-width': [
                                     'case',
-                                    ['feature-state', 'selected'], 1,
-                                    ['feature-state', 'hover'], 0.95,
-                                    0.85,
+                                    ['feature-state', 'selected'], 3,
+                                    ['feature-state', 'hover'], 2,
+                                    1.5,
                                 ],
+                                'line-opacity': 1,
                             }}
                         />
                     </Source>
@@ -2001,7 +1553,7 @@ const ProjectMap: React.FC<{
                             type="circle"
                             filter={['!', ['has', 'point_count']]}
                             paint={{
-                                'circle-color': FILL_COLOR,
+                                'circle-color': ['case', ['feature-state', 'selected'], SELECTED_COLOR, REST_COLOR],
                                 'circle-radius': [
                                     'case',
                                     ['feature-state', 'selected'], 18,
@@ -2050,7 +1602,7 @@ const ProjectMap: React.FC<{
                             paint={{
                                 'circle-radius': 16,
                                 'circle-color': 'rgba(0,0,0,0)',
-                                'circle-stroke-color': BRAND,
+                                'circle-stroke-color': SELECTED_COLOR,
                                 'circle-stroke-width': 3,
                                 'circle-stroke-opacity': 0.6,
                             }}
@@ -2058,21 +1610,32 @@ const ProjectMap: React.FC<{
                     </Source>
                 )}
 
-                {/* Tree markers — only trees that carry a valid point */}
-                {trees.filter(t => t.location?.type === 'Point').map(tree => (
-                    <TreeMarker
-                        key={tree.id}
-                        tree={tree}
-                        isSelected={mapState.selectedTreeId === tree.id}
-                        onClick={() => {
-                            setMapState(prev => ({ ...prev, selectedTreeId: tree.id, showTreeDetails: true }));
-                            const [lng, lat] = tree.location.coordinates as [number, number];
-                            if (isFinite(lng) && isFinite(lat)) {
-                                mapRef.current?.easeTo({ center: [lng, lat], duration: 600 });
-                            }
-                        }}
-                    />
-                ))}
+                {/* Sample trees — clickable circle layer, colored by status,
+                    selected one enlarged with a white ring. */}
+                {treesGeoJSON.features.length > 0 && (
+                    <Source id="trees-points" type="geojson" data={treesGeoJSON}>
+                        <Layer
+                            id="trees-points-circle"
+                            type="circle"
+                            paint={{
+                                'circle-color': ['get', 'color'],
+                                'circle-radius': [
+                                    'case',
+                                    ['feature-state', 'selected'], 9,
+                                    ['feature-state', 'hover'], 7,
+                                    5.5,
+                                ],
+                                'circle-stroke-color': BORDER_COLOR,
+                                'circle-stroke-width': [
+                                    'case',
+                                    ['feature-state', 'selected'], 3,
+                                    ['feature-state', 'hover'], 2,
+                                    1.5,
+                                ],
+                            }}
+                        />
+                    </Source>
+                )}
             </Map>
 
             {/* Error */}
@@ -2104,19 +1667,47 @@ const ProjectMap: React.FC<{
                 </div>
             )}
 
-            {/* Zoom controls */}
+            {/* Map controls — layers panel + zoom */}
             <div className="absolute bottom-10 right-3 z-20 flex flex-col gap-1.5">
-                {sites.features.length > 0 && (
-                    <Button
-                        variant="outline"
-                        size="icon-sm"
-                        onClick={() => setShowSiteBoundaries(v => !v)}
-                        className={cn('rounded-full bg-background shadow-md mb-1', showSiteBoundaries ? 'text-amber-500' : 'text-muted-foreground')}
-                        title={showSiteBoundaries ? 'Hide site boundaries' : 'Show site boundaries'}
-                    >
-                        <Layers size={16} strokeWidth={2.5} />
-                    </Button>
-                )}
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="icon-sm"
+                            className="rounded-full bg-background shadow-md text-foreground mb-1"
+                            title="Layers"
+                        >
+                            <Layers size={16} strokeWidth={2.5} />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent side="left" align="end" className="w-52 p-3 gap-3">
+                        <div>
+                            <div className="text-xs font-medium text-muted-foreground mb-1.5">Basemap</div>
+                            <div className="grid grid-cols-3 gap-1">
+                                {BASEMAP_OPTIONS.map(opt => (
+                                    <button
+                                        key={opt.key}
+                                        onClick={() => setBasemap(opt.key)}
+                                        className={cn(
+                                            'px-2 py-1 text-xs rounded-md border transition-colors',
+                                            basemap === opt.key
+                                                ? 'bg-primary text-primary-foreground border-primary'
+                                                : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted',
+                                        )}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        {sites.features.length > 0 && (
+                            <label className="flex items-center justify-between gap-2 pt-3 border-t border-border cursor-pointer">
+                                <span className="text-sm text-foreground">Site boundaries</span>
+                                <Switch checked={showSiteBoundaries} onCheckedChange={setShowSiteBoundaries} />
+                            </label>
+                        )}
+                    </PopoverContent>
+                </Popover>
                 <Button
                     variant="outline"
                     size="icon-sm"
@@ -2153,11 +1744,10 @@ const ProjectMap: React.FC<{
                             tree={selectedTree}
                             isLoadingDetail={isLoadingTreeDetail}
                             records={treeRecords?.treeId === selectedTree.id ? treeRecords.records : []}
-                            isLoadingRecords={isLoadingRecords || treeRecords?.treeId !== selectedTree.id}
-                            showRecords={showTreeRecords}
-                            onViewRecords={() => setShowTreeRecords(v => !v)}
+                            isLoadingRecords={isLoadingRecords}
+                            historyLoaded={treeRecords?.treeId === selectedTree.id}
+                            onLoadHistory={loadTreeHistory}
                             onClose={() => {
-                                setShowTreeRecords(false);
                                 setMapState(prev => ({ ...prev, selectedTreeId: null, showTreeDetails: false }));
                             }}
                         />
