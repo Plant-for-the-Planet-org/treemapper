@@ -1,15 +1,21 @@
 import { Pressable, StyleSheet, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import Header from 'src/components/common/Header'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import CreatePlotCard from 'src/components/monitoringPlot/CreatePlotCard'
 import CustomButton from 'src/components/common/CustomButton'
+import CustomDropDownPicker from 'src/components/common/CustomDropDown'
 import { scaleSize } from 'src/utils/constants/mixins'
 import InfoIcon from 'assets/images/svg/InfoIcon.svg'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useNavigation } from '@react-navigation/native'
+import { useRealm } from '@realm/react'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { DropdownData, ProjectInterface } from 'src/types/interface/app.interface'
 import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import { newPlotDetails } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { useToast } from 'react-native-toast-notifications'
@@ -21,11 +27,40 @@ const CreatePlotView = () => {
     const [plotComplexity, setPlotComplexity] = useState<string>('STANDARD');
 
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+    const realm = useRealm()
     const { initializeNewPlot } = useMonitoringPlotManagement()
     const toast = useToast()
 
+    // Projects the user can record into. Mirrors the project picker elsewhere:
+    // donation/"funds" projects are excluded as you can't field-record into them.
+    const projectData = useMemo(() => {
+        const projects = realm.objects<ProjectInterface>(RealmSchema.Projects).filtered('purpose != "funds"')
+        return projects.map((project, index) => ({
+            label: project.name,
+            value: project.id,
+            index,
+        }))
+    }, [realm])
+
+    // Pre-select the user's currently active project (if any) so the common case
+    // is one tap. Selection is still required before continuing.
+    const { currentProject } = useSelector((state: RootState) => state.projectState)
+    const [selectedProject, setSelectedProject] = useState<DropdownData>(() => {
+        const match = projectData.find(p => p.value === currentProject.projectId)
+        return match || { label: '', value: '', index: 0 }
+    })
+
     const handleNav = async () => {
-        const details = newPlotDetails(plotShape === 'CIRCULAR' ? 'CIRCULAR' : 'RECTANGULAR', plotType === 'INTERVENTION' ? 'INTERVENTION' : 'CONTROL', plotComplexity === 'SIMPLE' ? 'SIMPLE' : 'STANDARD')
+        if (!selectedProject.value) {
+            toast.show(i18next.t('label.select_project'))
+            return
+        }
+        const details = newPlotDetails(
+            plotShape === 'CIRCULAR' ? 'CIRCULAR' : 'RECTANGULAR',
+            plotType === 'INTERVENTION' ? 'INTERVENTION' : 'CONTROL',
+            plotComplexity === 'SIMPLE' ? 'SIMPLE' : 'STANDARD',
+            { id: selectedProject.value, name: selectedProject.label },
+        )
         const result = await initializeNewPlot(details)
         if (result) {
             navigation.replace('CreatePlotDetail', { id: details.plot_id })
@@ -42,6 +77,12 @@ const CreatePlotView = () => {
         <SafeAreaView style={styles.container}>
             <Header label={i18next.t('label.create_plot_header')} rightComponent={null} />
             <View style={styles.wrapper}>
+                <CustomDropDownPicker
+                    label={i18next.t('label.project')}
+                    data={projectData}
+                    onSelect={setSelectedProject}
+                    selectedValue={selectedProject}
+                />
                 <CreatePlotCard header={'Plot Complexity'} labelOne={{
                     key: 'STANDARD',
                     value: i18next.t('label.standard')

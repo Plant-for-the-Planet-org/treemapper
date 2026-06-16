@@ -21,6 +21,7 @@ import {
   MonitoringPlotUploadResponseDto,
   UploadRemeasurementsDto,
   AddPlotPlantsDto,
+  AddPlotObservationsDto,
   UpdateMonitoringPlotDto,
   UpdatePlotGroupDto,
 } from './dto/monitoring-plots.dto';
@@ -78,6 +79,18 @@ export class MonitoringPlotsController {
     @Membership() membership: ProjectGuardResponse,
   ) {
     return this.monitoringPlotsService.addPlotPlants(dto, membership);
+  }
+
+  @Post('projects/:projectId/observations')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  @ApiOperation({ summary: 'Add new observations to an already-uploaded plot' })
+  @ApiResponse({ status: 201, description: 'Observations added (per-observation uids returned)' })
+  async addObservations(
+    @Body() dto: AddPlotObservationsDto,
+    @Membership() membership: ProjectGuardResponse,
+  ) {
+    return this.monitoringPlotsService.addPlotObservations(dto, membership);
   }
 
   @Post('projects/:projectId/groups')

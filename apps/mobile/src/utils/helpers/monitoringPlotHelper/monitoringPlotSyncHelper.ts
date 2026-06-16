@@ -269,3 +269,40 @@ export const buildPlotNewPlantsBody = async (
   }
   return { body: { plotUid: serverUid, plants }, error: null }
 }
+
+export interface NewObservationsConversion {
+  // null when the plot has no new (un-uploaded) observations to send.
+  body: { plotUid: string; observations: any[] } | null
+  // The obs ids this upload covers, so the caller can mark exactly these
+  // observations SYNCED once the server accepts them.
+  syncedRef: string[]
+  error: string | null
+}
+
+/**
+ * Build the add-observations payload for an already-synced plot: every
+ * observation not yet uploaded (sync_status !== 'SYNCED'), serialized like the
+ * initial upload. Needs the plot's server uid (stashed in meta_data.serverUid by
+ * markMonitoringPlotSynced). Pass a plain JS snapshot of the plot.
+ */
+export const buildPlotObservationsBody = async (
+  plot: MonitoringPlot,
+): Promise<NewObservationsConversion> => {
+  const serverUid = safeParseObject(plot.meta_data)?.serverUid
+  const pending = (plot.observations || []).filter(o => o.sync_status !== 'SYNCED')
+  if (pending.length === 0) return { body: null, syncedRef: [], error: null }
+  if (!serverUid) {
+    // Synced plot with no server uid recorded: can't target the plot remotely.
+    return { body: null, syncedRef: [], error: 'Plot has no server id; cannot add observations' }
+  }
+
+  const observations = pending.map((o) => ({
+    clientId: o.obs_id || undefined,
+    type: o.type ? String(o.type).toLowerCase() : 'observation',
+    observedAt: toISO(o.obs_date) || new Date().toISOString(),
+    unit: o.unit || undefined,
+    value: typeof o.value === 'number' ? o.value : undefined,
+  }))
+  const syncedRef = pending.map(o => o.obs_id).filter(Boolean)
+  return { body: { plotUid: serverUid, observations }, syncedRef, error: null }
+}
