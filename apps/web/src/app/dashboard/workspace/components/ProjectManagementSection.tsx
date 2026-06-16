@@ -18,6 +18,7 @@ import {
   Mail,
   MapPin,
   Search,
+  Settings,
   Target,
   Trees,
   UserCircle,
@@ -73,6 +74,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import ProjectSettingsModal from './ProjectSettingsModal';
 
 /* ─── status tones ───────────────────────────────────────────────────────────
  * shadcn Badge has no success/warning variants, so we map each domain status to
@@ -377,12 +379,14 @@ function ProjectDetailModal({
   onClose,
   onStatusUpdated,
   onTransferred,
+  onOpenSettings,
 }: {
   project: Project;
   workspaceUid: string;
   onClose: () => void;
   onStatusUpdated: (projectUid: string, status: 'active' | 'in_review' | 'suspended' | 'disabled') => void;
   onTransferred: (projectUid: string) => void;
+  onOpenSettings: (project: Project) => void;
 }) {
   const { accessToken } = useToken();
   const [pendingStatus, setPendingStatus] = useState(project.status);
@@ -638,7 +642,11 @@ function ProjectDetailModal({
 
         {/* Zone 3: Primary actions */}
         <div className="flex items-center justify-between px-6 py-4">
-          <div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => onOpenSettings(project)} className="gap-1.5">
+              <Settings className="h-3.5 w-3.5" />
+              Manage Settings
+            </Button>
             {project.owner && (
               <Button variant="outline" size="sm" onClick={handleImpersonateOwner} disabled={impersonating} className="gap-1.5">
                 <LogIn className="h-3.5 w-3.5" />
@@ -667,7 +675,7 @@ function ProjectDetailModal({
 
 /* ─── ProjectRow ────────────────────────────────────────────────────────────── */
 
-function ProjectRow({ project, onView }: { project: Project; onView: (project: Project) => void }) {
+function ProjectRow({ project, onView, onOpenSettings }: { project: Project; onView: (project: Project) => void; onOpenSettings: (project: Project) => void }) {
   const [expanded, setExpanded] = useState(false);
   const hasSites = project.sites.length > 0;
 
@@ -708,21 +716,38 @@ function ProjectRow({ project, onView }: { project: Project; onView: (project: P
         <TableCell className="text-muted-foreground">{project.country ?? '—'}</TableCell>
         <TableCell className="text-muted-foreground">{new Date(project.createdAt).toLocaleDateString()}</TableCell>
         <TableCell className="text-right">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onView(project)}
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>View details</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <div className="flex items-center justify-end gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onView(project)}
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>View details</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onOpenSettings(project)}
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Open project settings</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </TableCell>
       </TableRow>
 
@@ -756,6 +781,7 @@ export function ProjectManagementSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [settingsProject, setSettingsProject] = useState<Project | null>(null);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -785,6 +811,26 @@ export function ProjectManagementSection() {
     const params = new URLSearchParams(searchParams.toString());
     params.set('project', project.uid);
     router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
+  // Edit the project's settings inline, in a modal. A workspace owner/admin can
+  // do this on the project owner's behalf (the server grants it via the
+  // workspace-admin fallback; changes are audited under their account). Editing
+  // in place avoids deep-linking into the project's own dashboard, which fights
+  // the global selected-project store.
+  const handleOpenSettings = (project: Project) => {
+    setSettingsProject(project);
+    // Close the detail dialog if it was the entry point, so the two dialogs
+    // don't stack on top of each other.
+    if (selectedProject) handleClose();
+  };
+
+  // Refresh the list so edited fields (name, etc.) show the saved values.
+  const handleSettingsSaved = () => {
+    if (!selectedWorkspace?.uid || !accessToken) return;
+    getWorkspaceProjectsApi(accessToken, selectedWorkspace.uid)
+      .then((res) => { if (Array.isArray(res?.data)) setProjects(res.data); })
+      .catch(() => {});
   };
 
   const handleClose = () => {
@@ -933,7 +979,7 @@ export function ProjectManagementSection() {
               </TableHeader>
               <TableBody>
                 {filteredProjects.map((project) => (
-                  <ProjectRow key={project.uid} project={project} onView={handleView} />
+                  <ProjectRow key={project.uid} project={project} onView={handleView} onOpenSettings={handleOpenSettings} />
                 ))}
               </TableBody>
             </Table>
@@ -949,9 +995,18 @@ export function ProjectManagementSection() {
             onClose={handleClose}
             onStatusUpdated={handleStatusUpdated}
             onTransferred={handleTransferred}
+            onOpenSettings={handleOpenSettings}
           />
         )}
       </Dialog>
+
+      <ProjectSettingsModal
+        projectUid={settingsProject?.uid ?? null}
+        projectName={settingsProject?.name}
+        open={!!settingsProject}
+        onClose={() => setSettingsProject(null)}
+        onSaved={handleSettingsSaved}
+      />
     </>
   );
 }

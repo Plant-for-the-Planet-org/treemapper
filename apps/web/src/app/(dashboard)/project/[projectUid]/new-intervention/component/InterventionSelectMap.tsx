@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Map, { NavigationControl, Marker, GeolocateControl, Source, Layer } from 'react-map-gl/maplibre';
 import { MapPin, Square, Maximize2, Minimize2, Map as MapIcon, Satellite } from 'lucide-react';
@@ -55,6 +55,9 @@ interface Props {
   onAddPoint?: (point: MarkedPoint) => void
   onRemovePoint?: (index: number) => void
   tagPrefix?: string
+  // Geometry modes this intervention type allows, from the type config.
+  // When both 'point' and 'polygon' are present, a toggle is shown.
+  geometryModes?: Array<'point' | 'polygon'>
 }
 
 const parseSiteGeometry = (site: any): any | null => {
@@ -72,7 +75,9 @@ const parseSiteGeometry = (site: any): any | null => {
   return raw;
 };
 
-const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType, selectedSite, existingInterventions = [], isMultiSingleTree = false, markedPoints = [], onAddPoint, onRemovePoint, tagPrefix = '' }: Props) => {
+const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType, selectedSite, existingInterventions = [], isMultiSingleTree = false, markedPoints = [], onAddPoint, onRemovePoint, tagPrefix = '', geometryModes = ['polygon'] }: Props) => {
+  const mapRef = useRef(null);
+
   // Initial viewport settings
   const [viewState, setViewState] = useState({
     longitude: -100,
@@ -123,12 +128,15 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
 
 
 
+  // True when the type allows the user to pick between point and polygon.
+  const allowsBoth = geometryModes.includes('point') && geometryModes.includes('polygon');
+
   useEffect(() => {
-    if (interventionType === 'single-tree-registration') {
-      setSelectionMode("point")
-    } else {
-      setSelectionMode("polygon")
-    }
+    // Default mode when the intervention type changes. If only one geometry is
+    // allowed, lock to it. When both are allowed, default to polygon (the prior
+    // behavior) and let the toggle switch to point.
+    const onlyPoint = geometryModes.includes('point') && !geometryModes.includes('polygon');
+    setSelectionMode(onlyPoint ? 'point' : 'polygon');
   }, [interventionType])
 
   // Escape key exits fullscreen + lock body scroll while fullscreen
@@ -212,22 +220,6 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
   }, [uploadedGeoJSON]);
 
 
-  // Helper function to calculate distance between two points
-  const calculateDistance = (point1, point2) => {
-    const R = 6371e3; // Earth's radius in meters
-    const φ1 = point1.latitude * Math.PI / 180;
-    const φ2 = point2.latitude * Math.PI / 180;
-    const Δφ = (point2.latitude - point1.latitude) * Math.PI / 180;
-    const Δλ = (point2.longitude - point1.longitude) * Math.PI / 180;
-
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-    return R * c; // Distance in meters
-  };
-
   // Polygon data as GeoJSON for drawing mode
   const drawingPolygonGeoJSON = {
     type: 'Polygon',
@@ -237,7 +229,27 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
         : polygonPoints.map(p => [p.longitude, p.latitude])
     ]
   }
-  
+
+  // Whether a click lands on the first vertex (in screen pixels, so it works at
+  // any zoom). Uses the map ref like the site-creation map; guarded so a project
+  // failure never aborts the click handler and blocks adding points.
+  const isNearFirstPoint = useCallback((lngLat: any, firstPoint: any) => {
+    if (!firstPoint || !mapRef.current) return false;
+    try {
+      const map = (mapRef.current as any).getMap();
+      const firstPixel = map.project([firstPoint.longitude, firstPoint.latitude]);
+      const clickPixel = map.project([lngLat.lng, lngLat.lat]);
+      const PIXEL_THRESHOLD = 20;
+      const distance = Math.sqrt(
+        Math.pow(clickPixel.x - firstPixel.x, 2) +
+        Math.pow(clickPixel.y - firstPixel.y, 2)
+      );
+      return distance < PIXEL_THRESHOLD;
+    } catch {
+      return false;
+    }
+  }, []);
+
   // Complete polygon drawing
   const completePolygon = useCallback(() => {
     if (polygonPoints.length < 3) {
@@ -357,22 +369,14 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
         setCurrentArea(null);
         setAreaError(null);
       } else {
-        // Check if clicking near the first point (within ~150 meters) to auto-complete
-        if (polygonPoints.length >= 3) {
-          const firstPoint = polygonPoints[0];
-          const distance = calculateDistance(
-            { latitude: firstPoint.latitude, longitude: firstPoint.longitude },
-            { latitude: lngLat.lat, longitude: lngLat.lng }
-          );
-          
-          // If clicking near first point (within 150 meters), auto-complete
-          // This covers clicking on or near the marker hint as well
-          if (distance < 150) {
-            completePolygon();
-            return;
-          }
+        // Auto-complete only when the click lands on the first vertex (measured
+        // in screen pixels, so it behaves the same at every zoom level). Anywhere
+        // else just adds another point, so the polygon can have unlimited points.
+        if (polygonPoints.length >= 3 && isNearFirstPoint(lngLat, polygonPoints[0])) {
+          completePolygon();
+          return;
         }
-        
+
         // Continue adding points to polygon
         setPolygonPoints(prev => {
           const newPoints = [...prev, { longitude: lngLat.lng, latitude: lngLat.lat }];
@@ -403,7 +407,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
         });
       }
     }
-  }, [selectionMode, drawingPolygon, displayingUploadedGeoJSON, polygonPoints, polygonCompleted, updateGeoJSON, completePolygon, isMultiSingleTree, onAddPoint]);
+  }, [selectionMode, drawingPolygon, displayingUploadedGeoJSON, polygonPoints, polygonCompleted, updateGeoJSON, completePolygon, isMultiSingleTree, onAddPoint, isNearFirstPoint]);
   
   // Handle double-click to complete polygon
   const handleMapDoubleClick = useCallback(event => {
@@ -425,21 +429,22 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
     setCurrentArea(null);
   };
 
-  // Handle selection mode toggle
-  const toggleSelectionMode = () => {
+  // Switch between point and polygon selection (only when the type allows both).
+  const handleSelectMode = (mode: 'point' | 'polygon') => {
+    if (mode === selectionMode) return;
+
     // Clear uploaded GeoJSON display when switching modes
     if (displayingUploadedGeoJSON) {
       setDisplayingUploadedGeoJSON(false);
     }
 
-    // Reset current selection when changing modes
-    if (selectionMode === 'point') {
-      setSelectionMode('polygon');
+    // Reset the selection that belongs to the mode we are leaving.
+    if (mode === 'polygon') {
       setMarker(null);
     } else {
-      setSelectionMode('point');
       resetPolygon();
     }
+    setSelectionMode(mode);
     setGeoJSON(null);
     updateGeoJSON(null);
   };
@@ -548,6 +553,11 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
     ? { filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.85))' }
     : {};
 
+  // Control-panel visibility. The mode toggle only appears when the type allows
+  // both geometries and we are not in bulk single-tree or file-display mode.
+  const showModeToggle = allowsBoth && !isMultiSingleTree && !displayingUploadedGeoJSON;
+  const showPolygonControls = selectionMode === 'polygon' && !displayingUploadedGeoJSON;
+
   const containerStyle: React.CSSProperties = isFullscreen
     ? {
         position: 'fixed',
@@ -562,6 +572,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
   const mapContent = (
     <div style={containerStyle}>
       <Map
+        ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
         mapStyle={MAP_STYLES[mapStyleMode] as any}
@@ -901,6 +912,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
       </div>
 
       {/* Mode selection toggle and controls */}
+      {(showModeToggle || showPolygonControls) && (
       <div style={{
         position: 'absolute',
         top: '20px',
@@ -912,45 +924,38 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
         zIndex: 1
       }}>
         <div className="flex flex-col gap-3">
-          {/* <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">Selection Mode:</label>
-            <div className="relative inline-block w-12 align-middle select-none">
-              <input
-                type="checkbox"
-                name="toggle"
-                id="toggle"
-                checked={selectionMode === 'polygon'}
-                onChange={toggleSelectionMode}
-                className="hidden"
-              />
-              <label
-                htmlFor="toggle"
-                className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer 
-                  ${selectionMode === 'polygon' ? 'bg-blue-500' : ''}`}
-                style={{ width: '3rem' }}
+          {/* Point / Polygon mode toggle (only when both are allowed) */}
+          {showModeToggle && (
+            <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+              <button
+                type="button"
+                onClick={() => handleSelectMode('point')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  selectionMode === 'point'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+                aria-pressed={selectionMode === 'point'}
               >
-                <span
-                  className={`bg-white block h-5 w-5 rounded-full transform transition-transform duration-200 ease-in 
-                    ${selectionMode === 'polygon' ? 'translate-x-6' : 'translate-x-0'}`}
-                  style={{ margin: '0.125rem' }}
-                ></span>
-              </label>
+                <MapPin size={14} /> Point
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSelectMode('polygon')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  selectionMode === 'polygon'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+                aria-pressed={selectionMode === 'polygon'}
+              >
+                <Square size={14} /> Polygon
+              </button>
             </div>
-            <div className="ml-2 text-sm">
-              {selectionMode === 'point' ? (
-                <div className="flex items-center">
-                  <MapPin size={16} className="mr-1" /> Point
-                </div>
-              ) : (
-                <div className="flex items-center">
-                  <Square size={16} className="mr-1" /> Polygon
-                </div>
-              )}
-            </div>
-          </div> */}
+          )}
 
           {/* Show polygon controls only in polygon mode */}
-          {selectionMode === 'polygon' && !displayingUploadedGeoJSON && (
+          {showPolygonControls && (
             <div className="flex flex-col gap-2">
               {!polygonCompleted ? (
                 <>
@@ -1023,6 +1028,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
           )} */}
         </div>
       </div>
+      )}
 
       {/* Coordinate input form - only show in point mode and not displaying uploaded */}
       {selectionMode === 'point' && !displayingUploadedGeoJSON && (

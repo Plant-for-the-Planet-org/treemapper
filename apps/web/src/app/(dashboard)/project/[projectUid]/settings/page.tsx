@@ -90,15 +90,15 @@ const InputField = ({ label, name, value, onChange, type = 'text', placeholder =
   )
 }
 
-const SelectField = ({ label, name, value, onChange, options, validation = {} as { error?: string }, required = false }) => {
+const SelectField = ({ label, name, value, onChange, options, validation = {} as { error?: string }, required = false, disabled = false }) => {
   const hasError = validation?.error
   return (
     <div className="space-y-1.5">
       <Label htmlFor={name} className="text-sm font-medium">
         {label} {required && <span className="text-destructive">*</span>}
       </Label>
-      <Select value={value || ''} onValueChange={(v) => onChange({ target: { name, value: v } })}>
-        <SelectTrigger id={name} aria-invalid={!!hasError} className="w-full">
+      <Select value={value || ''} onValueChange={(v) => onChange({ target: { name, value: v } })} disabled={disabled}>
+        <SelectTrigger id={name} aria-invalid={!!hasError} className={cn('w-full', disabled && 'bg-muted/40 text-muted-foreground cursor-not-allowed')}>
           <SelectValue placeholder="Select..." />
         </SelectTrigger>
         <SelectContent className="w-[var(--radix-select-trigger-width)]">
@@ -112,14 +112,14 @@ const SelectField = ({ label, name, value, onChange, options, validation = {} as
   )
 }
 
-const TextareaField = ({ label, name, value, onChange, rows = 4, placeholder = '', validation = {} as { error?: string }, required = false }) => {
+const TextareaField = ({ label, name, value, onChange, rows = 4, placeholder = '', validation = {} as { error?: string }, required = false, disabled = false }) => {
   const hasError = validation?.error
   return (
     <div className="space-y-1.5">
       <Label htmlFor={name} className="text-sm font-medium">
         {label} {required && <span className="text-destructive">*</span>}
       </Label>
-      <Textarea id={name} name={name} value={value} onChange={onChange} rows={rows} placeholder={placeholder} aria-invalid={!!hasError} className="resize-none" />
+      <Textarea id={name} name={name} value={value} onChange={onChange} rows={rows} placeholder={placeholder} disabled={disabled} aria-invalid={!!hasError} className={cn('resize-none', disabled && 'bg-muted/40 text-muted-foreground cursor-not-allowed')} />
       {hasError && <p className="text-xs text-destructive">{validation.error}</p>}
     </div>
   )
@@ -161,18 +161,18 @@ const ChevronRightToggle = ({ open }: { open: boolean }) => (
   </svg>
 )
 
-const ProjectImagesSection = ({ projectImages, onUpload, onDelete, uploading }: any) => {
+const ProjectImagesSection = ({ projectImages, onUpload, onDelete, uploading, canEdit = true }: any) => {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <Label className="text-sm font-medium">Project images</Label>
-        <label className="cursor-pointer">
-          <Button asChild size="sm" disabled={uploading}>
+        <label className={cn('cursor-pointer', !canEdit && 'pointer-events-none')}>
+          <Button asChild size="sm" disabled={uploading || !canEdit}>
             <span>
               {uploading ? <><Loader2 size={14} className="mr-1.5 animate-spin" />Uploading...</> : <><ImagePlus size={14} className="mr-1.5" />Add image</>}
             </span>
           </Button>
-          <input type="file" accept="image/*" className="sr-only" disabled={uploading} onChange={onUpload} />
+          <input type="file" accept="image/*" className="sr-only" disabled={uploading || !canEdit} onChange={onUpload} />
         </label>
       </div>
 
@@ -187,11 +187,13 @@ const ProjectImagesSection = ({ projectImages, onUpload, onDelete, uploading }: 
           {projectImages.map((img: any) => (
             <div key={img.uid} className="relative group rounded-lg overflow-hidden aspect-square bg-muted border border-border">
               <img src={cdnUrl('project', img.filename) ?? ''} alt={img.originalName || 'Project image'} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <Button type="button" variant="destructive" size="icon" className="h-8 w-8" onClick={() => onDelete(img.uid)}>
-                  <Trash2 size={14} />
-                </Button>
-              </div>
+              {canEdit && (
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Button type="button" variant="destructive" size="icon" className="h-8 w-8" onClick={() => onDelete(img.uid)}>
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -239,7 +241,7 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, loading
       <CollapsibleSection title="Basic information" icon={FileText}>
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <InputField label="Project name" name="name" value={projectData.name} onChange={handleInputChange} placeholder="Enter project name" icon={FileText} validation={{ error: validationErrors.name }} required maxLength={40} />
+            <InputField label="Project name" name="name" value={projectData.name} onChange={handleInputChange} placeholder="Enter project name" icon={FileText} validation={{ error: validationErrors.name }} required maxLength={40} disabled={!canEdit} />
             <InputField label="Project slug" name="slug" value={projectData.slug} onChange={handleInputChange} placeholder="project-slug" icon={Globe} validation={{ error: validationErrors.slug, hint: 'URL-friendly identifier for your project' }} required disabled />
           </div>
 
@@ -248,6 +250,7 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, loading
             <RadioGroup
               value={projectData.type}
               onValueChange={(v) => handleInputChange({ target: { name: 'type', value: v } })}
+              disabled={!canEdit}
               className="grid grid-cols-1 sm:grid-cols-2 gap-3"
             >
               {['restoration', 'conservation', 'research', 'education'].map((type) => (
@@ -259,16 +262,16 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, loading
             </RadioGroup>
           </div>
 
-          <TextareaField label="About project" name="description" value={projectData.description} onChange={handleInputChange} placeholder="Describe your project goals, methodology, and expected outcomes..." rows={4} />
+          <TextareaField label="About project" name="description" value={projectData.description} onChange={handleInputChange} placeholder="Describe your project goals, methodology, and expected outcomes..." rows={4} disabled={!canEdit} />
         </div>
       </CollapsibleSection>
 
       <CollapsibleSection title="Project classification" icon={Settings}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <SelectField label="Purpose" name="purpose" value={projectData.purpose} onChange={handleInputChange} options={[
+          <SelectField label="Purpose" name="purpose" value={projectData.purpose} onChange={handleInputChange} disabled={!canEdit} options={[
             { value: 'conservation', label: 'Conservation' }, { value: 'restoration', label: 'Restoration' }, { value: 'research', label: 'Research' }, { value: 'education', label: 'Education' }, { value: 'community', label: 'Community Development' },
           ]} />
-          <SelectField label="Classification" name="classification" value={projectData.classification} onChange={handleInputChange} options={[
+          <SelectField label="Classification" name="classification" value={projectData.classification} onChange={handleInputChange} disabled={!canEdit} options={[
             { value: 'environmental', label: 'Environmental' }, { value: 'social', label: 'Social' }, { value: 'economic', label: 'Economic' }, { value: 'research', label: 'Research' }, { value: 'educational', label: 'Educational' },
           ]} />
         </div>
@@ -276,13 +279,13 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, loading
 
       <CollapsibleSection title="Environmental details" icon={Leaf}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <SelectField label="Ecosystem" name="ecosystem" value={projectData.ecosystem} onChange={handleInputChange} options={[
+          <SelectField label="Ecosystem" name="ecosystem" value={projectData.ecosystem} onChange={handleInputChange} disabled={!canEdit} options={[
             { value: 'tropical_rainforest', label: 'Tropical Rainforest' }, { value: 'temperate_forest', label: 'Temperate Forest' }, { value: 'boreal_forest', label: 'Boreal Forest' }, { value: 'grassland', label: 'Grassland' }, { value: 'wetland', label: 'Wetland' }, { value: 'desert', label: 'Desert' }, { value: 'coastal', label: 'Coastal' }, { value: 'mountain', label: 'Mountain' },
           ]} />
-          <SelectField label="Project scale" name="scale" value={projectData.scale} onChange={handleInputChange} options={[
+          <SelectField label="Project scale" name="scale" value={projectData.scale} onChange={handleInputChange} disabled={!canEdit} options={[
             { value: 'small', label: 'Small (< 10 hectares)' }, { value: 'medium', label: 'Medium (10-100 hectares)' }, { value: 'large', label: 'Large (100-1000 hectares)' }, { value: 'enterprise', label: 'Enterprise (> 1000 hectares)' },
           ]} />
-          <SelectField label="Intensity" name="intensity" value={projectData.intensity} onChange={handleInputChange} options={[
+          <SelectField label="Intensity" name="intensity" value={projectData.intensity} onChange={handleInputChange} disabled={!canEdit} options={[
             { value: 'low', label: 'Low' }, { value: 'medium', label: 'Medium' }, { value: 'high', label: 'High' },
           ]} />
         </div>
@@ -290,10 +293,10 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, loading
 
       <CollapsibleSection title="Location & monitoring" icon={Globe}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <SelectField label="Country" name="country" value={projectData.country} onChange={handleInputChange} options={[
+          <SelectField label="Country" name="country" value={projectData.country} onChange={handleInputChange} disabled={!canEdit} options={[
             { value: 'USA', label: 'United States' }, { value: 'CAN', label: 'Canada' }, { value: 'MEX', label: 'Mexico' }, { value: 'BRA', label: 'Brazil' }, { value: 'IND', label: 'India' }, { value: 'PAK', label: 'Pakistan' }, { value: 'CHN', label: 'China' }, { value: 'DEU', label: 'Germany' }, { value: 'FRA', label: 'France' }, { value: 'GBR', label: 'United Kingdom' }, { value: 'AUS', label: 'Australia' },
           ]} />
-          <SelectField label="Revision periodicity" name="revisionPeriodicity" value={projectData.revisionPeriodicity} onChange={handleInputChange} options={[
+          <SelectField label="Revision periodicity" name="revisionPeriodicity" value={projectData.revisionPeriodicity} onChange={handleInputChange} disabled={!canEdit} options={[
             { value: 'weekly', label: 'Weekly' }, { value: 'monthly', label: 'Monthly' }, { value: 'quarterly', label: 'Quarterly' }, { value: 'annually', label: 'Annually' }, { value: 'biannually', label: 'Bi-annually' },
           ]} />
         </div>
@@ -302,13 +305,13 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, loading
       <CollapsibleSection title="Targets & resources" icon={Users}>
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <InputField label="Target" name="target" type="number" value={projectData.target} onChange={handleInputChange} min="1" placeholder="Enter target number" icon={Users} validation={{ error: validationErrors.target, hint: 'Target must be a positive number greater than 0' }} />
-            <InputField label="Project website" name="website" type="url" value={projectData.website} onChange={handleInputChange} icon={Globe} placeholder="https://yourproject.com" validation={{ error: validationErrors.website, hint: 'Must start with http:// or https://' }} />
+            <InputField label="Target" name="target" type="number" value={projectData.target} onChange={handleInputChange} min="1" placeholder="Enter target number" icon={Users} validation={{ error: validationErrors.target, hint: 'Target must be a positive number greater than 0' }} disabled={!canEdit} />
+            <InputField label="Project website" name="website" type="url" value={projectData.website} onChange={handleInputChange} icon={Globe} placeholder="https://yourproject.com" validation={{ error: validationErrors.website, hint: 'Must start with http:// or https://' }} disabled={!canEdit} />
           </div>
 
-          <ProjectImagesSection projectImages={projectImages} onUpload={onImageUpload} onDelete={onImageDelete} uploading={imageUploading} />
+          <ProjectImagesSection projectImages={projectImages} onUpload={onImageUpload} onDelete={onImageDelete} uploading={imageUploading} canEdit={canEdit} />
 
-          <InputField label="Video URL" name="videoUrl" type="url" value={projectData.videoUrl} onChange={handleInputChange} icon={Video} placeholder="https://youtube.com/watch?v=..." validation={{ error: validationErrors.videoUrl, hint: 'YouTube, Vimeo, or direct video URL' }} />
+          <InputField label="Video URL" name="videoUrl" type="url" value={projectData.videoUrl} onChange={handleInputChange} icon={Video} placeholder="https://youtube.com/watch?v=..." validation={{ error: validationErrors.videoUrl, hint: 'YouTube, Vimeo, or direct video URL' }} disabled={!canEdit} />
         </div>
       </CollapsibleSection>
     </form>
@@ -707,18 +710,30 @@ const ProjectSettings = () => {
 
   const isPlatformWorkspace = selectedWorkspce?.slug === 'platform-projects'
   const isImpersonatingSuperAdmin = currentUser?.impersonated === true && currentUser?.type === 'superadmin'
-
-  const canEdit = isImpersonatingSuperAdmin || ['owner', 'admin'].includes(userRole || '')
-  // Basic info (name, slug, etc.) is managed at the platform level for platform-linked projects.
-  const canEditBasicInfo = canEdit && (isImpersonatingSuperAdmin || !isPlatformWorkspace)
+  // Only the platform workspace OWNER (not workspace admins) may edit platform-linked projects.
+  const isWorkspaceOwner = selectedWorkspce?.userRole === 'owner'
+  const isProjectOwnerAdmin = ['owner', 'admin'].includes(userRole || '')
 
   const [projectData, setProjectData] = useState<any>({
     name: '', slug: '', type: '', ecosystem: '', scale: '', target: '', website: '', videoUrl: '',
     description: '', purpose: '', classification: '', intensity: '', revisionPeriodicity: '', country: '',
     image: null, location: null, originalGeometry: null, metadata: {}, approvalBoardEnabled: false,
     approvalSettings: DEFAULT_APPROVAL_SETTINGS,
-    leaderboardEnabled: true, bulkUploadEnabled: true, apiEnabled: false,
+    leaderboardEnabled: true, bulkUploadEnabled: true, apiEnabled: false, status: '',
   })
+
+  // Platform-linked projects are read-only by default. Editing is allowed for:
+  //  - a superadmin impersonating,
+  //  - the platform workspace owner (any status),
+  //  - the project owner/admin, but only while the project is in review.
+  // Non-platform projects keep the normal project owner/admin rule.
+  const isInReview = projectData.status === 'in_review'
+  const canEdit = isImpersonatingSuperAdmin
+    || (isPlatformWorkspace
+      ? isWorkspaceOwner || (isProjectOwnerAdmin && isInReview)
+      : isProjectOwnerAdmin)
+  // Settings now follow a single gate, including basic info (no separate platform lock).
+  const canEditBasicInfo = canEdit
 
   const activeTab = NAV_ITEMS.some(i => i.id === tabParam) ? tabParam! : 'general'
   const setActiveTab = (id: string) => router.push(`/project/${projectUid}/settings?tab=${id}`)
@@ -762,6 +777,7 @@ const ProjectSettings = () => {
           leaderboardEnabled: result.data.leaderboardEnabled ?? true,
           bulkUploadEnabled: result.data.bulkUploadEnabled ?? true,
           apiEnabled: result.data.apiEnabled ?? false,
+          status: result.data.status || '',
         })
       }
     } catch (error) {
@@ -983,11 +999,23 @@ const ProjectSettings = () => {
     <div className="h-full overflow-y-auto">
       {notification && <NotificationToast type={notification.type} message={notification.message} onClose={() => setNotification(null)} />}
 
-      {isPlatformWorkspace && !isImpersonatingSuperAdmin && (
+      {isPlatformWorkspace && !isImpersonatingSuperAdmin && !canEdit && (
+        <Alert className="rounded-none border-x-0 border-t-0">
+          <Lock />
+          <AlertDescription>
+            This project belongs to the platform workspace, so its settings are read-only.
+            {isProjectOwnerAdmin
+              ? ' You can edit them only while the project is in review.'
+              : ' Only the platform workspace owner can change them.'}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isPlatformWorkspace && !isImpersonatingSuperAdmin && canEdit && isProjectOwnerAdmin && !isWorkspaceOwner && (
         <Alert className="rounded-none border-x-0 border-t-0">
           <AlertCircle />
           <AlertDescription>
-            This project is linked to the platform workspace. Basic information is managed at the platform level, but you can still update location, features, and other settings.
+            This project is in review, so you can edit its settings. Once it leaves review, these settings become read-only.
           </AlertDescription>
         </Alert>
       )}

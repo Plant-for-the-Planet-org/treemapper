@@ -73,6 +73,16 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   const isMultiSingleTree = formData.isPlanningMode && formData.multiSingleTree && isSingleTree;
   const siteSelected = Boolean(formData.siteId);
 
+  // Geometry modes this intervention type allows, driven by the type config.
+  // Falls back to geoJSONType when geometryType is not declared.
+  const geometryModes: Array<'point' | 'polygon'> =
+    Array.isArray(currentConfig?.geometryType) && currentConfig.geometryType.length
+      ? currentConfig.geometryType
+      : currentConfig?.geoJSONType === 'Point'
+        ? ['point']
+        : ['polygon'];
+  const allowsBothGeometry = geometryModes.includes('point') && geometryModes.includes('polygon');
+
   return (
     <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg p-8">
       <h2 className="text-xl font-semibold text-slate-900 mb-6 flex items-center gap-2">
@@ -90,10 +100,12 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
             <div className="text-sm text-blue-800">
               {isMultiSingleTree ? (
                 <p><strong>Mark multiple trees:</strong> Click anywhere on the map to drop a tree. Each click adds a new tree with the next tag. Click a marker to remove it.</p>
-              ) : isSingleTree ? (
+              ) : allowsBothGeometry ? (
+                <p><strong>Point or polygon:</strong> Use the toggle on the map to pick Point or Polygon, then click the map to mark the location.</p>
+              ) : geometryModes[0] === 'point' ? (
                 <p><strong>Point Selection:</strong> Click anywhere on the map to select a location. You can drag the marker to adjust the position.</p>
               ) : (
-                <p><strong>Point or Polygon Selection:</strong> Click on the map to add a point, or click multiple points (then double-click or click the first point) to draw a polygon.</p>
+                <p><strong>Polygon Selection:</strong> Click points on the map, then double-click or click the first point to close the polygon.</p>
               )}
             </div>
           </div>
@@ -139,6 +151,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
               onAddPoint={addMarkedPoint}
               onRemovePoint={removeMarkedPoint}
               tagPrefix={formData.treeDetails.tagPrefix}
+              geometryModes={geometryModes}
             />
           </div>
         </div>
@@ -177,9 +190,11 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
             <GeoJSONFileUpload
               onGeoJSONChange={handleGeoJSONChange}
               allowedGeometryTypes={
-                isSingleTree
-                  ? ['Point']
-                  : ['Point', 'Polygon', 'MultiPolygon']
+                allowsBothGeometry
+                  ? ['Point', 'Polygon', 'MultiPolygon']
+                  : geometryModes[0] === 'point'
+                    ? ['Point']
+                    : ['Polygon', 'MultiPolygon']
               }
             />
           </div>
