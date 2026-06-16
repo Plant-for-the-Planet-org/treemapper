@@ -20,6 +20,8 @@ import { Modal } from './components/Modal';
 import { SpeciesCard } from './components/SpeciesCard';
 import { SpeciesForm } from './components/SpeciesForm';
 import { SpeciesHeader } from './components/SpeciesHeader';
+import { SpeciesStats } from './components/SpeciesStats';
+import { SpeciesSidebar } from './components/SpeciesSidebar';
 import { SpeciesSearch } from './components/SpeciesSearch';
 import { DeleteModal } from './components/DeleteModal';
 import { SpeciesRequestModal } from './components/SpeciesRequestModal';
@@ -33,8 +35,6 @@ const SpeciesManagementDashboard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editForm, setEditForm] = useState({});
-  const [showDisabled, setShowDisabled] = useState(true);
-  const [showUnknown, setShowUnknown] = useState(true);
   const [speciesSearchTerm, setSpeciesSearchTerm] = useState('');
   const [isSearchingSpecies, setIsSearchingSpecies] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -44,6 +44,7 @@ const SpeciesManagementDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [imageDetails, setImageDetails] = useState(null);
   const [sortBy, setSortBy] = useState('name');
+  const [viewFilter, setViewFilter] = useState('all');
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -54,11 +55,6 @@ const SpeciesManagementDashboard = () => {
     requestReason: ''
   });
   const [requestLoading, setRequestLoading] = useState(false);
-
-  // New filter states
-  const [speciesTypeFilter, setSpeciesTypeFilter] = useState('all');
-  const [sourceFilter, setSourceFilter] = useState('all');
-  const [interventionTypeFilter, setInterventionTypeFilter] = useState([]);
 
   // Bulk selection states
   const [selectedUnknownSpecies, setSelectedUnknownSpecies] = useState([]);
@@ -83,12 +79,6 @@ const SpeciesManagementDashboard = () => {
     }))
   ];
 
-
-  // Get unique intervention types for filter
-  const interventionTypes = [...new Set([
-    ...scientificSpecies.flatMap(s => s.interventionTypes || []),
-    ...unknownSpecies.map(s => s.interventionType).filter(Boolean)
-  ])];
 
   useEffect(() => {
     if (speciesSearchTerm.length >= 3 && (isAddingNew || showBulkAssignModal)) {
@@ -190,63 +180,62 @@ const SpeciesManagementDashboard = () => {
   };
 
   // Filter and sort logic
-  const filteredSpecies = allSpecies.filter((species) => {
+  const matchesSearch = (species) => {
     const searchFields = [
       species.scientificName,
       species.speciesName,
       species.commonName,
       species.interventionHid
     ].filter(Boolean);
-
-    const matchesSearch = searchFields.some(field =>
+    return searchFields.some(field =>
       field.toLowerCase().includes(searchTerm.toLowerCase())
     );
+  };
 
-    const matchesType = speciesTypeFilter === 'all' ||
-      (speciesTypeFilter === 'scientific' && !species.isUnknown) ||
-      (speciesTypeFilter === 'unknown' && species.isUnknown);
-
-    // Fix source filter logic
-    const matchesSource = sourceFilter === 'all' ||
-      (sourceFilter === 'project' && species.sources?.includes('project')) ||
-      (sourceFilter === 'intervention' && species.sources?.includes('intervention')) ||
-      (sourceFilter === 'both' && species.sources?.includes('project') && species.sources?.includes('intervention'));
-
-    const matchesInterventionType = interventionTypeFilter.length === 0 ||
-      (species.interventionTypes && species.interventionTypes.some(type => interventionTypeFilter.includes(type))) ||
-      (species.interventionType && interventionTypeFilter.includes(species.interventionType));
-
-    return matchesSearch && matchesType && matchesSource && matchesInterventionType;
-  });
-
-
-  const sortedSpecies = [...filteredSpecies.filter(el => {
-    if (!showDisabled && (el.isDisabled || el.disabled)) return false;
-    if (!showUnknown && el.isUnknown) return false;
-    return true;
-  })].sort((a, b) => {
-    switch (sortBy) {
-      case 'name':
-        const nameA = a.scientificName || a.speciesName || '';
-        const nameB = b.scientificName || b.speciesName || '';
-        return nameA.localeCompare(nameB);
-      case 'date':
-        return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
-      case 'favorite':
-        return (b.favourite ? 1 : 0) - (a.favourite ? 1 : 0);
-      case 'interventionCount':
-        const countA = a.interventionCount || 0;
-        const countB = b.interventionCount || 0;
-        return countB - countA;
-      default:
-        return 0;
+  const sortFn = (a, b) => {
+    if (sortBy === 'date') {
+      return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
     }
-  });
+    const nameA = a.scientificName || a.speciesName || '';
+    const nameB = b.scientificName || b.speciesName || '';
+    return nameA.localeCompare(nameB);
+  };
 
+  // Main grid shows scientific species; unknown species live in the sidebar.
+  const gridSpecies = scientificSpecies
+    .filter(matchesSearch)
+    .filter((s) => {
+      const disabled = s.isDisabled || s.disabled;
+      switch (viewFilter) {
+        case 'native': return s.isNativeSpecies && !disabled;
+        case 'nonnative': return !s.isNativeSpecies && !disabled;
+        case 'favourites': return s.favourite && !disabled;
+        case 'disabled': return disabled;
+        default: return !disabled; // 'all' -> active species
+      }
+    })
+    .sort(sortFn);
+
+  const sidebarUnknownSpecies = unknownSpecies.filter(matchesSearch);
+
+  // Top 10 most planted scientific species by tree count.
+  const topPlanted = [...scientificSpecies]
+    .sort((a, b) => (b.totalCount || b.count || 0) - (a.totalCount || a.count || 0))
+    .filter((s) => (s.totalCount || s.count || 0) > 0)
+    .slice(0, 10);
 
   const totalSpeciesCount = allSpecies.length;
   const scientificCount = scientificSpecies.length;
   const unknownCount = unknownSpecies.length;
+
+  // Stats (real data, no charts)
+  const activeScientificCount = scientificSpecies.filter(s => !(s.isDisabled || s.disabled)).length;
+  const nativeCount = scientificSpecies.filter(s => s.isNativeSpecies).length;
+  const nativePercent = scientificCount ? Math.round((nativeCount / scientificCount) * 100) : 0;
+  const totalInterventions = allSpecies.reduce((sum, s) => sum + (s.interventionCount || 0), 0);
+  const topPlantedStat = topPlanted[0]
+    ? { name: topPlanted[0].scientificName || topPlanted[0].speciesName, count: topPlanted[0].totalCount || topPlanted[0].count || 0 }
+    : null;
 
   // Event handlers
   const handleSelectSpecies = (species) => {
@@ -720,58 +709,69 @@ const SpeciesManagementDashboard = () => {
         )}
       </AnimatePresence>
 
-      <div className={selectedUnknownSpecies.length > 0 ? 'pt-16' : ''}>
+      <div className={cn('flex-1 overflow-y-auto p-6 space-y-5', selectedUnknownSpecies.length > 0 && 'pt-16')}>
         <SpeciesHeader
+          projectName={selectedProject?.name}
           speciesCount={totalSpeciesCount}
-          scientificCount={scientificCount}
+          nativePercent={nativePercent}
           unknownCount={unknownCount}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           sortBy={sortBy}
           setSortBy={setSortBy}
-          showDisabled={showDisabled}
-          setShowDisabled={setShowDisabled}
-          showUnknown={showUnknown}
-          setShowUnknown={setShowUnknown}
-          speciesTypeFilter={speciesTypeFilter}
-          setSpeciesTypeFilter={setSpeciesTypeFilter}
-          sourceFilter={sourceFilter}
-          setSourceFilter={setSourceFilter}
-          interventionTypeFilter={interventionTypeFilter}
-          setInterventionTypeFilter={setInterventionTypeFilter}
-          interventionTypes={interventionTypes}
+          viewFilter={viewFilter}
+          setViewFilter={setViewFilter}
         />
 
-        <div className="flex-1 overflow-hidden p-6">
-          {loading ? (
-            <div className="flex justify-center items-center h-full text-muted-foreground/60">
-              <Loader2 size={32} className="animate-spin" />
-            </div>
-          ) : sortedSpecies.length === 0 ? (
-            <div className="text-center py-12">
-              <Leaf size={48} className="mx-auto text-muted-foreground/60 mb-4" />
-              <p className="text-muted-foreground mb-2">No species found</p>
-              <p className="text-muted-foreground/60 text-sm">Start adding species to this project</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {sortedSpecies.map((species) => (
-                <SpeciesCard
-                  key={species.uid}
-                  species={species}
+        <SpeciesStats
+          activeCount={activeScientificCount}
+          totalCount={scientificCount}
+          topPlanted={topPlantedStat}
+          totalInterventions={totalInterventions}
+          unknownCount={unknownCount}
+        />
 
-                  isSelected={selectedSpecies?.uid === species.uid}
-                  onClick={() => handleSelectSpecies(species)}
-                  onToggleFavorite={handleToggleFavorite}
-                  onToggleDisabled={handleToggleDisabled}
-                  isUnknown={species.isUnknown}
-                  showCheckbox={species.isUnknown} // Only show checkbox for unknown species
-                  isChecked={selectedUnknownSpecies.includes(species.uid)} // This should work correctly now
-                  onCheckboxChange={handleCheckboxChange}
-                />
-              ))}
-            </div>
-          )}
+        <div className="flex flex-col xl:flex-row gap-5 items-start">
+          {/* Species grid */}
+          <div className="flex-1 min-w-0 w-full">
+            {loading ? (
+              <div className="flex justify-center items-center py-24 text-muted-foreground/60">
+                <Loader2 size={32} className="animate-spin" />
+              </div>
+            ) : gridSpecies.length === 0 ? (
+              <div className="text-center py-16">
+                <Leaf size={48} className="mx-auto text-muted-foreground/60 mb-4" />
+                <p className="text-muted-foreground mb-2">No species found</p>
+                <p className="text-muted-foreground/60 text-sm">Start adding species to this project</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {gridSpecies.map((species) => (
+                  <SpeciesCard
+                    key={species.uid}
+                    species={species}
+                    isSelected={selectedSpecies?.uid === species.uid}
+                    onClick={() => handleSelectSpecies(species)}
+                    onToggleFavorite={handleToggleFavorite}
+                    onToggleDisabled={handleToggleDisabled}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <aside className="w-full xl:w-[320px] flex-shrink-0">
+            <SpeciesSidebar
+              unknownSpecies={sidebarUnknownSpecies}
+              topPlanted={topPlanted}
+              selectedUnknown={selectedUnknownSpecies}
+              onToggleUnknown={handleCheckboxChange}
+              onAssign={handleBulkAssignSpecies}
+              onClear={handleClearSelection}
+              onSelectSpecies={handleSelectSpecies}
+            />
+          </aside>
         </div>
       </div>
 
