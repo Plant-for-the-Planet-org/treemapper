@@ -13,7 +13,9 @@
       "Bash(yarn db:generate)",
       "Bash(echo \"=== exit: $? \\(empty above = clean\\) ===\")",
       "Bash(awk 'NR>=360 && NR<=420' /Users/plant-214/Documents/pftp/treemapper/apps/server/src/database/schema/index.ts)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(grep -n \"projectForms: \\\\`\\\\${baseUrl}/projects\\\\`,\\\\|generateProjectApiKey\\\\|getProjectAnalytics = async\" api.url.ts api.fetch.ts)",
+      "Bash(grep *)"
     ]
   }
 }

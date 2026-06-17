@@ -224,6 +224,20 @@ export const getUserProjectSites = async (token: string, id: string) => {
   return result
 }
 
+//devices
+
+export const getProjectDevices = async (token: string, projectId: string) => {
+  const uri = `${getUrlApi.projectDevices}/${projectId}/devices`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+export const notifyProjectDevices = async (token: string, projectId: string, params: any) => {
+  const uri = `${postUrlApi.notifyProjectDevices}/${projectId}/devices/notify`
+  const result = await fetchPostCall(uri, params, token)
+  return result
+}
+
 export const getProjectAnalytics = async (token: string, id: string, pageSize?: number) => {
   const uri = `${getUrlApi.getProjectAnalytics}/${id}/leaderboard${pageSize ? `?pageSize=${pageSize}` : ''}`
   const result = await fetchGetCall(uri, token)

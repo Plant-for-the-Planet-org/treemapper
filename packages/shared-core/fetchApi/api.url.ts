@@ -63,6 +63,8 @@ export const postUrlApi = {
   generateProjectApiKey: `${baseUrl}/projects`,
   // Forms (project-scoped)
   projectForms: `${baseUrl}/projects`,
+  // Device management (project-scoped)
+  notifyProjectDevices: `${baseUrl}/projects`,
 } as const;
 
 
@@ -124,6 +126,8 @@ export const getUrlApi = {
   monitoringPlots: `${baseUrl}/monitoring-plots`,
   // Forms (project-scoped; shared base for all verbs)
   projectForms: `${baseUrl}/projects`,
+  // Device management (project-scoped)
+  projectDevices: `${baseUrl}/projects`,
 } as const;
 
 export const patchUrlApi = {

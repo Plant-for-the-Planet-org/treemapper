@@ -23,6 +23,7 @@ import { ExternalModule } from './external/external.module';
 import { PublicApiModule } from './public-api/public-api.module';
 import { MonitoringPlotsModule } from './monitoring-plots/monitoring-plots.module';
 import { FormsModule } from './forms/forms.module';
+import { DevicesModule } from './devices/devices.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { FormsModule } from './forms/forms.module';
     PublicApiModule,
     MonitoringPlotsModule,
     FormsModule,
+    DevicesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
