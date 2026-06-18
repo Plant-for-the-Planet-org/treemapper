@@ -176,7 +176,7 @@ export function GeneralSettingsSection() {
             <SectionHeader icon={CheckSquare} title="Approval Board" />
             <SettingRow
               label="Auto-enable approval board"
-              description="Every new project created in this workspace will have the approval board enabled by default."
+              description="Turns the approval board on for every project in this workspace, including existing ones, and enables it by default for new projects."
             >
               <Toggle
                 checked={settings.approvalBoardEnabled}

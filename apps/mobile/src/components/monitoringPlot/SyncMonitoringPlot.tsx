@@ -16,8 +16,8 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import RotatingView from '../common/RotatingView'
 import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
-import { getMobileHealth, getPersonalProject, uploadMonitoringPlot, uploadPlotRemeasurement, addPlotPlants } from 'src/api/api.fetch'
-import { convertPlotToUploadBody, buildPlotRemeasurementBody, buildPlotNewPlantsBody } from 'src/utils/helpers/monitoringPlotHelper/monitoringPlotSyncHelper'
+import { getMobileHealth, getPersonalProject, uploadMonitoringPlot, uploadPlotRemeasurement, addPlotPlants, addPlotObservations } from 'src/api/api.fetch'
+import { convertPlotToUploadBody, buildPlotRemeasurementBody, buildPlotNewPlantsBody, buildPlotObservationsBody } from 'src/utils/helpers/monitoringPlotHelper/monitoringPlotSyncHelper'
 
 interface Props {
     isLoggedIn: boolean
@@ -58,7 +58,7 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const { isConnected } = useNetInfo()
-    const { markMonitoringPlotSynced, markRemeasurementsSynced, markPlotPlantsSynced } = useMonitoringPlotManagement()
+    const { markMonitoringPlotSynced, markRemeasurementsSynced, markPlotPlantsSynced, markPlotObservationsSynced } = useMonitoringPlotManagement()
     const { addNewLog } = useLogManagement()
 
     // Only complete, not-yet-synced plots are uploadable.
@@ -73,6 +73,14 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
     const newPlantsData = useQuery<MonitoringPlot>(
         RealmSchema.MonitoringPlot,
         data => data.filtered('status == "SYNCED" AND plot_plants.server_tree_id == ""'),
+    )
+
+    // Already-synced plots that gained new observations (added after the plot was
+    // synced, so still NOT_SYNCED). These upload through the add-observations
+    // endpoint.
+    const newObservationsData = useQuery<MonitoringPlot>(
+        RealmSchema.MonitoringPlot,
+        data => data.filtered('status == "SYNCED" AND observations.sync_status == "NOT_SYNCED"'),
     )
 
     // Already-synced plots that have a synced plant and a pending timeline entry.
@@ -90,10 +98,12 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
     const plotNeedsRemeasure = (plot: MonitoringPlot) =>
         (plot.plot_plants || []).some(pl => !!pl.server_tree_id && (pl.timeline || []).some(t => t.sync_status !== 'SYNCED'))
 
-    // Distinct plots awaiting any kind of sync (full upload + new plants + remeasure).
+    // Distinct plots awaiting any kind of sync (full upload + new plants +
+    // new observations + remeasure).
     const pendingCount = new Set<string>([
         ...plotData.map(p => p.plot_id),
         ...newPlantsData.map(p => p.plot_id),
+        ...newObservationsData.map(p => p.plot_id),
         ...remeasureData.map(p => p.plot_id),
     ]).size
 
@@ -228,6 +238,49 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
         }
     }
 
+    // Upload observations added to an already-synced plot. The plot itself is
+    // already on the server, so this never re-uploads the plot; on success we
+    // mark the accepted observations SYNCED.
+    const handleObservations = async (plotId: string, projectUid: string): Promise<PlotUploadOutcome> => {
+        try {
+            const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotId)
+            if (!plot) return 'retryable'
+            const snapshot = JSON.parse(JSON.stringify(plot)) as MonitoringPlot
+
+            const { body, syncedRef, error } = await buildPlotObservationsBody(snapshot)
+            if (!body) {
+                // No new observations to send, or the plot has no server id to target.
+                if (error) {
+                    addNewLog({ logType: 'DATA_SYNC', message: `Observation upload blocked: ${error} (plot ${plotId})`, logLevel: 'error', statusCode: '' })
+                    return 'rejected'
+                }
+                return 'success'
+            }
+
+            const { response, success, status } = await addPlotObservations(projectUid, body)
+            const result = response?.data
+            if (success && result?.observations) {
+                const syncedIds = (result.observations as { clientId: string }[]).map(o => o.clientId).filter(Boolean)
+                // Fall back to the full ref if the server echoed nothing usable.
+                const persisted = await markPlotObservationsSynced(plotId, syncedIds.length ? syncedIds : syncedRef)
+                if (!persisted) {
+                    addNewLog({ logType: 'DATA_SYNC', message: `Observations uploaded but local mark-synced failed (plot ${plotId})`, logLevel: 'error', statusCode: '' })
+                    return 'retryable'
+                }
+                return 'success'
+            }
+            if (isRejectedByServer(status)) {
+                addNewLog({ logType: 'DATA_SYNC', message: `Server rejected observation payload (HTTP ${status})`, logLevel: 'error', statusCode: `${status}` })
+                return 'rejected'
+            }
+            addNewLog({ logType: 'DATA_SYNC', message: 'Observation API response error', logLevel: 'error', statusCode: `${status ?? ''}` })
+            return 'retryable'
+        } catch (error) {
+            addNewLog({ logType: 'DATA_SYNC', message: 'Observation upload error (Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
+            return 'retryable'
+        }
+    }
+
     // Single entry point. Plots have no inter-dependencies, so one pass over all
     // complete unsynced plots is enough (no until-empty loop like interventions).
     const startSyncingPlots = async () => {
@@ -262,24 +315,35 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                 return
             }
 
-            // Plots are not tied to a project on device, so they upload to the
-            // user's personal project (mirrors the intervention fallback).
-            const { response, success } = await getPersonalProject()
-            const projectUid = response?.data?.properties?.uid
-            if (!success || !projectUid) {
-                addNewLog({ logType: 'DATA_SYNC', message: 'Failed to fetch personal project uid for plot sync', logLevel: 'error', statusCode: '' })
-                toast.show('Could not find a project to upload plots to. Please try again.')
-                return
+            // Each plot now carries the project it was created for. Older plots
+            // created before project selection have an empty project_id; they fall
+            // back to the user's personal project (fetched once, only when needed),
+            // matching the previous behaviour and the intervention fallback.
+            let personalProjectUid: string | null = null
+            const needsPersonalFallback = [...plotData, ...newPlantsData, ...newObservationsData, ...remeasureData]
+                .some(p => !p.project_id)
+            if (needsPersonalFallback) {
+                const { response, success } = await getPersonalProject()
+                personalProjectUid = response?.data?.properties?.uid || null
+                if (!success || !personalProjectUid) {
+                    addNewLog({ logType: 'DATA_SYNC', message: 'Failed to fetch personal project uid for plot sync fallback', logLevel: 'error', statusCode: '' })
+                    toast.show('Could not find a project to upload plots to. Please try again.')
+                    return
+                }
             }
+            const projectUidFor = (plot: MonitoringPlot) => plot.project_id || personalProjectUid || ''
 
             // Snapshot the queue up front so it stays stable while we mark plots
             // SYNCED (which removes them from the live query). Order matters: full
             // uploads, then new plants on synced plots, then remeasurements (which
-            // read fresh state, so a just-uploaded plant is already excluded).
-            const uploadQueue = plotData.map(p => ({ plotId: p.plot_id, name: p.name || 'Untitled plot', kind: 'upload' as const }))
-            const newPlantsQueue = newPlantsData.map(p => ({ plotId: p.plot_id, name: `${p.name || 'Untitled plot'} (new plants)`, kind: 'newPlants' as const }))
-            const remeasureQueue = remeasureData.filter(plotNeedsRemeasure).map(p => ({ plotId: p.plot_id, name: `${p.name || 'Untitled plot'} (remeasure)`, kind: 'remeasure' as const }))
-            const queue = [...uploadQueue, ...newPlantsQueue, ...remeasureQueue]
+            // read fresh state, so a just-uploaded plant is already excluded). Each
+            // item carries its own target project so plots in different projects
+            // upload to the right one.
+            const uploadQueue = plotData.map(p => ({ plotId: p.plot_id, name: p.name || 'Untitled plot', kind: 'upload' as const, projectUid: projectUidFor(p) }))
+            const newPlantsQueue = newPlantsData.map(p => ({ plotId: p.plot_id, name: `${p.name || 'Untitled plot'} (new plants)`, kind: 'newPlants' as const, projectUid: projectUidFor(p) }))
+            const newObservationsQueue = newObservationsData.map(p => ({ plotId: p.plot_id, name: `${p.name || 'Untitled plot'} (observations)`, kind: 'newObservations' as const, projectUid: projectUidFor(p) }))
+            const remeasureQueue = remeasureData.filter(plotNeedsRemeasure).map(p => ({ plotId: p.plot_id, name: `${p.name || 'Untitled plot'} (remeasure)`, kind: 'remeasure' as const, projectUid: projectUidFor(p) }))
+            const queue = [...uploadQueue, ...newPlantsQueue, ...newObservationsQueue, ...remeasureQueue]
             if (queue.length === 0) { setShowFullSync(true); return }
 
             setSyncStatuses(queue.map(q => ({ plotId: q.plotId, name: q.name, status: 'pending' })))
@@ -288,10 +352,12 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                 if (!isConnected) throw new Error('No network connection')
                 setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'syncing' } : s))
                 const outcome = queue[i].kind === 'upload'
-                    ? await handlePlot(queue[i].plotId, projectUid)
+                    ? await handlePlot(queue[i].plotId, queue[i].projectUid)
                     : queue[i].kind === 'newPlants'
-                        ? await handleNewPlants(queue[i].plotId, projectUid)
-                        : await handleRemeasure(queue[i].plotId, projectUid)
+                        ? await handleNewPlants(queue[i].plotId, queue[i].projectUid)
+                        : queue[i].kind === 'newObservations'
+                            ? await handleObservations(queue[i].plotId, queue[i].projectUid)
+                            : await handleRemeasure(queue[i].plotId, queue[i].projectUid)
                 if (outcome === 'success') uploaded++
                 else if (outcome === 'rejected') rejected++
                 else failed++
@@ -304,10 +370,12 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                 .filtered('status != "SYNCED" AND is_complete == true').length
             const remainingNewPlants = realm.objects(RealmSchema.MonitoringPlot)
                 .filtered('status == "SYNCED" AND plot_plants.server_tree_id == ""').length
+            const remainingNewObservations = realm.objects(RealmSchema.MonitoringPlot)
+                .filtered('status == "SYNCED" AND observations.sync_status == "NOT_SYNCED"').length
             const remainingRemeasure = realm.objects<MonitoringPlot>(RealmSchema.MonitoringPlot)
                 .filtered('status == "SYNCED" AND plot_plants.server_tree_id != "" AND plot_plants.timeline.sync_status == "NOT_SYNCED"')
                 .filter(plotNeedsRemeasure).length
-            const remaining = remainingUploads + remainingNewPlants + remainingRemeasure
+            const remaining = remainingUploads + remainingNewPlants + remainingNewObservations + remainingRemeasure
 
             if (remaining === 0) {
                 setShowFullSync(true)
@@ -396,6 +464,12 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                                         <View key={`n-${idx}`} style={styles.statusRow}>
                                             <Text style={styles.countBadge}>{plot.plot_plants?.length ?? 0}</Text>
                                             <Text style={styles.statusLabel}>{plot.name || 'Untitled plot'} (new plants)</Text>
+                                        </View>
+                                    ))}
+                                    {newObservationsData.map((plot, idx) => (
+                                        <View key={`o-${idx}`} style={styles.statusRow}>
+                                            <Text style={styles.countBadge}>{plot.observations?.length ?? 0}</Text>
+                                            <Text style={styles.statusLabel}>{plot.name || 'Untitled plot'} (observations)</Text>
                                         </View>
                                     ))}
                                     {remeasureData.map((plot, idx) => (

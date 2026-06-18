@@ -11,6 +11,10 @@ export const PlotObservation: ObjectSchema = {
     type: { type: 'string' },
     obs_date: { type: 'double' },
     unit: { type: 'string' },
-    value: 'double'
+    value: 'double',
+    // Observations upload either with the initial plot sync or, when added to an
+    // already-synced plot, through the add-observations endpoint. This tracks
+    // which state an observation is in so only pending ones are uploaded.
+    sync_status: { type: 'string', default: 'NOT_SYNCED' },
   },
 }

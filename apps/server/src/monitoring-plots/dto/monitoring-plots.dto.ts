@@ -394,6 +394,38 @@ export class AddPlotPlantsDto {
 }
 
 /**
+ * Add new observations to a plot that was already uploaded. Each becomes a new
+ * `plot_observation` row under the existing plot intervention. Idempotent per
+ * observation on its mobile obs id (clientId), so a retried sync returns the
+ * existing observation instead of inserting a duplicate.
+ */
+export class AddPlotObservationsDto {
+  @ApiProperty({ description: 'Server plot intervention uid (the upload response id) to add observations to' })
+  @IsString()
+  plotUid: string;
+
+  @ApiProperty({ type: [PlotObservationDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PlotObservationDto)
+  observations: PlotObservationDto[];
+}
+
+/** One observation's server identity, echoed back so the device can mark it synced. */
+export class AddedPlotObservationDto {
+  @ApiProperty({ description: 'Mobile obs id (PlotObservation.obs_id) echoed back' })
+  clientId: string;
+
+  @ApiProperty({ description: 'Server plot_observation uid created for this observation' })
+  uid: string;
+}
+
+export class AddPlotObservationsResultDto {
+  plotUid: string;
+  observations: AddedPlotObservationDto[];
+}
+
+/**
  * Edit a plot's metadata from the web dashboard. All fields optional; only the
  * provided ones are changed. `name` maps to intervention.description, the rest
  * to the monitoring_plot companion row.

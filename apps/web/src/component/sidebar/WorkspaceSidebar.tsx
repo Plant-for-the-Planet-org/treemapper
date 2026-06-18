@@ -8,7 +8,7 @@ import {
 import { useToken } from '@/context/useTokenContext'
 import { useUserStore } from '@shared-core/store/useUserStore'
 import useProjectStore from '@shared-core/store/useProjectStore'
-import { getMyAdminWorkspaces } from '@shared-core/fetchApi/api.fetch'
+import { getMyAdminWorkspaces, setPrimaryWorkspace } from '@shared-core/fetchApi/api.fetch'
 import { Avatar } from '@/app/dashboard/workspace/components/workspace-ui'
 
 const SECTIONS = [
@@ -91,7 +91,12 @@ export default function WorkspaceSidebar() {
                     type="button"
                     onClick={() => {
                       setWsDropdownOpen(false)
-                      if (!isCurrent) router.push(`/workspace/${ws.uid}/${activeSection}`)
+                      if (!isCurrent) {
+                        // Persist the choice as the admin's primary workspace so
+                        // the rest of the app follows them to the new workspace.
+                        setPrimaryWorkspace(accessToken, { workspaceUid: ws.uid }).catch(() => {})
+                        router.push(`/workspace/${ws.uid}/${activeSection}`)
+                      }
                     }}
                     className={`w-full flex items-center gap-2 text-left px-3 py-2 text-sm truncate ${
                       isCurrent ? 'text-gray-900 font-medium' : 'text-gray-700 hover:bg-gray-100'

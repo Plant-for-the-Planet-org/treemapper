@@ -34,6 +34,15 @@ const useMonitoringPlotManagement = () => {
     return !!plant?.server_tree_id
   }
 
+  // A single observation is read-only once it has been pushed to the server.
+  // New observations may still be added to a synced plot (they upload through the
+  // add-observations endpoint), but an already-uploaded one cannot be edited.
+  const isObservationSynced = (id: string, obsId: string): boolean => {
+    const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id)
+    const obs = plot?.observations.find(el => el.obs_id === obsId)
+    return obs?.sync_status === 'SYNCED'
+  }
+
   // A single measurement is read-only once it has been pushed to the server.
   const isTimelineSynced = (id: string, plantId: string, timelineId: string): boolean => {
     const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id)
@@ -403,12 +412,12 @@ const useMonitoringPlotManagement = () => {
     observationDEtails: PlotObservation
   ): Promise<boolean> => {
     try {
-      // Observations only ride up with the initial plot upload; one added to a
-      // synced plot has no upload path, so block it instead of stranding it.
-      if (isPlotSynced(id)) return false
+      // A new observation is always uploadable: it rides up with the initial plot
+      // upload, or (on an already-synced plot) through the add-observations
+      // endpoint. It starts NOT_SYNCED so the next sync pass picks it up.
       realm.write(() => {
         const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
-        plotData.observations = [...plotData.observations, { ...observationDEtails }]
+        plotData.observations = [...plotData.observations, { ...observationDEtails, sync_status: 'NOT_SYNCED' }]
         plotData.plot_updated_at = Date.now()
       })
       return Promise.resolve(true)
@@ -422,7 +431,8 @@ const useMonitoringPlotManagement = () => {
     observationDEtails: PlotObservation
   ): Promise<boolean> => {
     try {
-      if (isPlotSynced(id)) return false
+      // Only an already-uploaded observation is locked; a pending one can be edited.
+      if (isObservationSynced(id, observationDEtails.obs_id)) return false
       realm.write(() => {
         const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
         const observation = realm.objectForPrimaryKey<PlotObservation>(RealmSchema.PlotObservation, observationDEtails.obs_id);
@@ -443,7 +453,8 @@ const useMonitoringPlotManagement = () => {
     obsId: string
   ): Promise<boolean> => {
     try {
-      if (isPlotSynced(id)) return false
+      // A synced observation lives on the server with no mobile delete path.
+      if (isObservationSynced(id, obsId)) return false
       realm.write(() => {
         const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
         const observation = realm.objectForPrimaryKey<PlotObservation>(RealmSchema.PlotObservation, obsId);
@@ -536,6 +547,29 @@ const useMonitoringPlotManagement = () => {
           if (treeUid) plant.server_tree_id = treeUid;
           plant.timeline.forEach(t => { t.sync_status = 'SYNCED'; });
         });
+        // Observations all go up with this initial upload, so mark them SYNCED.
+        plot.observations.forEach(o => { o.sync_status = 'SYNCED'; });
+        plot.plot_updated_at = Date.now();
+      });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  // Mark observations added to an already-synced plot as synced after the
+  // add-observations upload was accepted. Scoped to the obs ids the server
+  // actually stored, so only those that went up are flipped.
+  const markPlotObservationsSynced = async (
+    plotId: string,
+    syncedObsIds: string[],
+  ): Promise<boolean> => {
+    try {
+      const ids = new Set(syncedObsIds);
+      realm.write(() => {
+        const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotId);
+        if (!plot) return;
+        plot.observations.forEach(o => { if (ids.has(o.obs_id)) o.sync_status = 'SYNCED'; });
         plot.plot_updated_at = Date.now();
       });
       return true;
@@ -615,7 +649,7 @@ const useMonitoringPlotManagement = () => {
 
 
 
-  return { updatePlotObservation, deletePlotObservation, deletePlotTimeline, updateTimelineDetails, deletePlantDetails: deletePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, updatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, deleteMonitoringPlot, initializeNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurementPlantPlots, addPlotImageRecord, deleteImageRecord, markMonitoringPlotSynced, markRemeasurementsSynced, markPlotPlantsSynced }
+  return { updatePlotObservation, deletePlotObservation, deletePlotTimeline, updateTimelineDetails, deletePlantDetails: deletePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, updatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, deleteMonitoringPlot, initializeNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurementPlantPlots, addPlotImageRecord, deleteImageRecord, markMonitoringPlotSynced, markRemeasurementsSynced, markPlotPlantsSynced, markPlotObservationsSynced }
 }
 
 export default useMonitoringPlotManagement

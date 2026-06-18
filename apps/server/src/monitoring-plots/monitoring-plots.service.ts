@@ -33,6 +33,7 @@ import {
   UploadRemeasurementsDto,
   RemeasurementResultDto,
   AddPlotPlantsDto,
+  AddPlotObservationsDto,
   UpdateMonitoringPlotDto,
   UpdatePlotGroupDto,
 } from './dto/monitoring-plots.dto';
@@ -233,7 +234,8 @@ export class MonitoringPlotsService {
           uploadedPlants.push(created);
         }
 
-        // Plot-level observations.
+        // Plot-level observations. The mobile obs id is stashed in metadata so a
+        // later add-observations call can match (and skip) ones already uploaded.
         if (observations.length > 0) {
           await tx.insert(plotObservation).values(
             observations.map((o) => ({
@@ -243,6 +245,7 @@ export class MonitoringPlotsService {
               observedAt: new Date(o.observedAt),
               unit: o.unit || null,
               value: o.value ?? null,
+              metadata: o.clientId ? { clientId: o.clientId } : null,
             })),
           );
         }
@@ -590,6 +593,87 @@ export class MonitoringPlotsService {
       if (error?.status) throw error;
       this.logger.error(`Failed to add plot plants: ${error?.message}`, error?.stack);
       throw new BadRequestException(`Failed to add plot plants: ${error?.message}`);
+    }
+  }
+
+  /**
+   * Add new observations to an already-uploaded plot. Each becomes a
+   * `plot_observation` row under the existing plot intervention. Idempotent per
+   * observation on its mobile obs id (stored in metadata.clientId), so a retried
+   * sync returns the existing observation instead of inserting a duplicate.
+   */
+  async addPlotObservations(
+    dto: AddPlotObservationsDto,
+    membership: ProjectGuardResponse,
+  ): Promise<{ plotUid: string; observations: { clientId: string; uid: string }[] }> {
+    try {
+      const observations = dto.observations ?? [];
+      if (observations.length === 0) {
+        throw new BadRequestException('Request body must contain at least one observation');
+      }
+
+      // Resolve the plot intervention and confirm it belongs to this project.
+      const [plotIntervention] = await this.drizzleService.db
+        .select({ id: intervention.id })
+        .from(intervention)
+        .where(
+          and(
+            eq(intervention.uid, dto.plotUid),
+            eq(intervention.projectId, membership.projectId),
+            eq(intervention.discriminator, 'plot'),
+          ),
+        )
+        .limit(1);
+      if (!plotIntervention) {
+        throw new NotFoundException('Plot not found');
+      }
+      const interventionId = plotIntervention.id;
+
+      // Idempotency: observations already stored for this plot (matched on the
+      // mobile obs id in metadata) are returned, not re-inserted.
+      const clientIds = observations.map((o) => o.clientId).filter((c): c is string => !!c);
+      const alreadyCreated = clientIds.length
+        ? await this.drizzleService.db
+            .select({ uid: plotObservation.uid, cid: sql<string>`${plotObservation.metadata}->>'clientId'` })
+            .from(plotObservation)
+            .where(
+              and(
+                eq(plotObservation.interventionId, interventionId),
+                inArray(sql`${plotObservation.metadata}->>'clientId'`, clientIds),
+              ),
+            )
+        : [];
+      const existingByClient = new Map(alreadyCreated.map((r) => [r.cid, r.uid]));
+
+      const toCreate = observations.filter((o) => !o.clientId || !existingByClient.has(o.clientId));
+
+      const created: { clientId: string; uid: string }[] = [];
+      if (toCreate.length > 0) {
+        const rows = toCreate.map((o) => ({
+          uid: generateUid('plobs'),
+          interventionId,
+          type: o.type,
+          observedAt: new Date(o.observedAt),
+          unit: o.unit || null,
+          value: o.value ?? null,
+          metadata: o.clientId ? { clientId: o.clientId } : null,
+        }));
+        await this.drizzleService.db.insert(plotObservation).values(rows);
+        toCreate.forEach((o, i) => {
+          if (o.clientId) created.push({ clientId: o.clientId, uid: rows[i].uid });
+        });
+      }
+
+      // Merge freshly-created with already-existing (replayed) observations.
+      const replayed = observations
+        .filter((o) => o.clientId && existingByClient.has(o.clientId))
+        .map((o) => ({ clientId: o.clientId as string, uid: existingByClient.get(o.clientId as string)! }));
+
+      return { plotUid: dto.plotUid, observations: [...created, ...replayed] };
+    } catch (error) {
+      if (error?.status) throw error;
+      this.logger.error(`Failed to add plot observations: ${error?.message}`, error?.stack);
+      throw new BadRequestException(`Failed to add plot observations: ${error?.message}`);
     }
   }
 

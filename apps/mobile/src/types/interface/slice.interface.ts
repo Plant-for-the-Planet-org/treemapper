@@ -456,6 +456,8 @@ export interface MonitoringPlot {
   length: number
   width: number
   name: string
+  project_id: string
+  project_name: string
   location: InterventionLocation
   coords: {
     type: 'Point',
@@ -508,4 +510,5 @@ export interface PlotObservation {
   obs_date: number
   value: number
   unit: string
+  sync_status?: string
 }

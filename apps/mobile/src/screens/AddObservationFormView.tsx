@@ -76,8 +76,9 @@ const AddObservationForm = () => {
     const [unit, setUnit] = useState('kpa')
     const [advancedMode, setAdvancedMode] = useState(false)
     const [customUnit, setCustomUnit] = useState('')
-    // Observations only upload with the initial plot sync, so a synced plot's
-    // observations are read-only (and no new ones can be added).
+    // New observations can always be added (they upload with the plot or, on a
+    // synced plot, through the add-observations endpoint). Only an observation
+    // that has already been uploaded (sync_status SYNCED) is read-only.
     const [isLocked, setIsLocked] = useState(false)
 
     const { addPlotObservation, updatePlotObservation, deletePlotObservation } = useMonitoringPlotManagement()
@@ -85,16 +86,10 @@ const AddObservationForm = () => {
     const realm = useRealm()
 
     useEffect(() => {
-        if (plotID) {
-            const plot = realm.objectForPrimaryKey(RealmSchema.MonitoringPlot, plotID) as any
-            setIsLocked(plot?.status === 'SYNCED')
-        }
-    }, [plotID])
-
-    useEffect(() => {
         if (obsId && obsId.length > 0) {
             const details = realm.objectForPrimaryKey<PlotObservation>(RealmSchema.PlotObservation, obsId);
             if (details) {
+                setIsLocked(details.sync_status === 'SYNCED')
                 const storedUnit = String(details.unit)
                 setValue(String(details.value))
                 setObservationDate(details.obs_date)
@@ -151,10 +146,6 @@ const AddObservationForm = () => {
 
 
     const submitHandler = async () => {
-        if (isLocked) {
-            toast.show("This plot is already synced. Observations can't be added.")
-            return
-        }
         if (value.trim().length === 0) {
             toast.show("Please add valid Plot Name")
             return
@@ -172,7 +163,7 @@ const AddObservationForm = () => {
 
     const deleteHandler = async () => {
         if (isLocked) {
-            toast.show("This plot is already synced and can't be changed.")
+            toast.show("This observation is already synced and can't be changed.")
             return
         }
         const result = await deletePlotObservation(plotID, obsId)
@@ -186,7 +177,7 @@ const AddObservationForm = () => {
 
     const updateDetails = async () => {
         if (isLocked) {
-            toast.show("This plot is already synced and can't be changed.")
+            toast.show("This observation is already synced and can't be changed.")
             return
         }
         const obsDetails: PlotObservation = {
@@ -251,7 +242,7 @@ const AddObservationForm = () => {
                 )}
             </View>
             {isLocked ?
-                <Text style={styles.lockedHint}>This plot has been synced. Its observations can no longer be edited.</Text> :
+                <Text style={styles.lockedHint}>This observation has been synced and can no longer be edited.</Text> :
                 obsId && obsId.length > 0 ?
                 <View style={styles.btnMinorContainer}>
                     <CustomButton

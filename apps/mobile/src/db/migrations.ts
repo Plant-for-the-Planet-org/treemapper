@@ -27,6 +27,20 @@ export const runRealmMigrations = ({
         }
       }
     }
+
+    // v27: PlotObservation.sync_status was added (default NOT_SYNCED). Existing
+    // observations on a SYNCED plot already went up with the plot upload, so mark
+    // them SYNCED; otherwise they would resurface as pending and re-upload as
+    // duplicates. Observations on not-yet-synced plots keep NOT_SYNCED.
+    if (oldRealm.schemaVersion < 27) {
+      const plots = newRealm.objects(RealmSchema.MonitoringPlot) as any;
+      for (const plot of plots) {
+        const synced = plot.status === 'SYNCED';
+        for (const obs of plot.observations) {
+          obs.sync_status = synced ? 'SYNCED' : 'NOT_SYNCED';
+        }
+      }
+    }
   } catch (error) {
     Bugsnag.notify(error as Error)
   }

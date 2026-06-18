@@ -4,7 +4,7 @@ import { eq, and, or, desc, asc, isNull, inArray, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateNewWorkspaceDto } from './dto/create-organization.dto';
 import { OrganizationResponseDto, SelectOrganizationDto } from './dto/organization-response.dto';
-import { project, projectMember, site, user, workspace, workspaceMember, DEFAULT_WORKSPACE_SETTINGS, WorkspaceSettings } from '../database/schema/index';
+import { project, projectMember, site, user, workspace, workspaceMember, DEFAULT_WORKSPACE_SETTINGS, WorkspaceSettings, ProjectApprovalSettings } from '../database/schema/index';
 import { DrizzleService } from 'src/database/drizzle.service';
 import { generateUid } from 'src/util/uidGenerator';
 import { UserCacheService } from 'src/cache/user-cache.service';
@@ -134,6 +134,82 @@ export class WorkspaceService {
           ...userData,
           primaryWorkspaceUid: createOrgDto.workspaceUid,
           primaryProjectUid: createOrgDto.projectUid
+        });
+      });
+      return { success: true };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Used by the workspace-settings switcher: an admin/owner changes which
+  // workspace they are managing, so we move their primary workspace too.
+  // We keep the primary project consistent with the new workspace by picking
+  // a project they belong to in it (falling back to any project in it).
+  async setPrimaryWorkspace(workspaceUid: string, userData: User): Promise<any> {
+    try {
+      await this.drizzle.db.transaction(async (tx) => {
+        const [existingWorkspace] = await tx
+          .select({ id: workspace.id })
+          .from(workspace)
+          .where(eq(workspace.uid, workspaceUid))
+          .limit(1);
+        if (!existingWorkspace) {
+          throw new NotFoundException('Workspace not found');
+        }
+
+        const [membership] = await tx
+          .select({ role: workspaceMember.role })
+          .from(workspaceMember)
+          .where(
+            and(
+              eq(workspaceMember.workspaceId, existingWorkspace.id),
+              eq(workspaceMember.userId, userData.id),
+              eq(workspaceMember.status, 'active'),
+            ),
+          )
+          .limit(1);
+        if (!membership || (membership.role !== 'admin' && membership.role !== 'owner')) {
+          throw new ForbiddenException('Workspace admin or owner access required');
+        }
+
+        const [memberProject] = await tx
+          .select({ uid: project.uid })
+          .from(project)
+          .innerJoin(projectMember, eq(projectMember.projectId, project.id))
+          .where(
+            and(
+              eq(project.workspaceId, existingWorkspace.id),
+              isNull(project.deletedAt),
+              eq(projectMember.userId, userData.id),
+              eq(projectMember.status, 'active'),
+              isNull(projectMember.deletedAt),
+            ),
+          )
+          .limit(1);
+
+        let primaryProjectUid: string | null = memberProject?.uid ?? null;
+        if (!primaryProjectUid) {
+          const [anyProject] = await tx
+            .select({ uid: project.uid })
+            .from(project)
+            .where(
+              and(
+                eq(project.workspaceId, existingWorkspace.id),
+                isNull(project.deletedAt),
+              ),
+            )
+            .limit(1);
+          primaryProjectUid = anyProject?.uid ?? null;
+        }
+
+        await tx.update(user)
+          .set({ primaryWorkspaceUid: workspaceUid, primaryProjectUid })
+          .where(eq(user.id, userData.id));
+        await this.userCacheService.refreshAuthUser({
+          ...userData,
+          primaryWorkspaceUid: workspaceUid,
+          primaryProjectUid,
         });
       });
       return { success: true };
@@ -481,13 +557,40 @@ export class WorkspaceService {
       },
     };
 
-    const result = await this.drizzle.db
-      .update(workspace)
-      .set({ settings: updated })
-      .where(eq(workspace.uid, uid))
-      .returning({ id: workspace.id, settings: workspace.settings });
+    // The approval-board parts of the patch are not just defaults for future
+    // projects: a workspace owner changing them expects every existing project
+    // in the workspace to pick up the change too (master switch + main/sub
+    // approval settings). Build the per-project patch from what was actually
+    // changed so we don't clobber unrelated project state.
+    const projectApprovalPatch: Partial<{
+      approvalBoardEnabled: boolean;
+      approvalSettings: ProjectApprovalSettings;
+    }> = {};
+    if (patch.approvalBoardEnabled !== undefined) {
+      projectApprovalPatch.approvalBoardEnabled = updated.approvalBoardEnabled;
+    }
+    if (patch.approvalSettings !== undefined) {
+      projectApprovalPatch.approvalSettings = updated.approvalSettings;
+    }
 
-    if (result.length === 0) throw new NotFoundException('Workspace not found');
+    const result = await this.drizzle.db.transaction(async (tx) => {
+      const updatedWorkspace = await tx
+        .update(workspace)
+        .set({ settings: updated })
+        .where(eq(workspace.uid, uid))
+        .returning({ id: workspace.id, settings: workspace.settings });
+
+      if (updatedWorkspace.length === 0) throw new NotFoundException('Workspace not found');
+
+      if (Object.keys(projectApprovalPatch).length > 0) {
+        await tx
+          .update(project)
+          .set(projectApprovalPatch)
+          .where(and(eq(project.workspaceId, updatedWorkspace[0].id), isNull(project.deletedAt)));
+      }
+
+      return updatedWorkspace;
+    });
 
     this.auditService.log('workspace', {
       action: 'update',

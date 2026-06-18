@@ -2032,10 +2032,19 @@ export class ProjectsService {
           createdAt: project.createdAt,
           updatedAt: project.updatedAt,
           location: project.originalGeometry,
+          status: project.status,
           approvalBoardEnabled: project.approvalBoardEnabled,
           approvalSettings: project.approvalSettings,
+          apiEnabled: project.apiEnabled,
+          workspace: {
+            uid: workspace.uid,
+            name: workspace.name,
+            slug: workspace.slug,
+            type: workspace.type,
+          },
         })
         .from(project)
+        .leftJoin(workspace, eq(project.workspaceId, workspace.id))
         .where(eq(project.id, projectId));
 
       if (projectQuery.length === 0) {

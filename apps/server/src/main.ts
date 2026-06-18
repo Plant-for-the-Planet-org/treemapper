@@ -52,7 +52,7 @@ async function bootstrap() {
     // Environment-based CORS configuration
     const corsOrigins = isProduction
       ? process.env.CORS_ORIGINS?.split(',') || [`https://${process.env.HEROKU_APP_NAME}.herokuapp.com`]
-      : ['http://127.0.0.1:3000', 'http://localhost:3000'];
+      : ['http://127.0.0.1:3000', 'http://localhost:3000', 'http://localhost:3004'];
 
     await app.register(compression, { global: true });
 
