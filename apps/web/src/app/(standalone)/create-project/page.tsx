@@ -9,6 +9,7 @@ import GeoJSONUpload from '@/component/GeoJSONfileupload';
 import { useRouter } from 'next/navigation';
 import { useToken } from '@/context/useTokenContext';
 import { useSearchParams } from 'next/navigation';
+import useProjectStore from '@shared-core/store/useProjectStore';
 import Spinner from '@/component/Spinner';
 
 import { Button } from '@/components/ui/button'
@@ -357,6 +358,8 @@ export function CreateProjectUI() {
     const router = useRouter()
     const { accessToken } = useToken()
     const searchParams = useSearchParams();
+    const selectedWorkspace = useProjectStore((state) => state.selectedWorkspce);
+    const workspaces = useProjectStore((state) => state.workspace);
     const [pageLoading, setPageLoading] = useState(true)
 
     // Validate a single field
@@ -496,6 +499,19 @@ export function CreateProjectUI() {
             "description": formData.aboutProject,
 
         };
+        // Onboarding passes the chosen plan as ?type=platform|private|development.
+        // Resolve it to the matching workspace so the project lands where the user
+        // chose. The store's selectedWorkspace is unreliable here: reaching this
+        // page is a full page reload, which resets the in-memory store to the
+        // user's primary (private) workspace. Fall back to selectedWorkspace, then
+        // to the server's own primary-workspace fallback.
+        const desiredType = searchParams.get('type');
+        const targetWorkspace =
+            (desiredType && workspaces.find((w) => w.type === desiredType)) ||
+            selectedWorkspace;
+        if (targetWorkspace?.uid) {
+            payLoad["workspaceUid"] = targetWorkspace.uid
+        }
         if (formData.target !== '') {
             payLoad["target"] = formData.target
         }

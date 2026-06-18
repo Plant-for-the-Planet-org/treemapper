@@ -76,9 +76,10 @@ const PolygonMarkerMap = (props: Props) => {
 
   useEffect(() => {
     if (!mapRender) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         handleCameraView()
-      }, 300);
+      }, 300)
+      return () => clearTimeout(timer)
     }
   }, [MapBounds])
 
@@ -98,7 +99,8 @@ const PolygonMarkerMap = (props: Props) => {
   const handleCameraView = () => {
     if (cameraRef?.current) {
       const { bounds, key } = MapBounds
-      if (key === 'POLYGON_MAP') {
+      const hasValidBounds = Array.isArray(bounds) && bounds.length === 4 && bounds.every(Number.isFinite)
+      if (key === 'POLYGON_MAP' && hasValidBounds) {
         cameraRef.current.fitBounds(
           [bounds[0], bounds[1]],
           [bounds[2], bounds[3]],
@@ -113,7 +115,7 @@ const PolygonMarkerMap = (props: Props) => {
   }
 
   const handleCamera = () => {
-    if (currentUserLocation[0] === 0) {
+    if (!currentUserLocation || currentUserLocation[0] === 0) {
       return
     }
     if (cameraRef?.current) {
@@ -126,7 +128,7 @@ const PolygonMarkerMap = (props: Props) => {
   }
 
     const handleCamera2 = () => {
-    if (currentUserLocation[0] === 0) {
+    if (!currentUserLocation || currentUserLocation[0] === 0) {
       return
     }
     if (cameraRef?.current) {

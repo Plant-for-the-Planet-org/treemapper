@@ -6,6 +6,7 @@ import { generateUid } from 'src/util/uidGenerator';
 import { DrizzleService } from '../database/drizzle.service';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
 import { AuditService } from '../audit/audit.service';
+import { siteRequiresApproval, publishedSiteFilter } from '../approval-board/approval.util';
 
 export interface SiteMemberResponse {
   id: number;
@@ -94,7 +95,10 @@ export class SiteService {
         }
       }
       const [projectData] = await this.drizzleService.db
-        .select({ approvalBoardEnabled: project.approvalBoardEnabled })
+        .select({
+          approvalBoardEnabled: project.approvalBoardEnabled,
+          approvalSettings: project.approvalSettings,
+        })
         .from(project)
         .where(eq(project.id, membership.projectId))
         .limit(1);
@@ -111,7 +115,7 @@ export class SiteService {
           originalGeometry: createSiteDto.location,
           status: createSiteDto.status || 'barren',
           metadata: createSiteDto.metadata,
-          ...(projectData?.approvalBoardEnabled && {
+          ...(siteRequiresApproval(projectData) && {
             reviewStatus: 'pending',
           }),
         })
@@ -280,6 +284,8 @@ export class SiteService {
         and(
           eq(site.projectId, projectId),
           sql`${site.deletedAt} IS NULL`,
+          // Only show approved (or never-gated) sites on the map
+          publishedSiteFilter(),
           sql`${site.location} IS NOT NULL`,
           sql`ST_IsValid(${site.location}) = true`,
           sql`ST_X(ST_Centroid(${site.location})) BETWEEN -180 AND 180`,

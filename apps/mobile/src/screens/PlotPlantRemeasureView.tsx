@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import PlotPlantRemeasureHeader from 'src/components/monitoringPlot/PlotPlantRemeasureHeader'
@@ -45,6 +45,8 @@ const PlotPlantRemeasureView = () => {
     const [isAlive, setIsAlive] = useState(true)
     const [isEdit, setIsEdit] = useState(false)
     const [disableDelete, setDisableDelete] = useState(false)
+    // A measurement that has already been uploaded is read-only on device.
+    const [isLocked, setIsLocked] = useState(false)
     const [showDatePicker, setShowDatePicker] = useState(false)
     const [timelineImage, setTimelineImage] = useState('')
 
@@ -68,6 +70,7 @@ const PlotPlantRemeasureView = () => {
                         setMeasurementDate(timelineDetails.date)
                         setIsAlive(timelineDetails.status !== 'DECEASED')
                         setDisableDelete(timelineDetails.status === 'PLANTED')
+                        setIsLocked(timelineDetails.sync_status === 'SYNCED')
                         setTimelineImage(timelineDetails.image ?? '')
                     }
                 }
@@ -76,6 +79,10 @@ const PlotPlantRemeasureView = () => {
     }, [plotID])
 
     const submitHandler = async () => {
+        if (isLocked) {
+            toast.show('This measurement is already synced and can\'t be changed.')
+            return
+        }
         if (isEdit) {
             updateDetails()
             return
@@ -98,7 +105,8 @@ const PlotPlantRemeasureView = () => {
             length_unit: 'm',
             width_unit: 'cm',
             image: timelineImage,
-            timeline_id: generateUniquePlotId()
+            timeline_id: generateUniquePlotId(),
+            sync_status: 'NOT_SYNCED',
         }
         await addNewMeasurementPlantPlots(plotID, plantID, updateTimeline)
         captureAnalyticsEvent(posthog, AnalyticsEvents.TREE_MONITORED, {
@@ -114,6 +122,10 @@ const PlotPlantRemeasureView = () => {
     }
 
     const deleteHandler = async () => {
+        if (isLocked) {
+            toast.show('This measurement is already synced and can\'t be deleted.')
+            return
+        }
         const result = await deletePlotTimeline(plotID, plantID, timelineId)
         if (result) {
             toast.show("Data deleted.")
@@ -150,6 +162,10 @@ const PlotPlantRemeasureView = () => {
     }
 
     const updateDetails = async () => {
+        if (isLocked) {
+            toast.show('This measurement is already synced and can\'t be changed.')
+            return
+        }
         const index = selectedTimeline.timeline.findIndex(el => el.timeline_id === timelineId)
         if (index === 0 && !isAlive) {
             toast.show("Planted Status cannot be marked as deceased.\nPlease create new measurement and mark it as deceased.")
@@ -217,7 +233,9 @@ const PlotPlantRemeasureView = () => {
                     </View></>}
             </View>
             </ScrollView>
-            {isEdit && !disableDelete ?
+            {isLocked ?
+                <Text style={styles.lockedHint}>This measurement has been synced and can no longer be edited.</Text> :
+                isEdit && !disableDelete ?
                 <View style={styles.btnContainer}>
                     <CustomButton
                         label={'Delete'}
@@ -273,6 +291,15 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 50,
         flexDirection:'row'
+    },
+    lockedHint: {
+        position: 'absolute',
+        bottom: 50,
+        alignSelf: 'center',
+        textAlign: 'center',
+        color: Colors.TEXT_LIGHT,
+        fontSize: scaleFont(14),
+        paddingHorizontal: 24,
     },
     btnMinorContainer: {
         width: '100%',

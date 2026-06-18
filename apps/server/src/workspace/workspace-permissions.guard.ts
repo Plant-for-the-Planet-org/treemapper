@@ -1,7 +1,10 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
-import { workspace, workspaceMember } from '../database/schema';
+import { workspace, workspaceMember, user } from '../database/schema';
 import { eq, and, inArray } from 'drizzle-orm';
+import { CacheService } from 'src/cache/cache.service';
+
+const SUPERADMIN_TYPE_TTL_MS = 60 * 1000;
 
 const WORKSPACE_PARAM_ALIASES = ['uid', 'workspaceUid', 'workspaceId', 'id'] as const;
 
@@ -15,7 +18,10 @@ function resolveWorkspaceUid(params: Record<string, any> | undefined): string | 
 
 @Injectable()
 export class WorkspacePermissionsGuard implements CanActivate {
-  constructor(private readonly drizzleService: DrizzleService) {}
+  constructor(
+    private readonly drizzleService: DrizzleService,
+    private readonly cacheService: CacheService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -32,6 +38,12 @@ export class WorkspacePermissionsGuard implements CanActivate {
       .limit(1);
 
     if (!proj) throw new ForbiddenException('Workspace not found');
+
+    // Superadmins can access any workspace's approval board (unless impersonating).
+    if (request.user?.impersonated !== true && (await this.isSuperAdmin(request.user?.auth0Id))) {
+      request.workspace = { id: proj.id, uid: proj.uid };
+      return true;
+    }
 
     const [member] = await this.drizzleService.db
       .select({ role: workspaceMember.role })
@@ -50,5 +62,23 @@ export class WorkspacePermissionsGuard implements CanActivate {
 
     request.workspace = { id: proj.id, uid: proj.uid };
     return true;
+  }
+
+  private async isSuperAdmin(auth0Id?: string): Promise<boolean> {
+    if (!auth0Id) return false;
+    const cacheKey = `superadmin:type:${auth0Id}`;
+    let type = await this.cacheService.get<string>(cacheKey);
+    if (!type) {
+      const [userData] = await this.drizzleService.db
+        .select({ type: user.type })
+        .from(user)
+        .where(eq(user.auth0Id, auth0Id))
+        .limit(1);
+      type = userData?.type ?? null;
+      if (type) {
+        await this.cacheService.set(cacheKey, type, SUPERADMIN_TYPE_TTL_MS);
+      }
+    }
+    return type === 'superadmin';
   }
 }

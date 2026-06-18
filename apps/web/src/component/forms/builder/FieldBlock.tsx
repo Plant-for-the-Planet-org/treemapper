@@ -6,16 +6,8 @@ import { CSS } from '@dnd-kit/utilities'
 import { FormField } from '@/forms/types'
 import { useBuilder } from '@/forms/FormBuilderContext'
 import { FIELD_TYPE_META } from '@/forms/constants'
-import {
-  Type, Hash, Calendar, ChevronDown, CheckSquare,
-  CircleDot, PenLine, SlidersHorizontal, Star,
-  GripVertical, Trash2, GitBranch
-} from 'lucide-react'
-
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  Type, Hash, Calendar, ChevronDown, CheckSquare,
-  CircleDot, PenLine, SlidersHorizontal, Star,
-}
+import { getFieldIcon } from '@/forms/icons'
+import { GripVertical, Trash2, GitBranch } from 'lucide-react'
 
 interface FieldBlockProps {
   field: FormField
@@ -26,7 +18,7 @@ interface FieldBlockProps {
 export default function FieldBlock({ field, sectionId, isSelected }: FieldBlockProps) {
   const { dispatch } = useBuilder()
   const meta = FIELD_TYPE_META.find(m => m.type === field.type)!
-  const Icon = ICON_MAP[meta.icon]
+  const Icon = getFieldIcon(field.type)
 
   const {
     attributes,
@@ -82,8 +74,11 @@ export default function FieldBlock({ field, sectionId, isSelected }: FieldBlockP
             {Icon && <Icon className="w-3 h-3" />}
           </div>
           <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">{meta.label}</span>
+          {field.visibility === 'public' && (
+            <span className="text-[10px] font-medium text-blue-600 bg-blue-50 border border-blue-100 rounded px-1 py-0.5 leading-none ml-auto">Public</span>
+          )}
           {field.required && (
-            <span className="text-red-500 text-xs ml-auto">*</span>
+            <span className={`text-red-500 text-xs ${field.visibility === 'public' ? '' : 'ml-auto'}`}>*</span>
           )}
         </div>
         <p className="text-sm font-medium text-gray-800 truncate">{field.label || 'Untitled field'}</p>

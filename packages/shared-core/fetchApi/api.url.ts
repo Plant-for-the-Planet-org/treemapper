@@ -37,6 +37,7 @@ export const postUrlApi = {
   exportData: `${baseUrl}/analytics`,
   createNewOrg: `${baseUrl}/organizations`,
   selectOrg: `${baseUrl}/workspace/primary`,
+  setPrimaryWorkspace: `${baseUrl}/workspace/primary/select`,
   onboarding: `${baseUrl}/users/onboarding`,
   grantSiteAccess: `${baseUrl}/projects`,
   revokeSiteAccess: `${baseUrl}/projects`,
@@ -61,6 +62,10 @@ export const postUrlApi = {
   addAdminSiteComment: `${baseUrl}/approval-board/projects`,
   addFieldWorkerSiteComment: `${baseUrl}/approval-board/sites`,
   generateProjectApiKey: `${baseUrl}/projects`,
+  // Forms (project-scoped)
+  projectForms: `${baseUrl}/projects`,
+  // Device management (project-scoped)
+  notifyProjectDevices: `${baseUrl}/projects`,
 } as const;
 
 
@@ -88,7 +93,6 @@ export const getUrlApi = {
   getDashboardRecentAddition: `${baseUrl}/analytics/recent-additions`,
   getMyOrgs: `${baseUrl}/organizations`,
   getSiteMembers: `${baseUrl}/projects`,
-  getWrokspaceMembers: `${baseUrl}/workspace/members`,
   getWorkspace: `${baseUrl}/workspace`,
   getWorkspaceSettings: `${baseUrl}/workspace`,
   getMyAdminWorkspaces: `${baseUrl}/workspace/my`,
@@ -118,6 +122,12 @@ export const getUrlApi = {
   getWorkspaceReviewQueue: `${baseUrl}/approval-board/workspaces`,
   getWorkspaceSiteReviewQueue: `${baseUrl}/approval-board/workspaces`,
   projectApiKey: `${baseUrl}/projects`,
+  // Monitoring plots (shared base for all verbs)
+  monitoringPlots: `${baseUrl}/monitoring-plots`,
+  // Forms (project-scoped; shared base for all verbs)
+  projectForms: `${baseUrl}/projects`,
+  // Device management (project-scoped)
+  projectDevices: `${baseUrl}/projects`,
 } as const;
 
 export const patchUrlApi = {
@@ -132,6 +142,8 @@ export const patchUrlApi = {
   deleteLink: `${baseUrl}/projects`,
   updateProjectSettings: `${baseUrl}/projects`,
   userDetails: `${baseUrl}/users/me`,
+  // Forms (project-scoped)
+  projectForms: `${baseUrl}/projects`,
 
 } as const;
 
@@ -142,6 +154,8 @@ export const deleteUrlApi = {
   deleteProject: `${baseUrl}/projects`,
   deleteProjectImage: `${baseUrl}/projects`,
   revokeProjectApiKey: `${baseUrl}/projects`,
+  // Forms (project-scoped)
+  projectForms: `${baseUrl}/projects`,
 } as const;
 
 export const putUrlApi = {

@@ -10,6 +10,7 @@ import {
   tree,
 } from 'src/database/schema';
 import { CacheService } from 'src/cache/cache.service';
+import { publishedInterventionFilter } from '../approval-board/approval.util';
 
 const MULTI_TREE_TYPES = ['multi-tree-registration', 'enrichment-planting'];
 
@@ -95,6 +96,8 @@ export class ExternalService {
         and(
           eq(project.uid, projectUid),
           isNull(intervention.deletedAt),
+          // Only publish approved (or never-gated) interventions externally
+          publishedInterventionFilter(),
         ),
       );
 

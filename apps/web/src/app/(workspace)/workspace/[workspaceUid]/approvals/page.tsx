@@ -5,7 +5,7 @@ import { ApprovalsSection } from '@/app/dashboard/workspace/components/Approvals
 export default function WorkspaceApprovalsPage() {
   return (
     <div className="h-full overflow-y-auto p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-full mx-auto">
         <ApprovalsSection />
       </div>
     </div>

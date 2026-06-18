@@ -33,4 +33,6 @@ export enum RealmSchema {
   RemeasurementDate = 'RemeasurementDate',
   PlantLocationHistory = 'PlantLocationHistory',
   ImageData = 'ImageData',
+  ProjectForm = 'ProjectForm',
+  FormPrefill = 'FormPrefill',
 }

@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Loader2, Trees, Search, MapPin, Leaf, UserRo
 import { useToken } from '@/context/useTokenContext'
 import useProject from '@shared-core/store/useProjectStore'
 import { getDashboardRecentAddition } from '@shared-core/fetchApi/api.fetch'
+import usePolling from '@/hooks/usePolling'
 
 const activityMeta: Record<string, { Icon: React.ElementType; bg: string; color: string }> = {
   intervention: { Icon: Trees,      bg: 'bg-[#e6f1ec]',    color: '#007A49' },
@@ -71,9 +72,13 @@ const RecentAdditionsComponent = ({ onTotalChange }: RecentAdditionsProps) => {
   const { accessToken } = useToken()
   const selectedProject = useProject(state => state.selectedProject)
 
-  const fetchActivities = async (page = 1, limit = 10) => {
-    setLoading(true)
-    setError(null)
+  // `silent` skips the spinner + error swap so background polls refresh the
+  // list in place. A failed poll keeps the current data on screen.
+  const fetchActivities = async (page = 1, limit = 10, silent = false) => {
+    if (!silent) {
+      setLoading(true)
+      setError(null)
+    }
     try {
       const response = await getDashboardRecentAddition(accessToken || '', selectedProject?.uid || '', page, limit)
       if (response && response.statusCode !== 200) throw new Error('Failed to fetch activities')
@@ -91,15 +96,24 @@ const RecentAdditionsComponent = ({ onTotalChange }: RecentAdditionsProps) => {
         throw new Error(response.message || 'Failed to fetch activities')
       }
     } catch (err: any) {
-      setError(err.message)
+      if (!silent) setError(err.message)
+      else console.warn('Silent recent-activity refresh failed:', err)
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }
 
   useEffect(() => {
     if (selectedProject?.uid) fetchActivities()
   }, [selectedProject])
+
+  // Auto-refresh the current page every 30s so new field activity appears
+  // without a manual refresh. Silent: no spinner, page + search preserved.
+  usePolling(
+    () => fetchActivities(pagination.page, pagination.limit, true),
+    30_000,
+    !!selectedProject?.uid,
+  )
 
   const handlePageChange = (newPage: number) => {
     const totalPages = Math.ceil(pagination.total / pagination.limit)

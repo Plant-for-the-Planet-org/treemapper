@@ -66,7 +66,8 @@ export const auditEntityEnum = pgEnum('audit_entity', [
   'bulk_invite',
   'image',
   'notification',
-  'migration'
+  'migration',
+  'form'
 ]);
 
 
@@ -95,6 +96,63 @@ export interface InterventionSpeciesEntry {
 
 
 
+// ---------------------------------------------------------------------------
+// Form builder schema (stored as a JSONB blob on the `form` table)
+//
+// The web form builder edits a whole form in memory and saves it atomically,
+// so the section/field tree lives in one `schema` jsonb column rather than in
+// normalized tables. These types mirror the frontend `Form` types 1:1
+// (apps/web/src/forms/types.ts) so the same shape round-trips through the API.
+// ---------------------------------------------------------------------------
+export type FormFieldType = 'text' | 'number' | 'date' | 'dropdown' | 'checkbox' | 'radio';
+
+export type FormConditionOperator =
+  | 'equals'
+  | 'not_equals'
+  | 'contains'
+  | 'greater_than'
+  | 'less_than'
+  | 'is_empty'
+  | 'is_not_empty';
+
+export interface FormFieldOption {
+  id: string;
+  label: string;
+  value: string;
+}
+
+export interface FormConditionalRule {
+  id: string;
+  targetFieldId: string;
+  operator: FormConditionOperator;
+  value: string;
+  action: 'show' | 'hide';
+}
+
+export interface FormFieldDefinition {
+  id: string;
+  type: FormFieldType;
+  label: string;
+  placeholder: string;
+  helpText: string;
+  required: boolean;
+  conditions: FormConditionalRule[];
+  // Type-specific settings (text/number/date config or { options } for choices).
+  config: Record<string, any>;
+}
+
+export interface FormSectionDefinition {
+  id: string;
+  title: string;
+  description: string;
+  collapsed: boolean;
+  fields: FormFieldDefinition[];
+}
+
+export interface FormSchema {
+  sections: FormSectionDefinition[];
+}
+
 export const userTypeEnum = pgEnum('user_type', ['individual', 'tpo', "organization", 'other', "school", "superadmin"]);
 export const workspaceTypeEnum = pgEnum('workspace_type', ['platform', "private", 'development', 'premium']);
 
@@ -120,6 +178,7 @@ export const PROJECT_PERMISSIONS = [
   'approve_site',
   'add_site',
   'request_species',
+  'manage_form',
 ] as const;
 export type ProjectPermission = (typeof PROJECT_PERMISSIONS)[number];
 export const projectStatusEnum = pgEnum('project_status', ['active', 'in_review', 'suspended', 'disabled']);
@@ -183,6 +242,7 @@ export const recordTypeEnum = pgEnum('record_type', [
 
 export const imageEntityEnum = pgEnum('image_entity', ['project', 'site', 'user', 'intervention', 'tree', 'species', 'feedback']);
 export const treeTypeEnum = pgEnum('tree_enum', ['single', 'sample', 'plot']);
+export const plotShapeEnum = pgEnum('plot_shape', ['circle', 'rectangle', 'polygon']);
 export const imageTypeEnum = pgEnum('image_type', ['before', 'during', 'after', 'detail', 'overview', 'progress', 'aerial', 'ground', 'record']);
 export const interventionStatusEnum = pgEnum('intervention_status', ['planned', 'planning', 'active', 'completed', 'failed', 'on-hold', 'cancelled']);
 export const feedbackTypeEnum = pgEnum('feedback_type', ['feedback', 'issue', 'translation_fix']);
@@ -202,6 +262,23 @@ export const reviewCommentAuthorRoleEnum = pgEnum('review_comment_author_role', 
   'admin',
   'contributor',
 ]);
+
+// Where an intervention was created from. Used to gate which sources require
+// approval (see project.approvalSettings) and for audit/display.
+export const interventionSourceEnum = pgEnum('intervention_source', [
+  'web',
+  'bulk',
+  'mobile',
+  'migration',
+]);
+
+export const formStatusEnum = pgEnum('form_status', ['draft', 'published']);
+// Which sites a form is shown for: every site, only interventions with no site,
+// or the specific sites listed in `form.siteIds`.
+export const formSiteAssignmentEnum = pgEnum('form_site_assignment', ['all', 'none', 'specific']);
+// Which intervention types trigger a form: every type, or the specific types
+// listed in `form.interventionTypes`.
+export const formInterventionAssignmentEnum = pgEnum('form_intervention_assignment', ['all', 'specific']);
 
 
 
@@ -326,8 +403,29 @@ export const user = pgTable('user', {
 
 
 
+// Intervention sources that can be independently gated by the approval board.
+// 'migration' is never gated, so it is excluded here.
+export const APPROVAL_GATED_SOURCES = ['web', 'bulk', 'mobile'] as const;
+export type ApprovalGatedSource = (typeof APPROVAL_GATED_SOURCES)[number];
+
+// Per-project, granular approval configuration. Only takes effect when the
+// master switch (project.approvalBoardEnabled) is on.
+export type ProjectApprovalSettings = {
+  // Which intervention sources require approval before being published.
+  sources: Record<ApprovalGatedSource, boolean>;
+  // Whether newly created sites require approval before being published.
+  siteApprovalRequired: boolean;
+};
+
+export const DEFAULT_PROJECT_APPROVAL_SETTINGS: ProjectApprovalSettings = {
+  sources: { web: true, bulk: true, mobile: true },
+  siteApprovalRequired: true,
+};
+
 export type WorkspaceSettings = {
   approvalBoardEnabled: boolean;
+  // Default approval settings new projects inherit when created in this workspace.
+  approvalSettings: ProjectApprovalSettings;
   defaultProjectVisibility: 'public' | 'private';
   allowMemberInvites: boolean;
   requireApprovalForNewProjects: boolean;
@@ -342,6 +440,7 @@ export type WorkspaceSettings = {
 
 export const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettings = {
   approvalBoardEnabled: false,
+  approvalSettings: DEFAULT_PROJECT_APPROVAL_SETTINGS,
   defaultProjectVisibility: 'private',
   allowMemberInvites: false,
   requireApprovalForNewProjects: false,
@@ -608,6 +707,10 @@ export const project = pgTable('project', {
   migratedProject: boolean('migrated_project').default(false),
   status: projectStatusEnum('status').notNull().default('active'),
   approvalBoardEnabled: boolean('approval_board_enabled').default(false).notNull(),
+  approvalSettings: jsonb('approval_settings')
+    .$type<ProjectApprovalSettings>()
+    .default(DEFAULT_PROJECT_APPROVAL_SETTINGS)
+    .notNull(),
   apiEnabled: boolean('api_enabled').default(false).notNull(),
   flag: boolean('flag').default(false),
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
@@ -989,6 +1092,7 @@ export const intervention = pgTable('intervention', {
   projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
   siteId: integer('site_id').references(() => site.id, { onDelete: 'set null' }),
   type: interventionTypeEnum('type').notNull(),
+  discriminator: interventionDiscriminatorEnum('discriminator').notNull().default('intervention'),
   status: interventionStatusEnum('status').default('planned'),
   idempotencyKey: text('idempotency_key').unique().notNull(),
   registrationDate: timestamp('registration_date', { withTimezone: true }).notNull(),
@@ -1010,6 +1114,7 @@ export const intervention = pgTable('intervention', {
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
   metadata: jsonb('metadata'),
   migratedIntervention: boolean('migrated_intervention').default(false),
+  source: interventionSourceEnum('source'),
   reviewStatus: reviewStatusEnum('review_status'),
   submittedAt: timestamp('submitted_at', { withTimezone: true }),
   approvedAt: timestamp('approved_at', { withTimezone: true }),
@@ -1027,6 +1132,9 @@ export const intervention = pgTable('intervention', {
     .on(table.projectId, table.type, table.status)
     .where(sql`deleted_at IS NULL`),
   locationIdx: index('intervention_location_gist_idx').using('gist', table.location),
+  plotDiscriminatorIdx: index('intervention_plot_idx')
+    .on(table.projectId, table.discriminator)
+    .where(sql`discriminator = 'plot' AND deleted_at IS NULL`),
   userInterventionsIdx: index('intervention_user_idx')
     .on(table.userId, table.interventionEndDate)
     .where(sql`deleted_at IS NULL`),
@@ -1183,6 +1291,74 @@ export const treeRecord = pgTable('tree_record', {
 }));
 
 
+export const monitoringPlot = pgTable('monitoring_plot', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  interventionId: integer('intervention_id').notNull().unique()
+    .references(() => intervention.id, { onDelete: 'cascade' }),
+  shape: plotShapeEnum('shape'),
+  plotType: text('plot_type'),
+  complexity: text('complexity'),
+  radius: doublePrecision('radius'),       // metres, circular plots
+  length: doublePrecision('length'),       // metres, rectangular plots
+  width: doublePrecision('width'),         // metres, rectangular plots
+  centerLocation: geometryWithGeoJSON(4326)('center_location'),
+  isComplete: boolean('is_complete').default(false).notNull(),
+  metadata: jsonb('metadata'),             // Realm additional_data / meta_data
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+}, (table) => ({
+  interventionIdx: index('monitoring_plot_intervention_idx').on(table.interventionId),
+  centerLocationIdx: index('monitoring_plot_center_gist_idx').using('gist', table.centerLocation),
+  dimensionsPositive: check('plot_dimensions_positive',
+    sql`(radius IS NULL OR radius >= 0) AND (length IS NULL OR length >= 0) AND (width IS NULL OR width >= 0)`),
+}));
+
+export const plotObservation = pgTable('plot_observation', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  interventionId: integer('intervention_id').notNull()
+    .references(() => intervention.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),            // e.g. soil_moisture, temperature
+  observedAt: timestamp('observed_at', { withTimezone: true }).notNull(),
+  unit: text('unit'),
+  value: doublePrecision('value'),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+}, (table) => ({
+  interventionIdx: index('plot_observation_intervention_idx').on(table.interventionId, table.observedAt),
+}));
+
+export const plotGroup = pgTable('plot_group', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+  createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'set null' }),
+  name: text('name').notNull(),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+}, (table) => ({
+  projectIdx: index('plot_group_project_idx').on(table.projectId),
+}));
+
+export const plotGroupMembership = pgTable('plot_group_membership', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  groupId: integer('group_id').notNull().references(() => plotGroup.id, { onDelete: 'cascade' }),
+  interventionId: integer('intervention_id').notNull()
+    .references(() => intervention.id, { onDelete: 'cascade' }),  // the plot
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  uniqueMembership: unique('plot_group_membership_unique').on(table.groupId, table.interventionId),
+  groupIdx: index('plot_group_membership_group_idx').on(table.groupId),
+  plotIdx: index('plot_group_membership_plot_idx').on(table.interventionId),
+}));
+
 export const reviewThread = pgTable('review_thread', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
@@ -1217,6 +1393,41 @@ export const reviewComment = pgTable('review_comment', {
   threadCommentsIdx: index('review_comment_thread_idx').on(table.threadId, table.createdAt),
 }));
 
+export const form = pgTable('form', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+  createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description'),
+  status: formStatusEnum('status').notNull().default('draft'),
+  // Targeting: the form is shown after planting an intervention when both the
+  // site rule and the intervention-type rule match.
+  // - siteAssignment 'all'      -> any site (and site-less interventions)
+  //   'none'     -> only interventions recorded without a site
+  //   'specific' -> only the site uids in `siteIds`
+  siteAssignment: formSiteAssignmentEnum('site_assignment').notNull().default('all'),
+  // Site uids targeted when siteAssignment = 'specific'. Stored as uids (the same
+  // way project_member.restrictedSites does) so no join table is needed.
+  siteIds: text('site_ids').array().default([]),
+  // - interventionAssignment 'all' -> any intervention type
+  //   'specific' -> only the types in `interventionTypes`
+  interventionAssignment: formInterventionAssignmentEnum('intervention_assignment').notNull().default('all'),
+  interventionTypes: interventionTypeEnum('intervention_types').array().default([]),
+  // Whole section/field tree, shaped like FormSchema above.
+  schema: jsonb('schema').$type<FormSchema>().notNull().default(sql`'{"sections":[]}'::jsonb`),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+}, (table) => ({
+  projectFormsIdx: index('form_project_idx')
+    .on(table.projectId, table.status)
+    .where(sql`deleted_at IS NULL`),
+  publishedRequiresTimestamp: check('form_published_requires_timestamp',
+    sql`status != 'published' OR published_at IS NOT NULL`),
+}));
+
 export const userRelations = relations(user, ({ many }) => ({
   projectMemberships: many(projectMember),
   createdProjects: many(project, { relationName: 'createdBy' }),
@@ -1246,6 +1457,7 @@ export const userRelations = relations(user, ({ many }) => ({
   rejectedSites: many(site, { relationName: 'siteRejectedBy' }),
   closedReviewThreads: many(reviewThread, { relationName: 'closedBy' }),
   reviewComments: many(reviewComment, { relationName: 'commentAuthor' }),
+  createdForms: many(form, { relationName: 'formCreatedBy' }),
 }));
 
 export const scientificSpeciesRelations = relations(scientificSpecies, ({ one, many }) => ({
@@ -1299,6 +1511,47 @@ export const interventionRelations = relations(intervention, ({ one, many }) => 
   reviewThreads: many(reviewThread),
   trees: many(tree),
   species: many(interventionSpecies),
+  monitoringPlot: one(monitoringPlot),
+  observations: many(plotObservation),
+  groupMemberships: many(plotGroupMembership),
+}));
+
+export const monitoringPlotRelations = relations(monitoringPlot, ({ one }) => ({
+  intervention: one(intervention, {
+    fields: [monitoringPlot.interventionId],
+    references: [intervention.id],
+  }),
+}));
+
+export const plotObservationRelations = relations(plotObservation, ({ one }) => ({
+  intervention: one(intervention, {
+    fields: [plotObservation.interventionId],
+    references: [intervention.id],
+  }),
+}));
+
+export const plotGroupRelations = relations(plotGroup, ({ one, many }) => ({
+  project: one(project, {
+    fields: [plotGroup.projectId],
+    references: [project.id],
+  }),
+  createdBy: one(user, {
+    fields: [plotGroup.createdById],
+    references: [user.id],
+    relationName: 'createdBy',
+  }),
+  memberships: many(plotGroupMembership),
+}));
+
+export const plotGroupMembershipRelations = relations(plotGroupMembership, ({ one }) => ({
+  group: one(plotGroup, {
+    fields: [plotGroupMembership.groupId],
+    references: [plotGroup.id],
+  }),
+  intervention: one(intervention, {
+    fields: [plotGroupMembership.interventionId],
+    references: [intervention.id],
+  }),
 }));
 
 export const reviewThreadRelations = relations(reviewThread, ({ one, many }) => ({
@@ -1497,6 +1750,19 @@ export const projectRelations = relations(project, ({ one, many }) => ({
   projectSpecies: many(projectSpecies),
   speciesRequests: many(speciesRequest),
   apiKey: one(projectApiKey),
+  forms: many(form),
+}));
+
+export const formRelations = relations(form, ({ one }) => ({
+  project: one(project, {
+    fields: [form.projectId],
+    references: [project.id],
+  }),
+  createdBy: one(user, {
+    fields: [form.createdById],
+    references: [user.id],
+    relationName: 'formCreatedBy',
+  }),
 }));
 
 export const projectApiKeyRelations = relations(projectApiKey, ({ one }) => ({

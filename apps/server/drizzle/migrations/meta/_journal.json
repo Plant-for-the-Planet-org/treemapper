@@ -22,6 +22,20 @@
       "when": 1780010842305,
       "tag": "0002_tan_spirit",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780885914499,
+      "tag": "0003_stiff_mephistopheles",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1781756494227,
+      "tag": "0004_smooth_lifeguard",
+      "breakpoints": true
     }
   ]
 }

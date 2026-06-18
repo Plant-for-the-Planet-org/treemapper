@@ -16,7 +16,7 @@ export function generateUniquePlotId() {
 }
 
 
-export const newPlotDetails = (shape: PLOT_SHAPE, type: PLOT_TYPE, complexity: PLOT_COMPLEXITY) => {
+export const newPlotDetails = (shape: PLOT_SHAPE, type: PLOT_TYPE, complexity: PLOT_COMPLEXITY, project: { id: string; name: string }) => {
     const details: MonitoringPlot = {
         plot_id: generateUniquePlotId(),
         complexity: complexity,
@@ -26,6 +26,8 @@ export const newPlotDetails = (shape: PLOT_SHAPE, type: PLOT_TYPE, complexity: P
         length: 0,
         width: 0,
         name: "",
+        project_id: project.id,
+        project_name: project.name,
         location: {
             type: "",
             coordinates: ""

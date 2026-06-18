@@ -69,6 +69,12 @@ export const selectOrg = async (token: string, params: any) => {
   return result;
 };
 
+export const setPrimaryWorkspace = async (token: string, params: { workspaceUid: string }) => {
+  const uri = `${postUrlApi.setPrimaryWorkspace}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 //migrate
 
 export const checkForMigration = async (token: string) => {
@@ -113,6 +119,12 @@ export const exportAllData = async (token: string, params: any, prid) => {
 
 export const getTeamMemebers = async (token: string, id: string) => {
   const uri = `${getUrlApi.teamMembers}/${id}/allmembers`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+export const getProjectTeamActivity = async (token: string, id: string, limit = 20) => {
+  const uri = `${getUrlApi.teamMembers}/${id}/team-activity?limit=${limit}`
   const result = await fetchGetCall(uri, token)
   return result
 }
@@ -218,8 +230,22 @@ export const getUserProjectSites = async (token: string, id: string) => {
   return result
 }
 
-export const getProjectAnalytics = async (token: string, id: string) => {
-  const uri = `${getUrlApi.getProjectAnalytics}/${id}/leaderboard`
+//devices
+
+export const getProjectDevices = async (token: string, projectId: string) => {
+  const uri = `${getUrlApi.projectDevices}/${projectId}/devices`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+export const notifyProjectDevices = async (token: string, projectId: string, params: any) => {
+  const uri = `${postUrlApi.notifyProjectDevices}/${projectId}/devices/notify`
+  const result = await fetchPostCall(uri, params, token)
+  return result
+}
+
+export const getProjectAnalytics = async (token: string, id: string, pageSize?: number) => {
+  const uri = `${getUrlApi.getProjectAnalytics}/${id}/leaderboard${pageSize ? `?pageSize=${pageSize}` : ''}`
   const result = await fetchGetCall(uri, token)
   return result
 }
@@ -646,12 +672,6 @@ export const updateProjectStatusApi = async (
 ) => {
   const uri = `${patchUrlApi.updateProjectStatus}/${workspaceUid}/projects/${projectUid}/status`;
   return await fetchPatchCall(uri, { status }, token);
-};
-
-export const getWorkspaceMembers = async (token: string) => {
-  const uri = `${getUrlApi.getWrokspaceMembers}`;
-  const result = await fetchGetCall(uri, token);
-  return result;
 };
 
 export const startImpersonationWork = async (token: string, person: string) => {
@@ -1105,3 +1125,106 @@ export const addTreeRemeasurement = async (
   const result = await fetchPostCall(uri, data, token);
   return result;
 };
+
+
+// ---------------------------------------------------------------------------
+// Monitoring plots
+// ---------------------------------------------------------------------------
+
+// List all monitoring plots for a project (thin list view).
+export const getProjectMonitoringPlots = async (token: string, projectUid: string) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Full detail of one plot: geometry, plants + timelines, observations, species.
+export const getMonitoringPlotDetail = async (token: string, projectUid: string, plotUid: string) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/plots/${plotUid}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Edit a plot's metadata. Returns the refreshed detail.
+export const updateMonitoringPlot = async (token: string, projectUid: string, plotUid: string, params: any) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/plots/${plotUid}`
+  const result = await fetchPatchCall(uri, params, token)
+  return result
+}
+
+// Soft-delete a plot.
+export const deleteMonitoringPlot = async (token: string, projectUid: string, plotUid: string) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/plots/${plotUid}`
+  const result = await fetchDeleteCall(uri, token)
+  return result
+}
+
+// List a project's plot groups with their member plots.
+export const getMonitoringPlotGroups = async (token: string, projectUid: string) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/groups`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Create a plot group (optionally attaching plots by uid).
+export const createMonitoringPlotGroup = async (token: string, projectUid: string, params: any) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/groups`
+  const result = await fetchPostCall(uri, params, token)
+  return result
+}
+
+// Rename a group and/or set its exact member plots.
+export const updateMonitoringPlotGroup = async (token: string, projectUid: string, groupUid: string, params: any) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/groups/${groupUid}`
+  const result = await fetchPatchCall(uri, params, token)
+  return result
+}
+
+// Soft-delete a group (member plots untouched).
+export const deleteMonitoringPlotGroup = async (token: string, projectUid: string, groupUid: string) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/groups/${groupUid}`
+  const result = await fetchDeleteCall(uri, token)
+  return result
+}
+
+
+// ---------------------------------------------------------------------------
+// Forms (custom data-collection forms, project-scoped)
+// ---------------------------------------------------------------------------
+
+// List a project's forms. Optional status filter ('draft' | 'published').
+export const getProjectForms = async (token: string, projectUid: string, status?: 'draft' | 'published') => {
+  const uri = status
+    ? `${getUrlApi.projectForms}/${projectUid}/forms?status=${status}`
+    : `${getUrlApi.projectForms}/${projectUid}/forms`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Full detail of one form (sections + fields tree).
+export const getProjectForm = async (token: string, projectUid: string, formUid: string) => {
+  const uri = `${getUrlApi.projectForms}/${projectUid}/forms/${formUid}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Create a form. Returns the created form with its server-assigned uid.
+export const createProjectForm = async (token: string, projectUid: string, params: any) => {
+  const uri = `${postUrlApi.projectForms}/${projectUid}/forms`
+  const result = await fetchPostCall(uri, params, token)
+  return result
+}
+
+// Update a form (name, description, status, targeting, schema).
+export const updateProjectForm = async (token: string, projectUid: string, formUid: string, params: any) => {
+  const uri = `${patchUrlApi.projectForms}/${projectUid}/forms/${formUid}`
+  const result = await fetchPatchCall(uri, params, token)
+  return result
+}
+
+// Soft-delete a form.
+export const deleteProjectForm = async (token: string, projectUid: string, formUid: string) => {
+  const uri = `${deleteUrlApi.projectForms}/${projectUid}/forms/${formUid}`
+  const result = await fetchDeleteCall(uri, token)
+  return result
+}

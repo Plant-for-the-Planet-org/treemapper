@@ -46,6 +46,8 @@ const EidPlantModal = (props: Props) => {
   })
   const realm = useRealm()
   const { isVisible, toogleModal, plotId, plotData } = props
+  // A synced plot is read-only: no name/dimension edits and no delete.
+  const isSynced = plotData?.status === 'SYNCED'
   useEffect(() => {
     if (isVisible) {
       handlePresentModalPress()
@@ -152,18 +154,24 @@ const EidPlantModal = (props: Props) => {
                 <CloseIcon width={50} onPress={closeModal} />
               </Pressable>
             </View>
-            <Pressable style={styles.optionCard} onPress={() => { setShowEdit(plotData.name) }}>
-              <EditPend width={18} height={18} fill={Colors.NEW_PRIMARY} />
-              <Text style={styles.cardLabel}>{i18next.t('label.edit_name')}</Text>
-            </Pressable>
-            <Pressable style={styles.optionCard} onPress={handleDimensions}>
-              <EditDimension width={18} height={18} />
-              <Text style={styles.cardLabel}>{i18next.t('label.edit_plot')}</Text>
-            </Pressable>
-            <Pressable style={styles.optionCard} onPress={deleteHandler}>
-              <BinIcon width={18} height={18} fill={'tomato'} />
-              <Text style={styles.cardLabel}>{i18next.t('label.delete')}</Text>
-            </Pressable>
+            {isSynced ? (
+              <Text style={styles.syncedHint}>This plot has been synced and can no longer be edited or deleted.</Text>
+            ) : (
+              <>
+                <Pressable style={styles.optionCard} onPress={() => { setShowEdit(plotData.name) }}>
+                  <EditPend width={18} height={18} fill={Colors.NEW_PRIMARY} />
+                  <Text style={styles.cardLabel}>{i18next.t('label.edit_name')}</Text>
+                </Pressable>
+                <Pressable style={styles.optionCard} onPress={handleDimensions}>
+                  <EditDimension width={18} height={18} />
+                  <Text style={styles.cardLabel}>{i18next.t('label.edit_plot')}</Text>
+                </Pressable>
+                <Pressable style={styles.optionCard} onPress={deleteHandler}>
+                  <BinIcon width={18} height={18} fill={'tomato'} />
+                  <Text style={styles.cardLabel}>{i18next.t('label.delete')}</Text>
+                </Pressable>
+              </>
+            )}
           </View>
         </View>
       </BottomSheetView>
@@ -211,6 +219,14 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginLeft: '5%'
+  },
+  syncedHint: {
+    fontSize: 15,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    color: Colors.TEXT_COLOR,
+    marginLeft: '5%',
+    marginRight: '5%',
+    marginVertical: 20,
   },
   emptyLabel: {
     fontSize: 22,

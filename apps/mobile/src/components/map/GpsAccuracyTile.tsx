@@ -1,7 +1,8 @@
 import { StyleSheet, TouchableOpacity, View, Text } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from 'src/store';
 import { Colors, Typography } from 'src/utils/constants';
-import * as Location from 'expo-location';
 import GpsIcon from 'assets/images/svg/GPSIcon.svg';
 
 interface Props {
@@ -10,24 +11,14 @@ interface Props {
 
 const GpsAccuracyTile = (props: Props) => {
   const { showModalInfo } = props;
-  const [accuracy, setAccuracy] = useState(0);
+  // Read accuracy from the single source of truth (gps slice, written by
+  // useLocationPermission). The tile no longer owns its own native watcher --
+  // a leaked, uncleaned watchPositionAsync here was racing the other location
+  // consumers on mount and crashing Android.
+  const accuracy = useSelector((state: RootState) => state.gpsState.accuracy);
   const showModal = () => {
     showModalInfo(true);
   };
-
-  useEffect(() => {
-    Location.watchPositionAsync(
-      {
-        accuracy: Location.Accuracy.Highest,
-        distanceInterval: 1,
-        mayShowUserSettingsDialog: true,
-        timeInterval: 1000
-      },
-      (location) => {
-        setAccuracy(location?.coords?.accuracy ?? accuracy);
-      }
-    );
-  }, []);
 
   // Define variables for colors based on accuracy
 const getBackgroundColor = (accuracy) => {

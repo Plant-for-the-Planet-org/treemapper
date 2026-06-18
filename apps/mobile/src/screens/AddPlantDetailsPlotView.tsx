@@ -39,6 +39,8 @@ const AddPlantDetailsPlotView = () => {
     const [isTreeAlive, setIsTreeAlive] = useState(true)
     const [showDatePicker, setShowDatePicker] = useState(false)
     const [showOtherDatePicker, setShowOtherDatePicker] = useState(false)
+    // A plant that has been synced (has a server tree id) is read-only.
+    const [isLocked, setIsLocked] = useState(false)
 
     const [plantingDate, setPlantingDate] = useState(Date.now())
     const [tag, setTag] = useState('')
@@ -79,6 +81,10 @@ const AddPlantDetailsPlotView = () => {
     }, [isEdit])
 
     const updateDetails = async () => {
+        if (isLocked) {
+            toast.show("This plant is already synced and can't be changed.")
+            return
+        }
         if (!species) {
             toast.show("Please select a species")
             return
@@ -101,6 +107,10 @@ const AddPlantDetailsPlotView = () => {
         }
     }
     const deleteHandler = async () => {
+        if (isLocked) {
+            toast.show("This plant is already synced and can't be deleted.")
+            return
+        }
         const result = await deletePlantDetails(plotID, plantId)
         if (result) {
             toast.show("Plant deleted")
@@ -123,6 +133,7 @@ const AddPlantDetailsPlotView = () => {
             setSpecies(speciesData)
             setTag(plantData.tag)
             setIsPlanted(plantData.type === 'PLANTED')
+            setIsLocked(!!plantData.server_tree_id)
         }
     }
 
@@ -155,7 +166,8 @@ const AddPlantDetailsPlotView = () => {
             length_unit: 'm',
             width_unit: 'cm',
             image: plantImage,
-            timeline_id: generateUniquePlotId()
+            timeline_id: generateUniquePlotId(),
+            sync_status: 'NOT_SYNCED',
         }
         const plantDetails: PlantedPlotSpecies = {
             plot_plant_id: generateUniquePlotId(),
@@ -172,6 +184,7 @@ const AddPlantDetailsPlotView = () => {
             details_updated_at: Date.now(),
             latitude: 0,
             longitude: 0,
+            server_tree_id: '',
         }
         await addPlantDetailsPlot(plotID, plantDetails)
         navigation.replace('CreatePlotMap', { id: plotID, plantId: plantDetails.plot_plant_id, markLocation: true })
@@ -282,6 +295,8 @@ const AddPlantDetailsPlotView = () => {
                 </AvoidSoftInputView>
             </ScrollView>
             {isEdit ?
+                isLocked ?
+                <Text style={styles.lockedHint}>This plant has been synced and can no longer be edited or deleted.</Text> :
                 <View style={styles.btnMinorContainer}>
                     <CustomButton
                         label={'Delete'}
@@ -413,5 +428,14 @@ const styles = StyleSheet.create({
         fontWeight: '400',
         color: Colors.WHITE,
         textAlign: 'center',
+    },
+    lockedHint: {
+        position: 'absolute',
+        bottom: 40,
+        alignSelf: 'center',
+        textAlign: 'center',
+        color: Colors.TEXT_COLOR,
+        fontSize: scaleFont(14),
+        paddingHorizontal: 24,
     },
 })

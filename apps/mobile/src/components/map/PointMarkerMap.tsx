@@ -72,11 +72,11 @@ const PointMarkerMap = (props: Props) => {
 
   useEffect(() => {
     if (!mapRender) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         handleCameraViewChange()
-      }, 300);
+      }, 300)
+      return () => clearTimeout(timer)
     }
-
   }, [MapBounds])
 
 
@@ -95,7 +95,8 @@ const PointMarkerMap = (props: Props) => {
   const handleCameraViewChange = () => {
     if (cameraRef?.current) {
       const { bounds, key } = MapBounds
-      if (key === 'POINT_MAP') {
+      const hasValidBounds = Array.isArray(bounds) && bounds.length === 4 && bounds.every(Number.isFinite)
+      if (key === 'POINT_MAP' && hasValidBounds) {
         cameraRef.current.fitBounds(
           [bounds[0], bounds[1], bounds[2], bounds[3]],
           { padding: { top: 40, right: 40, bottom: 40, left: 40 }, duration: 1000 },
@@ -108,7 +109,7 @@ const PointMarkerMap = (props: Props) => {
   }
 
   const handleCamera = () => {
-    if (currentUserLocation[0] === 0) {
+    if (!currentUserLocation || currentUserLocation[0] === 0) {
       return
     }
     if (cameraRef?.current) {
@@ -121,7 +122,7 @@ const PointMarkerMap = (props: Props) => {
   }
 
   const handleCamera2 = () => {
-    if (currentUserLocation[0] === 0) {
+    if (!currentUserLocation || currentUserLocation[0] === 0) {
       return
     }
     if (cameraRef?.current) {
@@ -295,7 +296,7 @@ const PointMarkerMap = (props: Props) => {
         )}
       </Map>
       <SatelliteIconWrapper low />
-      <MapZoomScale mapRef={mapRef} position="top-left" padTop={20} />
+      {/* <MapZoomScale mapRef={mapRef} position="top-left" padTop={20} /> */}
       <CustomButton
         label={i18next.t('label.tree_map_marking_btn')}
         containerStyle={styles.btnContainer}

@@ -21,6 +21,9 @@ import { ContactSupportModule } from './contact-support/contact-support.module';
 import { ApprovalBoardModule } from './approval-board/approval-board.module';
 import { ExternalModule } from './external/external.module';
 import { PublicApiModule } from './public-api/public-api.module';
+import { MonitoringPlotsModule } from './monitoring-plots/monitoring-plots.module';
+import { FormsModule } from './forms/forms.module';
+import { DevicesModule } from './devices/devices.module';
 
 @Module({
   imports: [
@@ -46,6 +49,9 @@ import { PublicApiModule } from './public-api/public-api.module';
     ApprovalBoardModule,
     ExternalModule,
     PublicApiModule,
+    MonitoringPlotsModule,
+    FormsModule,
+    DevicesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

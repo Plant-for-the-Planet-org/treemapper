@@ -52,7 +52,7 @@ async function bootstrap() {
     // Environment-based CORS configuration
     const corsOrigins = isProduction
       ? process.env.CORS_ORIGINS?.split(',') || [`https://${process.env.HEROKU_APP_NAME}.herokuapp.com`]
-      : ['http://127.0.0.1:3000', 'http://localhost:3000'];
+      : ['http://127.0.0.1:3000', 'http://localhost:3000', 'http://localhost:3004'];
 
     await app.register(compression, { global: true });
 
@@ -78,17 +78,20 @@ async function bootstrap() {
     const reflector = app.get(Reflector);
     app.useGlobalGuards(new JwtAuthGuard(reflector));
 
-    // Swagger setup (development only)
-    const config = new DocumentBuilder()
-      .setTitle('TreeMapper API')
-      .setDescription('The TreeMapper Backend API')
-      .setVersion('1.0')
-      .addBearerAuth()
-      .build();
+    // Swagger setup (development only). Never exposed in production: it would
+    // hand any visitor a full map of the API surface.
+    if (!isProduction) {
+      const config = new DocumentBuilder()
+        .setTitle('TreeMapper API')
+        .setDescription('The TreeMapper Backend API')
+        .setVersion('1.0')
+        .addBearerAuth()
+        .build();
 
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api/docs', app, document);
-    logger.log('📚 Swagger documentation available at /api/docs');
+      const document = SwaggerModule.createDocument(app, config);
+      SwaggerModule.setup('api/docs', app, document);
+      logger.log('📚 Swagger documentation available at /api/docs');
+    }
 
     // Environment-based port configuration
     const port = process.env.PORT || 3001;

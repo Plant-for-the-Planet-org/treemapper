@@ -1,5 +1,5 @@
 import i18next from 'src/locales/index';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from '@expo/vector-icons/FontAwesome5';
 import { Colors, Typography } from 'src/utils/constants';
@@ -13,9 +13,20 @@ const SpeciesSyncError = () => {
   const SpeciesDownloading = useSelector((state: RootState) => state.tempState.speciesDownloading)
   const SpeciesSynced = useSelector((state: RootState) => state.appState.speciesSync)
   const dispatch = useDispatch()
+  const autoSyncTriggered = useRef(false)
   const onPressRefreshIcon = () => {
     dispatch(updateSpeciesUpdatedAt())
   };
+
+  // Auto trigger the sync once when species are not yet synced, so the
+  // download + realm write starts without the user tapping the refresh icon.
+  // Guarded by a ref so a failed download (banner stays visible) does not loop.
+  useEffect(() => {
+    if (!SpeciesSynced && !SpeciesDownloading && !autoSyncTriggered.current) {
+      autoSyncTriggered.current = true
+      onPressRefreshIcon()
+    }
+  }, [SpeciesSynced, SpeciesDownloading]);
 
   return (
     <View style={styles.container}>

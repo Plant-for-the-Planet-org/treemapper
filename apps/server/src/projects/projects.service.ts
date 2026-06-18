@@ -1,7 +1,7 @@
 // src/projects/projects.service.ts
 import { Injectable, NotFoundException, ForbiddenException, ConflictException, BadRequestException, UnauthorizedException, InternalServerErrorException, HttpException } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
-import { project, projectMember, user, workspace, workspaceMember, projectInvites, bulkInvite, image } from '../database/schema';
+import { project, projectMember, user, workspace, workspaceMember, projectInvites, bulkInvite, image, DEFAULT_PROJECT_APPROVAL_SETTINGS, ProjectApprovalSettings } from '../database/schema';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { ProjectMembership, ServiceResponse, UpdateProjectDto } from './dto/update-project.dto';
 import { AddProjectMemberDto } from './dto/add-project-member.dto';
@@ -28,6 +28,7 @@ export interface ProjectMemberResponse {
   role: string;
   joinedAt: Date | null;
   invitedAt: Date | null;
+  lastActiveAt: Date | null;
   user: {
     uid: string;
     name: string | null;
@@ -466,15 +467,81 @@ export class ProjectsService {
     }
   }
 
+  /**
+   * Whether a project belongs to the Plant-for-the-Planet platform workspace.
+   * Platform projects have stricter approval rules: only a superadmin may
+   * approve interventions/sites or grant approval permissions.
+   */
+  async isPlatformProject(projectId: number): Promise<boolean> {
+    try {
+      const [row] = await this.drizzleService.db
+        .select({ slug: workspace.slug, type: workspace.type })
+        .from(project)
+        .innerJoin(workspace, eq(project.workspaceId, workspace.id))
+        .where(eq(project.id, projectId))
+        .limit(1);
+      if (!row) return false;
+      return row.slug === 'platform-projects' || row.type === 'platform';
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Whether the user is the owner of the workspace that owns the project.
+   * On platform projects, only the workspace owner may approve/reject/review,
+   * so this is the authority check used by the approval guard.
+   */
+  async isWorkspaceOwnerForProject(projectId: number, userId: number): Promise<boolean> {
+    try {
+      const [member] = await this.drizzleService.db
+        .select({ role: workspaceMember.role })
+        .from(project)
+        .innerJoin(
+          workspaceMember,
+          and(
+            eq(workspaceMember.workspaceId, project.workspaceId),
+            eq(workspaceMember.userId, userId),
+            eq(workspaceMember.role, 'owner'),
+            eq(workspaceMember.status, 'active'),
+          ),
+        )
+        .where(eq(project.id, projectId))
+        .limit(1);
+      return !!member;
+    } catch {
+      return false;
+    }
+  }
+
   async createProject(createProjectDto: CreateProjectDto, userData: User): Promise<any> {
     try {
-      if (!userData.primaryWorkspaceUid) {
+      // Prefer the workspace explicitly chosen on the client; fall back to the
+      // user's primary workspace for legacy callers that don't send one.
+      const targetWorkspaceUid = createProjectDto.workspaceUid ?? userData.primaryWorkspaceUid;
+      if (!targetWorkspaceUid) {
         throw new ForbiddenException('User does not have a primary workspace set');
       }
-      const workspaceId = await this.projectCacheService.getWorkspaceId(userData.primaryWorkspaceUid);
+      const workspaceId = await this.projectCacheService.getWorkspaceId(targetWorkspaceUid);
       if (!workspaceId) {
         throw new NotFoundException('Workspace not found');
       }
+
+      // A user can only create projects in a workspace they actively belong to.
+      // If they aren't a member yet, add them as one (below, in the same
+      // transaction as the project insert) instead of rejecting.
+      const [membership] = await this.drizzleService.db
+        .select({ role: workspaceMember.role })
+        .from(workspaceMember)
+        .where(
+          and(
+            eq(workspaceMember.workspaceId, workspaceId),
+            eq(workspaceMember.userId, userData.id),
+            eq(workspaceMember.status, 'active'),
+          ),
+        )
+        .limit(1);
+      const needsWorkspaceMembership = !membership;
 
       const [workspaceData] = await this.drizzleService.db
         .select({ settings: workspace.settings })
@@ -485,6 +552,7 @@ export class ProjectsService {
 
       const projectStatus = workspaceSettings?.requireApprovalForNewProjects ? 'in_review' : 'active';
       const approvalBoardEnabled = workspaceSettings?.approvalBoardEnabled ?? false;
+      const approvalSettings = workspaceSettings?.approvalSettings ?? DEFAULT_PROJECT_APPROVAL_SETTINGS;
 
       let locationValue: any = null;
       if (createProjectDto.location) {
@@ -519,6 +587,7 @@ export class ProjectsService {
             originalGeometry: createProjectDto.location,
             status: projectStatus,
             approvalBoardEnabled: approvalBoardEnabled,
+            approvalSettings: approvalSettings,
             isPersonal: false,
           })
           .returning();
@@ -532,6 +601,22 @@ export class ProjectsService {
             projectRole: 'owner',
             joinedAt: new Date(),
           });
+
+        // Ensure the creator belongs to the target workspace. Mirrors the
+        // workspaceMember shape used elsewhere in this service.
+        if (needsWorkspaceMembership) {
+          await tx
+            .insert(workspaceMember)
+            .values({
+              uid: generateUid('workmem'),
+              workspaceId: workspaceId,
+              userId: userData.id,
+              role: 'member',
+              status: 'active',
+              joinedAt: new Date(),
+            })
+            .onConflictDoNothing();
+        }
 
         this.notificationService.createNotification({
           userId: userData.id,
@@ -689,6 +774,7 @@ export class ProjectsService {
         role: projectMember.projectRole,
         joinedAt: projectMember.joinedAt,
         invitedAt: projectMember.invitedAt,
+        lastActiveAt: projectMember.lastActiveAt,
         extraPermissions: projectMember.extraPermissions,
         siteAccess: projectMember.siteAccess,
         restrictedSites: projectMember.restrictedSites,
@@ -736,6 +822,10 @@ export class ProjectsService {
       members,
       invitations
     };
+  }
+
+  async getProjectTeamActivity(membership: ProjectGuardResponse, query: { page?: number; limit?: number } = {}) {
+    return this.auditLogsService.getProjectTeamActivity(membership.projectId, query);
   }
 
   async expireInvite(token: string, userData: User, projectId: number) {
@@ -1440,6 +1530,31 @@ export class ProjectsService {
           code: 'update_extra_permissions_denied',
         };
       }
+      // On platform projects, approval rights are controlled by the workspace
+      // owner (or a superadmin). A project admin cannot grant approval
+      // permissions there, so restrict this change accordingly.
+      const isPlatform = await this.isPlatformProject(myMembership.projectId);
+      if (isPlatform) {
+        const [caller] = await this.drizzleService.db
+          .select({ type: user.type })
+          .from(user)
+          .where(eq(user.id, myMembership.userId))
+          .limit(1);
+        const isSuperAdmin = caller?.type === 'superadmin';
+        const isWorkspaceOwner = await this.isWorkspaceOwnerForProject(
+          myMembership.projectId,
+          myMembership.userId,
+        );
+        if (!isSuperAdmin && !isWorkspaceOwner) {
+          return {
+            message: 'On platform projects, only the workspace owner can change approval permissions',
+            statusCode: 403,
+            error: 'forbidden',
+            data: null,
+            code: 'platform_extra_permissions_workspace_owner_only',
+          };
+        }
+      }
       const [targetUser] = await this.drizzleService.db
         .select({ id: user.id })
         .from(user)
@@ -1917,9 +2032,19 @@ export class ProjectsService {
           createdAt: project.createdAt,
           updatedAt: project.updatedAt,
           location: project.originalGeometry,
+          status: project.status,
           approvalBoardEnabled: project.approvalBoardEnabled,
+          approvalSettings: project.approvalSettings,
+          apiEnabled: project.apiEnabled,
+          workspace: {
+            uid: workspace.uid,
+            name: workspace.name,
+            slug: workspace.slug,
+            type: workspace.type,
+          },
         })
         .from(project)
+        .leftJoin(workspace, eq(project.workspaceId, workspace.id))
         .where(eq(project.id, projectId));
 
       if (projectQuery.length === 0) {
@@ -2054,6 +2179,7 @@ export class ProjectsService {
       isPersonal: (value: any) => this.cleanBooleanValue(value),
       isPrimary: (value: any) => this.cleanBooleanValue(value),
       approvalBoardEnabled: (value: any) => this.cleanBooleanValue(value),
+      approvalSettings: (value: any) => this.cleanApprovalSettingsValue(value),
       apiEnabled: (value: any) => this.cleanBooleanValue(value),
 
       // JSON fields
@@ -2078,6 +2204,28 @@ export class ProjectsService {
     updateData.updatedAt = new Date();
 
     return updateData;
+  }
+
+  /**
+   * Normalize approval settings into a complete, valid object. Missing fields
+   * fall back to the defaults so a partial payload never corrupts the stored
+   * shape.
+   */
+  private cleanApprovalSettingsValue(value: any): ProjectApprovalSettings | null {
+    if (!value || typeof value !== 'object') return null;
+    const sources = (value.sources && typeof value.sources === 'object') ? value.sources : {};
+    const def = DEFAULT_PROJECT_APPROVAL_SETTINGS;
+    return {
+      sources: {
+        web: typeof sources.web === 'boolean' ? sources.web : def.sources.web,
+        bulk: typeof sources.bulk === 'boolean' ? sources.bulk : def.sources.bulk,
+        mobile: typeof sources.mobile === 'boolean' ? sources.mobile : def.sources.mobile,
+      },
+      siteApprovalRequired:
+        typeof value.siteApprovalRequired === 'boolean'
+          ? value.siteApprovalRequired
+          : def.siteApprovalRequired,
+    };
   }
 
   /**

@@ -25,6 +25,7 @@ import NetInfo from "@react-native-community/netinfo";
 import { getMobileUserDetails } from '../../api/api.fetch'
 import { updateUserDetails } from '../../store/slice/userStateSlice'
 import ProjectInviteModal from './DeepLinkModal'
+import SyncMonitoringPlot from '../monitoringPlot/SyncMonitoringPlot'
 
 interface Props {
   toggleFilterModal: () => void
@@ -306,6 +307,7 @@ const HomeHeader = (props: Props) => {
       <View style={{ alignItems: 'flex-start', gap: 5 }}>
         <SpeciesSync />
         <SyncIntervention isLoggedIn={isLoggedIn} tokenValid={tokenValid} />
+        <SyncMonitoringPlot isLoggedIn={isLoggedIn} tokenValid={tokenValid} />
       </View>
       <ProjectInviteModal />
       <View style={styles.sectionWrapper} />

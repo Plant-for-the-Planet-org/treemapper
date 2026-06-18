@@ -107,6 +107,9 @@ export interface ReviewThread {
   updatedAt: Date | string;
   commentsCount?: number;
   unresolvedIssuesCount?: number;
+  // All comments for the entity, across every thread, regardless of status.
+  // Embedded by the current-thread endpoint so decided items still show history.
+  comments?: ReviewComment[];
 }
 
 // Legacy history entry for backward compatibility

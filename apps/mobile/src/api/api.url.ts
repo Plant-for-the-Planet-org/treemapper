@@ -33,6 +33,7 @@ export const postUrlNewApi = {
   acceptBulkInvite: `${mobileBaseUrl}/mobile/invites/accept/link`,
   registerDevice: `${mobileBaseUrl}/users/devices`,
   submitFeedback: `${mobileBaseUrl}/mobile/feedback`,
+  monitoringPlot: `${mobileBaseUrl}/monitoring-plots/projects`,
 };
 
 export const getUrlMobileApi = {
@@ -48,6 +49,8 @@ export const getUrlMobileApi = {
   getNotifications: `${mobileBaseUrl}/mobile/notifications`,
   getUnreadNotificationCount: `${mobileBaseUrl}/mobile/notifications/unread-count`,
   getSingleIntervention: `${mobileBaseUrl}/mobile/intervention`,
+  // Project-scoped forms built on the web app. Same /projects API as sites.
+  getProjectForms: `${mobileBaseUrl}/projects`,
 };
 
 

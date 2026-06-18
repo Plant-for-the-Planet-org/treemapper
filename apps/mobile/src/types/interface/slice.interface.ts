@@ -435,6 +435,7 @@ export interface PlantTimeLine {
   width_unit: string
   image: string
   timeline_id: string
+  sync_status: 'NOT_SYNCED' | 'SYNCED'
 }
 
 
@@ -455,6 +456,8 @@ export interface MonitoringPlot {
   length: number
   width: number
   name: string
+  project_id: string
+  project_name: string
   location: InterventionLocation
   coords: {
     type: 'Point',
@@ -495,6 +498,7 @@ export interface PlantedPlotSpecies {
   details_updated_at: number
   latitude: number
   longitude: number
+  server_tree_id: string
 }
 
 
@@ -506,4 +510,5 @@ export interface PlotObservation {
   obs_date: number
   value: number
   unit: string
+  sync_status?: string
 }

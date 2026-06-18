@@ -82,6 +82,20 @@ export class ProjectsController {
     return this.projectsService.getProjectMembersAndInvitations(membership);
   }
 
+  @Get(':id/team-activity')
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async getProjectTeamActivity(
+    @Membership() membership: ProjectGuardResponse,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.projectsService.getProjectTeamActivity(membership, {
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+    });
+  }
+
   @Post(':id/invites/expire')
   @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)

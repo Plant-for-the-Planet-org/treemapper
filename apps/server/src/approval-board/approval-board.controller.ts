@@ -12,6 +12,7 @@ import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { ApprovalBoardService } from './approval-board.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProjectPermissionsGuard } from '../projects/guards/project-permissions.guard';
+import { ApprovalDecisionGuard } from './approval-decision.guard';
 import { WorkspacePermissionsGuard } from '../workspace/workspace-permissions.guard';
 import { ProjectRoles } from '../projects/decorators/project-roles.decorator';
 import { ProjectPermissions } from '../projects/decorators/project-permissions.decorator';
@@ -63,7 +64,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   @ProjectRoles('owner', 'admin')
   @ProjectPermissions('approve_intervention')
-  @UseGuards(ProjectPermissionsGuard)
+  @UseGuards(ApprovalDecisionGuard)
   async startReview(
     @Param('interventionUid') interventionUid: string,
     @CurrentUser() user: any,
@@ -81,7 +82,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   @ProjectRoles('owner', 'admin')
   @ProjectPermissions('approve_intervention')
-  @UseGuards(ProjectPermissionsGuard)
+  @UseGuards(ApprovalDecisionGuard)
   async reviewIntervention(
     @Param('interventionUid') interventionUid: string,
     @Body() dto: ReviewDecisionDto,
@@ -105,7 +106,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   @ProjectRoles('owner', 'admin')
   @ProjectPermissions('approve_intervention')
-  @UseGuards(ProjectPermissionsGuard)
+  @UseGuards(ApprovalDecisionGuard)
   async makeDecision(
     @Param('interventionUid') interventionUid: string,
     @Body() dto: MakeDecisionDto,
@@ -123,7 +124,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   @ProjectRoles('owner', 'admin')
   @ProjectPermissions('approve_intervention')
-  @UseGuards(ProjectPermissionsGuard)
+  @UseGuards(ApprovalDecisionGuard)
   async addAdminComment(
     @Param('interventionUid') interventionUid: string,
     @Body() dto: AddCommentDto,
@@ -185,7 +186,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'threadUid', description: 'Thread UID' })
   @ProjectRoles('owner', 'admin')
   @ProjectPermissions('approve_intervention')
-  @UseGuards(ProjectPermissionsGuard)
+  @UseGuards(ApprovalDecisionGuard)
   async addAdminCommentByThread(
     @Param('threadUid') threadUid: string,
     @Body() dto: AddCommentDto,
@@ -301,7 +302,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'siteUid', description: 'Site UID' })
   @ProjectRoles('owner', 'admin')
   @ProjectPermissions('approve_site')
-  @UseGuards(ProjectPermissionsGuard)
+  @UseGuards(ApprovalDecisionGuard)
   async reviewSite(
     @Param('siteUid') siteUid: string,
     @Body() dto: ReviewDecisionDto,
@@ -325,7 +326,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'siteUid', description: 'Site UID' })
   @ProjectRoles('owner', 'admin')
   @ProjectPermissions('approve_site')
-  @UseGuards(ProjectPermissionsGuard)
+  @UseGuards(ApprovalDecisionGuard)
   async makeSiteDecision(
     @Param('siteUid') siteUid: string,
     @Body() dto: MakeDecisionDto,
@@ -343,7 +344,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'siteUid', description: 'Site UID' })
   @ProjectRoles('owner', 'admin')
   @ProjectPermissions('approve_site')
-  @UseGuards(ProjectPermissionsGuard)
+  @UseGuards(ApprovalDecisionGuard)
   async addAdminSiteComment(
     @Param('siteUid') siteUid: string,
     @Body() dto: AddCommentDto,

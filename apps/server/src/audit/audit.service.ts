@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
+import { eq, and, desc, gte, lte, sql, inArray } from 'drizzle-orm';
 import { auditLog, workspace, user } from '../database/schema/index'
 import { DrizzleService } from '../database/drizzle.service'
 
@@ -45,7 +45,8 @@ export class AuditService {
     'bulk_invite': 'bulk_invite',
     'image': 'image',
     'notifications': 'notification',
-    'migration': 'migration'
+    'migration': 'migration',
+    'form': 'form'
   };
 
   constructor(private readonly drizzleService: DrizzleService) {}
@@ -257,6 +258,66 @@ export class AuditService {
       console.error('Error fetching project audit logs:', error);
       throw error;
     }
+  }
+
+  /**
+   * Get the team activity feed for a project: joins, role changes and
+   * invitations, joined with the acting user's info. Used by the Team page
+   * sidebar. Scoped to team-relevant entity types only so unrelated audit
+   * noise (trees, sites, etc.) never shows up here.
+   */
+  async getProjectTeamActivity(
+    projectId: number,
+    query: AuditLogQueryDto = {},
+  ): Promise<{ data: any[]; total: number; page: number; limit: number }> {
+    const { page = 1, limit = 20 } = query;
+    const offset = (Number(page) - 1) * Number(limit);
+
+    const teamEntityTypes = ['project_member', 'project_invite', 'bulk_invite'];
+
+    const whereClause = and(
+      eq(auditLog.projectId, projectId),
+      inArray(auditLog.entityType, teamEntityTypes as any),
+    );
+
+    const [data, countResult] = await Promise.all([
+      this.drizzleService.db
+        .select({
+          id: auditLog.id,
+          uid: auditLog.uid,
+          action: auditLog.action,
+          entityType: auditLog.entityType,
+          entityId: auditLog.entityId,
+          entityUid: auditLog.entityUid,
+          changedFields: auditLog.changedFields,
+          oldValues: auditLog.oldValues,
+          newValues: auditLog.newValues,
+          source: auditLog.source,
+          occurredAt: auditLog.occurredAt,
+          userUid: user.uid,
+          userDisplayName: user.displayName,
+          userEmail: user.email,
+          userImage: user.image,
+        })
+        .from(auditLog)
+        .leftJoin(user, eq(auditLog.userId, user.id))
+        .where(whereClause)
+        .orderBy(desc(auditLog.occurredAt))
+        .limit(Number(limit))
+        .offset(offset),
+
+      this.drizzleService.db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(auditLog)
+        .where(whereClause),
+    ]);
+
+    return {
+      data,
+      total: countResult[0]?.count ?? 0,
+      page: Number(page),
+      limit: Number(limit),
+    };
   }
 
   /**

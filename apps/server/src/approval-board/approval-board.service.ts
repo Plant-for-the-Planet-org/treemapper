@@ -13,6 +13,7 @@ import {
 } from '../database/schema/index';
 import { eq, and, or, desc, asc, sql, isNull, inArray, ilike, isNotNull } from 'drizzle-orm';
 import { generateUid } from '../util/uidGenerator';
+import { CacheService } from '../cache/cache.service';
 import {
   ReviewQueueQueryDto,
   MakeDecisionDto,
@@ -36,7 +37,25 @@ export class ApprovalBoardService {
   constructor(
     private readonly drizzleService: DrizzleService,
     private readonly authzService: AuthzService,
+    private readonly cacheService: CacheService,
   ) {}
+
+  // Drop the public/external interventions cache so a newly approved (or
+  // rejected) intervention is reflected immediately on the external API.
+  private async invalidateExternalInterventions(projectId: number): Promise<void> {
+    try {
+      const [proj] = await this.drizzleService.db
+        .select({ uid: project.uid })
+        .from(project)
+        .where(eq(project.id, projectId))
+        .limit(1);
+      if (proj?.uid) {
+        await this.cacheService.delete(`external:interventions:${proj.uid}`);
+      }
+    } catch {
+      // Cache invalidation is best-effort; the entry expires on its own.
+    }
+  }
 
   // ================== Review Queue (Admin) ==================
 
@@ -199,7 +218,8 @@ export class ApprovalBoardService {
     adminId: number,
     dto: MakeDecisionDto,
   ): Promise<InterventionReviewSummary> {
-    return this.drizzleService.db.transaction(async (tx) => {
+    const decisionProjectId = { value: 0 };
+    const result = await this.drizzleService.db.transaction(async (tx) => {
       const [inv] = await tx
         .select()
         .from(intervention)
@@ -213,6 +233,7 @@ export class ApprovalBoardService {
           `Cannot make decision: intervention is in '${inv.reviewStatus}' state (must be 'in_review')`,
         );
       }
+      decisionProjectId.value = inv.projectId;
 
       const now = new Date();
 
@@ -255,6 +276,11 @@ export class ApprovalBoardService {
 
       return this.getInterventionReviewStatus(interventionUid, tx);
     });
+
+    if (decisionProjectId.value) {
+      await this.invalidateExternalInterventions(decisionProjectId.value);
+    }
+    return result;
   }
 
   // ================== Comments ==================
@@ -278,11 +304,17 @@ export class ApprovalBoardService {
       throw new ForbiddenException('Intervention does not belong to this project');
     }
 
-    await this.authzService.assertProjectMembership(userId, inv.projectId);
+    // The admin path arrives with expectedProjectId set and is already authorized
+    // by ApprovalDecisionGuard (superadmin, workspace owner, project owner/admin,
+    // or an explicit approve permission). Only the unguarded field-worker path
+    // needs a direct project-membership check here.
+    if (expectedProjectId === undefined) {
+      await this.authzService.assertProjectMembership(userId, inv.projectId);
+    }
 
-    if (inv.reviewStatus !== 'in_review') {
+    if (inv.reviewStatus !== 'pending' && inv.reviewStatus !== 'in_review') {
       throw new BadRequestException(
-        'Comments can only be added while the intervention is in_review',
+        'Comments can only be added while the intervention is pending or in_review',
       );
     }
 
@@ -354,7 +386,28 @@ export class ApprovalBoardService {
       .where(and(eq(reviewThread.interventionId, inv.id), eq(reviewThread.status, 'open')))
       .limit(1);
 
-    // Auto-create an open thread if none exists (supports commenting in pending state)
+    // No open thread: fall back to the most recent thread (e.g. a closed one
+    // after the intervention was approved/rejected) so its comments stay visible.
+    if (!thread) {
+      [thread] = await this.drizzleService.db
+        .select({
+          id: reviewThread.id,
+          uid: reviewThread.uid,
+          interventionId: reviewThread.interventionId,
+          status: reviewThread.status,
+          closedAt: reviewThread.closedAt,
+          closedById: reviewThread.closedById,
+          closedByName: user.displayName,
+          createdAt: reviewThread.createdAt,
+        })
+        .from(reviewThread)
+        .leftJoin(user, eq(reviewThread.closedById, user.id))
+        .where(eq(reviewThread.interventionId, inv.id))
+        .orderBy(desc(reviewThread.createdAt))
+        .limit(1);
+    }
+
+    // Auto-create an open thread only if none exists at all (supports commenting in pending state)
     if (!thread) {
       const [newThread] = await this.drizzleService.db
         .insert(reviewThread)
@@ -377,7 +430,7 @@ export class ApprovalBoardService {
       };
     }
 
-    const comments = await this.getCommentsByThreadId(thread.id);
+    const comments = await this.getCommentsByInterventionId(inv.id);
 
     return {
       id: thread.id,
@@ -408,6 +461,15 @@ export class ApprovalBoardService {
   }
 
   private async getCommentsByThreadId(threadId: number): Promise<ReviewCommentResponse[]> {
+    return this.getCommentsByThreadIds([threadId]);
+  }
+
+  // Fetch comments across one or more threads, oldest first. Used to show the
+  // full discussion of an entity even after it is decided and its thread closed
+  // (an entity may have more than one thread over its lifetime).
+  private async getCommentsByThreadIds(threadIds: number[]): Promise<ReviewCommentResponse[]> {
+    if (threadIds.length === 0) return [];
+
     const comments = await this.drizzleService.db
       .select({
         id: reviewComment.id,
@@ -421,7 +483,7 @@ export class ApprovalBoardService {
       })
       .from(reviewComment)
       .leftJoin(user, eq(reviewComment.authorId, user.id))
-      .where(and(eq(reviewComment.threadId, threadId), isNull(reviewComment.deletedAt)))
+      .where(and(inArray(reviewComment.threadId, threadIds), isNull(reviewComment.deletedAt)))
       .orderBy(asc(reviewComment.createdAt));
 
     return comments.map((c) => ({
@@ -433,6 +495,24 @@ export class ApprovalBoardService {
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
     }));
+  }
+
+  // All comments for an intervention, across every thread, regardless of status.
+  private async getCommentsByInterventionId(interventionId: number): Promise<ReviewCommentResponse[]> {
+    const threads = await this.drizzleService.db
+      .select({ id: reviewThread.id })
+      .from(reviewThread)
+      .where(eq(reviewThread.interventionId, interventionId));
+    return this.getCommentsByThreadIds(threads.map((t) => t.id));
+  }
+
+  // All comments for a site, across every thread, regardless of status.
+  private async getCommentsBySiteId(siteId: number): Promise<ReviewCommentResponse[]> {
+    const threads = await this.drizzleService.db
+      .select({ id: reviewThread.id })
+      .from(reviewThread)
+      .where(eq(reviewThread.siteId, siteId));
+    return this.getCommentsByThreadIds(threads.map((t) => t.id));
   }
 
   async addCommentByThread(
@@ -455,7 +535,13 @@ export class ApprovalBoardService {
       throw new ForbiddenException('Thread does not belong to this project');
     }
 
-    await this.authzService.assertProjectMembership(userId, thread.projectId);
+    // The admin path arrives with expectedProjectId set and is already authorized
+    // by ApprovalDecisionGuard (superadmin, workspace owner, project owner/admin,
+    // or an explicit approve permission). Only the unguarded field-worker path
+    // needs a direct project-membership check here.
+    if (expectedProjectId === undefined) {
+      await this.authzService.assertProjectMembership(userId, thread.projectId);
+    }
 
     if (thread.status !== 'open') {
       throw new BadRequestException('Cannot comment on a closed thread');
@@ -1160,8 +1246,8 @@ export class ApprovalBoardService {
 
     if (!s) throw new NotFoundException('Site not found');
 
-    if (s.reviewStatus !== 'in_review') {
-      throw new BadRequestException('Comments can only be added while the site is in_review');
+    if (s.reviewStatus !== 'pending' && s.reviewStatus !== 'in_review') {
+      throw new BadRequestException('Comments can only be added while the site is pending or in_review');
     }
 
     const [openThread] = await this.drizzleService.db
@@ -1230,6 +1316,26 @@ export class ApprovalBoardService {
       .where(and(eq(reviewThread.siteId, s.id), eq(reviewThread.status, 'open')))
       .limit(1);
 
+    // No open thread: fall back to the most recent thread (e.g. a closed one
+    // after the site was approved/rejected) so its comments stay visible.
+    if (!thread) {
+      [thread] = await this.drizzleService.db
+        .select({
+          id: reviewThread.id,
+          uid: reviewThread.uid,
+          status: reviewThread.status,
+          closedAt: reviewThread.closedAt,
+          closedById: reviewThread.closedById,
+          closedByName: user.displayName,
+          createdAt: reviewThread.createdAt,
+        })
+        .from(reviewThread)
+        .leftJoin(user, eq(reviewThread.closedById, user.id))
+        .where(eq(reviewThread.siteId, s.id))
+        .orderBy(desc(reviewThread.createdAt))
+        .limit(1);
+    }
+
     if (!thread) {
       const [newThread] = await this.drizzleService.db
         .insert(reviewThread)
@@ -1251,7 +1357,7 @@ export class ApprovalBoardService {
       };
     }
 
-    const comments = await this.getCommentsByThreadId(thread.id);
+    const comments = await this.getCommentsBySiteId(s.id);
 
     return {
       id: thread.id,

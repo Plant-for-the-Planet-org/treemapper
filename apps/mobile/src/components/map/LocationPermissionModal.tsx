@@ -18,8 +18,13 @@ const LocationPermissionModal = () => {
     }, [])
 
     const checkForGpsPermission = async () => {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
+        // Only READ the current status here (no native prompt). Requesting the
+        // permission is owned by useLocationPermission; re-requesting on every
+        // mount added a native round-trip that raced the other location
+        // consumers and crashed Android. Show the block modal only when the
+        // permission is already denied.
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status === Location.PermissionStatus.DENIED) {
             setShowBlockModal(true)
         }
     }

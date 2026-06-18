@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { ChevronLeft, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import StatCardsContainer from './StatCardsContainer'
 import RecentAdditionsComponent from './RecentAdditionsComponent'
 import useProjectStore from '@shared-core/store/useProjectStore'
@@ -23,79 +25,75 @@ const Overview = () => {
 
     return (
         <div className="w-full h-full flex flex-col overflow-hidden">
+            {/* Stats — visible to all project members */}
+            <div className="flex-shrink-0">
+                <StatCardsContainer setTotalTrees={() => {}} />
+            </div>
 
-            {isAdminOrOwner ? (
-                <>
-                    {/* Stats */}
-                    <div className="flex-shrink-0">
-                        <StatCardsContainer setTotalTrees={() => {}} />
-                    </div>
-
-                    {/* Map + panel — side by side */}
-                    <div className="flex-1 flex overflow-hidden p-3 gap-3">
-                        {/* Map */}
-                        <div className="flex-1 relative overflow-hidden" style={{ clipPath: 'inset(0 round 12px)' }}>
-                            {selectedProjectUid
-                                ? <ProjectMap projectId={selectedProjectUid} token={accessToken} />
-                                : null
-                            }
-                            {!panelOpen && (
-                                <button
+            {/* Map + (admin/owner-only) live-activity panel — side by side.
+                Horizontal padding matches the stat cards (px-4). The gap is only
+                applied when the live-activity panel is open, so when it's closed
+                the map wrapper spans the full row and the left/right columns
+                (calc(25% - 9px)) line up exactly with the stat-card grid. */}
+            <div className={cn('flex-1 flex overflow-hidden px-4 pb-4 pt-1', panelOpen && 'gap-3')}>
+                {/* Map */}
+                <div className="flex-1 overflow-hidden">
+                    {selectedProjectUid ? (
+                        <ProjectMap
+                            projectId={selectedProjectUid}
+                            token={accessToken}
+                            mapTopRight={isAdminOrOwner && !panelOpen ? (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
                                     onClick={() => setPanelOpen(true)}
-                                    className="absolute top-3 right-3 z-20 flex items-center gap-1.5 bg-white/95 border border-gray-200 rounded-full px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-white transition-colors"
-                                    style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)' }}
+                                    className="rounded-full bg-background/95 shadow-md"
                                 >
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#007A49] animate-pulse" />
+                                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                                     Live activity
-                                    <ChevronLeft size={12} className="text-gray-400" />
-                                </button>
-                            )}
-                        </div>
+                                    <ChevronLeft size={12} className="text-muted-foreground" />
+                                </Button>
+                            ) : undefined}
+                        />
+                    ) : null}
+                </div>
 
-                        {/* Recent interventions panel */}
-                        <div
-                            className={cn(
-                                'flex-shrink-0 transition-[width] duration-300 overflow-hidden',
-                                panelOpen ? 'w-[220px] lg:w-[280px]' : 'w-0'
-                            )}
-                        >
-                            <div className="w-[220px] lg:w-[280px] h-full flex flex-col rounded-2xl bg-white" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)' }}>
-                                {/* Panel header */}
-                                <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100 flex-shrink-0">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#007A49] animate-pulse" />
-                                        <span className="text-xs font-semibold text-gray-800">Recent interventions</span>
-                                        {activityCount > 0 && (
-                                            <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">
-                                                {activityCount}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <button
-                                        onClick={() => setPanelOpen(false)}
-                                        className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-                                    >
-                                        <X size={13} />
-                                    </button>
+                {/* Recent interventions / live-activity — admin & owner only */}
+                {isAdminOrOwner && (
+                    <div
+                        className={cn(
+                            'flex-shrink-0 transition-[width] duration-300 overflow-hidden',
+                            panelOpen ? 'w-[220px] lg:w-[280px]' : 'w-0'
+                        )}
+                    >
+                        <div className="w-[220px] lg:w-[280px] h-full flex flex-col rounded-2xl bg-card text-card-foreground border border-border">
+                            {/* Panel header */}
+                            <div className="flex items-center justify-between px-4 py-2.5 border-b border-border flex-shrink-0">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                    <span className="text-xs font-semibold text-foreground">Recent interventions</span>
+                                    {activityCount > 0 && (
+                                        <Badge variant="secondary">{activityCount}</Badge>
+                                    )}
                                 </div>
+                                <Button
+                                    variant="ghost"
+                                    size="icon-xs"
+                                    onClick={() => setPanelOpen(false)}
+                                    className="text-muted-foreground"
+                                >
+                                    <X size={13} />
+                                </Button>
+                            </div>
 
-                                {/* Content */}
-                                <div className="flex-1 overflow-hidden">
-                                    <RecentAdditionsComponent onTotalChange={setActivityCount} />
-                                </div>
+                            {/* Content */}
+                            <div className="flex-1 overflow-hidden">
+                                <RecentAdditionsComponent onTotalChange={setActivityCount} />
                             </div>
                         </div>
                     </div>
-                </>
-            ) : (
-                /* Contributor view */
-                <div className="flex-1 overflow-hidden">
-                    {selectedProjectUid
-                        ? <ProjectMap projectId={selectedProjectUid} token={accessToken} />
-                        : null
-                    }
-                </div>
-            )}
+                )}
+            </div>
         </div>
     )
 }

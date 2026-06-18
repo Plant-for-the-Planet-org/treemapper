@@ -7,7 +7,7 @@ import {
   LayoutDashboard, MapPin, Leaf, Users, Activity, Upload,
   CheckSquare, FileText, BarChart2, Trophy, Settings, Building,
   ChevronDown, ChevronRight, Plus, Sun, Moon, Monitor,
-  UserCog, SlidersHorizontal, UserCheck, LogOut
+  UserCog, SlidersHorizontal, UserCheck, LogOut, Grid2x2, Smartphone
 } from 'lucide-react'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -16,11 +16,10 @@ import { cn } from '@/lib/utils'
 import { useUserStore } from '@shared-core/store/useUserStore'
 import useProjectStore from '@shared-core/store/useProjectStore'
 import { useToken } from '@/context/useTokenContext'
-import { selectOrg, exitImpersonationWork } from '@shared-core/fetchApi/api.fetch'
+import { selectOrg, exitImpersonationWork, getMyAdminWorkspaces } from '@shared-core/fetchApi/api.fetch'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Button } from '@/components/ui/button'
 import NotificationBell from '@/component/header/NotificationIcon'
-import ImpersonateDialog from '@/component/header/ImpersonateDialog'
 import { toast } from 'react-toastify'
 import { ProjectWithUserRoleI } from '@shared-core/types/interface.app'
 import {
@@ -40,7 +39,6 @@ interface SidebarProps {
 export default function DashboardSidebar({ createNewProject, openProfileSetting, updateRoute }: SidebarProps) {
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false)
   const [collapsedWorkspaces, setCollapsedWorkspaces] = useState<Set<string>>(new Set())
-  const [impersonateOpen, setImpersonateOpen] = useState(false)
   const { theme, setTheme } = useTheme()
 
   const themeOrder = ['light', 'dark', 'system'] as const
@@ -78,8 +76,20 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
   const projectRole = selectedProject?.userRole
   const isContributor = projectRole === 'contributor'
   const isAdminOrOwner = projectRole === 'admin' || projectRole === 'owner'
-  const workspaceRole = (selectedWorkspce as { userRole?: string } | null)?.userRole
-  const isWorkspaceManager = !!workspaceRole && workspaceRole !== 'member'
+
+  // The Workspace settings area is for people who own or admin at least one
+  // workspace -- regardless of which project is currently selected. We resolve
+  // that from the user's workspace list, not the selected workspace's role.
+  const [managesAnyWorkspace, setManagesAnyWorkspace] = useState(false)
+  useEffect(() => {
+    if (!accessToken) return
+    let cancelled = false
+    getMyAdminWorkspaces(accessToken).then(res => {
+      if (!cancelled) setManagesAnyWorkspace(Array.isArray(res?.data) && res.data.length > 0)
+    })
+    return () => { cancelled = true }
+  }, [accessToken])
+  const isWorkspaceManager = managesAnyWorkspace
 
   const activeRoute = (() => {
     const subpage = subpageFromPath(pathname)
@@ -163,7 +173,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         <UserCog size={14} className="mr-2" />
         Edit profile
       </DropdownMenuItem>
-      {canImpersonate && (
+      {/* {canImpersonate && (
         <DropdownMenuItem onClick={() => updateRoute('workspace')}>
           <UserCheck size={14} className="mr-2" />
           Impersonate user
@@ -178,7 +188,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
           <UserCheck size={14} className="mr-2" />
           Exit impersonation
         </DropdownMenuItem>
-      )}
+      )} */}
       <DropdownMenuItem
         onClick={() => logout({ accessToken, impersonating: isImpersonating })}
         className="text-destructive focus:text-destructive"
@@ -203,9 +213,11 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
       label: 'Field Data',
       items: [
         { icon: Activity, label: 'Interventions', id: 'intervention' },
+        { icon: Grid2x2, label: 'Plots', id: 'monitoring-plots' },
         { icon: Upload, label: 'Bulk Upload', id: 'bulkupload' },
         ...(!isContributor ? [{ icon: CheckSquare, label: 'Approvals', id: 'approvals' }] : []),
         ...(!isContributor ? [{ icon: FileText, label: 'Forms', id: 'forms' }] : []),
+        ...(isAdminOrOwner ? [{ icon: Smartphone, label: 'Devices', id: 'device-management' }] : []),
       ],
     },
     {
@@ -220,8 +232,9 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         label: 'Admin',
         items: [
           ...(isAdminOrOwner ? [{ icon: SlidersHorizontal, label: 'Project settings', id: 'settings' }] : []),
-          ...(isWorkspaceManager ? [{ icon: Building, label: 'Workspace', id: 'workspace' }] : []),
-          ...((canImpersonate || isWorkspaceManager) ? [{ icon: UserCheck, label: 'Impersonate', id: 'impersonate' }] : []),
+          // Impersonation now lives inside Workspace settings (Members), so
+          // anyone who may impersonate reaches it through the Workspace item.
+          ...((isWorkspaceManager || canImpersonate) ? [{ icon: Building, label: 'Workspace', id: 'workspace' }] : []),
         ],
       }]
       : []),
@@ -346,7 +359,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
               {group.items.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
-                    onClick={() => item.id === 'impersonate' ? setImpersonateOpen(true) : handleNavClick(item.id)}
+                    onClick={() => handleNavClick(item.id)}
                     isActive={activeRoute === item.id}
                     tooltip={item.label}
                     className="data-[active=true]:!bg-primary/10 data-[active=true]:!text-primary data-[active=true]:!font-medium"
@@ -421,8 +434,6 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
           </div>
         )}
       </SidebarFooter>
-
-      <ImpersonateDialog open={impersonateOpen} onOpenChange={setImpersonateOpen} />
     </Sidebar>
   )
 }

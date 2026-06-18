@@ -1,12 +1,10 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { FormBuilderProvider } from '@/forms/FormBuilderContext'
 import FormBuilder from '@/component/forms/builder/FormBuilder'
-import { getFormById, saveForm } from '@/forms/storage'
-import { createEmptyForm } from '@/forms/defaults'
-import { Form } from '@/forms/types'
+import { useForm } from '@/forms/useFormsData'
 import useProjectStore from '@shared-core/store/useProjectStore'
 import Spinner from '@/component/Spinner'
 
@@ -16,27 +14,17 @@ export default function FormBuilderPage() {
   const formId = params.formId as string
   const projectUid = params.projectUid as string
   const selectedProject = useProjectStore(state => state.selectedProject)
-  const [form, setForm] = useState<Form | null>(null)
 
+  const { form, status } = useForm(formId, selectedProject?.uid ?? '')
+
+  // A missing form (bad id, or one from another project) returns to the list.
   useEffect(() => {
-    if (!selectedProject) return
-
-    if (formId === 'new') {
-      const newForm = createEmptyForm(selectedProject.uid)
-      saveForm(newForm)
-      router.replace(`/project/${projectUid}/forms/${newForm.id}`)
-      return
+    if (status === 'not-found' || status === 'error') {
+      router.replace(`/project/${projectUid}/forms`)
     }
+  }, [status, projectUid, router])
 
-    const existing = getFormById(formId)
-    if (existing) {
-      setForm(existing)
-    } else {
-      router.push(`/project/${projectUid}/forms`)
-    }
-  }, [formId, selectedProject, projectUid])
-
-  if (!form) {
+  if (!form || status !== 'ready') {
     return (
       <div className="flex items-center justify-center h-full w-full">
         <Spinner />

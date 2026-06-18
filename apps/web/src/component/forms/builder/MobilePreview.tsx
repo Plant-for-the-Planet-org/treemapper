@@ -1,93 +1,9 @@
 'use client'
 
-import React, { useRef } from 'react'
+import React from 'react'
 import { useBuilder } from '@/forms/FormBuilderContext'
 import { FormField, FormSection } from '@/forms/types'
-import { Star, Heart, ThumbsUp, Smartphone } from 'lucide-react'
-
-function SignaturePreview() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const drawing = useRef(false)
-
-  const start = (e: React.MouseEvent) => {
-    drawing.current = true
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    const r = canvas.getBoundingClientRect()
-    ctx.beginPath()
-    ctx.strokeStyle = '#374151'
-    ctx.lineWidth = 1.5
-    ctx.lineCap = 'round'
-    ctx.moveTo(e.clientX - r.left, e.clientY - r.top)
-  }
-
-  const draw = (e: React.MouseEvent) => {
-    if (!drawing.current) return
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    const r = canvas.getBoundingClientRect()
-    ctx.lineTo(e.clientX - r.left, e.clientY - r.top)
-    ctx.stroke()
-  }
-
-  const stop = () => { drawing.current = false }
-
-  const clear = () => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    canvas.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height)
-  }
-
-  return (
-    <div className="border border-gray-300 rounded-md overflow-hidden">
-      <canvas
-        ref={canvasRef}
-        width={240}
-        height={80}
-        className="w-full cursor-crosshair bg-white block"
-        onMouseDown={start}
-        onMouseMove={draw}
-        onMouseUp={stop}
-        onMouseLeave={stop}
-      />
-      <button
-        onClick={clear}
-        className="w-full text-xs text-gray-400 hover:text-red-500 py-1 border-t border-gray-200 bg-gray-50 hover:bg-red-50 transition-colors"
-      >
-        Clear
-      </button>
-    </div>
-  )
-}
-
-function RatingPreview({ maxRating, icon }: { maxRating: number; icon: string }) {
-  const [hovered, setHovered] = React.useState(0)
-  const [selected, setSelected] = React.useState(0)
-
-  const RatingIcon = icon === 'heart' ? Heart : icon === 'thumbs' ? ThumbsUp : Star
-
-  return (
-    <div className="flex gap-1 flex-wrap">
-      {Array.from({ length: maxRating }, (_, i) => i + 1).map(n => (
-        <button
-          key={n}
-          onMouseEnter={() => setHovered(n)}
-          onMouseLeave={() => setHovered(0)}
-          onClick={() => setSelected(n === selected ? 0 : n)}
-          className="focus:outline-none"
-        >
-          <RatingIcon
-            className={`w-5 h-5 transition-colors ${n <= (hovered || selected) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
-          />
-        </button>
-      ))}
-    </div>
-  )
-}
+import { Smartphone } from 'lucide-react'
 
 function FieldPreview({ field }: { field: FormField }) {
   return (
@@ -98,7 +14,7 @@ function FieldPreview({ field }: { field: FormField }) {
       </div>
       {field.helpText && <p className="text-xs text-gray-400">{field.helpText}</p>}
 
-      {field.type === 'text' && !field.textConfig.multiline && (
+      {field.type === 'text' && !field.config.multiline && (
         <input
           className="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:border-green-400"
           placeholder={field.placeholder || 'Enter text...'}
@@ -106,11 +22,11 @@ function FieldPreview({ field }: { field: FormField }) {
         />
       )}
 
-      {field.type === 'text' && field.textConfig.multiline && (
+      {field.type === 'text' && field.config.multiline && (
         <textarea
           className="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:border-green-400 resize-none"
           placeholder={field.placeholder || 'Enter text...'}
-          rows={field.textConfig.rows}
+          rows={field.config.rows}
           readOnly
         />
       )}
@@ -123,15 +39,15 @@ function FieldPreview({ field }: { field: FormField }) {
             placeholder={field.placeholder || '0'}
             readOnly
           />
-          {field.numberConfig.unit && (
-            <span className="text-xs text-gray-500 bg-gray-100 border border-gray-300 rounded-md px-2 py-1.5">{field.numberConfig.unit}</span>
+          {field.config.unit && (
+            <span className="text-xs text-gray-500 bg-gray-100 border border-gray-300 rounded-md px-2 py-1.5">{field.config.unit}</span>
           )}
         </div>
       )}
 
       {field.type === 'date' && (
         <input
-          type={field.dateConfig.includeTime ? 'datetime-local' : 'date'}
+          type={field.config.includeTime ? 'datetime-local' : 'date'}
           className="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:border-green-400"
           readOnly
         />
@@ -140,13 +56,13 @@ function FieldPreview({ field }: { field: FormField }) {
       {field.type === 'dropdown' && (
         <select className="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:border-green-400">
           <option value="">{field.placeholder || 'Select an option...'}</option>
-          {field.options.map(o => <option key={o.id} value={o.value}>{o.label}</option>)}
+          {field.config.options.map(o => <option key={o.id} value={o.value}>{o.label}</option>)}
         </select>
       )}
 
       {field.type === 'radio' && (
         <div className="space-y-1.5">
-          {field.options.map(o => (
+          {field.config.options.map(o => (
             <label key={o.id} className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name={field.id} className="accent-green-600" />
               <span className="text-xs text-gray-700">{o.label}</span>
@@ -157,38 +73,13 @@ function FieldPreview({ field }: { field: FormField }) {
 
       {field.type === 'checkbox' && (
         <div className="space-y-1.5">
-          {field.options.map(o => (
+          {field.config.options.map(o => (
             <label key={o.id} className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" className="accent-green-600 rounded" />
               <span className="text-xs text-gray-700">{o.label}</span>
             </label>
           ))}
         </div>
-      )}
-
-      {field.type === 'signature' && <SignaturePreview />}
-
-      {field.type === 'slider' && (
-        <div className="space-y-1">
-          <input
-            type="range"
-            min={field.sliderConfig.min}
-            max={field.sliderConfig.max}
-            step={field.sliderConfig.step}
-            defaultValue={field.sliderConfig.min}
-            className="w-full accent-green-600"
-          />
-          {field.sliderConfig.showValue && (
-            <div className="flex justify-between text-xs text-gray-400">
-              <span>{field.sliderConfig.min}</span>
-              <span>{field.sliderConfig.max}</span>
-            </div>
-          )}
-        </div>
-      )}
-
-      {field.type === 'rating' && (
-        <RatingPreview maxRating={field.ratingConfig.maxRating} icon={field.ratingConfig.icon} />
       )}
     </div>
   )

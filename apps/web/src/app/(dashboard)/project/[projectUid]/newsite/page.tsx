@@ -436,39 +436,43 @@ export function CreateProjectUI() {
     const area = finalGeoJSON ? calculateFarmArea(finalGeoJSON) : null;
 
     return (
-        <div className="bg-gray-50">
+        <div className="bg-gray-50 h-screen flex flex-col overflow-hidden">
             <CreateSiteHeader
                 onGoBack={router.back}
                 projectName={SelectedProject?.name}
             />
-            <div className="grid grid-cols-1 lg:grid-cols-2 h-full" >
-                <div className="px-6 py-4">
-                    <form onSubmit={handleSubmit} className="w-full mx-auto space-y-8">
-                        <div>
-                            <h2 className="text-xl font-semibold text-gray-900 mb-2">Site Information</h2>
-                            <p className="text-sm text-gray-600 mb-6">
-                                Provide basic details about your new site location and purpose.
-                            </p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 flex-1 min-h-0" >
+                <div className="px-6 py-4 flex flex-col min-h-0">
+                    <form onSubmit={handleSubmit} className="w-full mx-auto flex flex-col flex-1 min-h-0">
+                        <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-8">
+                            <div>
+                                <h2 className="text-xl font-semibold text-gray-900 mb-2">Site Information</h2>
+                                <p className="text-sm text-gray-600 mb-6">
+                                    Provide basic details about your new site location and purpose.
+                                </p>
 
-                            <FormSection
-                                formData={formData}
-                                onInputChange={handleInputChange}
-                                errors={errors}
-                                projectTypes={projectTypes}
-                            />
+                                <FormSection
+                                    formData={formData}
+                                    onInputChange={handleInputChange}
+                                    errors={errors}
+                                    projectTypes={projectTypes}
+                                />
+                            </div>
                         </div>
 
-                        <SubmitSection
-                            agreeTerms={agreeTerms}
-                            onAgreeTermsChange={(e) => setAgreeTerms(e.target.checked)}
-                            onSubmit={handleSubmit}
-                            loading={loading}
-                            canSubmit={canSubmit}
-                        />
+                        <div className="pt-4 shrink-0">
+                            <SubmitSection
+                                agreeTerms={agreeTerms}
+                                onAgreeTermsChange={(e) => setAgreeTerms(e.target.checked)}
+                                onSubmit={handleSubmit}
+                                loading={loading}
+                                canSubmit={canSubmit}
+                            />
+                        </div>
                     </form>
                 </div>
 
-                <div className="border-l border-gray-200 p-6">
+                <div className="border-l border-gray-200 p-6 min-h-0 overflow-hidden">
                     <MapSection
                         geoJSON={finalGeoJSON}
                         onUpdateGeoJSON={updateGeoJSON}

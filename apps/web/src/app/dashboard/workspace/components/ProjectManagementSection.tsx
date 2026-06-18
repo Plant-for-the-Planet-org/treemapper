@@ -1,31 +1,46 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
+  ArrowRightLeft,
   Calendar,
   ChevronDown,
-  ChevronUp,
+  ChevronRight,
   Download,
   Eye,
   EyeOff,
   Flag,
+  FolderTree,
   Globe,
+  Inbox,
   LogIn,
   Mail,
   MapPin,
+  Search,
+  Settings,
   Target,
   Trees,
   UserCircle,
   Users,
+  X,
 } from 'lucide-react';
 import { getAllWorkspacesApi, getWorkspaceProjectsApi, startImpersonationWork, transferProjectApi, updateProjectStatusApi } from '@shared-core/fetchApi/api.fetch';
 import { sanitizeAvatarUrl } from '@shared-core/utils/avatarUrl';
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import type { Project, Site } from '../types';
-import { Badge, Card, CardContent, CardHeader, CardTitle } from './workspace-ui';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -39,121 +54,137 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import ProjectSettingsModal from './ProjectSettingsModal';
 
-/* ─── variant maps ─────────────────────────────────────────────────────────── */
+/* ─── status tones ───────────────────────────────────────────────────────────
+ * shadcn Badge has no success/warning variants, so we map each domain status to
+ * a tone and render the color via className on an outline Badge. */
 
-const siteStatusVariant: Record<string, 'success' | 'warning' | 'default' | 'destructive'> = {
+type Tone = 'success' | 'warning' | 'neutral' | 'destructive';
+
+const TONE_CLASS: Record<Tone, string> = {
+  success: 'border-green-200 bg-green-50 text-green-700',
+  warning: 'border-amber-200 bg-amber-50 text-amber-700',
+  destructive: 'border-red-200 bg-red-50 text-red-700',
+  neutral: 'border-gray-200 bg-gray-50 text-gray-600',
+};
+
+const siteStatusTone: Record<string, Tone> = {
   planted: 'success',
   planting: 'success',
-  planning: 'default',
+  planning: 'neutral',
   reforestation: 'warning',
   barren: 'destructive',
 };
 
-const projectStatusVariant: Record<string, 'success' | 'warning' | 'default' | 'destructive'> = {
+const projectStatusTone: Record<string, Tone> = {
   active: 'success',
   in_review: 'warning',
   suspended: 'destructive',
-  disabled: 'default',
+  disabled: 'neutral',
 };
 
-const reviewStatusVariant: Record<string, 'success' | 'warning' | 'default' | 'destructive'> = {
+const reviewStatusTone: Record<string, Tone> = {
   approved: 'success',
   in_review: 'warning',
-  pending: 'default',
+  pending: 'neutral',
   rejected: 'destructive',
 };
 
-/* ─── SiteRow (table in ProjectRow expand) ──────────────────────────────────── */
-
-function SiteRow({ site }: { site: Site }) {
+function StatusBadge({ tone, children }: { tone: Tone; children: React.ReactNode }) {
   return (
-    <tr className="bg-gray-50 border-b text-sm">
-      <td className="pl-10 pr-2 py-2">
-        <div className="flex items-center gap-2">
-          <MapPin className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-          <span className="font-medium text-gray-800">{site.name}</span>
-          {site.description && (
-            <span className="text-gray-400 truncate max-w-[200px]">{site.description}</span>
-          )}
-        </div>
-      </td>
-      <td className="p-2">
-        {site.status ? (
-          <Badge variant={siteStatusVariant[site.status] ?? 'default'}>
-            {site.status.charAt(0).toUpperCase() + site.status.slice(1)}
-          </Badge>
-        ) : (
-          <span className="text-gray-400">—</span>
-        )}
-      </td>
-      <td className="p-2 text-gray-600">
-        {site.area != null ? `${site.area.toLocaleString()} ha` : '—'}
-      </td>
-      <td className="p-2 text-gray-600">
-        {site.expectedTreeCount != null ? site.expectedTreeCount.toLocaleString() : '—'}
-      </td>
-      <td className="p-2">
-        {site.reviewStatus ? (
-          <Badge variant={reviewStatusVariant[site.reviewStatus] ?? 'default'}>
-            {site.reviewStatus.replace('_', ' ')}
-          </Badge>
-        ) : (
-          <span className="text-gray-400">—</span>
-        )}
-      </td>
-      <td className="p-2 text-gray-500">
-        {site.actualPlantingDate
-          ? new Date(site.actualPlantingDate).toLocaleDateString()
-          : site.plannedPlantingDate
-            ? `Planned: ${new Date(site.plannedPlantingDate).toLocaleDateString()}`
-            : '—'}
-      </td>
-    </tr>
+    <Badge variant="outline" className={cn('capitalize', TONE_CLASS[tone])}>
+      {children}
+    </Badge>
   );
 }
 
-/* ─── ModalSiteRow ──────────────────────────────────────────────────────────── */
+const titleCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ');
 
-function ModalSiteRow({ site }: { site: Site }) {
+/* ─── SitesTable (shared by the modal and the inline row expansion) ──────────── */
+
+function SitesTable({ sites, compact = false }: { sites: Site[]; compact?: boolean }) {
   return (
-    <tr className="border-b last:border-0 hover:bg-gray-50">
-      <td className="px-3 py-2.5">
-        <div className="font-medium text-gray-800 text-sm">{site.name}</div>
-        {site.description && (
-          <div className="text-xs text-gray-400 truncate max-w-[180px] mt-0.5">{site.description}</div>
-        )}
-      </td>
-      <td className="px-3 py-2.5">
-        {site.status ? (
-          <Badge variant={siteStatusVariant[site.status] ?? 'default'}>
-            {site.status.charAt(0).toUpperCase() + site.status.slice(1)}
-          </Badge>
-        ) : '—'}
-      </td>
-      <td className="px-3 py-2.5 text-sm text-gray-600">
-        {site.area != null ? `${site.area.toLocaleString()} ha` : '—'}
-      </td>
-      <td className="px-3 py-2.5 text-sm text-gray-600">
-        {site.expectedTreeCount != null ? site.expectedTreeCount.toLocaleString() : '—'}
-      </td>
-      <td className="px-3 py-2.5">
-        {site.reviewStatus ? (
-          <Badge variant={reviewStatusVariant[site.reviewStatus] ?? 'default'}>
-            {site.reviewStatus.replace('_', ' ')}
-          </Badge>
-        ) : '—'}
-      </td>
-      <td className="px-3 py-2.5 text-xs text-gray-500">
-        {site.actualPlantingDate
-          ? new Date(site.actualPlantingDate).toLocaleDateString()
-          : site.plannedPlantingDate
-            ? `Planned: ${new Date(site.plannedPlantingDate).toLocaleDateString()}`
-            : '—'}
-      </td>
-    </tr>
+    <div className="overflow-hidden rounded-lg border">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50 hover:bg-muted/50">
+            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Site</TableHead>
+            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Status</TableHead>
+            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Area</TableHead>
+            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Trees</TableHead>
+            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Review</TableHead>
+            <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Planting</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sites.map((site) => (
+            <TableRow key={site.uid}>
+              <TableCell className="max-w-[220px]">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                  <div className="min-w-0">
+                    <div className="truncate font-medium text-foreground">{site.name}</div>
+                    {!compact && site.description && (
+                      <div className="truncate text-xs text-muted-foreground">{site.description}</div>
+                    )}
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                {site.status ? (
+                  <StatusBadge tone={siteStatusTone[site.status] ?? 'neutral'}>{titleCase(site.status)}</StatusBadge>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {site.area != null ? `${site.area.toLocaleString()} ha` : '—'}
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {site.expectedTreeCount != null ? site.expectedTreeCount.toLocaleString() : '—'}
+              </TableCell>
+              <TableCell>
+                {site.reviewStatus ? (
+                  <StatusBadge tone={reviewStatusTone[site.reviewStatus] ?? 'neutral'}>
+                    {titleCase(site.reviewStatus)}
+                  </StatusBadge>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
+              </TableCell>
+              <TableCell className="text-xs text-muted-foreground">
+                {site.actualPlantingDate
+                  ? new Date(site.actualPlantingDate).toLocaleDateString()
+                  : site.plannedPlantingDate
+                    ? `Planned: ${new Date(site.plannedPlantingDate).toLocaleDateString()}`
+                    : '—'}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 
@@ -161,13 +192,11 @@ function ModalSiteRow({ site }: { site: Site }) {
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
-      <div className="flex-shrink-0 rounded-lg bg-white p-2 shadow-sm border border-gray-100">
-        {icon}
-      </div>
-      <div>
-        <div className="text-xs text-gray-500 font-medium">{label}</div>
-        <div className="text-sm font-semibold text-gray-900 mt-0.5">{value}</div>
+    <div className="flex items-center gap-3 rounded-xl border bg-muted/30 px-4 py-3">
+      <div className="flex-shrink-0 rounded-lg border bg-background p-2 shadow-xs">{icon}</div>
+      <div className="min-w-0">
+        <div className="text-xs font-medium text-muted-foreground">{label}</div>
+        <div className="mt-0.5 text-sm font-semibold text-foreground">{value}</div>
       </div>
     </div>
   );
@@ -203,6 +232,35 @@ const EMAIL_TEMPLATES = [
   },
 ];
 
+/* ─── CSV export ─────────────────────────────────────────────────────────────── */
+
+function csvCell(value: string | number) {
+  const s = String(value ?? '');
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function exportProjectsToCsv(projects: Project[], workspaceName: string) {
+  const headers = ['Name', 'Slug', 'Status', 'Visibility', 'Members', 'Sites', 'Country', 'Created'];
+  const rows = projects.map((p) => [
+    p.name,
+    p.slug,
+    titleCase(p.status),
+    p.isPublic ? 'Public' : 'Private',
+    p.memberCount,
+    p.siteCount,
+    p.country ?? '',
+    new Date(p.createdAt).toISOString().slice(0, 10),
+  ]);
+  const csv = [headers, ...rows].map((r) => r.map(csvCell).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${workspaceName || 'workspace'}-projects.csv`.replace(/\s+/g, '-').toLowerCase();
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 /* ─── ContactOwnerModal ─────────────────────────────────────────────────────── */
 
 function ContactOwnerModal({
@@ -237,8 +295,8 @@ function ContactOwnerModal({
     }, 1200);
   };
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
       setSubject('');
       setBody('');
       setSent(false);
@@ -248,24 +306,19 @@ function ContactOwnerModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-[min(90vw,38rem)] max-w-none p-0 gap-0 flex flex-col">
-        <DialogHeader className="px-6 py-5 border-b flex-shrink-0">
+      <DialogContent className="flex w-[min(90vw,38rem)] max-w-none flex-col gap-0 p-0">
+        <DialogHeader className="flex-shrink-0 border-b px-6 py-5">
           <div className="flex items-center gap-2">
-            <Mail className="h-4 w-4 text-gray-500" />
-            <DialogTitle className="text-base font-semibold text-gray-900">
-              Contact Owner
-            </DialogTitle>
+            <Mail className="h-4 w-4 text-muted-foreground" />
+            <DialogTitle className="text-base font-semibold">Contact Owner</DialogTitle>
           </div>
         </DialogHeader>
 
-        <div className="px-6 py-5 space-y-4 flex-1">
-          {/* Template loader */}
+        <div className="flex-1 space-y-4 px-6 py-5">
           <div>
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
-              Load Template
-            </p>
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Load Template</p>
             <Select onValueChange={handleLoadTemplate}>
-              <SelectTrigger className="h-9 text-sm bg-white">
+              <SelectTrigger className="h-9 bg-background text-sm">
                 <SelectValue placeholder="Select a template..." />
               </SelectTrigger>
               <SelectContent>
@@ -278,23 +331,13 @@ function ContactOwnerModal({
             </Select>
           </div>
 
-          {/* To */}
           <div>
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
-              To
-            </p>
-            <Input
-              value={ownerEmail}
-              readOnly
-              className="h-9 text-sm bg-gray-50 text-gray-500 cursor-default"
-            />
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">To</p>
+            <Input value={ownerEmail} readOnly className="h-9 cursor-default bg-muted text-sm text-muted-foreground" />
           </div>
 
-          {/* Subject */}
           <div>
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
-              Subject
-            </p>
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Subject</p>
             <Input
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
@@ -303,30 +346,22 @@ function ContactOwnerModal({
             />
           </div>
 
-          {/* Body */}
           <div>
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
-              Message
-            </p>
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Message</p>
             <Textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
               placeholder="Write your message..."
-              className="text-sm resize-none min-h-[160px]"
+              className="min-h-[160px] resize-none text-sm"
             />
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t flex items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-2 border-t px-6 py-4">
           <Button variant="outline" size="sm" onClick={onClose}>
             Cancel
           </Button>
-          <Button
-            size="sm"
-            onClick={handleSend}
-            disabled={!subject.trim() || !body.trim() || sent}
-            className="bg-gray-900 hover:bg-gray-700 text-white gap-1.5 min-w-[80px]"
-          >
+          <Button size="sm" onClick={handleSend} disabled={!subject.trim() || !body.trim() || sent} className="min-w-[80px] gap-1.5">
             <Mail className="h-3.5 w-3.5" />
             {sent ? 'Sent!' : 'Send'}
           </Button>
@@ -344,12 +379,14 @@ function ProjectDetailModal({
   onClose,
   onStatusUpdated,
   onTransferred,
+  onOpenSettings,
 }: {
   project: Project;
   workspaceUid: string;
   onClose: () => void;
   onStatusUpdated: (projectUid: string, status: 'active' | 'in_review' | 'suspended' | 'disabled') => void;
   onTransferred: (projectUid: string) => void;
+  onOpenSettings: (project: Project) => void;
 }) {
   const { accessToken } = useToken();
   const [pendingStatus, setPendingStatus] = useState(project.status);
@@ -417,110 +454,72 @@ function ProjectDetailModal({
   return (
     <DialogContent
       showCloseButton={false}
-      className="w-[min(90vw,72rem)] max-w-none p-0 gap-0 flex flex-col max-h-[90vh] overflow-hidden"
+      className="flex max-h-[90vh] w-[80vw] max-w-[80vw] flex-col gap-0 overflow-hidden p-0 sm:max-w-[80vw]"
     >
       {/* Header */}
-      <DialogHeader className="px-6 py-5 border-b flex-shrink-0">
+      <DialogHeader className="flex-shrink-0 border-b px-6 py-5">
         <div className="flex items-start justify-between gap-4 pr-2">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <DialogTitle className="text-xl font-semibold text-gray-900">
-                {project.name}
-              </DialogTitle>
-              <Badge variant={project.isPublic ? 'success' : 'default'}>
-                {project.isPublic
-                  ? <><Eye className="h-3 w-3" />Public</>
-                  : <><EyeOff className="h-3 w-3" />Private</>}
-              </Badge>
-              <Badge variant={projectStatusVariant[project.status] ?? 'default'}>
-                {project.status.replace('_', ' ')}
-              </Badge>
+            <div className="flex flex-wrap items-center gap-2">
+              <DialogTitle className="text-xl font-semibold">{project.name}</DialogTitle>
+              <StatusBadge tone={project.isPublic ? 'success' : 'neutral'}>
+                {project.isPublic ? <><Eye className="h-3 w-3" />Public</> : <><EyeOff className="h-3 w-3" />Private</>}
+              </StatusBadge>
+              <StatusBadge tone={projectStatusTone[project.status] ?? 'neutral'}>{titleCase(project.status)}</StatusBadge>
               {project.flag && (
-                <Badge variant="destructive"><Flag className="h-3 w-3" />Flagged</Badge>
+                <Badge variant="outline" className={TONE_CLASS.destructive}>
+                  <Flag className="h-3 w-3" />Flagged
+                </Badge>
               )}
-              {project.approvalBoardEnabled && (
-                <Badge variant="outline">Approval Board</Badge>
-              )}
+              {project.approvalBoardEnabled && <Badge variant="outline">Approval Board</Badge>}
             </div>
-            <div className="text-xs text-gray-400 mt-1 font-mono">/{project.slug}</div>
+            <div className="mt-1 font-mono text-xs text-muted-foreground">/{project.slug}</div>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="flex-shrink-0 h-8 w-8 text-gray-400 hover:text-gray-700"
+            className="h-8 w-8 flex-shrink-0 text-muted-foreground"
             onClick={onClose}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <X className="h-4 w-4" />
           </Button>
         </div>
       </DialogHeader>
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-
-        {/* Description / purpose */}
+      <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
         {(project.description || project.purpose) && (
-          <div className="space-y-1.5 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
-            {project.description && (
-              <p className="text-sm text-gray-700">{project.description}</p>
-            )}
-            {project.purpose && (
-              <p className="text-xs text-gray-500 italic">{project.purpose}</p>
-            )}
+          <div className="space-y-1.5 rounded-xl border bg-muted/30 px-4 py-3">
+            {project.description && <p className="text-sm text-foreground">{project.description}</p>}
+            {project.purpose && <p className="text-xs italic text-muted-foreground">{project.purpose}</p>}
           </div>
         )}
 
         {/* Stats grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard
-            icon={<Users className="h-4 w-4 text-blue-500" />}
-            label="Members"
-            value={project.memberCount}
-          />
-          <StatCard
-            icon={<MapPin className="h-4 w-4 text-green-500" />}
-            label="Sites"
-            value={project.siteCount}
-          />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard icon={<Users className="h-4 w-4 text-blue-500" />} label="Members" value={project.memberCount} />
+          <StatCard icon={<MapPin className="h-4 w-4 text-green-500" />} label="Sites" value={project.siteCount} />
           {project.target != null && (
-            <StatCard
-              icon={<Target className="h-4 w-4 text-orange-500" />}
-              label="Target trees"
-              value={project.target.toLocaleString()}
-            />
+            <StatCard icon={<Target className="h-4 w-4 text-orange-500" />} label="Target trees" value={project.target.toLocaleString()} />
           )}
-          <StatCard
-            icon={<Calendar className="h-4 w-4 text-purple-500" />}
-            label="Created"
-            value={new Date(project.createdAt).toLocaleDateString()}
-          />
+          <StatCard icon={<Calendar className="h-4 w-4 text-purple-500" />} label="Created" value={new Date(project.createdAt).toLocaleDateString()} />
         </div>
 
         {/* Owner */}
         {project.owner && (
-          <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
-            {sanitizeAvatarUrl(project.owner.image) ? (
-              <img
-                src={sanitizeAvatarUrl(project.owner.image)}
-                alt={project.owner.displayName}
-                className="h-10 w-10 rounded-full object-cover flex-shrink-0 ring-2 ring-white shadow-sm"
-              />
-            ) : (
-              <UserCircle className="h-10 w-10 text-gray-300 flex-shrink-0" />
-            )}
+          <div className="flex items-center gap-3 rounded-xl border bg-muted/30 px-4 py-3">
+            <Avatar className="h-10 w-10 ring-2 ring-background">
+              <AvatarImage src={sanitizeAvatarUrl(project.owner.image) || undefined} alt={project.owner.displayName} />
+              <AvatarFallback>
+                <UserCircle className="h-8 w-8 text-muted-foreground" />
+              </AvatarFallback>
+            </Avatar>
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest mb-0.5">
-                Project Owner
-              </div>
-              <div className="text-sm font-semibold text-gray-900">{project.owner.displayName}</div>
-              <div className="text-xs text-gray-500 truncate">{project.owner.email}</div>
+              <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Project Owner</div>
+              <div className="text-sm font-semibold text-foreground">{project.owner.displayName}</div>
+              <div className="truncate text-xs text-muted-foreground">{project.owner.email}</div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setContactOwnerOpen(true)}
-              className="flex-shrink-0 gap-1.5 text-xs"
-            >
+            <Button variant="outline" size="sm" onClick={() => setContactOwnerOpen(true)} className="flex-shrink-0 gap-1.5 text-xs">
               <Mail className="h-3.5 w-3.5" />
               Contact Owner
             </Button>
@@ -528,22 +527,22 @@ function ProjectDetailModal({
         )}
 
         {/* Meta */}
-        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600">
+        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-foreground">
           {project.country && (
             <span>
-              <span className="text-gray-400 text-xs font-medium uppercase tracking-wide mr-1.5">Country</span>
+              <span className="mr-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Country</span>
               {project.country}
             </span>
           )}
           {project.ecosystem && (
             <span>
-              <span className="text-gray-400 text-xs font-medium uppercase tracking-wide mr-1.5">Ecosystem</span>
+              <span className="mr-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Ecosystem</span>
               {project.ecosystem}
             </span>
           )}
           {project.type && (
             <span>
-              <span className="text-gray-400 text-xs font-medium uppercase tracking-wide mr-1.5">Type</span>
+              <span className="mr-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Type</span>
               {project.type}
             </span>
           )}
@@ -562,124 +561,94 @@ function ProjectDetailModal({
 
         {/* Sites */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-1.5">
+          <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-foreground">
             <Trees className="h-4 w-4 text-green-600" />
             Sites
-            <span className="text-gray-400 font-normal">({project.siteCount})</span>
+            <span className="font-normal text-muted-foreground">({project.siteCount})</span>
           </h3>
 
           {project.sites.length === 0 ? (
-            <div className="text-sm text-gray-400 py-8 text-center border border-dashed rounded-xl">
+            <div className="rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground">
               No sites in this project.
             </div>
           ) : (
-            <div className="overflow-x-auto border rounded-xl">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-gray-50">
-                    <th className="text-left px-3 py-2.5 font-medium text-gray-500 text-xs uppercase tracking-wide">Site</th>
-                    <th className="text-left px-3 py-2.5 font-medium text-gray-500 text-xs uppercase tracking-wide">Status</th>
-                    <th className="text-left px-3 py-2.5 font-medium text-gray-500 text-xs uppercase tracking-wide">Area</th>
-                    <th className="text-left px-3 py-2.5 font-medium text-gray-500 text-xs uppercase tracking-wide">Trees</th>
-                    <th className="text-left px-3 py-2.5 font-medium text-gray-500 text-xs uppercase tracking-wide">Review</th>
-                    <th className="text-left px-3 py-2.5 font-medium text-gray-500 text-xs uppercase tracking-wide">Planting</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {project.sites.map((site) => (
-                    <ModalSiteRow key={site.uid} site={site} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <SitesTable sites={project.sites} />
           )}
         </div>
       </div>
 
       {/* Footer */}
-      <div className="border-t flex-shrink-0 bg-gray-50/60">
-
+      <div className="flex-shrink-0 border-t bg-muted/30">
         {/* Zone 1: Status */}
         <div className="px-6 py-4">
-          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5">
-            Project Status
-          </p>
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex gap-1.5 flex-wrap">
+          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Project Status</p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-1.5">
               {PROJECT_STATUSES.map(({ value, label }) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => setPendingStatus(value)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                  className={cn(
+                    'rounded-full border px-3 py-1.5 text-xs font-medium transition-all',
                     pendingStatus === value
-                      ? 'border-transparent bg-gray-900 text-white shadow-sm'
-                      : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50'
-                  }`}
+                      ? 'border-transparent bg-foreground text-background shadow-sm'
+                      : 'border-border bg-background text-muted-foreground hover:border-foreground/30 hover:bg-muted',
+                  )}
                 >
                   {label}
                 </button>
               ))}
             </div>
             <div className="flex items-center gap-2">
-              {saveError && <span className="text-xs text-red-500">{saveError}</span>}
-              <Button
-                size="sm"
-                onClick={handleSaveStatus}
-                disabled={!isDirty || saving}
-                className="bg-gray-900 hover:bg-gray-700 text-white"
-              >
+              {saveError && <span className="text-xs text-destructive">{saveError}</span>}
+              <Button size="sm" onClick={handleSaveStatus} disabled={!isDirty || saving}>
                 {saving ? 'Saving...' : 'Save Status'}
               </Button>
             </div>
           </div>
         </div>
 
+        <Separator className="opacity-60" />
+
         {/* Zone 2: Transfer */}
-        <div className="px-6 py-4 border-t border-dashed border-gray-200">
-          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5">
+        <div className="px-6 py-4">
+          <p className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <ArrowRightLeft className="h-3 w-3" />
             Transfer Project
           </p>
           <div className="flex items-center gap-3">
             <Select value={targetWorkspaceUid} onValueChange={setTargetWorkspaceUid}>
-              <SelectTrigger className="flex-1 h-9 text-sm bg-white">
+              <SelectTrigger className="h-9 flex-1 bg-background text-sm">
                 <SelectValue placeholder="Select destination workspace..." />
               </SelectTrigger>
               <SelectContent>
                 {workspaces.map((w) => (
                   <SelectItem key={w.uid} value={w.uid}>
                     {w.name}
-                    <span className="text-gray-400 ml-1">({w.slug})</span>
+                    <span className="ml-1 text-muted-foreground">({w.slug})</span>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {transferError && (
-              <span className="text-xs text-red-500 shrink-0">{transferError}</span>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleTransfer}
-              disabled={!targetWorkspaceUid || transferring}
-              className="shrink-0"
-            >
+            {transferError && <span className="shrink-0 text-xs text-destructive">{transferError}</span>}
+            <Button variant="outline" size="sm" onClick={handleTransfer} disabled={!targetWorkspaceUid || transferring} className="shrink-0">
               {transferring ? 'Transferring...' : 'Transfer'}
             </Button>
           </div>
         </div>
 
+        <Separator className="opacity-60" />
+
         {/* Zone 3: Primary actions */}
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-          <div>
+        <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => onOpenSettings(project)} className="gap-1.5">
+              <Settings className="h-3.5 w-3.5" />
+              Manage Settings
+            </Button>
             {project.owner && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleImpersonateOwner}
-                disabled={impersonating}
-                className="gap-1.5"
-              >
+              <Button variant="outline" size="sm" onClick={handleImpersonateOwner} disabled={impersonating} className="gap-1.5">
                 <LogIn className="h-3.5 w-3.5" />
                 {impersonating ? 'Opening...' : 'View as Owner'}
               </Button>
@@ -706,81 +675,102 @@ function ProjectDetailModal({
 
 /* ─── ProjectRow ────────────────────────────────────────────────────────────── */
 
-function ProjectRow({ project, onView }: { project: Project; onView: (project: Project) => void }) {
+function ProjectRow({ project, onView, onOpenSettings }: { project: Project; onView: (project: Project) => void; onOpenSettings: (project: Project) => void }) {
   const [expanded, setExpanded] = useState(false);
+  const hasSites = project.sites.length > 0;
 
   return (
     <>
-      <tr className="border-b hover:bg-gray-50/80 transition-colors">
-        <td className="p-2 w-[220px] max-w-[220px]">
+      <TableRow className="group">
+        <TableCell className="w-[240px] max-w-[240px]">
           <button
             type="button"
-            className="flex items-center gap-2 w-full text-left min-w-0"
-            onClick={() => setExpanded((v) => !v)}
+            className="flex w-full min-w-0 items-center gap-2 text-left disabled:cursor-default"
+            onClick={() => hasSites && setExpanded((v) => !v)}
+            disabled={!hasSites}
+            aria-expanded={hasSites ? expanded : undefined}
           >
-            {project.sites.length > 0 ? (
-              expanded ? (
-                <ChevronUp className="h-4 w-4 text-gray-400 flex-shrink-0" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0" />
-              )
+            {hasSites ? (
+              <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-muted-foreground transition-colors group-hover:bg-muted">
+                {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </span>
             ) : (
-              <span className="w-4 flex-shrink-0" />
+              <span className="w-5 flex-shrink-0" />
             )}
             <div className="min-w-0">
-              <div className="font-medium text-gray-900 truncate text-sm">{project.name}</div>
-              <div className="text-xs text-gray-400 truncate font-mono">/{project.slug}</div>
+              <div className="truncate text-sm font-medium text-foreground">{project.name}</div>
+              <div className="truncate font-mono text-xs text-muted-foreground">/{project.slug}</div>
             </div>
           </button>
-        </td>
-        <td className="p-2">
-          <Badge variant={project.isPublic ? 'success' : 'default'}>
-            {project.isPublic
-              ? <><Eye className="h-3 w-3" />Public</>
-              : <><EyeOff className="h-3 w-3" />Private</>}
-          </Badge>
-        </td>
-        <td className="p-2">
-          <Badge variant={projectStatusVariant[project.status] ?? 'default'}>
-            {project.status.replace('_', ' ')}
-          </Badge>
-        </td>
-        <td className="p-2 text-sm text-gray-600">{project.memberCount}</td>
-        <td className="p-2 text-sm text-gray-600">{project.siteCount}</td>
-        <td className="p-2 text-sm text-gray-500">{project.country ?? '—'}</td>
-        <td className="p-2 text-sm text-gray-500">{new Date(project.createdAt).toLocaleDateString()}</td>
-        <td className="p-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onView(project)}
-            className="h-8 w-8 p-0 text-gray-400 hover:text-gray-700"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-        </td>
-      </tr>
+        </TableCell>
+        <TableCell>
+          <StatusBadge tone={project.isPublic ? 'success' : 'neutral'}>
+            {project.isPublic ? <><Eye className="h-3 w-3" />Public</> : <><EyeOff className="h-3 w-3" />Private</>}
+          </StatusBadge>
+        </TableCell>
+        <TableCell>
+          <StatusBadge tone={projectStatusTone[project.status] ?? 'neutral'}>{titleCase(project.status)}</StatusBadge>
+        </TableCell>
+        <TableCell className="text-muted-foreground">{project.memberCount}</TableCell>
+        <TableCell className="text-muted-foreground">{project.siteCount}</TableCell>
+        <TableCell className="text-muted-foreground">{project.country ?? '—'}</TableCell>
+        <TableCell className="text-muted-foreground">{new Date(project.createdAt).toLocaleDateString()}</TableCell>
+        <TableCell className="text-right">
+          <div className="flex items-center justify-end gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onView(project)}
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>View details</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onOpenSettings(project)}
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Open project settings</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </TableCell>
+      </TableRow>
 
-      {expanded && project.sites.length > 0 && (
-        <>
-          <tr className="bg-gray-100">
-            <th className="pl-10 pr-2 py-1.5 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Site</th>
-            <th className="p-1.5 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Status</th>
-            <th className="p-1.5 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Area</th>
-            <th className="p-1.5 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Trees</th>
-            <th className="p-1.5 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Review</th>
-            <th className="p-1.5 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-widest" colSpan={2}>Planting Date</th>
-          </tr>
-          {project.sites.map((site) => (
-            <SiteRow key={site.uid} site={site} />
-          ))}
-        </>
+      {expanded && hasSites && (
+        <TableRow className="hover:bg-transparent">
+          <TableCell colSpan={8} className="bg-muted/30 p-3">
+            <SitesTable sites={project.sites} compact />
+          </TableCell>
+        </TableRow>
       )}
     </>
   );
 }
 
 /* ─── ProjectManagementSection ──────────────────────────────────────────────── */
+
+const STATUS_FILTERS: { value: 'all' | 'active' | 'in_review' | 'suspended' | 'disabled'; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'active', label: 'Active' },
+  { value: 'in_review', label: 'In Review' },
+  { value: 'suspended', label: 'Suspended' },
+  { value: 'disabled', label: 'Disabled' },
+];
 
 export function ProjectManagementSection() {
   const { accessToken } = useToken();
@@ -791,6 +781,9 @@ export function ProjectManagementSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [settingsProject, setSettingsProject] = useState<Project | null>(null);
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
     if (!selectedWorkspace?.uid || !accessToken) return;
@@ -820,6 +813,26 @@ export function ProjectManagementSection() {
     router.replace(`?${params.toString()}`, { scroll: false });
   };
 
+  // Edit the project's settings inline, in a modal. A workspace owner/admin can
+  // do this on the project owner's behalf (the server grants it via the
+  // workspace-admin fallback; changes are audited under their account). Editing
+  // in place avoids deep-linking into the project's own dashboard, which fights
+  // the global selected-project store.
+  const handleOpenSettings = (project: Project) => {
+    setSettingsProject(project);
+    // Close the detail dialog if it was the entry point, so the two dialogs
+    // don't stack on top of each other.
+    if (selectedProject) handleClose();
+  };
+
+  // Refresh the list so edited fields (name, etc.) show the saved values.
+  const handleSettingsSaved = () => {
+    if (!selectedWorkspace?.uid || !accessToken) return;
+    getWorkspaceProjectsApi(accessToken, selectedWorkspace.uid)
+      .then((res) => { if (Array.isArray(res?.data)) setProjects(res.data); })
+      .catch(() => {});
+  };
+
   const handleClose = () => {
     setSelectedProject(null);
     const params = new URLSearchParams(searchParams.toString());
@@ -829,8 +842,8 @@ export function ProjectManagementSection() {
   };
 
   const handleStatusUpdated = (projectUid: string, status: 'active' | 'in_review' | 'suspended' | 'disabled') => {
-    setProjects((prev) => prev.map((p) => p.uid === projectUid ? { ...p, status } : p));
-    setSelectedProject((prev) => prev ? { ...prev, status } : null);
+    setProjects((prev) => prev.map((p) => (p.uid === projectUid ? { ...p, status } : p)));
+    setSelectedProject((prev) => (prev ? { ...prev, status } : null));
   };
 
   const handleTransferred = (projectUid: string) => {
@@ -838,56 +851,138 @@ export function ProjectManagementSection() {
     setSelectedProject(null);
   };
 
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: projects.length };
+    for (const p of projects) counts[p.status] = (counts[p.status] ?? 0) + 1;
+    return counts;
+  }, [projects]);
+
+  const filteredProjects = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return projects.filter((p) => {
+      if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+      if (!q) return true;
+      return (
+        p.name.toLowerCase().includes(q) ||
+        p.slug.toLowerCase().includes(q) ||
+        (p.country?.toLowerCase().includes(q) ?? false)
+      );
+    });
+  }, [projects, query, statusFilter]);
+
   const totalSites = projects.reduce((sum, p) => sum + p.siteCount, 0);
 
   return (
     <>
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Project Management</CardTitle>
-              <div className="flex gap-3 mt-1 text-xs text-gray-500">
-                <span>{projects.length} project{projects.length !== 1 ? 's' : ''}</span>
-                <span className="text-gray-200">|</span>
-                <span>{totalSites} site{totalSites !== 1 ? 's' : ''}</span>
-              </div>
-            </div>
-            <Button variant="outline" size="sm" className="gap-2">
+      <Card className="gap-0 py-0">
+        <CardHeader className="border-b py-5">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <FolderTree className="h-4 w-4 text-muted-foreground" />
+            Project Management
+          </CardTitle>
+          <CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>{projects.length} project{projects.length !== 1 ? 's' : ''}</span>
+            <span className="text-border">|</span>
+            <span>{totalSites} site{totalSites !== 1 ? 's' : ''}</span>
+          </CardDescription>
+          <CardAction>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled={projects.length === 0}
+              onClick={() => exportProjectsToCsv(filteredProjects, selectedWorkspace?.name ?? '')}
+            >
               <Download className="h-4 w-4" />
               Export
             </Button>
-          </div>
+          </CardAction>
         </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="py-16 text-center text-sm text-gray-400">Loading projects...</div>
-          ) : error ? (
-            <div className="py-16 text-center text-sm text-red-500">{error}</div>
-          ) : projects.length === 0 ? (
-            <div className="py-16 text-center text-sm text-gray-400">No projects in this workspace.</div>
-          ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b bg-gray-50">
-                    <th className="text-left px-2 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-[220px]">Project</th>
-                    <th className="text-left px-2 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Visibility</th>
-                    <th className="text-left px-2 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                    <th className="text-left px-2 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Members</th>
-                    <th className="text-left px-2 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Sites</th>
-                    <th className="text-left px-2 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Country</th>
-                    <th className="text-left px-2 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Created</th>
-                    <th className="px-2 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {projects.map((project) => (
-                    <ProjectRow key={project.uid} project={project} onView={handleView} />
-                  ))}
-                </tbody>
-              </table>
+
+        {/* Toolbar */}
+        {!loading && !error && projects.length > 0 && (
+          <div className="flex flex-col gap-3 border-b px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search projects, slug, country..."
+                className="h-9 pl-9"
+              />
             </div>
+            <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+              <TabsList className="h-9">
+                {STATUS_FILTERS.map((f) => (
+                  <TabsTrigger key={f.value} value={f.value} className="gap-1.5 text-xs">
+                    {f.label}
+                    <span className="rounded bg-muted-foreground/15 px-1 text-[10px] font-semibold tabular-nums">
+                      {statusCounts[f.value] ?? 0}
+                    </span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
+
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="space-y-3 p-6">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <Skeleton className="h-9 w-9 rounded-md" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-3.5 w-1/3" />
+                    <Skeleton className="h-3 w-1/5" />
+                  </div>
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="py-16 text-center text-sm text-destructive">{error}</div>
+          ) : projects.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 py-16 text-center">
+              <Inbox className="h-8 w-8 text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground">No projects in this workspace.</p>
+            </div>
+          ) : filteredProjects.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 py-16 text-center">
+              <Search className="h-8 w-8 text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground">No projects match your filters.</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setQuery('');
+                  setStatusFilter('all');
+                }}
+              >
+                Clear filters
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead className="w-[240px] text-xs uppercase tracking-wide text-muted-foreground">Project</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Visibility</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Status</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Members</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Sites</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Country</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wide text-muted-foreground">Created</TableHead>
+                  <TableHead className="w-12" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProjects.map((project) => (
+                  <ProjectRow key={project.uid} project={project} onView={handleView} onOpenSettings={handleOpenSettings} />
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
@@ -900,9 +995,18 @@ export function ProjectManagementSection() {
             onClose={handleClose}
             onStatusUpdated={handleStatusUpdated}
             onTransferred={handleTransferred}
+            onOpenSettings={handleOpenSettings}
           />
         )}
       </Dialog>
+
+      <ProjectSettingsModal
+        projectUid={settingsProject?.uid ?? null}
+        projectName={settingsProject?.name}
+        open={!!settingsProject}
+        onClose={() => setSettingsProject(null)}
+        onSaved={handleSettingsSaved}
+      />
     </>
   );
 }

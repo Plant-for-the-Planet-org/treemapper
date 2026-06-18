@@ -25,7 +25,7 @@ import { Request } from 'express';
 import { WorkspaceService } from './workspace.service';
 import { CreateNewWorkspaceDto } from './dto/create-organization.dto';
 import { UpdateWorkspaceSettingsDto } from './dto/workspace-settings.dto';
-import { OrganizationResponseDto, SelectOrganizationDto, UserOrganizationResponseDto } from './dto/organization-response.dto';
+import { OrganizationResponseDto, SelectOrganizationDto, SelectPrimaryWorkspaceDto, UserOrganizationResponseDto } from './dto/organization-response.dto';
 import { User } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/auth/current-user.decorator';
 import { UserCacheService } from 'src/cache/user-cache.service';
@@ -63,6 +63,14 @@ export class WorkspaceController {
         @CurrentUser() user: User,
     ): Promise<any> {
         return this.workspaceService.setPrimaryWorkspaceAndProject(createOrganizationDto, user);
+    }
+
+    @Post('/primary/select')
+    async setPrimaryWorkspace(
+        @Body() dto: SelectPrimaryWorkspaceDto,
+        @CurrentUser() user: User,
+    ): Promise<any> {
+        return this.workspaceService.setPrimaryWorkspace(dto.workspaceUid, user);
     }
 
 

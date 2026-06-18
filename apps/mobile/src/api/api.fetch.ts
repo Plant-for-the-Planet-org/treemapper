@@ -142,6 +142,14 @@ export const getSingleIntervention = async (interventionId: string) => {
   return result;
 };
 
+// Published forms for a project (built on the web app). Cached in Realm for
+// offline use.
+export const getProjectForms = async (projectUid: string) => {
+  const uri = `${getUrlMobileApi.getProjectForms}/${projectUid}/forms?status=published`;
+  const result = await fetchGetCall(uri, true);
+  return result;
+};
+
 
 // Main function to get image as base64 (from your code)
 const getImageAsBase64 = async (fileUri: string): Promise<string> => {
@@ -473,6 +481,30 @@ export const markAllNotificationsAsRead = async () => {
 
 export const submitFeedback = async (params: any) => {
   const uri = `${postUrlNewApi.submitFeedback}`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+export const uploadMonitoringPlot = async (projectUid: string, params: any) => {
+  const uri = `${postUrlNewApi.monitoringPlot}/${projectUid}/upload`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+export const uploadPlotRemeasurement = async (projectUid: string, params: any) => {
+  const uri = `${postUrlNewApi.monitoringPlot}/${projectUid}/remeasure`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+export const addPlotPlants = async (projectUid: string, params: any) => {
+  const uri = `${postUrlNewApi.monitoringPlot}/${projectUid}/plants`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+export const addPlotObservations = async (projectUid: string, params: any) => {
+  const uri = `${postUrlNewApi.monitoringPlot}/${projectUid}/observations`;
   const result = await fetchPostCall(uri, params);
   return result;
 };

@@ -76,6 +76,10 @@ const AddObservationForm = () => {
     const [unit, setUnit] = useState('kpa')
     const [advancedMode, setAdvancedMode] = useState(false)
     const [customUnit, setCustomUnit] = useState('')
+    // New observations can always be added (they upload with the plot or, on a
+    // synced plot, through the add-observations endpoint). Only an observation
+    // that has already been uploaded (sync_status SYNCED) is read-only.
+    const [isLocked, setIsLocked] = useState(false)
 
     const { addPlotObservation, updatePlotObservation, deletePlotObservation } = useMonitoringPlotManagement()
     const toast = useToast()
@@ -85,6 +89,7 @@ const AddObservationForm = () => {
         if (obsId && obsId.length > 0) {
             const details = realm.objectForPrimaryKey<PlotObservation>(RealmSchema.PlotObservation, obsId);
             if (details) {
+                setIsLocked(details.sync_status === 'SYNCED')
                 const storedUnit = String(details.unit)
                 setValue(String(details.value))
                 setObservationDate(details.obs_date)
@@ -157,6 +162,10 @@ const AddObservationForm = () => {
     }
 
     const deleteHandler = async () => {
+        if (isLocked) {
+            toast.show("This observation is already synced and can't be changed.")
+            return
+        }
         const result = await deletePlotObservation(plotID, obsId)
         if (result) {
             toast.show("Observation deleted")
@@ -167,6 +176,10 @@ const AddObservationForm = () => {
     }
 
     const updateDetails = async () => {
+        if (isLocked) {
+            toast.show("This observation is already synced and can't be changed.")
+            return
+        }
         const obsDetails: PlotObservation = {
             obs_id: obsId,
             type: type.value,
@@ -228,7 +241,9 @@ const AddObservationForm = () => {
                     </View>
                 )}
             </View>
-            {obsId && obsId.length > 0 ?
+            {isLocked ?
+                <Text style={styles.lockedHint}>This observation has been synced and can no longer be edited.</Text> :
+                obsId && obsId.length > 0 ?
                 <View style={styles.btnMinorContainer}>
                     <CustomButton
                         label={'Delete'}
@@ -353,5 +368,15 @@ const styles = StyleSheet.create({
         fontSize: scaleFont(14),
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
+    },
+    lockedHint: {
+        position: 'absolute',
+        bottom: 40,
+        alignSelf: 'center',
+        textAlign: 'center',
+        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        color: Colors.TEXT_COLOR,
+        fontSize: scaleFont(14),
+        paddingHorizontal: 24,
     },
 })

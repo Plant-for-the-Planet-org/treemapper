@@ -54,6 +54,8 @@ import LanguageSettingsView from './LanguageSettingsView'
 import PlotGalleryView from './PlotGalleryView'
 import PlannedTreeEditView from './PlannedTreeEditView'
 import PlannedTreeLocationView from './PlannedTreeLocationView'
+import FormsView from './FormsView'
+import FormDetailView from './FormDetailView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -112,4 +114,6 @@ export default {
   PlotGallery: PlotGalleryView,
   PlannedTreeEdit: PlannedTreeEditView,
   PlannedTreeLocation: PlannedTreeLocationView,
+  Forms: FormsView,
+  FormDetail: FormDetailView,
 }

@@ -3,7 +3,8 @@
 import React, { useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useBuilder } from '@/forms/FormBuilderContext'
-import { saveForm } from '@/forms/storage'
+import { createForm, updateForm } from '@/forms/storage'
+import { useToken } from '@/context/useTokenContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -14,27 +15,53 @@ export default function BuilderTopBar() {
   const router = useRouter()
   const params = useParams()
   const projectUid = params.projectUid as string
+  const formId = params.formId as string
+  const { accessToken } = useToken()
   const { state, dispatch } = useBuilder()
   const { form, showPreview, isDirty } = state
   const [saving, setSaving] = useState(false)
   const [editingName, setEditingName] = useState(false)
+  // Whether this form already exists on the server. A `/new` route is unsaved
+  // until the first create; after that we PATCH. The form's local uuid is never
+  // sent, so the create path and update path are kept distinct.
+  const [savedId, setSavedId] = useState<string | null>(formId === 'new' ? null : formId)
+
+  // Persist the given form, mark the builder clean, and on the first save of a
+  // new form swap the temporary `/new` URL for the real server id.
+  const persist = async (next = form) => {
+    if (!savedId) {
+      const created = await createForm(accessToken, projectUid, next)
+      setSavedId(created.id)
+      dispatch({ type: 'MARK_SAVED' })
+      router.replace(`/project/${projectUid}/forms/${created.id}`)
+      return created
+    }
+    const saved = await updateForm(accessToken, projectUid, { ...next, id: savedId })
+    dispatch({ type: 'MARK_SAVED' })
+    return saved
+  }
 
   const handleSave = async () => {
     setSaving(true)
     try {
-      saveForm(form)
-      dispatch({ type: 'MARK_SAVED' })
+      await persist()
       toast.success('Form saved')
+    } catch {
+      toast.error('Could not save the form. Please try again.')
     } finally {
       setSaving(false)
     }
   }
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     const newStatus = form.status === 'published' ? 'draft' : 'published'
     dispatch({ type: 'UPDATE_META', payload: { status: newStatus } })
-    saveForm({ ...form, status: newStatus })
-    toast.success(newStatus === 'published' ? 'Form published' : 'Form moved to draft')
+    try {
+      await persist({ ...form, status: newStatus })
+      toast.success(newStatus === 'published' ? 'Form published' : 'Form moved to draft')
+    } catch {
+      toast.error('Could not update the form. Please try again.')
+    }
   }
 
   return (

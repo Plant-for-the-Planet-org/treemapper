@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Leaf, Sprout, Map, Activity, TrendingUp, TrendingDown } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { toast } from 'react-toastify';
+import { Leaf, Sprout, Map, Activity } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts';
 import { getDashboardKpis } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore'
 import { useToken } from '@/context/useTokenContext'
 import { useAnalyticsStore } from '@shared-core/store/useAnalyticsStore'
+import usePolling from '@/hooks/usePolling'
 import { formatNumber } from '@shared-core/utils/numberFormatingHelper';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -42,19 +44,15 @@ interface StatCardProps {
   title: string;
   value: string | number;
   icon: React.ElementType;
-  changePercent: number;
   vf: string;
   sparkData: { v: number; month?: string }[];
   loading?: boolean;
 }
 
-const StatCard = ({ title, value, icon: Icon, changePercent, vf, sparkData, loading = false }: StatCardProps) => {
+const StatCard = ({ title, value, icon: Icon, vf, sparkData, loading = false }: StatCardProps) => {
   if (loading) return <ShimmerCard />;
 
   const isPositive = vf !== 'decrease';
-  const ChangeIcon = isPositive ? TrendingUp : TrendingDown;
-  const changeColor = isPositive ? 'text-[#007A49]' : 'text-red-600';
-  const changeBg = isPositive ? 'bg-green-50' : 'bg-red-50';
   const sparkColor = isPositive ? '#007A49' : '#dc2626';
 
   return (
@@ -70,31 +68,22 @@ const StatCard = ({ title, value, icon: Icon, changePercent, vf, sparkData, load
         <p className="text-xl font-bold text-gray-900 mb-2 tracking-tight">{value}</p>
 
         <div className="space-y-0.5">
-          <div className="flex items-center justify-between gap-2">
-            <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full ${changeBg} flex-shrink-0`}>
-              <ChangeIcon size={12} className={changeColor} />
-              <span className={`text-xs font-medium ${changeColor}`}>
-                {Math.floor(Math.abs(changePercent))}%
-              </span>
-            </div>
-            <div className="flex-1 h-7">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={sparkData}>
-                  <Tooltip content={<SparkTooltip />} cursor={false} />
-                  <Line
-                    type="monotone"
-                    dataKey="v"
-                    stroke={sparkColor}
-                    strokeWidth={1.5}
-                    dot={false}
-                    isAnimationActive={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="w-full h-7">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={sparkData}>
+                <Tooltip content={<SparkTooltip />} cursor={false} />
+                <Line
+                  type="monotone"
+                  dataKey="v"
+                  stroke={sparkColor}
+                  strokeWidth={1.5}
+                  dot={false}
+                  isAnimationActive={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-          <div className="flex justify-between">
-            <span className="text-[10px] text-gray-400">vs prev year</span>
+          <div className="flex justify-end">
             <span className="text-[10px] text-gray-400">12-month trend</span>
           </div>
         </div>
@@ -127,20 +116,33 @@ const StatCardsContainer = ({ setTotalTrees }: { setTotalTrees: (n: number) => v
   const { startDate, endDate } = useAnalyticsStore(state => state);
   const { accessToken } = useToken();
 
+  // Last seen tree count, used to detect new trees between polls. `null` means
+  // "no baseline yet" so the first load (and a project/date switch) never
+  // toasts — only a genuine increase on a later poll does.
+  const prevTreesRef = useRef<number | null>(null);
+
   useEffect(() => {
+    // New project or date range: re-baseline so the change itself is not
+    // mistaken for newly planted trees.
+    prevTreesRef.current = null;
     fetchData();
   }, [startDate, endDate, selectedProject]);
 
   const parseChange = (change: { value: string | number; type: string }): { changePercent: number; vf: string } => {
     const { value, type } = change ?? {};
     if (type === 'no_change' || value === null || value === undefined) return { changePercent: 0, vf: '' };
+    // Brand-new metric: prev-year total was 0, so a percentage is meaningless.
+    // The server sends value "New"; surface it as a "New" badge, not 0%.
+    if (type === 'new') return { changePercent: 0, vf: 'new' };
     const num = Number(value);
     if (isNaN(num) || num === 0) return { changePercent: 0, vf: '' };
     return { changePercent: num, vf: type };
   };
 
-  const fetchData = async () => {
-    setLoading(true);
+  // `silent` skips the shimmer so background polls refresh the numbers in
+  // place without flashing the loading state.
+  const fetchData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const response = await getDashboardKpis(accessToken || '', selectedProject?.uid || '');
 
@@ -152,6 +154,17 @@ const StatCardsContainer = ({ setTotalTrees }: { setTotalTrees: (n: number) => v
         } = response.data.kpis;
 
         if (totalTreesPlanted) setTotalTrees(totalTreesPlanted);
+
+        // Toast when the tree count grows since the last poll, so users see new
+        // field uploads without refreshing. Slides in from the top-right.
+        if (totalTreesPlanted != null) {
+          const newCount = Number(totalTreesPlanted) || 0;
+          if (prevTreesRef.current !== null && newCount > prevTreesRef.current) {
+            const added = newCount - prevTreesRef.current;
+            toast.success(`🌳 ${added.toLocaleString()} new ${added === 1 ? 'tree' : 'trees'} added`);
+          }
+          prevTreesRef.current = newCount;
+        }
 
         const toSpark = (key: 'trees' | 'species' | 'area' | 'contributors') =>
           monthlyHistory.length
@@ -168,9 +181,13 @@ const StatCardsContainer = ({ setTotalTrees }: { setTotalTrees: (n: number) => v
     } catch (error) {
       console.error('Error fetching dashboard KPIs:', error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
+
+  // Auto-refresh the KPI cards every 30s so uploads from the field show up
+  // without a manual page refresh. Silent: no shimmer between ticks.
+  usePolling(() => fetchData(true), 30_000, !!selectedProject?.uid);
 
   return (
     <div className="w-full md:px-4 md:pt-3 md:pb-2">
@@ -182,7 +199,6 @@ const StatCardsContainer = ({ setTotalTrees }: { setTotalTrees: (n: number) => v
               <StatCard
                 title={stat.title}
                 value={stat.value}
-                changePercent={stat.changePercent}
                 vf={stat.vf}
                 icon={stat.icon}
                 sparkData={stat.sparkData}
