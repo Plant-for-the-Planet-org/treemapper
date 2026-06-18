@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import {
   Settings, Users, MapPin, Shield, Trash2, Save, Leaf,
-  Globe, Info, FileText, Upload, AlertTriangle, Lock, Trophy,
+  Globe, Info, FileText, Upload, AlertTriangle, Lock,
   Check, Loader2, Video, AlertCircle, Image as ImageIcon, ImagePlus, X,
   Key, Copy, RefreshCw,
 } from 'lucide-react'
@@ -576,6 +576,7 @@ const FeaturesSettings = ({ projectData, handleToggleChange, handleApprovalSourc
     </FeatureToggle>
 
     {/* TODO: wire leaderboardEnabled to the API (add to prepareDataForApi + backend field) — currently UI-only */}
+    {/* Leaderboard toggle hidden until the feature is wired up
     <FeatureToggle
       icon={Trophy}
       title="Leaderboard"
@@ -583,7 +584,7 @@ const FeaturesSettings = ({ projectData, handleToggleChange, handleApprovalSourc
       checked={projectData.leaderboardEnabled}
       onToggle={() => handleToggleChange('leaderboardEnabled')}
       disabled={!canEdit}
-    />
+    /> */}
 
     {/* TODO: wire bulkUploadEnabled to the API (add to prepareDataForApi + backend field) — currently UI-only */}
     <FeatureToggle
