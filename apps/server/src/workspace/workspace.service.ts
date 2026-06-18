@@ -142,6 +142,82 @@ export class WorkspaceService {
     }
   }
 
+  // Used by the workspace-settings switcher: an admin/owner changes which
+  // workspace they are managing, so we move their primary workspace too.
+  // We keep the primary project consistent with the new workspace by picking
+  // a project they belong to in it (falling back to any project in it).
+  async setPrimaryWorkspace(workspaceUid: string, userData: User): Promise<any> {
+    try {
+      await this.drizzle.db.transaction(async (tx) => {
+        const [existingWorkspace] = await tx
+          .select({ id: workspace.id })
+          .from(workspace)
+          .where(eq(workspace.uid, workspaceUid))
+          .limit(1);
+        if (!existingWorkspace) {
+          throw new NotFoundException('Workspace not found');
+        }
+
+        const [membership] = await tx
+          .select({ role: workspaceMember.role })
+          .from(workspaceMember)
+          .where(
+            and(
+              eq(workspaceMember.workspaceId, existingWorkspace.id),
+              eq(workspaceMember.userId, userData.id),
+              eq(workspaceMember.status, 'active'),
+            ),
+          )
+          .limit(1);
+        if (!membership || (membership.role !== 'admin' && membership.role !== 'owner')) {
+          throw new ForbiddenException('Workspace admin or owner access required');
+        }
+
+        const [memberProject] = await tx
+          .select({ uid: project.uid })
+          .from(project)
+          .innerJoin(projectMember, eq(projectMember.projectId, project.id))
+          .where(
+            and(
+              eq(project.workspaceId, existingWorkspace.id),
+              isNull(project.deletedAt),
+              eq(projectMember.userId, userData.id),
+              eq(projectMember.status, 'active'),
+              isNull(projectMember.deletedAt),
+            ),
+          )
+          .limit(1);
+
+        let primaryProjectUid: string | null = memberProject?.uid ?? null;
+        if (!primaryProjectUid) {
+          const [anyProject] = await tx
+            .select({ uid: project.uid })
+            .from(project)
+            .where(
+              and(
+                eq(project.workspaceId, existingWorkspace.id),
+                isNull(project.deletedAt),
+              ),
+            )
+            .limit(1);
+          primaryProjectUid = anyProject?.uid ?? null;
+        }
+
+        await tx.update(user)
+          .set({ primaryWorkspaceUid: workspaceUid, primaryProjectUid })
+          .where(eq(user.id, userData.id));
+        await this.userCacheService.refreshAuthUser({
+          ...userData,
+          primaryWorkspaceUid: workspaceUid,
+          primaryProjectUid,
+        });
+      });
+      return { success: true };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   private async generateUniqueSlug(name: string): Promise<string> {
     let baseSlug = name
       .toLowerCase()

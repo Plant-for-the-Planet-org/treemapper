@@ -120,3 +120,9 @@ export class SelectOrganizationDto {
   @IsString()
   projectUid: string
 }
+
+export class SelectPrimaryWorkspaceDto {
+
+  @IsString()
+  workspaceUid: string
+}

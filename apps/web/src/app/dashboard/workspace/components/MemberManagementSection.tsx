@@ -37,7 +37,7 @@ const getUserTypeLabel = (type: string) => {
   return map[type] ?? type;
 };
 
-function UserRow({ user, token, goHome }: { user: UserDetail; token: string; goHome: () => void }) {
+function UserRow({ user, token }: { user: UserDetail; token: string }) {
   const [expanded, setExpanded] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isImpersonating, setIsImpersonating] = useState(false);
@@ -47,7 +47,13 @@ function UserRow({ user, token, goHome }: { user: UserDetail; token: string; goH
     setIsImpersonating(true);
     try {
       const resp = await startImpersonationWork(token, user.userUid);
-      if (resp.statusCode === 200) goHome();
+      if (resp.statusCode === 200) {
+        // Impersonation is applied server-side and only takes effect when the
+        // app re-bootstraps identity. A soft client navigation keeps the old
+        // user in the store, so force a full page load to start the session.
+        window.location.href = '/';
+        return;
+      }
     } finally {
       setIsImpersonating(false);
     }
@@ -165,11 +171,9 @@ function UserRow({ user, token, goHome }: { user: UserDetail; token: string; goH
   );
 }
 
-export function MemberManagementSection({ goHome }: { goHome?: () => void }) {
+export function MemberManagementSection() {
   const { accessToken } = useToken();
   const workspaceUid = useProjectStore((state) => state.selectedWorkspce?.uid);
-  const defaultGoHome = () => { window.location.replace('/'); };
-  const resolvedGoHome = goHome ?? defaultGoHome;
   const [users, setUsers] = useState<UserDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -236,7 +240,7 @@ export function MemberManagementSection({ goHome }: { goHome?: () => void }) {
               </thead>
               <tbody>
                 {filtered.map((u) => (
-                  <UserRow key={u.userUid} user={u} token={accessToken} goHome={resolvedGoHome} />
+                  <UserRow key={u.userUid} user={u} token={accessToken} />
                 ))}
               </tbody>
             </table>

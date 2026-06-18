@@ -69,6 +69,12 @@ export const selectOrg = async (token: string, params: any) => {
   return result;
 };
 
+export const setPrimaryWorkspace = async (token: string, params: { workspaceUid: string }) => {
+  const uri = `${postUrlApi.setPrimaryWorkspace}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 //migrate
 
 export const checkForMigration = async (token: string) => {
@@ -652,12 +658,6 @@ export const updateProjectStatusApi = async (
 ) => {
   const uri = `${patchUrlApi.updateProjectStatus}/${workspaceUid}/projects/${projectUid}/status`;
   return await fetchPatchCall(uri, { status }, token);
-};
-
-export const getWorkspaceMembers = async (token: string) => {
-  const uri = `${getUrlApi.getWrokspaceMembers}`;
-  const result = await fetchGetCall(uri, token);
-  return result;
 };
 
 export const startImpersonationWork = async (token: string, person: string) => {
