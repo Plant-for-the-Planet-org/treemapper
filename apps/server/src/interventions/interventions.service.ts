@@ -2837,6 +2837,7 @@ async interventionEdit(
             hid: intervention.hid,
             type: intervention.type,
             status: intervention.status,
+            captureStatus: intervention.captureStatus,
             registrationDate: intervention.registrationDate,
             interventionStartDate: intervention.interventionStartDate,
             interventionEndDate: intervention.interventionEndDate,
