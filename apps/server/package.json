@@ -69,7 +69,7 @@
     "handlebars": "4.7.9",
     "ioredis": "5.11.0",
     "jwks-rsa": "3.2.2",
-    "nodemailer": "7.0.13",
+    "nodemailer": "9.0.1",
     "passport": "0.7.0",
     "passport-jwt": "4.0.1",
     "pg": "8.21.0",
