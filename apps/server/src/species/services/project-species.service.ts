@@ -6,9 +6,9 @@ import {
   ForbiddenException
 } from '@nestjs/common';
 import { DrizzleService } from '../../database/drizzle.service';
-import { image, intervention, interventionSpecies, projectSpecies, scientificSpecies, user } from '../../database/schema';
-import { CreateUserSpeciesDto, UpdateUserSpeciesDto, UserSpeciesFilterDto } from '../dto/user-species.dto';
-import { eq, and, ilike, or, desc, sql, is, isNotNull, isNull, asc } from 'drizzle-orm';
+import { image, intervention, interventionSpecies, projectSpecies, scientificSpecies, tree, user } from '../../database/schema';
+import { AssignUnknownSpeciesDto, CreateUserSpeciesDto, UpdateUserSpeciesDto, UserSpeciesFilterDto } from '../dto/user-species.dto';
+import { eq, and, ilike, or, desc, sql, is, isNotNull, isNull, asc, inArray } from 'drizzle-orm';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
 import { generateUid } from 'src/util/uidGenerator';
 import { AuditService } from 'src/audit/audit.service';
@@ -323,6 +323,210 @@ export class ProjectSpeciesService {
       },
     };
   }
+  /**
+   * Reassign one or more "unknown" intervention species to a known scientific
+   * species. Unknown records are `intervention_species` rows where
+   * `is_unknown = true` and `scientific_species_id IS NULL`. Assigning flips
+   * them to the chosen scientific species, keeps the denormalised `tree` rows
+   * consistent, and makes sure the species is present in the project palette.
+   */
+  async assignUnknownSpecies(
+    membership: ProjectGuardResponse,
+    dto: AssignUnknownSpeciesDto,
+  ) {
+    // 1. The target scientific species must exist.
+    const sciSpecies = await this.drizzle.db
+      .select({
+        id: scientificSpecies.id,
+        scientificName: scientificSpecies.scientificName,
+        commonName: scientificSpecies.commonName,
+      })
+      .from(scientificSpecies)
+      .where(eq(scientificSpecies.id, dto.scientificSpeciesId))
+      .limit(1);
+
+    if (!sciSpecies.length) {
+      throw new NotFoundException('Scientific species not found');
+    }
+    const sci = sciSpecies[0];
+
+    // 2. Load the unknown rows, scoped to this project. This prevents
+    //    reassigning species that belong to another project or that are
+    //    already identified.
+    const targets = await this.drizzle.db
+      .select({
+        id: interventionSpecies.id,
+        uid: interventionSpecies.uid,
+        interventionId: interventionSpecies.interventionId,
+        speciesCount: interventionSpecies.speciesCount,
+      })
+      .from(interventionSpecies)
+      .innerJoin(
+        intervention,
+        eq(intervention.id, interventionSpecies.interventionId),
+      )
+      .where(
+        and(
+          inArray(interventionSpecies.uid, dto.interventionSpeciesUids),
+          eq(intervention.projectId, membership.projectId),
+          eq(interventionSpecies.isUnknown, true),
+          isNull(interventionSpecies.scientificSpeciesId),
+          isNull(interventionSpecies.deletedAt),
+        ),
+      );
+
+    if (!targets.length) {
+      throw new NotFoundException('No matching unknown species found for this project');
+    }
+
+    const commonName = dto.commonName?.trim() || sci.commonName || null;
+    const now = new Date();
+    let mergedCount = 0;
+
+    // Group the unknown rows by intervention. Within a single intervention a
+    // species may only sensibly exist once, so multiple unknown rows (and any
+    // pre-existing known row) must fold into one canonical row rather than
+    // create duplicates.
+    const byIntervention = new Map<number, typeof targets>();
+    for (const t of targets) {
+      const arr = byIntervention.get(t.interventionId) ?? [];
+      arr.push(t);
+      byIntervention.set(t.interventionId, arr);
+    }
+
+    await this.drizzle.db.transaction(async (tx) => {
+      for (const [interventionId, rows] of byIntervention) {
+        // Is the species already recorded (as known) in this intervention?
+        const existing = await tx
+          .select({
+            id: interventionSpecies.id,
+            speciesCount: interventionSpecies.speciesCount,
+          })
+          .from(interventionSpecies)
+          .where(
+            and(
+              eq(interventionSpecies.interventionId, interventionId),
+              eq(interventionSpecies.scientificSpeciesId, sci.id),
+              isNull(interventionSpecies.deletedAt),
+            ),
+          )
+          .limit(1);
+
+        const sumRows = rows.reduce((s, r) => s + r.speciesCount, 0);
+
+        let canonicalId: number;
+        let mergeFromIds: number[];
+        let baseCount = 0;
+
+        if (existing.length) {
+          // Fold every selected unknown row into the existing known row.
+          canonicalId = existing[0].id;
+          baseCount = existing[0].speciesCount;
+          mergeFromIds = rows.map((r) => r.id);
+        } else {
+          // Promote the first unknown row to the known species; the rest
+          // fold into it. Setting both fields together satisfies the
+          // `unknown_species_logic` check constraint.
+          canonicalId = rows[0].id;
+          mergeFromIds = rows.slice(1).map((r) => r.id);
+          await tx
+            .update(interventionSpecies)
+            .set({
+              scientificSpeciesId: sci.id,
+              isUnknown: false,
+              speciesName: sci.scientificName,
+              commonName,
+              updatedAt: now,
+            })
+            .where(eq(interventionSpecies.id, canonicalId));
+        }
+
+        // Re-point trees off the folded rows onto the canonical row before
+        // the rows are removed (tree -> intervention_species is ON DELETE
+        // RESTRICT, so the link must move first).
+        if (mergeFromIds.length) {
+          await tx
+            .update(tree)
+            .set({
+              interventionSpeciesId: canonicalId,
+              isUnknown: false,
+              speciesName: sci.scientificName,
+              commonName,
+              updatedAt: now,
+            })
+            .where(inArray(tree.interventionSpeciesId, mergeFromIds));
+
+          await tx
+            .update(interventionSpecies)
+            .set({ deletedAt: now, updatedAt: now })
+            .where(inArray(interventionSpecies.id, mergeFromIds));
+
+          mergedCount += mergeFromIds.length;
+        }
+
+        // Keep the canonical row's own trees in sync (covers the promoted row).
+        await tx
+          .update(tree)
+          .set({
+            isUnknown: false,
+            speciesName: sci.scientificName,
+            commonName,
+            updatedAt: now,
+          })
+          .where(eq(tree.interventionSpeciesId, canonicalId));
+
+        // Consolidate the planted count onto the canonical row.
+        await tx
+          .update(interventionSpecies)
+          .set({ speciesCount: baseCount + sumRows, updatedAt: now })
+          .where(eq(interventionSpecies.id, canonicalId));
+      }
+
+      // Make sure the species is an active member of the project palette.
+      // If a (possibly soft-deleted) row already exists, revive it without
+      // clobbering the owner's favourite / notes.
+      await tx
+        .insert(projectSpecies)
+        .values({
+          uid: generateUid('projspc'),
+          projectId: membership.projectId,
+          addedById: membership.userId,
+          scientificSpeciesId: sci.id,
+          speciesName: sci.scientificName,
+          commonName,
+          isUnknown: false,
+        })
+        .onConflictDoUpdate({
+          target: [projectSpecies.projectId, projectSpecies.scientificSpeciesId],
+          set: { deletedAt: null, isUnknown: false, updatedAt: now },
+        });
+    });
+
+    this.auditService.log('project_species', {
+      action: 'update',
+      entityId: sci.id,
+      entityUid: targets.map((t) => t.uid).join(','),
+      userId: membership.userId,
+      projectId: membership.projectId,
+      newValues: {
+        scientificSpeciesId: sci.id,
+        scientificName: sci.scientificName,
+        assignedCount: targets.length,
+        mergedCount,
+        interventionSpeciesUids: targets.map((t) => t.uid),
+      },
+      source: 'web',
+    });
+
+    return {
+      message: 'Species assigned successfully',
+      assignedCount: targets.length,
+      mergedCount,
+      scientificSpeciesId: sci.id,
+      scientificName: sci.scientificName,
+    };
+  }
+
   async updateFavourite(
     speciesId: string,
     membership: ProjectGuardResponse,

@@ -18,7 +18,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiConsumes } from '@nestjs/swagger';
 import { ProjectSpeciesService } from '../services/project-species.service';
-import { CreateUserSpeciesDto, UpdateUserSpeciesDto, UserSpeciesFilterDto } from '../dto/user-species.dto';
+import { AssignUnknownSpeciesDto, CreateUserSpeciesDto, UpdateUserSpeciesDto, UserSpeciesFilterDto } from '../dto/user-species.dto';
 import { ProjectPermissionsGuard } from '../../projects/guards/project-permissions.guard';
 import { ProjectRoles } from '../../projects/decorators/project-roles.decorator';
 import { Membership } from '../../projects/decorators/membership.decorator';
@@ -51,6 +51,16 @@ export class ProjectSpeciesController {
     @Membership() membership: ProjectGuardResponse,
   ) {
     return this.userSpeciesService.getProjectSpeciesAggregated(membership.projectId);
+  }
+
+  @Post('/:id/assign-unknown')
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async assignUnknown(
+    @Membership() membership: ProjectGuardResponse,
+    @Body() assignDto: AssignUnknownSpeciesDto,
+  ) {
+    return this.userSpeciesService.assignUnknownSpecies(membership, assignDto);
   }
 
   @Put('/:id/species/:species/fav')

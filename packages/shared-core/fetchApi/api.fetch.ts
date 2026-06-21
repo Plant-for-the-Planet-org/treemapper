@@ -220,6 +220,12 @@ export const requestNewSpecies = async (token: string, params: any, prjId: strin
   return result;
 };
 
+export const assignUnknownSpecies = async (token: string, params: any, prjId: string) => {
+  const uri = `${postUrlApi.assignUnknownSpecies}/${prjId}/assign-unknown`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 
 
 //sites

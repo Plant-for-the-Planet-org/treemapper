@@ -34,6 +34,19 @@ export default function LoginContent() {
     }
   }, [user, tokenLoading, router, returnTo]);
 
+  // When the user starts a login redirect and then comes back (browser back),
+  // the page is restored from the bfcache with `loading` still set, leaving
+  // every button disabled. Reset it on restore so they can try another way.
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        setLoading(false);
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
+
   // Branding highlights shown on the login screen
   const features = [
     {
