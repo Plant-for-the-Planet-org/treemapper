@@ -25,7 +25,13 @@ export async function GET(request: NextRequest) {
     const errorDesc = searchParams.get('error_description') ?? error;
     console.error('Auth0 callback error:', errorDesc);
     const errUrl = new URL('/login', base);
-    if (errorDesc === '401') {
+    // Auth0 PostLogin Action denies unverified emails with
+    // error=access_denied / error_description=email_not_verified.
+    // ('401' is the legacy shape, kept as a fallback.)
+    const emailNotVerified =
+      (error === 'access_denied' && errorDesc === 'email_not_verified') ||
+      errorDesc === '401';
+    if (emailNotVerified) {
       errUrl.searchParams.set('verification', 'required');
     } else {
       errUrl.searchParams.set('error', 'authentication_failed');
