@@ -20,7 +20,8 @@
       "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(p.scripts.dev||'no dev'\\)\")",
       "Read(//Applications/Google Chrome.app/**)",
       "Bash(npx --no-install playwright --version)",
-      "Artifact"
+      "Artifact",
+      "Bash(yarn workspace *)"
     ]
   }
 }

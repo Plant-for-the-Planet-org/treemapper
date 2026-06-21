@@ -70,9 +70,12 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
         setDomainRestrictions(prev => prev.map((d, i) => i === index ? value : d))
 
     const generateInvitationLink = async () => {
-        const validDomains = domainRestrictions.filter(d => d.trim())
-        if (validDomains.length === 0) { setError('Please enter at least one domain restriction'); return }
-        if (validDomains.some(d => !d.startsWith('@'))) { setError('All domain restrictions should start with @'); return }
+        // Domain restriction is optional. When left blank the link is open to
+        // anyone. When domains are entered, validate their format and dedupe.
+        const validDomains = domainRestrictions.map(d => d.trim()).filter(Boolean)
+        if (validDomains.length > 0 && validDomains.some(d => !d.startsWith('@'))) {
+            setError('All domain restrictions should start with @'); return
+        }
         const uniqueDomains = [...new Set(validDomains)]
         if (uniqueDomains.length !== validDomains.length) { setError('Duplicate domains are not allowed'); return }
 
@@ -122,8 +125,12 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
         try { return format(parseISO(dateString), 'MMM d, yyyy HH:mm') } catch { return '' }
     }
 
-    const renderDomainRestrictions = (restrictions) =>
-        Array.isArray(restrictions) ? restrictions.join(', ') : (restrictions || '')
+    const renderDomainRestrictions = (restrictions) => {
+        const list = Array.isArray(restrictions)
+            ? restrictions.filter(Boolean)
+            : (restrictions ? [restrictions] : [])
+        return list.length > 0 ? list.join(', ') : 'Anyone with the link'
+    }
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={
@@ -154,7 +161,10 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
                     )}
 
                     <div className="space-y-1.5">
-                        <Label>Domain restrictions</Label>
+                        <Label>
+                            Domain restrictions
+                            <span className="ml-1 font-normal text-muted-foreground">(optional)</span>
+                        </Label>
                         <div className="space-y-2">
                             {domainRestrictions.map((domain, index) => (
                                 <div key={index} className="flex items-center gap-2">
@@ -192,7 +202,7 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
                             <Plus size={12} />
                             Add another domain
                         </button>
-                        <p className="text-xs text-muted-foreground">Only emails with these domains can use the link</p>
+                        <p className="text-xs text-muted-foreground">Leave blank to let anyone with the link join. Add domains to allow only those email domains.</p>
                     </div>
 
                     <Button onClick={generateInvitationLink} disabled={isCreating} className="w-full">
