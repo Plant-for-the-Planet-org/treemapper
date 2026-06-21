@@ -9,7 +9,7 @@ export const LoginFooter: React.FC<LoginFooterProps> = ({ onImprintClick, onPoli
   const { t } = useTranslation();
 
   return (
-    <footer className="absolute bottom-0 left-0 right-0 p-6 text-center">
+    <footer className="mt-8 pt-6 text-center">
       <nav className="flex justify-center items-center gap-6 mb-2">
         <button
           onClick={onImprintClick}

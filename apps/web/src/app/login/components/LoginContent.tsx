@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from "next/navigation";
-import { MapPin, Wifi, Database } from 'lucide-react';
+import { MapPin, WifiOff, Leaf } from 'lucide-react';
 import { BackgroundDecorations } from './BackgroundDecorations';
 import { BrandingSection } from './BrandingSection';
 import { LoginFooter } from './LoginFooter';
@@ -34,22 +34,22 @@ export default function LoginContent() {
     }
   }, [user, tokenLoading, router, returnTo]);
 
-  // Updated features based on website content
+  // Branding highlights shown on the login screen
   const features = [
     {
       icon: MapPin,
-      title: "Simple & Powerful",
-      description: "Monitor restoration interventions as easy as locate, snap, measure. Built for places with limited or no connectivity."
+      title: "Map every tree",
+      description: "Pin each site and tree with GPS accuracy. Locate, snap, and measure right from the field."
     },
     {
-      icon: Wifi,
-      title: "Works Offline",
-      description: "TreeMapper works offline, so you can collect data anywhere. Export data or upload automatically when connected."
+      icon: WifiOff,
+      title: "Works anywhere, even offline",
+      description: "No signal, no problem. Collect data anywhere and let it sync the moment you reconnect."
     },
     {
-      icon: Database,
-      title: "60k+ Species & Custom Fields",
-      description: "Customize tree names, add pictures, and use our powerful form builder to gather the exact data you need."
+      icon: Leaf,
+      title: "60,000+ species, your way",
+      description: "Pick real species names, attach photos, and build custom forms to capture exactly what you need."
     }
   ];
 
@@ -94,29 +94,31 @@ export default function LoginContent() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-green-50/30">
       <BackgroundDecorations />
       <EmailVerificationModal />
-      <div className="relative min-h-screen flex">
+      <div className="relative flex min-h-screen">
         <BrandingSection features={features} />
 
         {/* Right side - Login form */}
-        <div className="w-full lg:w-1/2 xl:w-2/5 flex flex-col justify-center items-center px-8 py-12 lg:px-12">
-          <div className="w-full max-w-md space-y-8">
-            <MobileLogo />
+        <div className="flex w-full flex-col overflow-y-auto px-6 py-12 sm:px-8 lg:w-[35%] lg:px-12">
+          <div className="flex flex-1 flex-col items-center justify-center">
+            <div className="w-full max-w-md space-y-6">
+              <MobileLogo />
 
-            <LoginForm loading={loading} onLogin={handleLogin} />
+              <LoginForm loading={loading} onLogin={handleLogin} />
 
-            <MobileAppSection
-              onPlayStoreClick={handlePlayStore}
-              onAppStoreClick={handleAppStore}
-            />
+              <MobileAppSection
+                onPlayStoreClick={handlePlayStore}
+                onAppStoreClick={handleAppStore}
+              />
+            </div>
           </div>
+
+          <LoginFooter
+            onImprintClick={handleImprint}
+            onPolicyClick={handlePolicy}
+            onTermsClick={handleTerms}
+          />
         </div>
       </div>
-
-      <LoginFooter
-        onImprintClick={handleImprint}
-        onPolicyClick={handlePolicy}
-        onTermsClick={handleTerms}
-      />
     </div>
   );
 }

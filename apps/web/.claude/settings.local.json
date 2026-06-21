@@ -15,7 +15,12 @@
       "Bash(awk 'NR>=360 && NR<=420' /Users/plant-214/Documents/pftp/treemapper/apps/server/src/database/schema/index.ts)",
       "mcp__ide__getDiagnostics",
       "Bash(grep -n \"projectForms: \\\\`\\\\${baseUrl}/projects\\\\`,\\\\|generateProjectApiKey\\\\|getProjectAnalytics = async\" api.url.ts api.fetch.ts)",
-      "Bash(grep *)"
+      "Bash(grep *)",
+      "Bash(npx skills *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(p.scripts.dev||'no dev'\\)\")",
+      "Read(//Applications/Google Chrome.app/**)",
+      "Bash(npx --no-install playwright --version)",
+      "Artifact"
     ]
   }
 }
