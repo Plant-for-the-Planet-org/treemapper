@@ -32,12 +32,17 @@ export const LoginFooter: React.FC<LoginFooterProps> = ({ onImprintClick, onPoli
           {t("login.terms")}
         </button>
       </nav>
-      <div className="flex justify-center items-center">
-        <p className="text-xs text-gray-500">
+      <a
+        href="https://www.plant-for-the-planet.org/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex justify-center items-center text-gray-500 hover:text-[#007A49] transition-colors"
+      >
+        <p className="text-xs">
           {t("login.copyright", { year: new Date().getFullYear() })}
         </p>
         <Image src={pftpLogo} alt="Plant-for-the-Planet" width={16} height={16} className="w-4 h-4 ml-1" />
-      </div>
+      </a>
     </footer>
   );
 };

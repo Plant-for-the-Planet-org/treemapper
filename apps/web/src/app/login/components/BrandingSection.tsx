@@ -53,7 +53,7 @@ export const BrandingSection: React.FC<BrandingSectionProps> = ({ features }) =>
         </h1>
 
         <p className="mt-5 max-w-md text-lg leading-relaxed text-[#3C4F44]">
-          TreeMapper turns your field work into restoration data you can trust. Record every intervention and tree, online or off, with proof built in.
+          TreeMapper turns your field work into restoration data you can trust. Record every intervention and tree, online or offline, with proof built in.
         </p>
 
         <div className="mt-9 space-y-3">
