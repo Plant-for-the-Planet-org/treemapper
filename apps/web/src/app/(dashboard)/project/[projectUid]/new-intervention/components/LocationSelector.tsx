@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Layers, MapPin, Check, X, AlertCircle, Info } from 'lucide-react';
 import { FormData, ValidationErrors } from '../types';
 import ProjectMap from '../component/InterventionSelectMap';
-import GeoJSONFileUpload from '@/component/GeoJSONfileupload';
+import InterventionFileUpload from './InterventionFileUpload';
 import { Switch } from '@/components/ui/switch';
 import { getSiteInterventionsMap } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore';
@@ -82,6 +82,22 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
         ? ['point']
         : ['polygon'];
   const allowsBothGeometry = geometryModes.includes('point') && geometryModes.includes('polygon');
+
+  // Geometry types accepted by the file upload (GeoJSON/KML). This is decoupled
+  // from the map modes on purpose: even when the map allows both point and
+  // polygon (e.g. multi-tree registration), an uploaded file must match the
+  // type the intervention stores. `geoJSONType` is that declared upload type,
+  // so multi-tree only accepts polygons and single-tree only accepts points.
+  const uploadGeometryTypes: Array<'Point' | 'Polygon' | 'MultiPolygon'> =
+    currentConfig?.geoJSONType === 'Polygon'
+      ? ['Polygon', 'MultiPolygon']
+      : currentConfig?.geoJSONType === 'Point'
+        ? ['Point']
+        : allowsBothGeometry
+          ? ['Point', 'Polygon', 'MultiPolygon']
+          : geometryModes[0] === 'point'
+            ? ['Point']
+            : ['Polygon', 'MultiPolygon'];
 
   return (
     <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg p-8">
@@ -187,15 +203,9 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
         {/* File Upload */}
         {!isMultiSingleTree && (
           <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-gradient-to-br from-slate-50 to-slate-100">
-            <GeoJSONFileUpload
+            <InterventionFileUpload
               onGeoJSONChange={handleGeoJSONChange}
-              allowedGeometryTypes={
-                allowsBothGeometry
-                  ? ['Point', 'Polygon', 'MultiPolygon']
-                  : geometryModes[0] === 'point'
-                    ? ['Point']
-                    : ['Polygon', 'MultiPolygon']
-              }
+              allowedGeometryTypes={uploadGeometryTypes}
             />
           </div>
         )}
