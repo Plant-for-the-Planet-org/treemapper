@@ -21,7 +21,8 @@
       "Read(//Applications/Google Chrome.app/**)",
       "Bash(npx --no-install playwright --version)",
       "Artifact",
-      "Bash(yarn workspace *)"
+      "Bash(yarn workspace *)",
+      "Bash(npx eslint *)"
     ]
   }
 }

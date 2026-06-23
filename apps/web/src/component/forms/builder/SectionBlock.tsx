@@ -9,6 +9,8 @@ import { useBuilder } from '@/forms/FormBuilderContext'
 import FieldBlock from './FieldBlock'
 import { GripVertical, ChevronDown, ChevronRight, Pencil, Trash2, Plus, Check, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import BlockInserter from './BlockInserter'
+import { FieldType } from '@/forms/types'
 
 interface SectionBlockProps {
   section: FormSection
@@ -51,15 +53,18 @@ export default function SectionBlock({ section, selectedFieldId, selectedSection
 
   const fieldIds = section.fields.map(f => f.id)
 
+  const addField = (fieldType: FieldType) =>
+    dispatch({ type: 'ADD_FIELD', sectionId: section.id, fieldType })
+
   return (
     <div ref={setSortRef} style={style} className="group/section">
-      <div className={`border rounded-xl transition-all ${isOver && !isDragging ? 'border-green-400 shadow-md' : 'border-gray-200'} bg-white`}>
+      <div className={`rounded-lg transition-colors ${isOver && !isDragging ? 'bg-gray-50' : ''}`}>
         {/* Section header */}
-        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-100">
+        <div className="flex items-center gap-1.5 py-1">
           <button
             {...attributes}
             {...listeners}
-            className="p-0.5 rounded text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing flex-shrink-0"
+            className="p-0.5 rounded text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing flex-shrink-0 opacity-0 group-hover/section:opacity-100 transition-opacity"
           >
             <GripVertical className="w-4 h-4" />
           </button>
@@ -89,7 +94,7 @@ export default function SectionBlock({ section, selectedFieldId, selectedSection
                 </button>
               </div>
             ) : (
-              <span className="text-sm font-semibold text-gray-800">{section.title}</span>
+              <span className="text-base font-semibold text-gray-900">{section.title}</span>
             )}
           </div>
 
@@ -113,36 +118,40 @@ export default function SectionBlock({ section, selectedFieldId, selectedSection
 
         {/* Section body */}
         {!section.collapsed && (
-          <div ref={setDropRef} className="p-3">
+          <div ref={setDropRef} className="pl-7 pr-1 pt-1">
             <SortableContext items={fieldIds} strategy={verticalListSortingStrategy}>
-              <div className="space-y-2">
-                {section.fields.map(field => (
+              <div className="space-y-0.5">
+                {section.fields.map((field, index) => (
                   <FieldBlock
                     key={field.id}
                     field={field}
                     sectionId={section.id}
+                    index={index}
                     isSelected={selectedFieldId === field.id && selectedSectionId === section.id}
                   />
                 ))}
               </div>
             </SortableContext>
 
-            {section.fields.length === 0 && (
-              <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors
-                ${isOver ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}>
-                <p className="text-sm text-gray-400">Drag a field here or click a type in the palette</p>
-              </div>
+            {section.fields.length === 0 ? (
+              <BlockInserter onSelect={addField} align="center">
+                <button
+                  className={`w-full rounded-lg border border-dashed p-5 text-center transition-colors
+                    ${isOver ? 'border-gray-300 bg-gray-50' : 'border-gray-200 hover:bg-gray-50'}`}
+                >
+                  <span className="text-sm text-gray-400">Click to add a field, or drag one here</span>
+                </button>
+              </BlockInserter>
+            ) : (
+              <BlockInserter onSelect={addField} align="start">
+                <button
+                  className="mt-1 flex items-center gap-1.5 py-1.5 px-2 -ml-2 text-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add field
+                </button>
+              </BlockInserter>
             )}
-
-            <button
-              onClick={() => {
-                dispatch({ type: 'SELECT_FIELD', fieldId: null, sectionId: section.id })
-              }}
-              className="mt-2 w-full flex items-center justify-center gap-1.5 py-2 text-sm text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg border border-dashed border-gray-200 hover:border-green-300 transition-all"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Add field to this section
-            </button>
           </div>
         )}
       </div>

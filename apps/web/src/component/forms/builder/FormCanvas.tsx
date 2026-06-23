@@ -13,35 +13,36 @@ export default function FormCanvas() {
   const sectionIds = form.sections.map(s => s.id)
 
   return (
-    <div className="flex-1 overflow-y-auto bg-gray-50">
-      <div className="max-w-5xl mx-auto py-6 px-4 space-y-4">
-        {/* Form description */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <input
-            className="w-full text-xl font-bold text-gray-900 bg-transparent outline-none placeholder:text-gray-300"
-            placeholder="Form description (optional)"
-            value={form.description}
-            onChange={e => dispatch({ type: 'UPDATE_META', payload: { description: e.target.value } })}
-          />
-        </div>
+    <div className="flex-1 overflow-y-auto bg-white">
+      <div className="max-w-3xl mx-auto py-12 px-6">
+        {/* Form description doubles as the document title */}
+        <textarea
+          rows={1}
+          className="w-full resize-none text-3xl font-bold text-gray-900 bg-transparent outline-none placeholder:text-gray-300 leading-tight"
+          placeholder="Untitled form"
+          value={form.description}
+          onChange={e => dispatch({ type: 'UPDATE_META', payload: { description: e.target.value } })}
+        />
 
         {/* Form-level targeting: which sites + intervention types show this form */}
-        <FormSettingsCard />
+        <div className="mt-4">
+          <FormSettingsCard />
+        </div>
 
         {form.sections.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <FileText className="w-12 h-12 text-gray-300 mb-3" />
-            <p className="text-gray-500 mb-4">No sections yet</p>
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <FileText className="w-10 h-10 text-gray-200 mb-3" />
+            <p className="text-sm text-gray-400 mb-5">Start by adding a section</p>
             <button
               onClick={() => dispatch({ type: 'ADD_SECTION' })}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+              className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
             >
-              <Plus className="w-4 h-4" /> Add Section
+              <Plus className="w-4 h-4" /> Add section
             </button>
           </div>
         ) : (
           <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
-            <div className="space-y-4">
+            <div className="mt-10 space-y-10">
               {form.sections.map(section => (
                 <SectionBlock
                   key={section.id}
@@ -54,12 +55,14 @@ export default function FormCanvas() {
           </SortableContext>
         )}
 
-        <button
-          onClick={() => dispatch({ type: 'ADD_SECTION' })}
-          className="w-full flex items-center justify-center gap-2 py-3 text-sm text-gray-500 hover:text-green-700 hover:bg-green-50 rounded-xl border-2 border-dashed border-gray-200 hover:border-green-300 transition-all"
-        >
-          <Plus className="w-4 h-4" /> Add Section
-        </button>
+        {form.sections.length > 0 && (
+          <button
+            onClick={() => dispatch({ type: 'ADD_SECTION' })}
+            className="mt-8 flex items-center gap-2 py-2 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Add section
+          </button>
+        )}
       </div>
     </div>
   )

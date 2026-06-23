@@ -8,13 +8,17 @@ export interface FieldTypeMeta {
   color: string
 }
 
+// Field-type icons share one neutral tone so the builder reads as a single
+// unified document rather than a grid of colored blocks.
+const NEUTRAL = 'bg-gray-100 text-gray-500 border-gray-200'
+
 export const FIELD_TYPE_META: FieldTypeMeta[] = [
-  { type: 'text', label: 'Text', description: 'Single or multiline text', icon: 'Type', color: 'bg-blue-50 text-blue-600 border-blue-200' },
-  { type: 'number', label: 'Number', description: 'Numeric input with optional unit', icon: 'Hash', color: 'bg-orange-50 text-orange-600 border-orange-200' },
-  { type: 'date', label: 'Date', description: 'Date and optional time picker', icon: 'Calendar', color: 'bg-purple-50 text-purple-600 border-purple-200' },
-  { type: 'dropdown', label: 'Dropdown', description: 'Select one from a list', icon: 'ChevronDown', color: 'bg-green-50 text-green-600 border-green-200' },
-  { type: 'checkbox', label: 'Checkbox', description: 'Multi-select from options', icon: 'CheckSquare', color: 'bg-teal-50 text-teal-600 border-teal-200' },
-  { type: 'radio', label: 'Radio', description: 'Single choice from options', icon: 'CircleDot', color: 'bg-indigo-50 text-indigo-600 border-indigo-200' },
+  { type: 'text', label: 'Text', description: 'Single or multiline text', icon: 'Type', color: NEUTRAL },
+  { type: 'number', label: 'Number', description: 'Numeric input with optional unit', icon: 'Hash', color: NEUTRAL },
+  { type: 'date', label: 'Date', description: 'Date and optional time picker', icon: 'Calendar', color: NEUTRAL },
+  { type: 'dropdown', label: 'Dropdown', description: 'Select one from a list', icon: 'ChevronDown', color: NEUTRAL },
+  { type: 'checkbox', label: 'Checkbox', description: 'Multi-select from options', icon: 'CheckSquare', color: NEUTRAL },
+  { type: 'radio', label: 'Radio', description: 'Single choice from options', icon: 'CircleDot', color: NEUTRAL },
 ]
 
 // Intervention type values, mirroring the backend `interventionTypeEnum`. Used
