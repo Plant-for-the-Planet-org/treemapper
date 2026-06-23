@@ -1138,8 +1138,8 @@ export const addTreeRemeasurement = async (
 // ---------------------------------------------------------------------------
 
 // List all monitoring plots for a project (thin list view).
-export const getProjectMonitoringPlots = async (token: string, projectUid: string) => {
-  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}`
+export const getProjectMonitoringPlots = async (token: string, projectUid: string, includeStats = true) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}${includeStats ? '?stats=true' : ''}`
   const result = await fetchGetCall(uri, token)
   return result
 }

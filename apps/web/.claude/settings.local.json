@@ -22,7 +22,15 @@
       "Bash(npx --no-install playwright --version)",
       "Artifact",
       "Bash(yarn workspace *)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "mcp__claude_design__list_design_systems",
+      "mcp__claude_design__get_claude_design_prompt",
+      "mcp__claude_design__create_project",
+      "mcp__claude_design__finalize_plan",
+      "mcp__claude_design__write_files",
+      "mcp__claude_design__render_preview",
+      "Bash(tee /tmp/tsc.out)",
+      "Bash(npx next *)"
     ]
   }
 }

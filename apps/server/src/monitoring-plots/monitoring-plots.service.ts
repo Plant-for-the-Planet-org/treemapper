@@ -749,19 +749,31 @@ export class MonitoringPlotsService {
   }
 
   /**
-   * List the monitoring plots of a project (lightweight, for verification/sync reconciliation).
+   * List the monitoring plots of a project.
+   *
+   * Default shape stays lightweight (uid/hid/name/shape/...) for sync
+   * reconciliation. Pass `includeStats` (web dashboard overview) to also fold in
+   * per-plot field-science aggregates: tree survival counts, species richness,
+   * plot area, last measurement date, and a monthly mean-height growth trend.
+   * The extra aggregates are three grouped queries (no N+1).
    */
-  async listProjectPlots(projectId: number): Promise<any[]> {
-    return this.drizzleService.db
+  async listProjectPlots(projectId: number, includeStats = false): Promise<any[]> {
+    const plots = await this.drizzleService.db
       .select({
+        id: intervention.id,
         uid: intervention.uid,
         hid: intervention.hid,
         name: intervention.description,
         totalTreeCount: intervention.totalTreeCount,
+        reviewStatus: intervention.reviewStatus,
         createdAt: intervention.createdAt,
         plotUid: monitoringPlot.uid,
         shape: monitoringPlot.shape,
         isComplete: monitoringPlot.isComplete,
+        radius: monitoringPlot.radius,
+        length: monitoringPlot.length,
+        width: monitoringPlot.width,
+        areaSqm: sql<number | null>`CASE WHEN ${intervention.location} IS NOT NULL THEN ST_Area(${intervention.location}::geography) ELSE NULL END`,
       })
       .from(intervention)
       .leftJoin(monitoringPlot, eq(monitoringPlot.interventionId, intervention.id))
@@ -773,6 +785,82 @@ export class MonitoringPlotsService {
         ),
       )
       .orderBy(sql`${intervention.createdAt} DESC`);
+
+    if (!includeStats || plots.length === 0) {
+      // Lightweight contract: do not leak the internal id.
+      return plots.map(({ id, ...rest }) => rest);
+    }
+
+    const plotIds = plots.map((p) => p.id);
+
+    const [treeAgg, speciesAgg, trendRows] = await Promise.all([
+      this.drizzleService.db
+        .select({
+          interventionId: tree.interventionId,
+          total: sql<number>`count(*)::int`,
+          alive: sql<number>`count(*) FILTER (WHERE ${tree.status} = 'alive')::int`,
+          lastMeasured: sql<string | null>`max(${tree.lastMeasurementDate})`,
+        })
+        .from(tree)
+        .where(
+          and(
+            inArray(tree.interventionId, plotIds),
+            eq(tree.treeType, 'plot'),
+            sql`${tree.deletedAt} IS NULL`,
+          ),
+        )
+        .groupBy(tree.interventionId),
+      this.drizzleService.db
+        .select({
+          interventionId: interventionSpecies.interventionId,
+          count: sql<number>`count(*)::int`,
+        })
+        .from(interventionSpecies)
+        .where(
+          and(
+            inArray(interventionSpecies.interventionId, plotIds),
+            sql`${interventionSpecies.deletedAt} IS NULL`,
+          ),
+        )
+        .groupBy(interventionSpecies.interventionId),
+      this.drizzleService.db
+        .select({
+          interventionId: tree.interventionId,
+          month: sql<string>`to_char(date_trunc('month', ${treeRecord.recordedAt}), 'YYYY-MM')`,
+          avgHeight: sql<number>`avg(${treeRecord.height})`,
+        })
+        .from(treeRecord)
+        .innerJoin(tree, eq(treeRecord.treeId, tree.id))
+        .where(
+          and(
+            inArray(tree.interventionId, plotIds),
+            sql`${treeRecord.height} IS NOT NULL`,
+            sql`${treeRecord.deletedAt} IS NULL`,
+          ),
+        )
+        .groupBy(tree.interventionId, sql`date_trunc('month', ${treeRecord.recordedAt})`)
+        .orderBy(tree.interventionId, sql`date_trunc('month', ${treeRecord.recordedAt})`),
+    ]);
+
+    const treeById = new Map(treeAgg.map((t) => [t.interventionId, t]));
+    const speciesById = new Map(speciesAgg.map((s) => [s.interventionId, s.count]));
+    const trendById = new Map<number, number[]>();
+    for (const r of trendRows) {
+      if (!trendById.has(r.interventionId)) trendById.set(r.interventionId, []);
+      trendById.get(r.interventionId)!.push(Math.round(Number(r.avgHeight) * 100) / 100);
+    }
+
+    return plots.map(({ id, totalTreeCount, ...rest }) => {
+      const t = treeById.get(id);
+      return {
+        ...rest,
+        totalTrees: t?.total ?? totalTreeCount ?? 0,
+        aliveTrees: t?.alive ?? 0,
+        speciesCount: speciesById.get(id) ?? 0,
+        lastMeasured: t?.lastMeasured ?? null,
+        trend: trendById.get(id) ?? [],
+      };
+    });
   }
 
   /**
