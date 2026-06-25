@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const useRemoteApi = process.env.NEXT_PUBLIC_BACKEND_API === 'true';
     const apiDestination = useRemoteApi 
-      ? 'https://dev.treemapper.app/api/:path*'
+      ? 'https://dev.treemapper.app/api/server:path*'
       : `http://127.0.0.1:${process.env.SERVER_PORT || 3001}/api/:path*`;
     
     return [
