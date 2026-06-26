@@ -104,21 +104,26 @@ export default function FormSettingsCard() {
     <Collapsible
       open={open}
       onOpenChange={setOpen}
-      className="bg-white border border-gray-200 rounded-xl"
+      className="border-y border-gray-100"
     >
-      <CollapsibleTrigger className="w-full flex items-start justify-between gap-2 p-4 text-left">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900">Where this form appears</h3>
-          <p className="text-xs text-gray-400 mt-0.5">
-            Shown on the last screen after an intervention is planted, when both rules match.
-          </p>
+      <CollapsibleTrigger className="w-full flex items-center justify-between gap-2 py-3 text-left group">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">Where this form appears</h3>
+          {!open && (
+            <span className="text-xs text-gray-400 truncate hidden sm:inline">
+              Shown after an intervention is planted
+            </span>
+          )}
         </div>
         <ChevronDown
-          className={`w-4 h-4 text-gray-400 shrink-0 mt-0.5 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </CollapsibleTrigger>
 
-      <CollapsibleContent className="px-4 pb-4">
+      <CollapsibleContent className="pb-4">
+      <p className="text-xs text-gray-400 mb-3">
+        Shown on the last screen after an intervention is planted, when both rules match.
+      </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Site targeting */}
         <div className="space-y-2">

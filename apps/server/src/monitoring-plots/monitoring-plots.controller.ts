@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
@@ -110,8 +111,12 @@ export class MonitoringPlotsController {
   @UseGuards(ProjectPermissionsGuard)
   @ApiOperation({ summary: 'List monitoring plots for a project' })
   @ApiResponse({ status: 200, description: 'Returns the project monitoring plots' })
-  async listPlots(@Membership() membership: ProjectGuardResponse) {
-    return this.monitoringPlotsService.listProjectPlots(membership.projectId);
+  async listPlots(
+    @Membership() membership: ProjectGuardResponse,
+    @Query('stats') stats?: string,
+  ) {
+    const includeStats = stats === 'true' || stats === '1';
+    return this.monitoringPlotsService.listProjectPlots(membership.projectId, includeStats);
   }
 
   @Get('projects/:projectId/plots/:plotUid')

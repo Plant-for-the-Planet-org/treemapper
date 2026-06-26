@@ -13,7 +13,7 @@ import { toast } from 'react-toastify';
 import {
   createMonitoringPlotGroup, updateMonitoringPlotGroup, deleteMonitoringPlotGroup,
 } from '@shared-core/fetchApi/api.fetch';
-import type { PlotListItem, PlotGroup } from './MonitoringPlotsPanel';
+import type { PlotListItem, PlotGroup } from './PlotsOverview';
 
 const GroupsManager = ({
   open,

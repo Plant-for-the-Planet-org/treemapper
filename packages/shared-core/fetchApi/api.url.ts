@@ -26,6 +26,7 @@ export const postUrlApi = {
   declineInvite: `${baseUrl}/projects/invites/decline`,
   expireInvite: `${baseUrl}/projects`,
   createProjectSpecies: `${baseUrl}/project-species`,
+  assignUnknownSpecies: `${baseUrl}/project-species`,
   requestNewSpecies: `${baseUrl}/species-requests`,
   createPersonalProject: `${baseUrl}/projects/personal`,
   startMigration: `${baseUrl}/migration/start`,

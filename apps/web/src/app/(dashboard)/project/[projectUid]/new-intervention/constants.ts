@@ -81,7 +81,7 @@ export const interventionConfigurations = {
     requiresTreeRegistration: true,
     allowsSampleTrees: true,
     allowEntireSite: true,
-    geometryType: ['point', 'polygon'],
+    geometryType: ['polygon'],
     geoJSONType: 'Polygon',
     description: 'Multi-tree registration allows multiple species and requires tree registration',
     icon: React.createElement(TreePine, { className: "w-5 h-5" }),

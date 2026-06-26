@@ -6,9 +6,9 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
-import { eq, and, or, sql, ne, isNull } from 'drizzle-orm';
+import { eq, and, or, sql } from 'drizzle-orm';
 import { DrizzleService } from '../database/drizzle.service';
-import { user, workspace, workspaceMember, project, projectMember } from '../database/schema';
+import { user, workspace, workspaceMember } from '../database/schema';
 
 @Injectable()
 export class ImpersonationGuard implements CanActivate {
@@ -107,42 +107,21 @@ export class ImpersonationGuard implements CanActivate {
       throw new ForbiddenException('Target user is not a member of your workspace');
     }
 
-    // SECURITY (workspace-admin impersonation scope):
-    // The JWT strategy swaps in the target's full identity and
-    // findProjectsAndWorkspace loads ALL of the target's memberships, so an
-    // impersonated session sees every workspace/project the target belongs to.
-    // To stop a workspace admin from seeing data outside their own workspace,
-    // we restrict targets to users whose (non-deleted) project access is
-    // confined to the admin's workspace. Superadmin (handled above) is exempt.
+    // NOTE (workspace-admin impersonation scope):
+    // We intentionally allow a workspace owner/admin to impersonate a member of
+    // their workspace even when that member also has access in OTHER workspaces.
+    // The only floor is the workspaceMember check above (target must be an active
+    // member of the initiator's workspace).
     //
-    // FUTURE (Option B) — allow impersonating multi-workspace users with a
-    // scoped view instead of blocking them. This needs ALL of:
-    //   1. Persist the initiator's workspace in the impersonation state
-    //      (workspace.service.ts startImpersonation).
-    //   2. In jwt.strategy.ts, when impersonation is admin-initiated, pin the
-    //      effective user's primaryWorkspaceUid to that workspace.
-    //   3. Filter findProjectsAndWorkspace to the initiator workspace.
-    //   4. Enforce it in ProjectPermissionsGuard so deep-linking to a project
-    //      in another workspace is rejected while impersonating.
-    // Until all four exist, keep this single-workspace restriction.
-    const [crossWorkspaceProject] = await this.drizzleService.db
-      .select({ id: project.id })
-      .from(projectMember)
-      .innerJoin(project, eq(projectMember.projectId, project.id))
-      .where(
-        and(
-          eq(projectMember.userId, target.id),
-          ne(project.workspaceId, ws.id),
-          isNull(project.deletedAt),
-        ),
-      )
-      .limit(1);
-
-    if (crossWorkspaceProject) {
-      throw new ForbiddenException(
-        'This user has access in other workspaces and can only be impersonated by a super admin',
-      );
-    }
+    // CAVEAT — this is FULL-ACCESS impersonation: jwt.strategy.ts swaps in the
+    // target's full identity and findProjectsAndWorkspace loads ALL of the
+    // target's memberships, so the impersonating owner will see every
+    // workspace/project the target belongs to, including ones outside their own
+    // workspace. This was a deliberate product decision; if cross-workspace
+    // exposure becomes a concern, scope the session to the initiator's workspace
+    // (persist initiator workspace in impersonation state, pin primaryWorkspaceUid
+    // in jwt.strategy.ts, filter findProjectsAndWorkspace, and enforce in
+    // ProjectPermissionsGuard).
 
     return true;
   }

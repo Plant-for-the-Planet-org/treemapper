@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
-import { createNewProjectSpecies, generatePreSignUrl, getProjectSpecies, getSciencetificSpecies, removePrjSpecies, requestNewSpecies, updateDisbaleSpecies, updateProjectSpecies, updateSpciesFav } from '@shared-core/fetchApi/api.fetch';
+import { assignUnknownSpecies, createNewProjectSpecies, generatePreSignUrl, getProjectSpecies, getSciencetificSpecies, removePrjSpecies, requestNewSpecies, updateDisbaleSpecies, updateProjectSpecies, updateSpciesFav } from '@shared-core/fetchApi/api.fetch';
 import { toast } from 'react-toastify';
 import { Download } from 'lucide-react';
 import { useTopBarActions } from '@/component/header/TopBarActions';
@@ -59,6 +59,7 @@ const SpeciesManagementDashboard = () => {
   // Bulk selection states
   const [selectedUnknownSpecies, setSelectedUnknownSpecies] = useState([]);
   const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
+  const [bulkSelectedSpecies, setBulkSelectedSpecies] = useState<any>(null);
 
   const { accessToken } = useToken();
   const selectedProject = useProjectStore(state => state.selectedProject);
@@ -492,6 +493,7 @@ const SpeciesManagementDashboard = () => {
     setShowDetailModal(false);
     setShowAddModal(false);
     setShowBulkAssignModal(false);
+    setBulkSelectedSpecies(null);
     setImageDetails(null);
     setEditForm({});
   };
@@ -639,38 +641,46 @@ const SpeciesManagementDashboard = () => {
     setShowBulkAssignModal(true);
     setSpeciesSearchTerm('');
     setSearchResults([]);
+    setBulkSelectedSpecies(null);
   };
 
-  const handleBulkAssignSave = async (selectedScientificSpecies) => {
+  const handleBulkAssignSave = async () => {
+    if (!canManageSpecies) {
+      toast.error('You do not have permission to assign species.');
+      return;
+    }
+    if (!bulkSelectedSpecies?.id || selectedUnknownSpecies.length === 0) return;
+
     setLoading(true);
     try {
-      // Update each selected unknown species with the scientific species
-      const updatePromises = selectedUnknownSpecies.map(async (unknownUid) => {
-        const unknownSpeciesItem = unknownSpecies.find(s => s.uid === unknownUid);
-        if (unknownSpeciesItem) {
-          // Call intervention edit API for each
-          // await updateInterventionSpecies(
-          //   accessToken, 
-          //   unknownSpeciesItem.interventionUid, 
-          //   {
-          //     ...selectedScientificSpecies,
-          //     count: unknownSpeciesItem.count
-          //   }
-          // );
+      const response = await assignUnknownSpecies(
+        accessToken || '',
+        {
+          scientificSpeciesId: bulkSelectedSpecies.id,
+          interventionSpeciesUids: selectedUnknownSpecies,
+          commonName: bulkSelectedSpecies.commonName || undefined,
+        },
+        selectedProject?.uid,
+      );
 
-          // For now, simulate the update
-          return Promise.resolve();
-        }
-      });
-
-      await Promise.all(updatePromises);
-
-      setSelectedUnknownSpecies([]);
-      setShowBulkAssignModal(false);
-      await fetchProjectSpecies(); // Refresh data
-      toast.success(`Updated ${selectedUnknownSpecies.length} species successfully`);
+      if (response.statusCode === 200 || response.statusCode === 201) {
+        const count = response.data?.assignedCount ?? selectedUnknownSpecies.length;
+        const merged = response.data?.mergedCount ?? 0;
+        toast.success(
+          `Assigned ${count} species to ${bulkSelectedSpecies.scientificName}` +
+          (merged > 0 ? ` (${merged} merged into existing records)` : '')
+        );
+        setSelectedUnknownSpecies([]);
+        setShowBulkAssignModal(false);
+        setBulkSelectedSpecies(null);
+        setSpeciesSearchTerm('');
+        setSearchResults([]);
+        await fetchProjectSpecies(); // Refresh data
+      } else {
+        throw new Error(response.message || 'Failed to assign species');
+      }
     } catch (error) {
-      toast.error(`Error updating species: ${String(error)}`);
+      toast.error(`Error assigning species: ${String(error)}`);
     } finally {
       setLoading(false);
     }
@@ -1015,26 +1025,68 @@ const SpeciesManagementDashboard = () => {
         size="large"
       >
         <div className="space-y-5">
-          <div className="bg-primary/10/60 border border-primary/20 p-3 rounded-md">
-            <p className="text-sm text-primary">
-              Search and select a scientific species to assign to all {selectedUnknownSpecies.length} selected unknown species.
-            </p>
-          </div>
+          {!bulkSelectedSpecies ? (
+            <>
+              <div className="bg-primary/5 border border-primary/20 p-3 rounded-md">
+                <p className="text-sm text-primary">
+                  Search and select a scientific species to assign to all {selectedUnknownSpecies.length} selected unknown species.
+                </p>
+              </div>
 
-          <SpeciesSearch
-            searchTerm={speciesSearchTerm}
-            onSearchChange={setSpeciesSearchTerm}
-            searchResults={searchResults}
-            isSearching={isSearchingSpecies}
-            onRequestNew={handleRequestNew}
-            onSelectSpecies={undefined}
-          />
+              <SpeciesSearch
+                searchTerm={speciesSearchTerm}
+                onSearchChange={setSpeciesSearchTerm}
+                searchResults={searchResults}
+                isSearching={isSearchingSpecies}
+                onRequestNew={handleRequestNew}
+                onSelectSpecies={setBulkSelectedSpecies}
+              />
 
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={handleCancel} disabled={loading} className="h-8">
-              Cancel
-            </Button>
-          </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={handleCancel} disabled={loading} className="h-8">
+                  Cancel
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setBulkSelectedSpecies(null)}
+                  disabled={loading}
+                  className="h-7 w-7"
+                >
+                  <ArrowLeft size={14} />
+                </Button>
+                <h4 className="text-xs font-medium text-foreground uppercase tracking-wide">Confirm assignment</h4>
+              </div>
+
+              <div className="border border-border rounded-md p-4">
+                <p className="text-sm font-medium italic text-foreground">{bulkSelectedSpecies.scientificName}</p>
+                {bulkSelectedSpecies.commonName && (
+                  <p className="text-xs text-muted-foreground">{bulkSelectedSpecies.commonName}</p>
+                )}
+              </div>
+
+              <p className="text-sm text-muted-foreground">
+                This will assign <span className="font-medium text-foreground">{bulkSelectedSpecies.scientificName}</span> to{' '}
+                <span className="font-medium text-foreground">{selectedUnknownSpecies.length}</span> unknown{' '}
+                {selectedUnknownSpecies.length === 1 ? 'record' : 'records'} and update the related trees. This cannot be undone automatically.
+              </p>
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={handleCancel} disabled={loading} className="h-8">
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleBulkAssignSave} disabled={loading || !canManageSpecies} className="h-8 gap-1.5">
+                  {loading ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                  {loading ? 'Assigning...' : 'Assign Species'}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </Modal>
 

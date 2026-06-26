@@ -16,6 +16,7 @@ export class InviteProjectMemberDto {
 
 
 export class InviteProjectLinkDto {
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   restriction?: string[];

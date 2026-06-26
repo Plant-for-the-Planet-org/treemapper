@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, IsBoolean, IsInt, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsBoolean, IsInt, MaxLength, IsArray, ArrayNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PaginationDto } from './common.dto';
 
@@ -84,6 +84,25 @@ export class UpdateUserSpeciesDto {
   @IsBoolean()
   isDisbaledSpecies?: boolean = false;
 
+}
+
+export class AssignUnknownSpeciesDto {
+  // The known scientific species to assign the unknown records to.
+  @IsNotEmpty()
+  @IsInt()
+  scientificSpeciesId: number;
+
+  // UIDs of the unknown `intervention_species` rows to reassign.
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  interventionSpeciesUids: string[];
+
+  // Optional common name override; defaults to the scientific species' common name.
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  commonName?: string;
 }
 
 export class UserSpeciesFilterDto extends PaginationDto {

@@ -1,16 +1,20 @@
-import { TreePine } from "lucide-react";
+import Image from 'next/image';
+import tmLogo from '@/assets/tmlogo.png';
 
 export const MobileLogo: React.FC = () => {
   return (
-    <div className="lg:hidden text-center mb-12">
-      <div className="flex items-center justify-center mb-6">
-        <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#007A49] to-emerald-600 rounded-2xl mr-4 shadow-lg">
-          <TreePine className="w-8 h-8 text-white" />
-        </div>
-        <div className="text-left">
-          <h1 className="text-3xl font-bold text-gray-900" style={{margin:0, padding:0}}>TreeMapper</h1>
-          <p className="text-gray-600 mt-1">Forest restoration monitoring</p>
-        </div>
+    <div className="mb-8 flex items-center justify-center gap-3 lg:hidden">
+      <Image
+        src={tmLogo}
+        alt="TreeMapper logo"
+        width={48}
+        height={48}
+        className="rounded-2xl shadow-sm ring-1 ring-black/5"
+        priority
+      />
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-[#0F1F17]" style={{ margin: 0 }}>TreeMapper</h1>
+        <p className="text-sm text-[#5A6B61]">Forest restoration monitoring</p>
       </div>
     </div>
   );

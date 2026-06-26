@@ -16,7 +16,6 @@ import {
 import { useBuilder } from '@/forms/FormBuilderContext'
 import { FieldType } from '@/forms/types'
 import BuilderTopBar from './BuilderTopBar'
-import FieldPalette from './FieldPalette'
 import FormCanvas from './FormCanvas'
 import FieldProperties from './FieldProperties'
 import MobilePreview from './MobilePreview'
@@ -42,19 +41,6 @@ export default function FormBuilder() {
   // Find which section a field belongs to
   const findFieldSection = (fieldId: string) =>
     form.sections.find(s => s.fields.some(f => f.id === fieldId))
-
-  // Click-to-add from the palette: drop into the selected/first section,
-  // creating a section first if none exist yet.
-  const handleAddFromPalette = (type: FieldType) => {
-    const targetSectionId = state.selectedSectionId ?? form.sections[0]?.id
-
-    if (targetSectionId) {
-      dispatch({ type: 'ADD_FIELD', sectionId: targetSectionId, fieldType: type })
-    } else {
-      dispatch({ type: 'ADD_SECTION' })
-      // Field will be added to the new section via the next click
-    }
-  }
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveOverSectionId(null)
@@ -168,7 +154,6 @@ export default function FormBuilder() {
       <div className="flex flex-col" style={{ height: 'calc(100vh - 80px)' }}>
         <BuilderTopBar />
         <div className="flex overflow-hidden" style={{ flex: 1, minHeight: 0 }}>
-          <FieldPalette onAddField={handleAddFromPalette} />
           <FormCanvas />
           <div className="w-72 flex-shrink-0 border-l border-gray-200 bg-white overflow-hidden flex flex-col">
             {showPreview ? (

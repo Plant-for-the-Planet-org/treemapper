@@ -301,15 +301,15 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
   const handleMapClick = useCallback(event => {
     const { lngLat, originalEvent } = event;
     
-    // Check if the click was on the completion hint or any interactive element
+    // Check if the click landed on the completion hint, so the hint handles it
+    // instead of adding another vertex. Match only by the hint's data attribute:
+    // a textContent check would match the whole map container (the hint text
+    // lives inside it) and wrongly swallow every click after the 3rd point.
     if (originalEvent?.target) {
       const target = originalEvent.target as HTMLElement;
-      // Check if clicking on the completion hint using data attribute or text content
       const isCompletionHint = target.dataset.completionHint === 'true' ||
-                                target.closest('[data-completion-hint="true"]') !== null ||
-                                target.textContent?.includes('Click here to complete') ||
-                                target.closest('div')?.textContent?.includes('Click here to complete');
-      
+                                target.closest('[data-completion-hint="true"]') !== null;
+
       if (isCompletionHint) {
         // Don't process map click - let the completion hint handle it
         return;

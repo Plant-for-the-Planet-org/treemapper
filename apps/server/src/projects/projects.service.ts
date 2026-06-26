@@ -926,14 +926,19 @@ export class ProjectsService {
   async createInviteLink(membership: ProjectGuardResponse, data: any): Promise<any> {
     try {
 
-      data.restriction.forEach((el: string, index: number) => {
+      // Domain restriction is optional. When provided, validate and normalize
+      // each domain. When omitted/empty, the link is open to anyone and the
+      // domain check is skipped both here and when the invite is accepted.
+      const restrictions = Array.isArray(data.restriction)
+        ? data.restriction.map((el: string) => (el || '').trim()).filter(Boolean)
+        : [];
+
+      const normalizedRestrictions = restrictions.map((el: string) => {
         if (!isValidEmailDomain(el)) {
           throw new BadRequestException(`Invalid email domain: ${el}`);
         }
-        if (!el.startsWith('@')) {
-          data.restriction[index] = '@' + el;
-        }
-      })
+        return el.startsWith('@') ? el : '@' + el;
+      });
 
       // Create invitation
       const expiryDate = new Date(data.expiry);
@@ -949,7 +954,7 @@ export class ProjectsService {
           projectRole: 'contributor',
           expiresAt: expiryDate,
           message: '',
-          emailDomainRestrictions: data.restriction
+          emailDomainRestrictions: normalizedRestrictions
         })
         .returning();
 

@@ -2,13 +2,13 @@ import { FeatureCardProps } from "@shared-core/types/interface.app";
 
 export const FeatureCard: React.FC<FeatureCardProps> = ({ icon: Icon, title, description }) => {
   return (
-    <div className="flex items-start space-x-4 p-6 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/20 shadow-sm">
-      <div className="flex items-center justify-center w-16 h-12 bg-[#007A49]/10 rounded-xl">
-        <Icon className="w-6 h-6 text-[#007A49]" />
+    <div className="flex items-start gap-4 rounded-[12px] bg-white/55 px-4 py-3.5 ring-1 ring-[#007A49]/10 backdrop-blur-sm transition-colors hover:bg-white/80">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#007A49]/10 text-[#007A49]">
+        <Icon className="h-5 w-5" />
       </div>
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600">{description}</p>
+        <h3 className="text-sm font-semibold text-[#0F1F17]">{title}</h3>
+        <p className="mt-0.5 text-sm leading-snug text-[#5A6B61]">{description}</p>
       </div>
     </div>
   );
