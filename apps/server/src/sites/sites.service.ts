@@ -7,6 +7,7 @@ import { DrizzleService } from '../database/drizzle.service';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
 import { AuditService } from '../audit/audit.service';
 import { siteRequiresApproval, publishedSiteFilter } from '../approval-board/approval.util';
+import { TtcSyncService } from './ttc-sync.service';
 
 export interface SiteMemberResponse {
   id: number;
@@ -32,7 +33,44 @@ export class SiteService {
   constructor(
     private drizzleService: DrizzleService,
     private readonly auditService: AuditService,
+    private readonly ttcSyncService: TtcSyncService,
   ) { }
+
+  /**
+   * Best-effort sync of a freshly created/updated site to the TTC backend.
+   * Never throws: a TTC failure must not roll back the TreeMapper write.
+   * On success stores the returned remote id; on failure records the state so
+   * the web "Sync to TTC" action can retry later.
+   */
+  private async syncSiteToTtcBackend(
+    newSiteId: number,
+    projectUid: string | undefined,
+    authorization: string | undefined,
+    payload: { name: string; geometry: any; status?: string | null },
+  ): Promise<{ remoteId: string | null; remoteSyncStatus: string | null }> {
+    if (!authorization || !projectUid || !this.ttcSyncService.isConfigured()) {
+      return { remoteId: null, remoteSyncStatus: null };
+    }
+    try {
+      const remoteId = await this.ttcSyncService.createSite(
+        projectUid,
+        authorization,
+        payload,
+      );
+      await this.drizzleService.db
+        .update(site)
+        .set({ remoteId, remoteSyncStatus: 'synced' })
+        .where(eq(site.id, newSiteId));
+      return { remoteId, remoteSyncStatus: 'synced' };
+    } catch (error) {
+      console.error('TTC site create sync failed:', error?.message || error);
+      await this.drizzleService.db
+        .update(site)
+        .set({ remoteSyncStatus: 'failed' })
+        .where(eq(site.id, newSiteId));
+      return { remoteId: null, remoteSyncStatus: 'failed' };
+    }
+  }
 
   private getGeoJSONForPostGIS(locationInput: any): any {
     if (!locationInput) {
@@ -76,6 +114,7 @@ export class SiteService {
   async createSite(
     membership: ProjectGuardResponse,
     createSiteDto: CreateSiteDto,
+    authorization?: string,
   ): Promise<any> {
     try {
       let locationValue: any = null;
@@ -96,6 +135,7 @@ export class SiteService {
       }
       const [projectData] = await this.drizzleService.db
         .select({
+          uid: project.uid,
           approvalBoardEnabled: project.approvalBoardEnabled,
           approvalSettings: project.approvalSettings,
         })
@@ -140,7 +180,19 @@ export class SiteService {
         source: 'web',
       });
 
-      return newSite
+      // Best-effort: mirror the new site onto the TTC backend.
+      const ttcResult = await this.syncSiteToTtcBackend(
+        newSite.id,
+        projectData?.uid,
+        authorization,
+        {
+          name: newSite.name,
+          geometry: newSite.originalGeometry,
+          status: newSite.status,
+        },
+      );
+
+      return { ...newSite, ...ttcResult }
     } catch (error) {
       console.error('createSite error:', error);
       return {
@@ -165,6 +217,8 @@ export class SiteService {
           description: site.description,
           status: site.status,
           originalGeometry: site.originalGeometry,
+          remoteId: site.remoteId,
+          remoteSyncStatus: site.remoteSyncStatus,
           metadata: site.metadata,
           createdAt: site.createdAt,
           updatedAt: site.updatedAt,
@@ -690,10 +744,11 @@ export class SiteService {
     siteUid: string,
     updateSiteDto: UpdateSiteDto,
     userId?: number,
+    authorization?: string,
   ) {
     // First verify site exists and belongs to project
     const existingSite = await this.drizzleService.db
-      .select({ id: site.id })
+      .select({ id: site.id, remoteId: site.remoteId })
       .from(site)
       .where(
         and(
@@ -751,7 +806,105 @@ export class SiteService {
       throw new BadRequestException('Failed to update site geometry');
     }
 
+    // Best-effort: mirror the update onto the TTC backend (only if we already
+    // have a remote id for this site). Never blocks the TreeMapper update.
+    if (existingSite[0].remoteId && authorization && this.ttcSyncService.isConfigured()) {
+      try {
+        const [current] = await this.drizzleService.db
+          .select({
+            name: site.name,
+            status: site.status,
+            originalGeometry: site.originalGeometry,
+            projectUid: project.uid,
+          })
+          .from(site)
+          .innerJoin(project, eq(site.projectId, project.id))
+          .where(eq(site.id, existingSite[0].id))
+          .limit(1);
+
+        if (current?.projectUid) {
+          await this.ttcSyncService.updateSite(
+            current.projectUid,
+            existingSite[0].remoteId,
+            authorization,
+            {
+              name: current.name,
+              geometry: current.originalGeometry,
+              status: current.status,
+            },
+          );
+        }
+      } catch (error) {
+        console.error('TTC site update sync failed:', error?.message || error);
+      }
+    }
+
     return '';
+  }
+
+  /**
+   * Manually (re)sync a site to the TTC backend. Used by the web "Sync to TTC"
+   * action for sites whose create-time sync failed (no remote id yet).
+   * Returns the remote id on success.
+   */
+  async syncSiteToTtc(
+    membership: ProjectGuardResponse,
+    siteUid: string,
+    authorization?: string,
+  ): Promise<{ remoteId: string | null; remoteSyncStatus: string | null }> {
+    const [current] = await this.drizzleService.db
+      .select({
+        id: site.id,
+        name: site.name,
+        status: site.status,
+        originalGeometry: site.originalGeometry,
+        remoteId: site.remoteId,
+        projectUid: project.uid,
+      })
+      .from(site)
+      .innerJoin(project, eq(site.projectId, project.id))
+      .where(and(eq(site.uid, siteUid), eq(site.projectId, membership.projectId)))
+      .limit(1);
+
+    if (!current) {
+      throw new NotFoundException('Site not found');
+    }
+
+    if (current.remoteId) {
+      // Already synced once; push the latest state instead of creating a duplicate.
+      try {
+        await this.ttcSyncService.updateSite(
+          current.projectUid,
+          current.remoteId,
+          authorization!,
+          {
+            name: current.name,
+            geometry: current.originalGeometry,
+            status: current.status,
+          },
+        );
+        return { remoteId: current.remoteId, remoteSyncStatus: 'synced' };
+      } catch (error) {
+        console.error('TTC manual update sync failed:', error?.message || error);
+        throw new BadRequestException('Failed to sync site to TTC');
+      }
+    }
+
+    const result = await this.syncSiteToTtcBackend(
+      current.id,
+      current.projectUid,
+      authorization,
+      {
+        name: current.name,
+        geometry: current.originalGeometry,
+        status: current.status,
+      },
+    );
+
+    if (result.remoteSyncStatus !== 'synced') {
+      throw new BadRequestException('Failed to sync site to TTC');
+    }
+    return result;
   }
 
   // async updateSiteImages(

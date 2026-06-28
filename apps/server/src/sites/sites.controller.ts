@@ -41,6 +41,7 @@ async createSite(
   const site = await this.siteService.createSite(
     membership,
     createSiteDto,
+    req?.headers?.authorization,
   );
   return site
 }
@@ -135,18 +136,43 @@ async updateSite(
   @Membership() membership: ProjectGuardResponse,
   @Param('siteUid') siteUid: string,
   @Body() updateSiteDto: UpdateSiteDto,
+  @Req() req: any,
 ) {
   const site = await this.siteService.updateSite(
     membership.projectId,
     siteUid,
     updateSiteDto,
     membership.userId,
+    req?.headers?.authorization,
   );
 
   return {
     status: 'success',
     message: 'Site updated successfully',
     data: site,
+  };
+}
+
+// Manually (re)sync a site to the TTC backend. Used by the web "Sync to TTC"
+// action when the create-time sync failed.
+@Post('/:siteUid/sync-ttc')
+@ProjectRoles('owner', 'admin')
+@UseGuards(ProjectPermissionsGuard)
+async syncSiteToTtc(
+  @Membership() membership: ProjectGuardResponse,
+  @Param('siteUid') siteUid: string,
+  @Req() req: any,
+) {
+  const result = await this.siteService.syncSiteToTtc(
+    membership,
+    siteUid,
+    req?.headers?.authorization,
+  );
+
+  return {
+    status: 'success',
+    message: 'Site synced to TTC successfully',
+    data: result,
   };
 }
 

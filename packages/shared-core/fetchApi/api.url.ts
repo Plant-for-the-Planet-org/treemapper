@@ -42,6 +42,7 @@ export const postUrlApi = {
   onboarding: `${baseUrl}/users/onboarding`,
   grantSiteAccess: `${baseUrl}/projects`,
   revokeSiteAccess: `${baseUrl}/projects`,
+  syncSiteToTtc: `${baseUrl}/projects`,
   // Approval Board APIs - new endpoints
   getReviewQueue: `${baseUrl}/approval-board/projects`,
   getInterventionReviewDetails: `${baseUrl}/approval-board/interventions`,

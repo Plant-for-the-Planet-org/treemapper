@@ -1,4 +1,4 @@
-import { Save, X, Edit3, MapPin, Calendar, Clock, FileText, UsersRound, LandPlot, User, Plus, ChevronLeft } from 'lucide-react'
+import { Save, X, Edit3, MapPin, Calendar, Clock, FileText, UsersRound, LandPlot, User, Plus, ChevronLeft, RefreshCw, CheckCircle2 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -40,7 +40,9 @@ const InfoRow = ({ icon: Icon, label, value, sub }: any) => (
 
 export const SiteDetails = ({
   site, isEditing, editedSite, setEditedSite, onEdit, onSave, onCancel, setSiteAccessModal, onBack,
+  onSyncToTtc, isSyncingTtc, canSyncTtc,
 }: any) => {
+  const needsTtcSync = !site.remoteId || site.remoteSyncStatus === 'failed'
   const members = site.member?.avatars || []
   const totalMembers = site.member?.totalCount || 0
   const visibleMembers = members.slice(0, 5)
@@ -96,10 +98,32 @@ export const SiteDetails = ({
                 </Button>
               </>
             ) : (
-              <Button size="sm" variant="ghost" onClick={onEdit} className="h-7 -mr-2 gap-1.5 text-muted-foreground hover:text-foreground">
-                <Edit3 size={14} />
-                Edit
-              </Button>
+              <>
+                {canSyncTtc && (
+                  needsTtcSync ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={onSyncToTtc}
+                      disabled={isSyncingTtc}
+                      className="h-7 gap-1.5 text-xs"
+                      title="Sync this site to the Plant-for-the-Planet (TTC) backend"
+                    >
+                      <RefreshCw size={14} className={cn(isSyncingTtc && 'animate-spin')} />
+                      {isSyncingTtc ? 'Syncing' : 'Sync to TTC'}
+                    </Button>
+                  ) : (
+                    <span className="flex items-center gap-1 text-[11px] text-muted-foreground/70" title="Synced to the Plant-for-the-Planet (TTC) backend">
+                      <CheckCircle2 size={13} className="text-emerald-600" />
+                      Synced
+                    </span>
+                  )
+                )}
+                <Button size="sm" variant="ghost" onClick={onEdit} className="h-7 -mr-2 gap-1.5 text-muted-foreground hover:text-foreground">
+                  <Edit3 size={14} />
+                  Edit
+                </Button>
+              </>
             )}
           </div>
         </div>

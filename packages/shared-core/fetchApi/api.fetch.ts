@@ -269,6 +269,14 @@ export const updateDashboardSite = async (token: string, params: any, prjId: str
   return result;
 };
 
+// Manually (re)sync a site to the TTC backend (Plant-for-the-Planet app).
+// Used when the automatic sync at create time failed.
+export const syncSiteToTtc = async (token: string, prjId: string, siteUid: string) => {
+  const uri = `${postUrlApi.syncSiteToTtc}/${prjId}/sites/${siteUid}/sync-ttc`;
+  const result = await fetchPostCall(uri, {}, token);
+  return result;
+};
+
 
 //intervention
 
