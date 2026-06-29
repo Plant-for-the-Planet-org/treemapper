@@ -171,7 +171,7 @@ async syncSiteToTtc(
 
   return {
     status: 'success',
-    message: 'Site synced to TTC successfully',
+    message: 'Site synced to Platform successfully',
     data: result,
   };
 }

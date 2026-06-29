@@ -886,7 +886,7 @@ export class SiteService {
         return { remoteId: current.remoteId, remoteSyncStatus: 'synced' };
       } catch (error) {
         console.error('TTC manual update sync failed:', error?.message || error);
-        throw new BadRequestException('Failed to sync site to TTC');
+        throw new BadRequestException('Failed to sync site to Platform');
       }
     }
 
@@ -902,7 +902,7 @@ export class SiteService {
     );
 
     if (result.remoteSyncStatus !== 'synced') {
-      throw new BadRequestException('Failed to sync site to TTC');
+      throw new BadRequestException('Failed to sync site to Platform');
     }
     return result;
   }

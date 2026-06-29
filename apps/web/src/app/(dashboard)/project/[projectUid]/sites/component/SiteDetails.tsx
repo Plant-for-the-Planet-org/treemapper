@@ -110,7 +110,7 @@ export const SiteDetails = ({
                       title="Sync this site to the Plant-for-the-Planet (TTC) backend"
                     >
                       <RefreshCw size={14} className={cn(isSyncingTtc && 'animate-spin')} />
-                      {isSyncingTtc ? 'Syncing' : 'Sync to TTC'}
+                      {isSyncingTtc ? 'Syncing' : 'Sync to Platform'}
                     </Button>
                   ) : (
                     <span className="flex items-center gap-1 text-[11px] text-muted-foreground/70" title="Synced to the Plant-for-the-Planet (TTC) backend">

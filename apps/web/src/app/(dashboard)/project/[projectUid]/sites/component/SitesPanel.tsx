@@ -113,7 +113,7 @@ export const SitesPanel = ({
               title="Sync all sites not yet on the Plant-for-the-Planet (TTC) backend"
             >
               <RefreshCw size={13} className={cn(bulkSyncingTtc && 'animate-spin')} />
-              {bulkSyncingTtc ? 'Syncing' : `Sync ${unsyncedCount} to TTC`}
+              {bulkSyncingTtc ? 'Syncing' : `Sync ${unsyncedCount} to Platform`}
             </Button>
           )}
         </div>

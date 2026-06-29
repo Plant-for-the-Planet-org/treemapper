@@ -182,7 +182,7 @@ const SiteManagementPage = () => {
   const handleBulkSyncToTtc = async () => {
     const pending = sites.filter(s => !s.remoteId || s.remoteSyncStatus === 'failed');
     if (pending.length === 0) {
-      toast.info('All sites are already synced to TTC');
+      toast.info('All sites are already synced to Platform');
       return;
     }
     setBulkSyncingTtc(true);
@@ -201,7 +201,7 @@ const SiteManagementPage = () => {
       }
     }
     if (failed === 0) {
-      toast.success(`Synced ${ok} site${ok !== 1 ? 's' : ''} to TTC`);
+      toast.success(`Synced ${ok} site${ok !== 1 ? 's' : ''} to Platform`);
     } else {
       toast.error(`Synced ${ok}, ${failed} failed. Try again to retry the rest.`);
     }
@@ -215,13 +215,13 @@ const SiteManagementPage = () => {
     try {
       const response = await syncSiteToTtc(accessToken || '', selectedProject?.uid, selectedSite.id);
       if (response && (response.status === 'success' || response.statusCode === 200 || response.statusCode === 201)) {
-        toast.success('Site synced to TTC');
+        toast.success('Site synced to Platform');
         await fetchProjectSites();
       } else {
-        toast.error(response?.message || 'Failed to sync site to TTC');
+        toast.error(response?.message || 'Failed to sync site to Platform');
       }
     } catch (error) {
-      toast.error('Failed to sync site to TTC');
+      toast.error('Failed to sync site to Platform');
     } finally {
       setSyncingTtc(false);
     }
