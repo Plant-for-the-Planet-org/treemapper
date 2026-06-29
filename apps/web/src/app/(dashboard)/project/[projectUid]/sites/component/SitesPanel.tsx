@@ -1,7 +1,8 @@
 'use client'
 
-import { Search, Calendar, LandPlot, ArrowUp, ArrowDown } from 'lucide-react'
+import { Search, Calendar, LandPlot, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -23,6 +24,11 @@ interface Props {
   setSortBy: (s: string) => void
   sortDir: string
   setSortDir: (s: string) => void
+  canManageSites?: boolean
+  canSyncTtc?: boolean
+  unsyncedCount?: number
+  onBulkSyncToTtc?: () => void
+  bulkSyncingTtc?: boolean
 }
 
 const STATUS_DOT: Record<string, string> = {
@@ -42,6 +48,7 @@ const StatusOption = ({ value, label }: { value: string; label: string }) => (
 export const SitesPanel = ({
   filteredSites, selectedSite, onSiteSelect, loading,
   searchTerm, setSearchTerm, statusFilter, setStatusFilter, sortBy, setSortBy, sortDir, setSortDir,
+  canSyncTtc, unsyncedCount = 0, onBulkSyncToTtc, bulkSyncingTtc,
 }: Props) => {
   const handleSort = (field: string) => {
     if (sortBy === field) setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
@@ -96,6 +103,19 @@ export const SitesPanel = ({
         </div>
         <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1">
           <span>{filteredSites.length} site{filteredSites.length !== 1 ? 's' : ''}</span>
+          {canSyncTtc && unsyncedCount > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onBulkSyncToTtc}
+              disabled={bulkSyncingTtc}
+              className="h-7 gap-1.5 text-[11px]"
+              title="Sync all sites not yet on the Plant-for-the-Planet (TTC) backend"
+            >
+              <RefreshCw size={13} className={cn(bulkSyncingTtc && 'animate-spin')} />
+              {bulkSyncingTtc ? 'Syncing' : `Sync ${unsyncedCount} to Platform`}
+            </Button>
+          )}
         </div>
       </div>
 

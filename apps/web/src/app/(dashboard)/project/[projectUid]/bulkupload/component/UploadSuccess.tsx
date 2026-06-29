@@ -14,6 +14,13 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
 
   const generateUid = (prefix: string) => `${prefix}_${crypto.randomBytes(16).toString('hex').substring(0, 24)}`
 
+  // Parse a DD/MM/YYYY string into a Date. JS `new Date('DD/MM/YYYY')` reads
+  // slashes as US (MM/DD), so build from explicit parts to keep day-first input.
+  const parseDMY = (dateStr: string) => {
+    const [day, month, year] = String(dateStr).split('/').map(Number)
+    return new Date(year, month - 1, day)
+  }
+
   const latLongToGeoJSON = (latitude: any, longitude: any) => {
     const lat = parseFloat(latitude)
     const lng = parseFloat(longitude)
@@ -41,8 +48,8 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
         clientId: generateUid('inv'),
         type: interventionType,
         plantProject: selectedProject.id,
-        interventionStartDate: new Date(record['PLANTATION START DATE']),
-        interventionEndDate: new Date(record['PLANTATION END DATE']),
+        interventionStartDate: parseDMY(record['PLANTATION START DATE']),
+        interventionEndDate: parseDMY(record['PLANTATION END DATE']),
         geometry: latLongToGeoJSON(record['LATITUDE'], record['LONGITUDE']),
         treesPlanted: record['TREES PLANTED'],
         species: transformSpecies(record['SPECIES_DATA']),

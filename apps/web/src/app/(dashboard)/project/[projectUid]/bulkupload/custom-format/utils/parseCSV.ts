@@ -14,15 +14,22 @@ export interface CsvSample {
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
+// Accepts DD/MM/YYYY (day first), zero-padding optional, and verifies the
+// day/month combination is a real calendar date.
 function isValidDate(dateStr: string): boolean {
-    return /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr.trim());
+    const s = dateStr.trim();
+    if (!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) return false;
+    const [day, month, year] = s.split('/').map(Number);
+    if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+    const d = new Date(year, month - 1, day);
+    return d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day;
 }
 
 export function validateIntervention(plantDate: string, species: Species[]): ValidationResult {
     const errors: string[] = [];
 
     if (!plantDate || !isValidDate(plantDate)) {
-        errors.push('Invalid or missing plantation date (expected MM/DD/YYYY)');
+        errors.push('Invalid or missing plantation date (expected DD/MM/YYYY)');
     }
 
     if (species.length === 0) {
@@ -96,7 +103,7 @@ function scoreForDate(header: string, values: string[]): number {
 
     // Value pattern signals
     const dateLike = values.filter(v =>
-        /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v) ||  // MM/DD/YYYY
+        /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v) ||  // DD/MM/YYYY
         /^\d{4}-\d{2}-\d{2}/.test(v)              // ISO date
     );
     if (values.length > 0 && dateLike.length / values.length >= 0.5) score += 12;

@@ -49,8 +49,23 @@ export interface WorkspaceNotificationSettings {
   onProfileActivity: boolean;
 }
 
+/** Which intervention sources require approval before being published. */
+export type ApprovalGatedSource = 'web' | 'bulk' | 'mobile';
+
+export interface ApprovalSettings {
+  sources: Record<ApprovalGatedSource, boolean>;
+  siteApprovalRequired: boolean;
+}
+
+export const DEFAULT_APPROVAL_SETTINGS: ApprovalSettings = {
+  sources: { web: true, bulk: true, mobile: true },
+  siteApprovalRequired: true,
+};
+
 export interface WorkspaceSettings {
   approvalBoardEnabled: boolean;
+  /** Default approval settings every project in this workspace inherits. */
+  approvalSettings: ApprovalSettings;
   defaultProjectVisibility: 'public' | 'private';
   allowMemberInvites: boolean;
   requireApprovalForNewProjects: boolean;
@@ -60,6 +75,7 @@ export interface WorkspaceSettings {
 
 export const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettings = {
   approvalBoardEnabled: false,
+  approvalSettings: DEFAULT_APPROVAL_SETTINGS,
   defaultProjectVisibility: 'private',
   allowMemberInvites: false,
   requireApprovalForNewProjects: false,
@@ -70,6 +86,22 @@ export const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettings = {
     interventionProjectWhitelist: [],
     onProfileActivity: false,
   },
+};
+
+/** Fills any missing fields with defaults so older saved settings stay valid. */
+export const normalizeApprovalSettings = (value: unknown): ApprovalSettings => {
+  const v = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
+  const sources = (v.sources && typeof v.sources === 'object' ? v.sources : {}) as Record<string, unknown>;
+  const d = DEFAULT_APPROVAL_SETTINGS;
+  return {
+    sources: {
+      web: typeof sources.web === 'boolean' ? sources.web : d.sources.web,
+      bulk: typeof sources.bulk === 'boolean' ? sources.bulk : d.sources.bulk,
+      mobile: typeof sources.mobile === 'boolean' ? sources.mobile : d.sources.mobile,
+    },
+    siteApprovalRequired:
+      typeof v.siteApprovalRequired === 'boolean' ? v.siteApprovalRequired : d.siteApprovalRequired,
+  };
 };
 
 export type ProjectStatus = 'active' | 'in_review' | 'suspended' | 'disabled';

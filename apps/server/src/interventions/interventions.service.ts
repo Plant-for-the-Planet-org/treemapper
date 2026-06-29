@@ -644,22 +644,32 @@ export class InterventionsService {
         });
       }
 
-      const endDateViolations = rows
+      const now = new Date();
+
+      // When the new start date falls after an intervention's end date, move the
+      // end date forward to match the start date so the bulk update never fails
+      // on the start-cannot-exceed-end rule (valid_date_range check constraint).
+      // These rows must have start and end updated in the same statement,
+      // otherwise the row would momentarily have start > end and violate it.
+      const endDateBumpIds = rows
         .filter((r) => r.interventionEndDate && parsedDate > r.interventionEndDate)
-        .map((r) => r.uid);
-      if (endDateViolations.length > 0) {
-        throw new BadRequestException({
-          code: 'DATE_AFTER_END',
-          message: 'Start date cannot be after the intervention end date for some interventions',
-          details: { interventionUids: endDateViolations },
-        });
+        .map((r) => r.id);
+      const bumpIdSet = new Set(endDateBumpIds);
+      const startOnlyIds = rows.filter((r) => !bumpIdSet.has(r.id)).map((r) => r.id);
+
+      if (startOnlyIds.length > 0) {
+        await tx
+          .update(intervention)
+          .set({ interventionStartDate: parsedDate, updatedAt: now })
+          .where(inArray(intervention.id, startOnlyIds));
       }
 
-      const ids = rows.map((r) => r.id);
-      await tx
-        .update(intervention)
-        .set({ interventionStartDate: parsedDate, updatedAt: new Date() })
-        .where(inArray(intervention.id, ids));
+      if (endDateBumpIds.length > 0) {
+        await tx
+          .update(intervention)
+          .set({ interventionStartDate: parsedDate, interventionEndDate: parsedDate, updatedAt: now })
+          .where(inArray(intervention.id, endDateBumpIds));
+      }
 
       return { updatedCount: rows.length };
     });
@@ -2029,12 +2039,17 @@ export class InterventionsService {
   private parseCustomDate(dateStr: string): string {
     const parts = (dateStr ?? '').split('/');
     if (parts.length !== 3) {
-      throw new BadRequestException(`Invalid date format: "${dateStr}". Expected MM/DD/YYYY`);
+      throw new BadRequestException(`Invalid date format: "${dateStr}". Expected DD/MM/YYYY`);
     }
-    const [month, day, year] = parts.map(Number);
+    const [day, month, year] = parts.map(Number);
     const date = new Date(year, month - 1, day);
-    if (isNaN(date.getTime())) {
-      throw new BadRequestException(`Invalid date: "${dateStr}"`);
+    if (
+      isNaN(date.getTime()) ||
+      date.getFullYear() !== year ||
+      date.getMonth() !== month - 1 ||
+      date.getDate() !== day
+    ) {
+      throw new BadRequestException(`Invalid date: "${dateStr}". Expected DD/MM/YYYY`);
     }
     return date.toISOString();
   }

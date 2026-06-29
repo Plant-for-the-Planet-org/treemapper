@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { useTheme } from 'next-themes'
+// TEMPORARY: theme switching disabled (see ThemeProvider.tsx).
+// import { useTheme } from 'next-themes'
 import {
   LayoutDashboard, MapPin, Leaf, Users, Activity, Upload,
   CheckSquare, FileText, BarChart2, Trophy, Settings, Building,
-  ChevronDown, ChevronRight, Plus, Sun, Moon, Monitor,
-  UserCog, SlidersHorizontal, UserCheck, LogOut, Grid2x2, Smartphone
+  ChevronDown, ChevronRight, Plus,
+  UserCog, SlidersHorizontal, UserCheck, LogOut, Grid2x2
 } from 'lucide-react'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -39,15 +40,15 @@ interface SidebarProps {
 export default function DashboardSidebar({ createNewProject, openProfileSetting, updateRoute }: SidebarProps) {
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false)
   const [collapsedWorkspaces, setCollapsedWorkspaces] = useState<Set<string>>(new Set())
-  const { theme, setTheme } = useTheme()
-
-  const themeOrder = ['light', 'dark', 'system'] as const
-  const cycleTheme = () => {
-    const idx = themeOrder.indexOf(theme as typeof themeOrder[number])
-    setTheme(themeOrder[(idx + 1) % themeOrder.length])
-  }
-  const ThemeIcon = theme === 'dark' ? Moon : theme === 'light' ? Sun : Monitor
-  const themeLabel = theme === 'dark' ? 'Dark' : theme === 'light' ? 'Light' : 'Auto'
+  // TEMPORARY: theme switching disabled, app is locked to light mode (see ThemeProvider.tsx).
+  // const { theme, setTheme } = useTheme()
+  // const themeOrder = ['light', 'dark', 'system'] as const
+  // const cycleTheme = () => {
+  //   const idx = themeOrder.indexOf(theme as typeof themeOrder[number])
+  //   setTheme(themeOrder[(idx + 1) % themeOrder.length])
+  // }
+  // const ThemeIcon = theme === 'dark' ? Moon : theme === 'light' ? Sun : Monitor
+  // const themeLabel = theme === 'dark' ? 'Dark' : theme === 'light' ? 'Light' : 'Auto'
   const { state, isMobile, setOpenMobile, setOpen } = useSidebar()
   const collapsed = !isMobile && state === 'collapsed'
 
@@ -217,7 +218,6 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         { icon: Upload, label: 'Bulk Upload', id: 'bulkupload' },
         ...(!isContributor ? [{ icon: CheckSquare, label: 'Approvals', id: 'approvals' }] : []),
         ...(!isContributor ? [{ icon: FileText, label: 'Forms', id: 'forms' }] : []),
-        ...(isAdminOrOwner ? [{ icon: Smartphone, label: 'Devices', id: 'device-management' }] : []),
       ],
     },
     {
@@ -379,6 +379,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         {collapsed ? (
           <div className="flex flex-col items-center gap-1">
             <NotificationBell variant="sidebar" />
+            {/* TEMPORARY: theme toggle hidden, app is locked to light mode (see ThemeProvider.tsx).
             <button
               onClick={cycleTheme}
               className="p-1.5 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
@@ -386,6 +387,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
             >
               <ThemeIcon size={14} />
             </button>
+            */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -415,6 +417,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
             </div>
             <div className="flex items-center gap-0.5 flex-shrink-0">
               <NotificationBell variant="sidebar" />
+              {/* TEMPORARY: theme toggle hidden, app is locked to light mode (see ThemeProvider.tsx).
               <button
                 onClick={cycleTheme}
                 className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
@@ -422,6 +425,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
               >
                 <ThemeIcon size={14} />
               </button>
+              */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors">

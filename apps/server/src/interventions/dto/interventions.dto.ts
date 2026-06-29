@@ -358,7 +358,7 @@ export class CustomInterventionItemDto {
   beneficiary: string;
 
   @IsString()
-  plantDate: string; // MM/DD/YYYY
+  plantDate: string; // DD/MM/YYYY
 
   @IsArray()
   @ValidateNested({ each: true })

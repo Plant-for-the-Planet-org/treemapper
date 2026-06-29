@@ -8,9 +8,9 @@ build:
     # IMPORTANT: Set these to your actual values (same as your Heroku config vars)
     # heroku.yml doesn't support variable substitution, so values must be hardcoded here
     NEXT_PUBLIC_CDN: "https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/production"
-    NEXT_PUBLIC_SERVER_URL: "http://dash.treemapper.app/api/server"
+    NEXT_PUBLIC_SERVER_URL: "http://dev.treemapper.app/api/server"
     NEXT_PUBLIC_AUTH0_CLIENT_ID: "8EyITuZvf63r8J8mjuYoaJ5Z1GJVm3zc"
     NEXT_PUBLIC_CDN_BASE: "https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev"
     NEXT_PUBLIC_MODE: "production"
 run:
-  web: yarn start
+  web: yarn start 

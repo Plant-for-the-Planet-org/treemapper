@@ -93,7 +93,7 @@ const CustomFormatPage = () => {
     const currentStepIndex = STEP_ORDER.indexOf(step);
 
     return (
-        <div className="min-h-full bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 w-full">
+        <div className="h-full overflow-y-auto bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 w-full">
             {/* Header */}
             <button
                 onClick={() => router.back()}

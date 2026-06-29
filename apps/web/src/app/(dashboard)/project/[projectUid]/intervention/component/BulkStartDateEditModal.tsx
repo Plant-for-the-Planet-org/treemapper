@@ -101,7 +101,7 @@ export default function BulkStartDateEditModal({
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#007A49]/30 disabled:opacity-50 bg-white"
             />
             <p className="text-xs text-gray-500">
-              Applied to all {total} selected intervention{total !== 1 ? 's' : ''}. Must not exceed each intervention's end date.
+              Applied to all {total} selected intervention{total !== 1 ? 's' : ''}. If the new start date is later than an intervention's end date, that end date is moved to match.
             </p>
           </div>
 

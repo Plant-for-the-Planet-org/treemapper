@@ -9,8 +9,8 @@ import {
 } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
-import type { WorkspaceSettings } from '../types';
-import { DEFAULT_WORKSPACE_SETTINGS } from '../types';
+import type { WorkspaceSettings, ApprovalGatedSource } from '../types';
+import { DEFAULT_WORKSPACE_SETTINGS, normalizeApprovalSettings } from '../types';
 import {
   Button,
   Card,
@@ -72,6 +72,28 @@ function SettingRow({
   );
 }
 
+function SubToggleRow({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-2.5">
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-medium text-gray-900">{label}</div>
+        {description && <div className="mt-0.5 text-xs text-gray-500">{description}</div>}
+      </div>
+      <Toggle checked={checked} onChange={onChange} />
+    </div>
+  );
+}
+
 function SectionHeader({
   icon: Icon,
   title,
@@ -128,6 +150,27 @@ export function GeneralSettingsSection() {
       notifications: { ...prev.notifications, ...update },
     }));
 
+  const toggleApprovalSource = (source: ApprovalGatedSource) =>
+    setSettings((prev) => {
+      const current = normalizeApprovalSettings(prev.approvalSettings);
+      return {
+        ...prev,
+        approvalSettings: {
+          ...current,
+          sources: { ...current.sources, [source]: !current.sources[source] },
+        },
+      };
+    });
+
+  const toggleSiteApproval = () =>
+    setSettings((prev) => {
+      const current = normalizeApprovalSettings(prev.approvalSettings);
+      return {
+        ...prev,
+        approvalSettings: { ...current, siteApprovalRequired: !current.siteApprovalRequired },
+      };
+    });
+
   const toggleWhitelistProject = (uid: string) => {
     const current = settings.notifications.interventionProjectWhitelist;
     const next = current.includes(uid)
@@ -151,6 +194,8 @@ export function GeneralSettingsSection() {
       setTimeout(() => setSavedOk(false), 3000);
     }
   };
+
+  const normalizedApproval = normalizeApprovalSettings(settings.approvalSettings);
 
   if (isLoading) {
     return (
@@ -183,6 +228,48 @@ export function GeneralSettingsSection() {
                 onChange={(v) => patch({ approvalBoardEnabled: v })}
               />
             </SettingRow>
+
+            {settings.approvalBoardEnabled && (
+              <div className="mt-2 ml-4 space-y-3 border-l-2 border-gray-200 pl-4">
+                <div className="rounded-lg border border-gray-200 p-3">
+                  <p className="text-sm font-medium text-gray-900">
+                    Require approval for interventions from
+                  </p>
+                  <p className="mb-1 text-xs text-gray-500">
+                    Applies to every project in this workspace. Only the sources you turn on need
+                    approval. Others are published right away.
+                  </p>
+                  <div className="divide-y divide-gray-100">
+                    <SubToggleRow
+                      label="Web dashboard"
+                      description="Interventions created in the web app"
+                      checked={normalizedApproval.sources.web}
+                      onChange={() => toggleApprovalSource('web')}
+                    />
+                    <SubToggleRow
+                      label="Bulk upload"
+                      description="Interventions imported from CSV or custom formats"
+                      checked={normalizedApproval.sources.bulk}
+                      onChange={() => toggleApprovalSource('bulk')}
+                    />
+                    <SubToggleRow
+                      label="Mobile app"
+                      description="Interventions and plots recorded in the TreeMapper app"
+                      checked={normalizedApproval.sources.mobile}
+                      onChange={() => toggleApprovalSource('mobile')}
+                    />
+                  </div>
+                </div>
+                <div className="rounded-lg border border-gray-200 p-3">
+                  <SubToggleRow
+                    label="Require approval for sites"
+                    description="New sites must be approved before they appear on the map"
+                    checked={normalizedApproval.siteApprovalRequired}
+                    onChange={toggleSiteApproval}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── Project Defaults ───────────────────────── */}

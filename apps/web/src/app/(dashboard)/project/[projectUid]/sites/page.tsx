@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useToken } from '@/context/useTokenContext';
-import { getUserProjectSites, updateDashboardSite } from '@shared-core/fetchApi/api.fetch';
+import { getUserProjectSites, updateDashboardSite, syncSiteToTtc } from '@shared-core/fetchApi/api.fetch';
 import { toast } from 'react-toastify';
 import { findAreaInHa } from '@/utils/geoJSON.helper';
 import { DeleteModal } from './component/DeleteModal';
@@ -30,8 +30,13 @@ const SiteManagementPage = () => {
   const router = useRouter()
   const userRole = selectedProject?.userRole;
   const canManageSites = ['owner', 'admin'].includes(userRole || '');
+  // TTC sync only applies to projects in the Plant-for-the-Planet platform workspace.
+  const isPlatformWorkspace = selectedProject?.workspace?.slug === 'platform-projects';
+  const canSyncTtc = canManageSites && isPlatformWorkspace;
   const [siteAccessModal, setSiteAccessModal] = useState(false)
   const [mobileView, setMobileView] = useState<'list' | 'detail'>('list')
+  const [syncingTtc, setSyncingTtc] = useState(false)
+  const [bulkSyncingTtc, setBulkSyncingTtc] = useState(false)
 
   useEffect(() => {
     if (isEditing && selectedSite) {
@@ -97,7 +102,9 @@ const SiteManagementPage = () => {
         treeCapacity: null,
         image: null,
         geometry: item.originalGeometry,
-        member: item.members
+        member: item.members,
+        remoteId: item.remoteId ?? null,
+        remoteSyncStatus: item.remoteSyncStatus ?? null
       };
     });
   };
@@ -168,6 +175,58 @@ const SiteManagementPage = () => {
     setEditedSite(null);
   };
 
+  // Sites that still need a TTC sync (never synced, or last attempt failed).
+  const sitesNeedingSync = sites.filter(s => !s.remoteId || s.remoteSyncStatus === 'failed');
+
+  // Bulk sync: pushes every pending site to TTC, one at a time.
+  const handleBulkSyncToTtc = async () => {
+    const pending = sites.filter(s => !s.remoteId || s.remoteSyncStatus === 'failed');
+    if (pending.length === 0) {
+      toast.info('All sites are already synced to Platform');
+      return;
+    }
+    setBulkSyncingTtc(true);
+    let ok = 0;
+    let failed = 0;
+    for (const s of pending) {
+      try {
+        const response = await syncSiteToTtc(accessToken || '', selectedProject?.uid, s.id);
+        if (response && (response.status === 'success' || response.statusCode === 200 || response.statusCode === 201)) {
+          ok++;
+        } else {
+          failed++;
+        }
+      } catch (error) {
+        failed++;
+      }
+    }
+    if (failed === 0) {
+      toast.success(`Synced ${ok} site${ok !== 1 ? 's' : ''} to Platform`);
+    } else {
+      toast.error(`Synced ${ok}, ${failed} failed. Try again to retry the rest.`);
+    }
+    setBulkSyncingTtc(false);
+    await fetchProjectSites();
+  };
+
+  const handleSyncToTtc = async () => {
+    if (!selectedSite) return;
+    setSyncingTtc(true);
+    try {
+      const response = await syncSiteToTtc(accessToken || '', selectedProject?.uid, selectedSite.id);
+      if (response && (response.status === 'success' || response.statusCode === 200 || response.statusCode === 201)) {
+        toast.success('Site synced to Platform');
+        await fetchProjectSites();
+      } else {
+        toast.error(response?.message || 'Failed to sync site to Platform');
+      }
+    } catch (error) {
+      toast.error('Failed to sync site to Platform');
+    } finally {
+      setSyncingTtc(false);
+    }
+  };
+
   const handleDelete = () => {
     const updatedSites = sites.filter(site => site.id !== selectedSite.id);
     setSites(updatedSites);
@@ -194,6 +253,11 @@ const SiteManagementPage = () => {
           setSortBy={setSortBy}
           sortDir={sortDir}
           setSortDir={setSortDir}
+          canManageSites={canManageSites}
+          canSyncTtc={canSyncTtc}
+          unsyncedCount={sitesNeedingSync.length}
+          onBulkSyncToTtc={handleBulkSyncToTtc}
+          bulkSyncingTtc={bulkSyncingTtc}
         />
       </div>
       {/* Detail: always visible on md+, hidden on mobile when viewing list */}
@@ -207,6 +271,10 @@ const SiteManagementPage = () => {
             onEdit={handleEdit}
             onSave={handleSave}
             onCancel={handleCancel}
+            onSyncToTtc={handleSyncToTtc}
+            isSyncingTtc={syncingTtc}
+            canManageSites={canManageSites}
+            canSyncTtc={canSyncTtc}
             setSiteAccessModal={setSiteAccessModal}
             siteAccessModal={siteAccessModal}
             onDelete={() => setShowDeleteModal(true)}

@@ -863,6 +863,10 @@ export const site = pgTable('site', {
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
   metadata: jsonb('metadata'),
   originalGeometry: jsonb('original_geometry'),
+  // TTC (Plant-for-the-Planet app) sync: id of the matching site on the
+  // external backend, and the last sync outcome ('synced' | 'failed' | null).
+  remoteId: text('remote_id'),
+  remoteSyncStatus: text('remote_sync_status'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),

@@ -2,7 +2,6 @@ import { Leaf, HelpCircle, TrendingUp } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { cdnUrl } from '@/lib/cdn'
 import { cn } from '@/lib/utils'
 import { formatNumber } from '@shared-core/utils/numberFormatingHelper'
@@ -66,9 +65,8 @@ export const SpeciesSidebar = ({
           </p>
         ) : (
           <>
-            <ScrollArea className="max-h-72">
-              <div className="px-2 py-2 space-y-0.5">
-                {unknownSpecies.map((s) => {
+            <div className="max-h-72 overflow-y-auto px-2 py-2 space-y-0.5">
+              {unknownSpecies.map((s) => {
                   const checked = selectedUnknown.includes(s.uid)
                   const count = s.totalCount || s.count || s.speciesCount || 0
                   return (
@@ -101,13 +99,12 @@ export const SpeciesSidebar = ({
                     </div>
                   )
                 })}
-              </div>
-            </ScrollArea>
+            </div>
             <div className="flex items-center gap-2 px-3 py-3 border-t border-border">
               <Button
                 size="sm"
                 variant="outline"
-                className="h-8 flex-1 text-xs"
+                className="h-8 flex-1 text-xs bg-white shadow-sm"
                 disabled={!hasSelection}
                 onClick={onClear}
               >
@@ -115,7 +112,8 @@ export const SpeciesSidebar = ({
               </Button>
               <Button
                 size="sm"
-                className="h-8 flex-1 text-xs"
+                variant="outline"
+                className="h-8 flex-1 text-xs bg-white shadow-sm text-foreground"
                 disabled={!hasSelection}
                 onClick={onAssign}
               >
