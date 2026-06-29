@@ -170,12 +170,12 @@ const InterventionCard = ({ intervention, onUpdate, onDelete }: Props) => {
             {editing && (
                 <div className="mt-3 space-y-3">
                     <div>
-                        <label className="text-xs text-gray-500 font-medium">Plantation Date (MM/DD/YYYY)</label>
+                        <label className="text-xs text-gray-500 font-medium">Plantation Date (DD/MM/YYYY)</label>
                         <input
                             type="text"
                             value={editDate}
                             onChange={e => setEditDate(e.target.value)}
-                            placeholder="e.g. 03/15/2024"
+                            placeholder="e.g. 15/03/2024"
                             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#007A49]"
                         />
                     </div>

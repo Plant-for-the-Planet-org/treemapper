@@ -44,6 +44,18 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
 
   console.log("CSV Data:", fileData);
 
+  // Parse a DD/MM/YYYY string into a Date. JS `new Date('DD/MM/YYYY')` would
+  // read slashes as US (MM/DD), so we build the date from explicit parts and
+  // verify it round-trips (rejects values like 31/02/2024).
+  const parseDMY = (dateStr) => {
+    const [day, month, year] = dateStr.split('/').map(Number);
+    const d = new Date(year, month - 1, day);
+    if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) {
+      return new Date(NaN);
+    }
+    return d;
+  };
+
   // Validation functions
   const validateDate = (dateStr, fieldName, isRequired = false) => {
     const errors = [];
@@ -55,13 +67,13 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
       return { isValid: !isRequired, errors };
     }
 
-    const datePattern = /^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/\d{4}$/;
+    const datePattern = /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
     if (!datePattern.test(dateStr)) {
-      errors.push(`${fieldName} must be in MM/DD/YYYY format`);
+      errors.push(`${fieldName} must be in DD/MM/YYYY format`);
       return { isValid: false, errors };
     }
 
-    const date = new Date(dateStr);
+    const date = parseDMY(dateStr);
     const today = new Date();
     today.setHours(23, 59, 59, 999);
 
@@ -283,8 +295,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
     }
 
     if (startDateResult.isValid && endDateResult.isValid && endDate) {
-      const startDate = new Date(row['PLANTATION START DATE']);
-      const endDateObj = new Date(endDate);
+      const startDate = parseDMY(row['PLANTATION START DATE']);
+      const endDateObj = parseDMY(endDate);
       if (endDateObj < startDate) {
         errors.push('Plantation End Date cannot be before Start Date');
         hasErrors = true;
@@ -542,7 +554,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
               <li>For multi plantations, specify tree count for each species</li>
               <li>Changes are auto-saved as you edit</li>
               <li>Required fields are marked with an asterisk (*)</li>
-              <li>Date format must be MM/DD/YYYY</li>
+              <li>Date format must be DD/MM/YYYY</li>
             </ul>
           </div>
         </div>
@@ -739,7 +751,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <Label className="text-xs uppercase tracking-wide text-muted-foreground">start date *</Label>
                           <Input
                             type="text"
-                            placeholder="MM/DD/YYYY"
+                            placeholder="DD/MM/YYYY"
                             value={data[result.index]['PLANTATION START DATE'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'PLANTATION START DATE', e.target.value)}
                             
@@ -749,7 +761,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <Label className="text-xs uppercase tracking-wide text-muted-foreground">end date</Label>
                           <Input
                             type="text"
-                            placeholder="MM/DD/YYYY (defaults to start date)"
+                            placeholder="DD/MM/YYYY (defaults to start date)"
                             value={data[result.index]['PLANTATION END DATE'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'PLANTATION END DATE', e.target.value)}
                             

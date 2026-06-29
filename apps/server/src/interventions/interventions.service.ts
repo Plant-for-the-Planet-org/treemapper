@@ -2029,12 +2029,17 @@ export class InterventionsService {
   private parseCustomDate(dateStr: string): string {
     const parts = (dateStr ?? '').split('/');
     if (parts.length !== 3) {
-      throw new BadRequestException(`Invalid date format: "${dateStr}". Expected MM/DD/YYYY`);
+      throw new BadRequestException(`Invalid date format: "${dateStr}". Expected DD/MM/YYYY`);
     }
-    const [month, day, year] = parts.map(Number);
+    const [day, month, year] = parts.map(Number);
     const date = new Date(year, month - 1, day);
-    if (isNaN(date.getTime())) {
-      throw new BadRequestException(`Invalid date: "${dateStr}"`);
+    if (
+      isNaN(date.getTime()) ||
+      date.getFullYear() !== year ||
+      date.getMonth() !== month - 1 ||
+      date.getDate() !== day
+    ) {
+      throw new BadRequestException(`Invalid date: "${dateStr}". Expected DD/MM/YYYY`);
     }
     return date.toISOString();
   }
