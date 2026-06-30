@@ -4,7 +4,7 @@ import { site, project, user, projectMember } from '../database/schema'; // Adju
 import { CreateSiteDto, UpdateSiteDto, UpdateSiteImagesDto } from './dto/site.dto';
 import { generateUid } from 'src/util/uidGenerator';
 import { DrizzleService } from '../database/drizzle.service';
-import { ProjectGuardResponse } from 'src/projects/projects.service';
+import { ProjectGuardResponse, ProjectsService } from 'src/projects/projects.service';
 import { AuditService } from '../audit/audit.service';
 import { siteRequiresApproval, publishedSiteFilter } from '../approval-board/approval.util';
 import { TtcSyncService } from './ttc-sync.service';
@@ -34,7 +34,21 @@ export class SiteService {
     private drizzleService: DrizzleService,
     private readonly auditService: AuditService,
     private readonly ttcSyncService: TtcSyncService,
+    private readonly projectsService: ProjectsService,
   ) { }
+
+  /**
+   * TTC sync is only allowed for projects in the Plant-for-the-Planet platform
+   * workspace (slug "platform-projects"). This enforces server-side the same
+   * restriction the web dashboard applies in the UI, so the rule holds for any
+   * caller (direct API, future clients) and not just the dashboard.
+   */
+  private async isTtcSyncAllowed(projectId: number): Promise<boolean> {
+    return (
+      this.ttcSyncService.isConfigured() &&
+      (await this.projectsService.isPlatformProject(projectId))
+    );
+  }
 
   /**
    * Best-effort sync of a freshly created/updated site to the TTC backend.
@@ -47,16 +61,29 @@ export class SiteService {
     projectUid: string | undefined,
     authorization: string | undefined,
     payload: { name: string; geometry: any; status?: string | null },
+    onBehalfEmail?: string,
   ): Promise<{ remoteId: string | null; remoteSyncStatus: string | null }> {
-    if (!authorization || !projectUid || !this.ttcSyncService.isConfigured()) {
+    // On-behalf mode (workspace owner/admin impersonating a member) uses the
+    // shared API key instead of the caller's bearer token.
+    const onBehalf = Boolean(onBehalfEmail);
+    const authReady = onBehalf
+      ? this.ttcSyncService.isOnBehalfConfigured()
+      : Boolean(authorization) && this.ttcSyncService.isConfigured();
+    if (!projectUid || !authReady) {
       return { remoteId: null, remoteSyncStatus: null };
     }
     try {
-      const remoteId = await this.ttcSyncService.createSite(
-        projectUid,
-        authorization,
-        payload,
-      );
+      const remoteId = onBehalf
+        ? await this.ttcSyncService.createSiteOnBehalf(
+            projectUid,
+            onBehalfEmail!,
+            payload,
+          )
+        : await this.ttcSyncService.createSite(
+            projectUid,
+            authorization!,
+            payload,
+          );
       await this.drizzleService.db
         .update(site)
         .set({ remoteId, remoteSyncStatus: 'synced' })
@@ -115,6 +142,7 @@ export class SiteService {
     membership: ProjectGuardResponse,
     createSiteDto: CreateSiteDto,
     authorization?: string,
+    onBehalfEmail?: string,
   ): Promise<any> {
     try {
       let locationValue: any = null;
@@ -180,17 +208,21 @@ export class SiteService {
         source: 'web',
       });
 
-      // Best-effort: mirror the new site onto the TTC backend.
-      const ttcResult = await this.syncSiteToTtcBackend(
-        newSite.id,
-        projectData?.uid,
-        authorization,
-        {
-          name: newSite.name,
-          geometry: newSite.originalGeometry,
-          status: newSite.status,
-        },
-      );
+      // Best-effort: mirror the new site onto the TTC backend, but only for
+      // projects in the platform workspace.
+      const ttcResult = (await this.isTtcSyncAllowed(membership.projectId))
+        ? await this.syncSiteToTtcBackend(
+            newSite.id,
+            projectData?.uid,
+            authorization,
+            {
+              name: newSite.name,
+              geometry: newSite.originalGeometry,
+              status: newSite.status,
+            },
+            onBehalfEmail,
+          )
+        : { remoteId: null, remoteSyncStatus: null };
 
       return { ...newSite, ...ttcResult }
     } catch (error) {
@@ -745,6 +777,7 @@ export class SiteService {
     updateSiteDto: UpdateSiteDto,
     userId?: number,
     authorization?: string,
+    onBehalfEmail?: string,
   ) {
     // First verify site exists and belongs to project
     const existingSite = await this.drizzleService.db
@@ -807,8 +840,15 @@ export class SiteService {
     }
 
     // Best-effort: mirror the update onto the TTC backend (only if we already
-    // have a remote id for this site). Never blocks the TreeMapper update.
-    if (existingSite[0].remoteId && authorization && this.ttcSyncService.isConfigured()) {
+    // have a remote id for this site, and only for platform-workspace
+    // projects). On-behalf mode (workspace owner/admin impersonating a member)
+    // uses the API key; otherwise the caller's bearer token. Never blocks the
+    // TreeMapper update.
+    if (
+      existingSite[0].remoteId &&
+      (onBehalfEmail || authorization) &&
+      (await this.isTtcSyncAllowed(projectId))
+    ) {
       try {
         const [current] = await this.drizzleService.db
           .select({
@@ -823,16 +863,26 @@ export class SiteService {
           .limit(1);
 
         if (current?.projectUid) {
-          await this.ttcSyncService.updateSite(
-            current.projectUid,
-            existingSite[0].remoteId,
-            authorization,
-            {
-              name: current.name,
-              geometry: current.originalGeometry,
-              status: current.status,
-            },
-          );
+          const payload = {
+            name: current.name,
+            geometry: current.originalGeometry,
+            status: current.status,
+          };
+          if (onBehalfEmail) {
+            await this.ttcSyncService.updateSiteOnBehalf(
+              current.projectUid,
+              existingSite[0].remoteId,
+              onBehalfEmail,
+              payload,
+            );
+          } else {
+            await this.ttcSyncService.updateSite(
+              current.projectUid,
+              existingSite[0].remoteId,
+              authorization!,
+              payload,
+            );
+          }
         }
       } catch (error) {
         console.error('TTC site update sync failed:', error?.message || error);
@@ -851,7 +901,15 @@ export class SiteService {
     membership: ProjectGuardResponse,
     siteUid: string,
     authorization?: string,
+    onBehalfEmail?: string,
   ): Promise<{ remoteId: string | null; remoteSyncStatus: string | null }> {
+    // Only platform-workspace projects may sync to the TTC backend.
+    if (!(await this.projectsService.isPlatformProject(membership.projectId))) {
+      throw new ForbiddenException(
+        'Sync to Platform is only available for platform projects',
+      );
+    }
+
     const [current] = await this.drizzleService.db
       .select({
         id: site.id,
@@ -873,16 +931,28 @@ export class SiteService {
     if (current.remoteId) {
       // Already synced once; push the latest state instead of creating a duplicate.
       try {
-        await this.ttcSyncService.updateSite(
-          current.projectUid,
-          current.remoteId,
-          authorization!,
-          {
-            name: current.name,
-            geometry: current.originalGeometry,
-            status: current.status,
-          },
-        );
+        const payload = {
+          name: current.name,
+          geometry: current.originalGeometry,
+          status: current.status,
+        };
+        // On-behalf mode (workspace owner/admin impersonating a member) uses the
+        // API key; otherwise the caller's bearer token.
+        if (onBehalfEmail) {
+          await this.ttcSyncService.updateSiteOnBehalf(
+            current.projectUid,
+            current.remoteId,
+            onBehalfEmail,
+            payload,
+          );
+        } else {
+          await this.ttcSyncService.updateSite(
+            current.projectUid,
+            current.remoteId,
+            authorization!,
+            payload,
+          );
+        }
         return { remoteId: current.remoteId, remoteSyncStatus: 'synced' };
       } catch (error) {
         console.error('TTC manual update sync failed:', error?.message || error);
@@ -899,6 +969,7 @@ export class SiteService {
         geometry: current.originalGeometry,
         status: current.status,
       },
+      onBehalfEmail,
     );
 
     if (result.remoteSyncStatus !== 'synced') {
