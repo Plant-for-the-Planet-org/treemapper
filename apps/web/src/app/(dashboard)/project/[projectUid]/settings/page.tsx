@@ -6,7 +6,7 @@ import {
   Settings, Users, MapPin, Shield, Trash2, Save, Leaf,
   Globe, Info, FileText, Upload, AlertTriangle, Lock,
   Check, Loader2, Video, AlertCircle, Image as ImageIcon, ImagePlus, X,
-  Key, Copy, RefreshCw,
+  Key, Copy, RefreshCw, Link2,
 } from 'lucide-react'
 
 import UnifiedMapComponent from '@/component/MapSelect'
@@ -29,6 +29,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { useTreematchStore } from '@/stores/treematchStore'
 
 // ---------- Approval settings helpers ----------
 
@@ -686,12 +687,54 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
   )
 }
 
+// ---------- ForestCloud ----------
+
+const ForestCloudSettings = ({ selectedProject, canEdit }: any) => {
+  const enabled = useTreematchStore(state => state.enabled)
+  const setEnabled = useTreematchStore(state => state.setEnabled)
+
+  return (
+    <div className="space-y-4">
+      <SectionCard title="Connection" icon={Globe}>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Status</span>
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1">
+              <Check size={12} /> Connected
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <div className="text-xs text-muted-foreground">Connected to project</div>
+              <div className="text-sm font-medium text-foreground truncate mt-0.5">{selectedProject?.name || '—'}</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Project ID</div>
+              <div className="text-xs font-mono text-foreground break-all mt-0.5">{selectedProject?.uid || '—'}</div>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      <FeatureToggle
+        icon={Link2}
+        title="TreeMatch"
+        description="Match planted trees to donations. Auto-enabled for workspaces with Plant-for-the-Planet projects."
+        checked={enabled}
+        onToggle={setEnabled}
+        disabled={!canEdit}
+      />
+    </div>
+  )
+}
+
 // ---------- Main ----------
 
 const NAV_ITEMS = [
   { id: 'general', label: 'General settings', icon: Settings },
   { id: 'location', label: 'Location', icon: MapPin },
   { id: 'features', label: 'Features', icon: Shield },
+  { id: 'forestcloud', label: 'ForestCloud', icon: Globe },
   { id: 'danger', label: 'Danger zone', icon: Trash2, danger: true },
 ]
 
@@ -989,6 +1032,8 @@ const ProjectSettings = () => {
         return <LocationSettings handleLocationUpdate={handleLocationUpdate} existingGeoJSON={projectData.originalGeometry} loading={loading} canEdit={canEdit} />
       case 'features':
         return <FeaturesSettings projectData={projectData} handleToggleChange={handleToggleChange} handleApprovalSourceToggle={handleApprovalSourceToggle} handleSiteApprovalToggle={handleSiteApprovalToggle} handleSubmit={handleSubmit} loading={loading} canEdit={canEdit} projectUid={selectedProject?.uid} accessToken={accessToken} onApiToggle={handleApiToggle} />
+      case 'forestcloud':
+        return <ForestCloudSettings selectedProject={selectedProject} canEdit={canEdit} />
       case 'danger':
         return <DangerZone projectData={projectData} showDeleteConfirm={showDeleteConfirm} setShowDeleteConfirm={setShowDeleteConfirm} handleDeleteProject={handleDeleteProject} canEdit={canEdit} />
       default:

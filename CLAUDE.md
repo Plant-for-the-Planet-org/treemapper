@@ -122,6 +122,11 @@ rewrites to a local server on `SERVER_PORT` (default 3001), and every API call
 500s if that server isn't running. Since it's a `NEXT_PUBLIC_*` var, changing it
 requires restarting the dev server, not just a reload.
 
+You do **not** need the local `server` or `mobile` app to preview the TreeMatch
+screens -- they render from mock data. `/api/server/*` calls will fail
+(`ECONNREFUSED :3001`, since no local backend runs), but that does not block the
+mock UI.
+
 ## Token injection (previewing the authed app)
 
 The web dashboard is auth-gated behind Auth0. A normal `npm run dev` login works,

@@ -24,6 +24,7 @@ const ROUTE_LABELS: Record<string, string> = {
   dataexplore: 'Data Explorer',
   leaderboard: 'Leaderboard',
   settings: 'Settings',
+  treematch: 'TreeMatch',
 }
 
 export default function DashboardTopBar() {
