@@ -106,6 +106,53 @@ auto-upgrades anything.
 - The web app inlines `NEXT_PUBLIC_*` env vars at build time. Changing them requires a rebuild.
 - The server uses Fastify, not Express. Some Nest examples assume Express -- adapt accordingly.
 
+## Running the web app for preview
+
+Run the web dev server **from `apps/web`, not the repo root**:
+`cd apps/web && npm run dev`. The `.claude/launch.json` "web" config does exactly
+this. Running it from root (e.g. `yarn web:dev` via turbo) is wrong: it writes a
+`.next` build that then breaks a later `apps/web` run with
+`MODULE_UNPARSABLE: next/document.js` and other stale-cache weirdness. If the
+preview misbehaves after a bad run, delete `apps/web/.next` and restart clean.
+
+The web app talks to the hosted dev backend (`dev.treemapper.app`) when
+`NEXT_PUBLIC_BACKEND_API=true` is set in `apps/web/.env` (see `.env.example`) --
+this is the rewrite target in `next.config.ts`. Without it, `/api/server/*`
+rewrites to a local server on `SERVER_PORT` (default 3001), and every API call
+500s if that server isn't running. Since it's a `NEXT_PUBLIC_*` var, changing it
+requires restarting the dev server, not just a reload.
+
+## Token injection (previewing the authed app)
+
+The web dashboard is auth-gated behind Auth0. A normal `npm run dev` login works,
+but **Claude Code's preview browser cannot complete the Auth0 redirect flow**, so
+authed pages bounce to login.
+
+"Inject the token" (in this repo) means: seed a bearer token into the preview
+browser so the app behaves as if the user is logged in. `localStorage.access_token`
+is the only thing that gates "logged in" -- `AuthInitializer` reads it via
+`getValidStoredToken()`, puts it in the Zustand auth store, and every backend call
+then sends `Authorization: Bearer <token>`
+(`packages/shared-core/fetchApi/customFetch.ts`). Seeding that one key = logged in.
+
+Workflow when previewing an authed page:
+
+1. Check auth in the preview (is `localStorage.access_token` empty / is the page
+   on login?).
+2. If auth is empty **and** `BEARER_TOKEN` is set in `apps/web/.env`: tell the
+   user you are injecting the token, then in the preview run
+   `localStorage.setItem('access_token', '<token from .env>')` and reload.
+3. If auth is empty **and** `BEARER_TOKEN` is not in `apps/web/.env`: ask the user
+   to add a valid `BEARER_TOKEN` to `apps/web/.env` (do not invent one). This is
+   a Claude-preview-only convenience -- `BEARER_TOKEN` is not a normal dev
+   dependency and is intentionally left out of `apps/web/.env.example`.
+4. If auth is already present, do nothing.
+
+`BEARER_TOKEN` is a valid Auth0 access token for the backend -- never commit it,
+never print it in chat. No app or auth code changes; the token only lives in the
+browser session. Do **not** commit an in-app token seeder or a route that serves
+the token -- injection is a preview-time action only.
+
 ## What NOT to do
 
 - Do not commit secrets or `.env` files.

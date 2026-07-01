@@ -137,8 +137,8 @@ yarn lint             # Lint all apps
 Each app has its own `.env` file. Copy the `.env.example` in each app directory and fill in the values.
 
 - `apps/server/.env`
-- `apps/web/.env.local`
-- `apps/mobile/.env`
+- `apps/web/.env`
+- `apps/mobile/.env` (see `apps/mobile/.env.sample`)
 
 Never commit `.env` files. See the [documentation](https://docs.treemapper.app/en) for required variables.
 
