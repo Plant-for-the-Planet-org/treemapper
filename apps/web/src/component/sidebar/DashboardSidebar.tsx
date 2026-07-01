@@ -8,7 +8,7 @@ import {
   LayoutDashboard, MapPin, Leaf, Users, Activity, Upload,
   CheckSquare, FileText, BarChart2, Trophy, Settings, Building,
   ChevronDown, ChevronRight, Plus,
-  UserCog, SlidersHorizontal, UserCheck, LogOut, Grid2x2
+  UserCog, SlidersHorizontal, UserCheck, LogOut, Grid2x2, Smartphone
 } from 'lucide-react'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -218,6 +218,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         { icon: Upload, label: 'Bulk Upload', id: 'bulkupload' },
         ...(!isContributor ? [{ icon: CheckSquare, label: 'Approvals', id: 'approvals' }] : []),
         ...(!isContributor ? [{ icon: FileText, label: 'Forms', id: 'forms' }] : []),
+        ...(isAdminOrOwner ? [{ icon: Smartphone, label: 'Devices', id: 'device-management' }] : []),
       ],
     },
     {
