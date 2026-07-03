@@ -17,8 +17,8 @@ export interface MockIntervention {
   type: InterventionType;
   siteName: string;
   plantingDate: string; // ISO
-  totalTrees: number;
-  matchedTrees: number; // already allocated
+  totalTrees: number; // planted trees are whole numbers
+  matchedTrees: number; // already allocated (may be fractional once decimal donations are matched)
   /** where this plant location sits (fictional coordinates near the Yucatán restoration area) */
   location: MockGeometry;
   /** manually excluded from matching by the RO (e.g. already funded, or a free re-planting under a survival guarantee) */
@@ -38,8 +38,8 @@ export interface MockContribution {
   date: string; // payment date, ISO
   amount: number; // major units
   currency: string;
-  units: number; // trees funded
-  allocated: number; // trees already matched
+  units: number; // trees funded (may be fractional -- money converts to decimal tree units)
+  allocated: number; // trees already matched (may be fractional)
   priority: 'manual' | 'automatic' | 'first' | 'never';
   country: string; // ISO-2 (payment country; kept in data, not shown)
   payout: string; // treecounter payout batch the RO received this money in (payouts are per entity)
@@ -85,7 +85,7 @@ const pt = (lng: number, lat: number): MockGeometry => ({ type: 'Point', coordin
 export const MOCK_INTERVENTIONS: MockIntervention[] = [
   { uid: 'ivn_a1', hid: 'AB1-2024', type: 'multi-tree-registration', siteName: 'North Ridge', plantingDate: '2024-07-12', totalTrees: 5200, matchedTrees: 1200, location: quad(-90.095, 18.455, 0.007, 0.005) },
   { uid: 'ivn_a2', hid: 'AB2-2024', type: 'multi-tree-registration', siteName: 'North Ridge', plantingDate: '2024-08-03', totalTrees: 4700, matchedTrees: 0, location: quad(-90.115, 18.447, 0.006, 0.005) },
-  { uid: 'ivn_a3', hid: 'CD9-2024', type: 'single-tree-registration', siteName: 'Riverside', plantingDate: '2024-09-21', totalTrees: 1, matchedTrees: 0, location: pt(-90.168, 18.409) },
+  { uid: 'ivn_a3', hid: 'CD9-2024', type: 'single-tree-registration', siteName: 'Riverside', plantingDate: '2024-09-21', totalTrees: 1, matchedTrees: 0.2, location: pt(-90.168, 18.409) },
   { uid: 'ivn_a4', hid: 'CD8-2024', type: 'multi-tree-registration', siteName: 'Riverside', plantingDate: '2024-10-05', totalTrees: 8800, matchedTrees: 8800, location: quad(-90.179, 18.401, 0.008, 0.006) },
   { uid: 'ivn_a5', hid: 'EF3-2025', type: 'multi-tree-registration', siteName: 'South Basin', plantingDate: '2025-02-14', totalTrees: 3000, matchedTrees: 500, blocked: true, location: quad(-90.128, 18.334, 0.006, 0.005) },
   { uid: 'ivn_a6', hid: 'EF7-2025', type: 'multi-tree-registration', siteName: 'Volcano Valley', plantingDate: '2025-03-02', totalTrees: 6400, matchedTrees: 0, crossProjectName: 'Volcano Valley (id 227)', location: quad(-90.298, 18.502, 0.009, 0.007) },
@@ -105,8 +105,8 @@ const daysAgoISO = (n: number) => {
 };
 
 export const MOCK_CONTRIBUTIONS: MockContribution[] = [
-  { uid: 'pc_1', donationGuid: 'don_9Qh2', donor: 'Acme GmbH', date: '2023-05-11', amount: 4700, currency: 'EUR', units: 4700, allocated: 0, priority: 'automatic', country: 'DE', payout: '2023 payout' },
-  { uid: 'pc_2', donationGuid: 'don_7Rt8', donor: 'Lena Fischer', date: '2023-06-02', amount: 100, currency: 'EUR', units: 100, allocated: 40, priority: 'manual', country: 'DE', payout: '2023 payout' },
+  { uid: 'pc_1', donationGuid: 'don_9Qh2', donor: 'Acme GmbH', date: '2023-05-11', amount: 4700, currency: 'EUR', units: 4700, allocated: 0.2, priority: 'automatic', country: 'DE', payout: '2023 payout' },
+  { uid: 'pc_2', donationGuid: 'don_7Rt8', donor: 'Lena Fischer', date: '2023-06-02', amount: 100, currency: 'EUR', units: 20.5, allocated: 5.2, priority: 'manual', country: 'DE', payout: '2023 payout' },
   { uid: 'pc_3', donationGuid: 'don_2Kb5', donor: 'Northwind Corp', date: '2024-01-19', amount: 100000, currency: 'USD', units: 100000, allocated: 62000, priority: 'first', country: 'US', payout: 'Feb 2024 payout' },
   { uid: 'pc_4', donationGuid: 'don_5Vd1', donor: 'Sofia Mariani', date: '2024-03-08', amount: 250, currency: 'CHF', units: 250, allocated: 0, priority: 'manual', country: 'CH', payout: 'Mar 2024 payout' },
   { uid: 'pc_5', donationGuid: 'don_1Aa0', donor: 'Old CRM import', date: '2018-09-14', amount: 5000, currency: 'EUR', units: 5000, allocated: 0, priority: 'never', country: 'MX', payout: 'Legacy', ignored: true, ignoreReason: 'Legacy promise, handled manually' },
@@ -198,7 +198,18 @@ export const COUNTRIES = ['All', 'DE', 'US', 'CH', 'ES', 'MX'];
 export const fmtAmount = (a: number, c: string) =>
   new Intl.NumberFormat('en', { style: 'currency', currency: c, maximumFractionDigits: 0 }).format(a);
 
-export const fmtNum = (n: number) => new Intl.NumberFormat('en').format(n);
+// Trees can be fractional on the donation side (money converts to decimal tree
+// units). Match treecounter-platform: round to 2 decimals, and show decimals
+// only when the value actually has a fractional part. Whole numbers render with
+// no decimals (20, not 20.00); fractional values show exactly 2 digits (20.50).
+// The rounding also clears float artifacts (e.g. 29.4999999 -> 29.5).
+export const fmtNum = (n: number) => {
+  const r = Math.round((n + Number.EPSILON) * 100) / 100;
+  return new Intl.NumberFormat('en', {
+    minimumFractionDigits: Number.isInteger(r) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(r);
+};
 
 export const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' });

@@ -1,6 +1,6 @@
 'use client'
 
-import { TreePine, Sprout, MapPin, Lock, Ban, ArrowLeftRight, Map as MapIcon } from 'lucide-react';
+import { TreePine, Sprout, Lock, Ban, ArrowLeftRight, Map as MapIcon } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -17,7 +17,6 @@ interface Props {
 
 export function InterventionMatchCard({ intervention: i, checked, disabled, onToggle, onViewMap }: Props) {
   const available = Math.max(0, i.totalTrees - i.matchedTrees);
-  const pct = i.totalTrees > 0 ? Math.round((i.matchedTrees / i.totalTrees) * 100) : 0;
   const isSingle = i.type === 'single-tree-registration';
   const Icon = isSingle ? Sprout : TreePine;
   const inactive = disabled || available === 0 || i.blocked;
@@ -30,72 +29,58 @@ export function InterventionMatchCard({ intervention: i, checked, disabled, onTo
       onClick={() => { if (!inactive) onToggle(i.uid); }}
       onKeyDown={(e) => { if (!inactive && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onToggle(i.uid); } }}
       className={cn(
-        'w-full text-left rounded-xl border bg-card px-4 py-3.5 transition-colors',
+        'group w-full text-left rounded-xl border bg-card px-4 py-3 transition-colors',
         inactive ? 'opacity-55 cursor-not-allowed' : 'cursor-pointer hover:border-primary/40',
         checked ? 'border-primary/60 ring-1 ring-primary/25 bg-primary/5' : 'border-border',
       )}
     >
-      <div className="flex items-center gap-2.5">
-        <Checkbox checked={checked} disabled={inactive} className="pointer-events-none" />
+      {/* Line 1: HID · available  ···  tags + map */}
+      <div className="flex items-center gap-2">
+        <Checkbox checked={checked} disabled={inactive} className="pointer-events-none flex-shrink-0" />
         <Icon size={15} className={cn('flex-shrink-0', i.legacy ? 'text-amber-500' : isSingle ? 'text-primary/70' : 'text-primary')} />
-        <span className="text-sm font-bold text-foreground truncate">{i.hid}</span>
-        <span className="text-[9px] font-semibold uppercase tracking-[0.08em] rounded-md bg-muted px-1.5 py-0.5 text-muted-foreground flex-shrink-0">
-          {isSingle ? 'single' : 'multi'}
+        <span className="text-sm font-bold text-foreground truncate min-w-0">{i.hid}</span>
+        <span className="text-muted-foreground/40 flex-shrink-0">·</span>
+        <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+          <span className="font-semibold text-foreground">{fmtNum(available)}</span> available
         </span>
-      </div>
-
-      <div className="mt-1.5 pl-[26px] flex items-center gap-1.5 text-xs text-muted-foreground">
-        <MapPin size={12} className="flex-shrink-0" />
-        <span className="truncate">{i.siteName || 'No site'}</span>
-        <span className="text-muted-foreground/40">·</span>
-        <span className="whitespace-nowrap">{fmtDate(i.plantingDate)}</span>
-        {onViewMap && (
-          <>
-            <span className="text-muted-foreground/40">·</span>
+        <div className="ml-auto flex items-center gap-1 flex-shrink-0">
+          {onViewMap && (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onViewMap(i.uid); }}
-              className="flex items-center gap-1 text-primary hover:underline whitespace-nowrap"
+              title="View on map"
+              aria-label="View on map"
+              className="flex items-center justify-center rounded-md p-1 text-muted-foreground transition-[color,background-color,opacity] hover:bg-muted hover:text-primary focus-visible:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
             >
-              <MapIcon size={12} className="flex-shrink-0" /> View on map
+              <MapIcon size={14} />
             </button>
-          </>
-        )}
+          )}
+          {i.blocked && (
+            <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-amber-700 border-amber-200 bg-amber-50">
+              <Ban size={10} /> blocked
+            </Badge>
+          )}
+          {i.crossProjectName && (
+            <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-blue-700 border-blue-200 bg-blue-50">
+              <ArrowLeftRight size={10} /> {i.crossProjectName}
+            </Badge>
+          )}
+          {i.legacy && (
+            <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-purple-700 border-purple-200 bg-purple-50">
+              <Lock size={10} /> legacy holding
+            </Badge>
+          )}
+        </div>
       </div>
 
-      {/* allocated / available bar */}
-      <div className="mt-3 pl-[26px]">
-        <div className="flex items-end justify-between mb-1.5">
-          <span className="text-xs text-muted-foreground">
-            <span className="text-lg font-bold text-foreground leading-none">{fmtNum(available)}</span> available
-          </span>
-          <span className="text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">{fmtNum(i.matchedTrees)}</span> / {fmtNum(i.totalTrees)} matched
-          </span>
-        </div>
-        <div className="h-2 w-full rounded-full bg-primary/15 overflow-hidden">
-          <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
-        </div>
-
-        {(i.blocked || i.crossProjectName || i.legacy) && (
-          <div className="mt-2.5 flex flex-wrap gap-1">
-            {i.blocked && (
-              <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-amber-700 border-amber-200 bg-amber-50">
-                <Ban size={10} /> blocked from matching
-              </Badge>
-            )}
-            {i.crossProjectName && (
-              <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-blue-700 border-blue-200 bg-blue-50">
-                <ArrowLeftRight size={10} /> {i.crossProjectName}
-              </Badge>
-            )}
-            {i.legacy && (
-              <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-purple-700 border-purple-200 bg-purple-50">
-                <Lock size={10} /> legacy holding
-              </Badge>
-            )}
-          </div>
-        )}
+      {/* Line 2: site · date  ···  matched / total */}
+      <div className="mt-1.5 pl-[26px] flex items-center gap-1.5 text-xs text-muted-foreground">
+        <span className="truncate">{i.siteName || 'No site'}</span>
+        <span className="text-muted-foreground/40 flex-shrink-0">·</span>
+        <span className="whitespace-nowrap flex-shrink-0">{fmtDate(i.plantingDate)}</span>
+        <span className="ml-auto whitespace-nowrap flex-shrink-0">
+          <span className="font-semibold text-foreground">{fmtNum(i.matchedTrees)}</span> / {fmtNum(i.totalTrees)} matched
+        </span>
       </div>
     </div>
   );

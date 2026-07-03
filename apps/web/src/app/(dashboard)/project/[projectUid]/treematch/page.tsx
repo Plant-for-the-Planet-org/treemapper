@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   Link2, SlidersHorizontal, Download, Search, List, Map as MapIcon,
-  CheckCircle2, Sprout, Play, EyeOff, Info, ArrowLeftRight,
+  CheckCircle2, Sprout, Play, EyeOff, Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,6 @@ import { Separator } from '@/components/ui/separator';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useTopBarActions } from '@/component/header/TopBarActions';
@@ -56,6 +55,27 @@ const Stat = ({
       </div>
     </div>
   </div>
+);
+
+const FilterChip = ({
+  active, onClick, children,
+}: {
+  active: boolean; onClick: () => void; children: React.ReactNode;
+}) => (
+  <button
+    type="button"
+    role="switch"
+    aria-checked={active}
+    onClick={onClick}
+    className={cn(
+      'inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+      active
+        ? 'border-primary/40 bg-primary/10 text-primary'
+        : 'border-border text-muted-foreground hover:bg-muted hover:text-foreground',
+    )}
+  >
+    {children}
+  </button>
 );
 
 export default function TreeMatchPage() {
@@ -129,7 +149,10 @@ export default function TreeMatchPage() {
   const shownContributions = useMemo(() => {
     let list = contributions.filter(c => {
       if (c.ignored) return rightTab === 'ignored';
-      return rightTab !== 'ignored';
+      if (rightTab === 'ignored') return false;
+      const fullyMatched = c.allocated >= c.units;
+      if (rightTab === 'matched') return fullyMatched;
+      return !fullyMatched; // toMatch: still has trees left to allocate
     });
     if (rightTab !== 'ignored') {
       if (payout !== 'All') list = list.filter(c => c.payout === payout);
@@ -153,6 +176,7 @@ export default function TreeMatchPage() {
   }, [contributions, rightTab, payout, donSearch, sort, paidWindowOnly]);
 
   const ignoredList = useMemo(() => contributions.filter(c => c.ignored), [contributions]);
+  const matchedList = useMemo(() => contributions.filter(c => !c.ignored && c.allocated >= c.units), [contributions]);
   const hiddenByWindow = useMemo(() => {
     if (!paidWindowOnly) return 0;
     const cutoff = Date.now() - 90 * 864e5;
@@ -190,6 +214,28 @@ export default function TreeMatchPage() {
   const selSupply = selIntervList.reduce((s, i) => s + Math.max(0, i.totalTrees - i.matchedTrees), 0);
   const selDemand = selContribList.reduce((s, c) => s + Math.max(0, c.units - c.allocated), 0);
   const matchable = Math.min(selSupply, selDemand);
+
+  // "Select all" targets only the currently-shown items a card actually lets you pick.
+  const selectableInterv = useMemo(
+    () => shownInterventions.filter(i => (i.totalTrees - i.matchedTrees) > 0 && !i.blocked),
+    [shownInterventions],
+  );
+  const selectableContrib = useMemo(
+    () => shownContributions.filter(c => !c.ignored && (c.units - c.allocated) > 0 && c.priority !== 'never'),
+    [shownContributions],
+  );
+  const allIntervSelected = selectableInterv.length > 0 && selectableInterv.every(i => selInterv.has(i.uid));
+  const allContribSelected = selectableContrib.length > 0 && selectableContrib.every(c => selContrib.has(c.uid));
+  const toggleAllInterv = () => setSelInterv(prev => {
+    const n = new Set(prev);
+    selectableInterv.forEach(i => (allIntervSelected ? n.delete(i.uid) : n.add(i.uid)));
+    return n;
+  });
+  const toggleAllContrib = () => setSelContrib(prev => {
+    const n = new Set(prev);
+    selectableContrib.forEach(c => (allContribSelected ? n.delete(c.uid) : n.add(c.uid)));
+    return n;
+  });
 
   const applyMatch = (allocs: PreviewAllocation[]) => {
     const byHid: Record<string, number> = {};
@@ -285,14 +331,13 @@ export default function TreeMatchPage() {
           <div className="flex-1 min-h-0 flex overflow-hidden px-4 py-3">
             {/* LEFT: plant locations */}
             <div className="flex-1 min-w-0 flex flex-col min-h-0 rounded-xl border border-border bg-background overflow-hidden">
-              <div className="flex-shrink-0 px-4 pt-3.5 pb-3 space-y-2.5">
-                <div className="flex items-start justify-between gap-2">
+              <div className="flex-shrink-0 px-4 pt-3 pb-2.5 space-y-2">
+                <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <h2 className="text-[15px] font-semibold text-foreground">Plant locations</h2>
                       <Badge variant="secondary" className="rounded-full px-2 text-[11px]">{shownInterventions.length}</Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">Single &amp; multi-tree · synced &amp; complete</p>
                   </div>
                   <div className="flex items-center rounded-lg bg-muted p-0.5 flex-shrink-0">
                     <button
@@ -317,13 +362,13 @@ export default function TreeMatchPage() {
                     </button>
                   </div>
                 </div>
-                <div className="relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <Input value={ivSearch} onChange={e => setIvSearch(e.target.value)} placeholder="Search HID or site" className="h-9 pl-9 text-xs rounded-lg" />
-                </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="relative flex-1 min-w-[150px]">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input value={ivSearch} onChange={e => setIvSearch(e.target.value)} placeholder="Search HID or site" className="h-8 pl-9 text-xs rounded-lg" />
+                  </div>
                   <Select value={ivType} onValueChange={setIvType}>
-                    <SelectTrigger className="flex-1 h-9 text-xs rounded-lg"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-8 text-xs rounded-lg w-[118px]"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All types</SelectItem>
                       <SelectItem value="single">Single-tree</SelectItem>
@@ -331,17 +376,30 @@ export default function TreeMatchPage() {
                     </SelectContent>
                   </Select>
                   <Select value={ivSite} onValueChange={setIvSite}>
-                    <SelectTrigger className="flex-1 h-9 text-xs rounded-lg"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-8 text-xs rounded-lg w-[128px]"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {sites.map(s => <SelectItem key={s} value={s}>{s === 'all' ? 'All sites' : s === 'none' ? 'Not linked to site' : s}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-center gap-4 flex-wrap text-xs text-muted-foreground">
-                  <label className="flex items-center gap-1.5"><Checkbox checked={onlyAvailable} onCheckedChange={v => setOnlyAvailable(!!v)} /> Only with available</label>
-                  <label className="flex items-center gap-1.5"><Checkbox checked={includeBlocked} onCheckedChange={v => setIncludeBlocked(!!v)} /> Show blocked</label>
-                  <label className="flex items-center gap-1.5"><Checkbox checked={crossProject} onCheckedChange={v => setCrossProject(!!v)} /> Cross-project (same RO)</label>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <FilterChip active={onlyAvailable} onClick={() => setOnlyAvailable(!onlyAvailable)}>Only with available</FilterChip>
+                  <FilterChip active={includeBlocked} onClick={() => setIncludeBlocked(!includeBlocked)}>Show blocked</FilterChip>
+                  <FilterChip active={crossProject} onClick={() => setCrossProject(!crossProject)}>Cross-project (same RO)</FilterChip>
                 </div>
+                {selectableInterv.length > 0 && (
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                      <Checkbox checked={allIntervSelected} onCheckedChange={() => toggleAllInterv()} aria-label="Select all plant locations" />
+                      Select all ({selectableInterv.length})
+                    </label>
+                    {selInterv.size > 0 && (
+                      <button type="button" onClick={() => setSelInterv(new Set())} className="text-xs text-muted-foreground hover:text-foreground">
+                        Clear ({selInterv.size})
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
               {leftView === 'map' ? (
                 <TreeMatchMap
@@ -376,54 +434,63 @@ export default function TreeMatchPage() {
               )}
             </div>
 
-            {/* MIDDLE: dashed connector with live match preview */}
+            {/* MIDDLE: dashed connector linking the two panels */}
             <div className="relative w-9 flex-shrink-0 self-stretch">
               <div className="absolute inset-y-2 left-1/2 -translate-x-1/2 border-l border-dashed border-border" />
-              {canMatch && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-1.5">
-                  <div key={matchable} className="relative animate-in fade-in zoom-in-75 duration-300">
-                    <span aria-hidden className="absolute -inset-1.5 rounded-full border-2 border-emerald-500/40 animate-pulse" />
-                    <span aria-hidden className="absolute -inset-3 rounded-full border border-emerald-500/20 animate-pulse [animation-delay:400ms]" />
-                    <div className="relative flex h-16 min-w-16 px-2 flex-col items-center justify-center rounded-full bg-emerald-950 text-white shadow-lg ring-4 ring-background">
-                      <span className="text-sm font-bold leading-none tabular-nums whitespace-nowrap">{fmtNum(matchable)}</span>
-                      <span className="mt-0.5 text-[9px] font-medium uppercase tracking-wider text-emerald-300">trees</span>
-                    </div>
-                  </div>
-                  <span className={cn(
-                    'rounded-full bg-background px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap shadow-sm ring-1 ring-border',
-                    selSupply >= selDemand ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400',
-                  )}>
-                    {selSupply === selDemand ? 'exact match' : selSupply > selDemand ? 'fits available' : `short by ${fmtNum(selDemand - selSupply)}`}
-                  </span>
-                </div>
-              )}
             </div>
 
             {/* RIGHT: donations */}
             <div className="flex-1 min-w-0 flex flex-col min-h-0 rounded-xl border border-border bg-background overflow-hidden">
-              <div className="flex-shrink-0 px-4 pt-3.5 pb-3 space-y-2.5">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-[15px] font-semibold text-foreground">Donations</h2>
-                    <Badge variant="secondary" className="rounded-full px-2 text-[11px]">{shownContributions.length}</Badge>
+              <div className="flex-shrink-0 px-4 pt-3 pb-2.5 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-[15px] font-semibold text-foreground">Donations</h2>
+                      <Badge variant="secondary" className="rounded-full px-2 text-[11px]">{shownContributions.length}</Badge>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">Paid project contributions</p>
+                  <div className="flex items-center rounded-lg bg-muted p-0.5 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setRightTab('toMatch')}
+                      className={cn(
+                        'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
+                        rightTab === 'toMatch' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                      )}
+                    >
+                      To match
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRightTab('matched')}
+                      className={cn(
+                        'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
+                        rightTab === 'matched' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                      )}
+                    >
+                      Matched ({matchedList.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRightTab('ignored')}
+                      className={cn(
+                        'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
+                        rightTab === 'ignored' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                      )}
+                    >
+                      Ignored ({ignoredList.length})
+                    </button>
+                  </div>
                 </div>
-                <Tabs value={rightTab} onValueChange={setRightTab}>
-                  <TabsList className="w-full h-9">
-                    <TabsTrigger value="toMatch" className="flex-1 text-xs">To match</TabsTrigger>
-                    <TabsTrigger value="ignored" className="flex-1 text-xs">Ignored ({ignoredList.length})</TabsTrigger>
-                  </TabsList>
-                </Tabs>
                 {rightTab !== 'ignored' && (
                   <div className="flex items-center gap-2 flex-wrap">
-                    <div className="relative flex-1 min-w-[130px]">
+                    <div className="relative flex-1 min-w-[150px]">
                       <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                      <Input value={donSearch} onChange={e => setDonSearch(e.target.value)} placeholder="Search donor or ref" className="h-9 pl-9 text-xs rounded-lg" />
+                      <Input value={donSearch} onChange={e => setDonSearch(e.target.value)} placeholder="Search donor or ref" className="h-8 pl-9 text-xs rounded-lg" />
                     </div>
                     {rightTab === 'toMatch' && (
                       <Select value={sort} onValueChange={setSort}>
-                        <SelectTrigger className="h-9 text-xs rounded-lg w-[104px]"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-xs rounded-lg w-[104px]"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="oldest">Oldest</SelectItem>
                           <SelectItem value="largest">Largest</SelectItem>
@@ -431,7 +498,7 @@ export default function TreeMatchPage() {
                       </Select>
                     )}
                     <Select value={payout} onValueChange={setPayout}>
-                      <SelectTrigger className="h-9 text-xs rounded-lg w-[130px]"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-8 text-xs rounded-lg w-[128px]"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {payouts.map(p => <SelectItem key={p} value={p}>{p === 'All' ? 'All payouts' : isPayoutPaid(p) ? p : `${p} · pending`}</SelectItem>)}
                       </SelectContent>
@@ -439,10 +506,22 @@ export default function TreeMatchPage() {
                   </div>
                 )}
                 {rightTab === 'toMatch' && (
-                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Checkbox checked={paidWindowOnly} onCheckedChange={v => setPaidWindowOnly(!!v)} />
-                    Donations older than 90 days
-                  </label>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {selectableContrib.length > 0 && (
+                        <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                          <Checkbox checked={allContribSelected} onCheckedChange={() => toggleAllContrib()} aria-label="Select all donations" />
+                          Select all ({selectableContrib.length})
+                        </label>
+                      )}
+                      <FilterChip active={paidWindowOnly} onClick={() => setPaidWindowOnly(!paidWindowOnly)}>Older than 90 days</FilterChip>
+                    </div>
+                    {selContrib.size > 0 && (
+                      <button type="button" onClick={() => setSelContrib(new Set())} className="text-xs text-muted-foreground hover:text-foreground">
+                        Clear ({selContrib.size})
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
               <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2.5">
@@ -478,12 +557,13 @@ export default function TreeMatchPage() {
           {/* Bottom action bar */}
           <div className="flex-shrink-0 border-t border-border bg-background px-4 py-3">
             <div className="flex items-center gap-3 flex-wrap">
-              <div className="text-sm text-muted-foreground flex items-center gap-1.5 whitespace-nowrap">
-                <span className="font-semibold text-foreground">{selIntervList.length}</span>
-                plant location{selIntervList.length === 1 ? '' : 's'}
-                <ArrowLeftRight size={13} className="text-muted-foreground/70" />
-                <span className="font-semibold text-foreground">{selContribList.length}</span>
-                donation{selContribList.length === 1 ? '' : 's'}
+              <div className="text-xs text-muted-foreground whitespace-nowrap leading-snug">
+                <div>
+                  <span className="font-semibold text-foreground">{selIntervList.length}</span> plant location{selIntervList.length === 1 ? '' : 's'}
+                </div>
+                <div>
+                  <span className="font-semibold text-foreground">{selContribList.length}</span> donation{selContribList.length === 1 ? '' : 's'}
+                </div>
               </div>
 
               <Separator orientation="vertical" className="h-6" />
@@ -520,6 +600,17 @@ export default function TreeMatchPage() {
               </label>
 
               <div className="flex-1" />
+
+              {canMatch && (
+                <span className={cn(
+                  'rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ring-1',
+                  selSupply >= selDemand
+                    ? 'text-emerald-700 dark:text-emerald-400 ring-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/30'
+                    : 'text-amber-700 dark:text-amber-400 ring-amber-500/30 bg-amber-50 dark:bg-amber-950/30',
+                )}>
+                  {selSupply === selDemand ? 'exact match' : selSupply > selDemand ? 'fits available' : `short by ${fmtNum(selDemand - selSupply)}`}
+                </span>
+              )}
 
               <Button size="lg" className="rounded-lg px-5" disabled={!canMatch} onClick={() => setConfirmOpen(true)}>
                 <Play size={14} /> {canMatch ? `Match ${fmtNum(matchable)} trees` : 'Match trees'}

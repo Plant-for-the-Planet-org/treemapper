@@ -1,18 +1,11 @@
 'use client'
 
-import { Calendar, Wallet, EyeOff, Ban as BanIcon, Sparkles, Check } from 'lucide-react';
+import { Calendar, Wallet, EyeOff, Ban as BanIcon, Check } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { MockContribution, fmtNum, fmtDate, donorLabel } from './mockData';
-
-const PRIORITY_META: Record<MockContribution['priority'], { label: string; icon?: React.ElementType; cls: string }> = {
-  automatic: { label: 'Automatic', icon: Sparkles, cls: 'bg-primary/10 text-primary' },
-  first: { label: 'First', cls: 'bg-indigo-50 text-indigo-700' },
-  manual: { label: 'Manual', cls: 'bg-muted text-muted-foreground' },
-  never: { label: 'Never', icon: BanIcon, cls: 'bg-rose-50 text-rose-700' },
-};
 
 // Dashed "empty" track, like the mock: short green dashes on a transparent base.
 const DASHED_TRACK = 'repeating-linear-gradient(90deg, rgb(16 185 129 / 0.3) 0px, rgb(16 185 129 / 0.3) 7px, transparent 7px, transparent 12px)';
@@ -30,8 +23,6 @@ export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onR
   const pct = c.units > 0 ? Math.round((c.allocated / c.units) * 100) : 0;
   const fullyMatched = available === 0;
   const selectable = !c.ignored && !fullyMatched && c.priority !== 'never';
-  const priority = PRIORITY_META[c.priority];
-  const PriorityIcon = priority.icon;
 
   return (
     <div
@@ -40,7 +31,7 @@ export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onR
       onClick={() => { if (selectable) onToggle(c.uid); }}
       onKeyDown={(e) => { if (selectable && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onToggle(c.uid); } }}
       className={cn(
-        'rounded-xl border bg-card px-4 py-3.5 transition-colors',
+        'group rounded-xl border bg-card px-4 py-3.5 transition-colors',
         checked ? 'border-primary ring-1 ring-primary/30 bg-primary/5' : 'border-border',
         selectable && 'cursor-pointer hover:border-primary/40',
         (!selectable && !c.ignored) && 'opacity-60',
@@ -48,15 +39,28 @@ export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onR
     >
       <div className="flex items-center gap-2.5">
         {!c.ignored && (
-          <Checkbox checked={checked} disabled={!selectable} className="pointer-events-none" />
+          <Checkbox checked={checked} disabled={!selectable} className="pointer-events-none flex-shrink-0" />
         )}
-        <span className="text-[15px] font-bold text-foreground truncate">{donorLabel(c.donor)}</span>
+        <span className="text-[15px] font-bold text-foreground truncate min-w-0">{donorLabel(c.donor)}</span>
         {c.private && (
           <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-purple-700 border-purple-200 bg-purple-50 flex-shrink-0">
             <EyeOff size={10} /> private
           </Badge>
         )}
-        <span className="ml-auto text-[15px] font-bold text-foreground whitespace-nowrap">{fmtNum(c.units)} trees</span>
+        <div className="ml-auto flex items-center gap-2 flex-shrink-0">
+          {c.ignored ? (
+            <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px]" onClick={(e) => { e.stopPropagation(); onRestore?.(c.uid); }}>
+              Restore
+            </Button>
+          ) : (
+            onIgnore && !fullyMatched && (
+              <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-muted-foreground transition-opacity focus-visible:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); onIgnore(c.uid); }}>
+                Ignore
+              </Button>
+            )
+          )}
+          <span className="text-[15px] font-bold text-foreground whitespace-nowrap">{fmtNum(c.units)} trees</span>
+        </div>
       </div>
 
       <div className={cn('mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap', !c.ignored && 'pl-[26px]')}>
@@ -83,12 +87,8 @@ export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onR
           <div className="h-full rounded-full bg-emerald-600" style={{ width: `${pct}%` }} />
         </div>
 
-        <div className="mt-2.5 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium', priority.cls)}>
-              {PriorityIcon && <PriorityIcon size={11} />}
-              {priority.label}
-            </span>
+        {(fullyMatched || c.ignored) && (
+          <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
             {fullyMatched && (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
                 <Check size={11} /> fully matched
@@ -100,18 +100,7 @@ export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onR
               </Badge>
             )}
           </div>
-          {c.ignored ? (
-            <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px]" onClick={(e) => { e.stopPropagation(); onRestore?.(c.uid); }}>
-              Restore
-            </Button>
-          ) : (
-            onIgnore && !fullyMatched && (
-              <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-muted-foreground" onClick={(e) => { e.stopPropagation(); onIgnore(c.uid); }}>
-                Ignore
-              </Button>
-            )
-          )}
-        </div>
+        )}
 
         {c.ignored && c.ignoreReason && (
           <p className="mt-1.5 text-[11px] text-muted-foreground italic">{c.ignoreReason}</p>
