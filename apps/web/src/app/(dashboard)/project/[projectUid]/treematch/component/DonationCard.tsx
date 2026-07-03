@@ -1,6 +1,6 @@
 'use client'
 
-import { Calendar, Wallet, EyeOff, Ban as BanIcon, AlertTriangle } from 'lucide-react';
+import { Calendar, Wallet, EyeOff, Ban as BanIcon } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,28 +20,25 @@ interface Props {
   onToggle: (uid: string) => void;
   onIgnore?: (uid: string) => void;
   onRestore?: (uid: string) => void;
-  onFix?: (uid: string) => void;
 }
 
-export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onRestore, onFix }: Props) {
-  const over = Math.max(0, c.allocated - c.units);
-  const overAllocated = over > 0;
+export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onRestore }: Props) {
   const available = Math.max(0, c.units - c.allocated);
-  const pct = overAllocated ? 100 : (c.units > 0 ? Math.round((c.allocated / c.units) * 100) : 0);
-  const fullyMatched = !overAllocated && available === 0;
+  const pct = c.units > 0 ? Math.round((c.allocated / c.units) * 100) : 0;
+  const fullyMatched = available === 0;
   const partly = c.allocated > 0 && available > 0;
-  const selectable = !c.ignored && !overAllocated && !fullyMatched && c.priority !== 'never';
+  const selectable = !c.ignored && !fullyMatched && c.priority !== 'never';
 
   return (
     <div
       className={cn(
         'rounded-lg border bg-card p-3 transition-colors',
-        overAllocated ? 'border-rose-300 bg-rose-50/40' : checked ? 'border-primary ring-1 ring-primary/30 bg-primary/5' : 'border-border',
-        (!selectable && !c.ignored && !overAllocated) && 'opacity-60',
+        checked ? 'border-primary ring-1 ring-primary/30 bg-primary/5' : 'border-border',
+        (!selectable && !c.ignored) && 'opacity-60',
       )}
     >
       <div className="flex items-start gap-3">
-        {!c.ignored && !overAllocated && (
+        {!c.ignored && (
           <Checkbox
             checked={checked}
             disabled={!selectable}
@@ -76,18 +73,14 @@ export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onR
           <div className="mt-2">
             <div className="flex items-center justify-between text-[11px] mb-1">
               <span className="text-muted-foreground">
-                {overAllocated ? (
-                  <span className="font-semibold text-rose-700">over-allocated by {fmtNum(over)}</span>
-                ) : (
-                  <><span className="font-semibold text-foreground">{fmtNum(available)}</span> trees to match</>
-                )}
+                <span className="font-semibold text-foreground">{fmtNum(available)}</span> trees to match
               </span>
-              <span className={cn('text-muted-foreground', overAllocated && 'text-rose-700 font-medium')}>
+              <span className="text-muted-foreground">
                 {fmtNum(c.allocated)} matched
               </span>
             </div>
             <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-              <div className={cn('h-full rounded-full', overAllocated ? 'bg-rose-500' : 'bg-emerald-500/70')} style={{ width: `${pct}%` }} />
+              <div className="h-full rounded-full bg-emerald-500/70" style={{ width: `${pct}%` }} />
             </div>
           </div>
 
@@ -96,11 +89,6 @@ export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onR
               <Badge variant="outline" className={cn('text-[10px] capitalize', PRIORITY_STYLE[c.priority])}>
                 {c.priority}
               </Badge>
-              {overAllocated && (
-                <Badge variant="outline" className="text-[10px] gap-1 text-rose-700 border-rose-300 bg-rose-100">
-                  <AlertTriangle size={10} /> over-allocated
-                </Badge>
-              )}
               {fullyMatched && <Badge variant="secondary" className="text-[10px]">fully matched</Badge>}
               {partly && <Badge variant="secondary" className="text-[10px]">partial</Badge>}
               {c.ignored && (
@@ -113,12 +101,6 @@ export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onR
               <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px]" onClick={() => onRestore?.(c.uid)}>
                 Restore
               </Button>
-            ) : overAllocated ? (
-              onFix && (
-                <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-rose-700" onClick={() => onFix(c.uid)}>
-                  Un-allocate extra
-                </Button>
-              )
             ) : (
               onIgnore && !fullyMatched && (
                 <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-muted-foreground" onClick={() => onIgnore(c.uid)}>
@@ -128,9 +110,6 @@ export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onR
             )}
           </div>
 
-          {overAllocated && c.issue && (
-            <p className="mt-1.5 text-[11px] text-rose-700">{c.issue}. Un-allocate the extra {fmtNum(over)} to reconcile.</p>
-          )}
           {c.ignored && c.ignoreReason && (
             <p className="mt-1.5 text-[11px] text-muted-foreground italic">{c.ignoreReason}</p>
           )}

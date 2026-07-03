@@ -39,8 +39,6 @@ export interface MockContribution {
   ignoreReason?: string;
   /** never exposed publicly (legacy / donor request) */
   private?: boolean;
-  /** why allocated exceeds units (refund after allocation, import mismatch, ...) */
-  issue?: string;
 }
 
 // A rule reads: WHEN <these donations> -> PREFER <these locations> -> ORDER BY <tiebreak>.
@@ -95,9 +93,6 @@ export const MOCK_CONTRIBUTIONS: MockContribution[] = [
   // Recent paid donations (newer than 90 days).
   { uid: 'pc_11', donationGuid: 'don_N0w1', donor: 'Recent donor A', date: daysAgoISO(12), amount: 500, currency: 'EUR', units: 500, allocated: 0, priority: 'automatic', country: 'DE', payout: 'Jun 2024 payout' },
   { uid: 'pc_12', donationGuid: 'don_N0w2', donor: 'Recent donor B', date: daysAgoISO(58), amount: 1200, currency: 'EUR', units: 1200, allocated: 0, priority: 'manual', country: 'CH', payout: 'May 2024 payout' },
-  // Over-allocated cases: allocated exceeds the (now reduced) units.
-  { uid: 'pc_9', donationGuid: 'don_R3f0', donor: 'Refunded donor', date: '2024-05-02', amount: 3000, currency: 'EUR', units: 3000, allocated: 4700, priority: 'manual', country: 'DE', payout: 'May 2024 payout', issue: 'Refund after allocation' },
-  { uid: 'pc_10', donationGuid: 'don_M1x2', donor: 'Reconciled batch', date: '2024-06-11', amount: 500, currency: 'USD', units: 500, allocated: 620, priority: 'automatic', country: 'US', payout: 'Jun 2024 payout', issue: 'Import count mismatch' },
 ];
 
 export const MOCK_RULES: MockRule[] = [

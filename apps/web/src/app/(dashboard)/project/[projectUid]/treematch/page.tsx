@@ -3,8 +3,8 @@
 import React, { useMemo, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
-  Link2, Wand2, Settings2, FileSpreadsheet, Search, Info,
-  TreePine, CheckCircle2, Coins, Sprout, Play, EyeOff, AlertTriangle,
+  Link2, Wand2, Settings2, FileSpreadsheet, Search,
+  TreePine, CheckCircle2, Coins, Sprout, Play, EyeOff, Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useTopBarActions } from '@/component/header/TopBarActions';
 import { useTreematchStore } from '@/stores/treematchStore';
@@ -31,14 +32,22 @@ import {
   MockIntervention, MockContribution, MockRule, fmtNum, isPayoutPaid, donorLabel,
 } from './component/mockData';
 
-const isOver = (c: MockContribution) => c.allocated > c.units;
-
-const Stat = ({ icon: Icon, label, value, tone }: { icon: React.ElementType; label: string; value: string; tone?: string }) => (
+const Stat = ({
+  icon: Icon, label, value, tone, description,
+}: { icon: React.ElementType; label: string; value: string; tone?: string; description: string }) => (
   <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background border border-border">
     <Icon size={15} className={cn('flex-shrink-0', tone ?? 'text-muted-foreground')} />
     <div className="leading-none">
       <div className="text-sm font-semibold text-foreground">{value}</div>
-      <div className="text-[10px] text-muted-foreground mt-0.5">{label}</div>
+      <div className="flex items-center gap-1 mt-0.5">
+        <span className="text-[10px] text-muted-foreground">{label}</span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info size={11} className="text-muted-foreground/70 cursor-help" />
+          </TooltipTrigger>
+          <TooltipContent side="bottom">{description}</TooltipContent>
+        </Tooltip>
+      </div>
     </div>
   </div>
 );
@@ -82,7 +91,6 @@ export default function TreeMatchPage() {
   const [rulesOpen, setRulesOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [pendingSync, setPendingSync] = useState(0);
   const [lastAction, setLastAction] = useState<string | null>(null);
 
   const sites = useMemo(() => {
@@ -112,9 +120,7 @@ export default function TreeMatchPage() {
   const shownContributions = useMemo(() => {
     let list = contributions.filter(c => {
       if (c.ignored) return rightTab === 'ignored';
-      if (rightTab === 'ignored') return false;
-      if (rightTab === 'mismatch') return isOver(c);
-      return !isOver(c); // toMatch
+      return rightTab !== 'ignored';
     });
     if (rightTab !== 'ignored') {
       if (payout !== 'All') list = list.filter(c => c.payout === payout);
@@ -138,14 +144,13 @@ export default function TreeMatchPage() {
   }, [contributions, rightTab, payout, donSearch, sort, paidWindowOnly]);
 
   const ignoredList = useMemo(() => contributions.filter(c => c.ignored), [contributions]);
-  const mismatchList = useMemo(() => contributions.filter(c => !c.ignored && isOver(c)), [contributions]);
   const hiddenByWindow = useMemo(() => {
     if (!paidWindowOnly) return 0;
     const cutoff = Date.now() - 90 * 864e5;
-    return contributions.filter(c => !c.ignored && !isOver(c) && isPayoutPaid(c.payout) && new Date(c.date).getTime() > cutoff).length;
+    return contributions.filter(c => !c.ignored && isPayoutPaid(c.payout) && new Date(c.date).getTime() > cutoff).length;
   }, [contributions, paidWindowOnly]);
   const hiddenByPayout = useMemo(
-    () => contributions.filter(c => !c.ignored && !isOver(c) && !isPayoutPaid(c.payout)).length,
+    () => contributions.filter(c => !c.ignored && !isPayoutPaid(c.payout)).length,
     [contributions],
   );
 
@@ -153,9 +158,8 @@ export default function TreeMatchPage() {
   const stats = useMemo(() => {
     const planted = interventions.reduce((s, i) => s + i.totalTrees, 0);
     const matched = interventions.reduce((s, i) => s + i.matchedTrees, 0);
-    const openDon = contributions.filter(c => !c.ignored && !isOver(c)).reduce((s, c) => s + Math.max(0, c.units - c.allocated), 0);
-    const mismatches = contributions.filter(c => !c.ignored && isOver(c)).length;
-    return { planted, matched, unmatched: planted - matched, openDon, mismatches };
+    const openDon = contributions.filter(c => !c.ignored).reduce((s, c) => s + Math.max(0, c.units - c.allocated), 0);
+    return { planted, matched, unmatched: planted - matched, openDon };
   }, [interventions, contributions]);
 
   const toggleInterv = (uid: string) =>
@@ -169,13 +173,6 @@ export default function TreeMatchPage() {
   };
   const restore = (uid: string) =>
     setContributions(prev => prev.map(c => c.uid === uid ? { ...c, ignored: false } : c));
-
-  // Reconcile an over-allocated contribution. In the real build this would also
-  // release trees back on the linked plant locations; here it just squares the number.
-  const fixOver = (uid: string) => {
-    setContributions(prev => prev.map(c => c.uid === uid ? { ...c, allocated: c.units, issue: undefined } : c));
-    setLastAction('Un-allocated the extra trees; contribution reconciled to its current units.');
-  };
 
   const selIntervList = interventions.filter(i => selInterv.has(i.uid));
   const selContribList = contributions.filter(c => selContrib.has(c.uid));
@@ -193,12 +190,11 @@ export default function TreeMatchPage() {
     });
     setInterventions(prev => prev.map(i => byHid[i.hid] ? { ...i, matchedTrees: Math.min(i.totalTrees, i.matchedTrees + byHid[i.hid]) } : i));
     setContributions(prev => prev.map(c => byContribution[c.uid] ? { ...c, allocated: Math.min(c.units, c.allocated + byContribution[c.uid]) } : c));
-    setPendingSync(n => n + allocs.length);
     setSelInterv(new Set());
     setSelContrib(new Set());
     setConfirmOpen(false);
     const trees = allocs.reduce((s, a) => s + a.trees, 0);
-    setLastAction(`Matched ${fmtNum(trees)} trees in ${allocs.length} allocation(s). Queued to sync to treecounter.`);
+    setLastAction(`Matched ${fmtNum(trees)} trees in ${allocs.length} allocation(s).`);
   };
 
   const runAuto = () => {
@@ -223,14 +219,22 @@ export default function TreeMatchPage() {
       {/* Stats ribbon. The title + actions live in the shared dashboard top bar. */}
       {enabled && (
         <div className="flex-shrink-0 border-b border-border bg-background px-4 py-2 flex items-center gap-2 flex-wrap">
-          <Stat icon={Sprout} label="Trees planted" value={fmtNum(stats.planted)} tone="text-primary" />
-          <Stat icon={CheckCircle2} label="Matched" value={fmtNum(stats.matched)} tone="text-emerald-600" />
-          <Stat icon={TreePine} label="Unmatched trees" value={fmtNum(stats.unmatched)} tone="text-amber-600" />
-          <Stat icon={Coins} label="Open donation trees" value={fmtNum(stats.openDon)} tone="text-indigo-600" />
-          <Stat icon={Info} label="Pending sync" value={fmtNum(pendingSync)} />
-          {stats.mismatches > 0 && (
-            <Stat icon={AlertTriangle} label="Mismatches" value={fmtNum(stats.mismatches)} tone="text-rose-600" />
-          )}
+          <Stat
+            icon={Sprout} label="Trees planted" value={fmtNum(stats.planted)} tone="text-primary"
+            description="Total trees recorded across all plant locations in this project, matched and unmatched combined."
+          />
+          <Stat
+            icon={CheckCircle2} label="Matched" value={fmtNum(stats.matched)} tone="text-emerald-600"
+            description="Planted trees already linked to a donation."
+          />
+          <Stat
+            icon={TreePine} label="Unmatched trees" value={fmtNum(stats.unmatched)} tone="text-amber-600"
+            description="Planted trees not yet linked to a donation. Trees planted minus matched."
+          />
+          <Stat
+            icon={Coins} label="Open donation trees" value={fmtNum(stats.openDon)} tone="text-indigo-600"
+            description="Trees paid for by donors that have not yet been linked to a planted location."
+          />
 
           <div className="flex-1" />
 
@@ -273,7 +277,7 @@ export default function TreeMatchPage() {
                 </div>
                 <div className="relative">
                   <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <Input value={ivSearch} onChange={e => setIvSearch(e.target.value)} placeholder="Search HID or site" className="h-8 pl-8 text-xs" />
+                  <Input value={ivSearch} onChange={e => setIvSearch(e.target.value)} placeholder="Search HID" className="h-8 pl-8 text-xs" />
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <Select value={ivType} onValueChange={setIvType}>
@@ -325,7 +329,6 @@ export default function TreeMatchPage() {
                 <Tabs value={rightTab} onValueChange={setRightTab}>
                   <TabsList className="h-7">
                     <TabsTrigger value="toMatch" className="text-xs px-3">To match</TabsTrigger>
-                    <TabsTrigger value="mismatch" className="text-xs px-3">Mismatches ({mismatchList.length})</TabsTrigger>
                     <TabsTrigger value="ignored" className="text-xs px-3">Ignored ({ignoredList.length})</TabsTrigger>
                   </TabsList>
                 </Tabs>
@@ -378,7 +381,6 @@ export default function TreeMatchPage() {
                     onToggle={toggleContrib}
                     onIgnore={ignore}
                     onRestore={restore}
-                    onFix={fixOver}
                   />
                 ))}
                 {shownContributions.length === 0 && (
