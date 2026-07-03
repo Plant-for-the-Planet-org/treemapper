@@ -23,6 +23,7 @@ import { useTopBarActions } from '@/component/header/TopBarActions';
 import { useTreematchStore } from '@/stores/treematchStore';
 
 import { InterventionMatchCard } from './component/InterventionMatchCard';
+import { TreeMatchMap } from './component/TreeMatchMap';
 import { DonationCard } from './component/DonationCard';
 import { RulesDialog } from './component/RulesDialog';
 import { ExportDialog } from './component/ExportDialog';
@@ -73,6 +74,8 @@ export default function TreeMatchPage() {
 
   // Left-pane filters
   const [leftView, setLeftView] = useState<'list' | 'map'>('list');
+  // Location whose detail card is open on the map (marker click or "View on map").
+  const [mapFocus, setMapFocus] = useState<string | null>(null);
   const [ivType, setIvType] = useState('all');
   const [ivSite, setIvSite] = useState('all');
   const [onlyAvailable, setOnlyAvailable] = useState(true);
@@ -341,12 +344,14 @@ export default function TreeMatchPage() {
                 </div>
               </div>
               {leftView === 'map' ? (
-                <div className="flex-1 m-3 mt-0 rounded-lg border border-dashed border-border bg-muted/40 flex items-center justify-center">
-                  <div className="text-center text-muted-foreground">
-                    <MapIcon size={22} className="mx-auto opacity-50" />
-                    <p className="mt-2 text-xs">Map view is not part of this prototype.</p>
-                  </div>
-                </div>
+                <TreeMatchMap
+                  className="flex-1 min-h-0 m-3 mt-0"
+                  interventions={shownInterventions}
+                  selected={selInterv}
+                  focusUid={mapFocus}
+                  onFocusChange={setMapFocus}
+                  onToggle={toggleInterv}
+                />
               ) : (
                 <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2.5">
                   {notReadyCount > 0 && (
@@ -356,7 +361,13 @@ export default function TreeMatchPage() {
                     </div>
                   )}
                   {shownInterventions.map(i => (
-                    <InterventionMatchCard key={i.uid} intervention={i} checked={selInterv.has(i.uid)} onToggle={toggleInterv} />
+                    <InterventionMatchCard
+                      key={i.uid}
+                      intervention={i}
+                      checked={selInterv.has(i.uid)}
+                      onToggle={toggleInterv}
+                      onViewMap={(uid) => { setMapFocus(uid); setLeftView('map'); }}
+                    />
                   ))}
                   {shownInterventions.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-10">No plant locations match these filters.</p>
@@ -369,13 +380,18 @@ export default function TreeMatchPage() {
             <div className="relative w-9 flex-shrink-0 self-stretch">
               <div className="absolute inset-y-2 left-1/2 -translate-x-1/2 border-l border-dashed border-border" />
               {canMatch && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-1">
-                  <div className="rounded-md bg-emerald-950 text-white text-xs font-semibold px-2.5 py-1 whitespace-nowrap shadow-md">
-                    {fmtNum(matchable)} trees
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-1.5">
+                  <div key={matchable} className="relative animate-in fade-in zoom-in-75 duration-300">
+                    <span aria-hidden className="absolute -inset-1.5 rounded-full border-2 border-emerald-500/40 animate-pulse" />
+                    <span aria-hidden className="absolute -inset-3 rounded-full border border-emerald-500/20 animate-pulse [animation-delay:400ms]" />
+                    <div className="relative flex h-16 min-w-16 px-2 flex-col items-center justify-center rounded-full bg-emerald-950 text-white shadow-lg ring-4 ring-background">
+                      <span className="text-sm font-bold leading-none tabular-nums whitespace-nowrap">{fmtNum(matchable)}</span>
+                      <span className="mt-0.5 text-[9px] font-medium uppercase tracking-wider text-emerald-300">trees</span>
+                    </div>
                   </div>
                   <span className={cn(
-                    'text-[10px] font-semibold whitespace-nowrap',
-                    selSupply >= selDemand ? 'text-emerald-700' : 'text-amber-700',
+                    'rounded-full bg-background px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap shadow-sm ring-1 ring-border',
+                    selSupply >= selDemand ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400',
                   )}>
                     {selSupply === selDemand ? 'exact match' : selSupply > selDemand ? 'fits available' : `short by ${fmtNum(selDemand - selSupply)}`}
                   </span>

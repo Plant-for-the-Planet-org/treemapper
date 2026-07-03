@@ -5,6 +5,12 @@
 
 export type InterventionType = 'single-tree-registration' | 'multi-tree-registration';
 
+// Minimal GeoJSON geometry for the map view. Multi-tree locations are small
+// polygons, single-tree locations are points.
+export type MockGeometry =
+  | { type: 'Point'; coordinates: [number, number] }
+  | { type: 'Polygon'; coordinates: [number, number][][] };
+
 export interface MockIntervention {
   uid: string;
   hid: string;
@@ -13,6 +19,8 @@ export interface MockIntervention {
   plantingDate: string; // ISO
   totalTrees: number;
   matchedTrees: number; // already allocated
+  /** where this plant location sits (fictional coordinates near the Yucatán restoration area) */
+  location: MockGeometry;
   /** manually excluded from matching by the RO (e.g. already funded, or a free re-planting under a survival guarantee) */
   blocked?: boolean;
   /** belongs to a different project of the same RO (cross-project matching) */
@@ -59,20 +67,35 @@ export interface MockRule {
 }
 
 
+// Geometry helpers for the mock map. `quad` builds a slightly irregular
+// polygon around a center (w/h in degrees; 0.005 ≈ 550 m). Fictional
+// coordinates clustered per site so the map view reads naturally.
+const quad = (lng: number, lat: number, w = 0.006, h = 0.005): MockGeometry => ({
+  type: 'Polygon',
+  coordinates: [[
+    [lng - w, lat - h * 0.8],
+    [lng + w * 0.9, lat - h],
+    [lng + w, lat + h * 0.85],
+    [lng - w * 0.8, lat + h],
+    [lng - w, lat - h * 0.8],
+  ]],
+});
+const pt = (lng: number, lat: number): MockGeometry => ({ type: 'Point', coordinates: [lng, lat] });
+
 export const MOCK_INTERVENTIONS: MockIntervention[] = [
-  { uid: 'ivn_a1', hid: 'AB1-2024', type: 'multi-tree-registration', siteName: 'North Ridge', plantingDate: '2024-07-12', totalTrees: 5200, matchedTrees: 1200 },
-  { uid: 'ivn_a2', hid: 'AB2-2024', type: 'multi-tree-registration', siteName: 'North Ridge', plantingDate: '2024-08-03', totalTrees: 4700, matchedTrees: 0 },
-  { uid: 'ivn_a3', hid: 'CD9-2024', type: 'single-tree-registration', siteName: 'Riverside', plantingDate: '2024-09-21', totalTrees: 1, matchedTrees: 0 },
-  { uid: 'ivn_a4', hid: 'CD8-2024', type: 'multi-tree-registration', siteName: 'Riverside', plantingDate: '2024-10-05', totalTrees: 8800, matchedTrees: 8800 },
-  { uid: 'ivn_a5', hid: 'EF3-2025', type: 'multi-tree-registration', siteName: 'South Basin', plantingDate: '2025-02-14', totalTrees: 3000, matchedTrees: 500, blocked: true },
-  { uid: 'ivn_a6', hid: 'EF7-2025', type: 'multi-tree-registration', siteName: 'Volcano Valley', plantingDate: '2025-03-02', totalTrees: 6400, matchedTrees: 0, crossProjectName: 'Volcano Valley (id 227)' },
-  { uid: 'ivn_a7', hid: 'LEG-0001', type: 'multi-tree-registration', siteName: 'Legacy holding', plantingDate: '2019-11-01', totalTrees: 20000, matchedTrees: 14000, legacy: true },
-  { uid: 'ivn_a8', hid: 'GH4-2025', type: 'single-tree-registration', siteName: 'South Basin', plantingDate: '2025-04-18', totalTrees: 1, matchedTrees: 0 },
+  { uid: 'ivn_a1', hid: 'AB1-2024', type: 'multi-tree-registration', siteName: 'North Ridge', plantingDate: '2024-07-12', totalTrees: 5200, matchedTrees: 1200, location: quad(-90.095, 18.455, 0.007, 0.005) },
+  { uid: 'ivn_a2', hid: 'AB2-2024', type: 'multi-tree-registration', siteName: 'North Ridge', plantingDate: '2024-08-03', totalTrees: 4700, matchedTrees: 0, location: quad(-90.115, 18.447, 0.006, 0.005) },
+  { uid: 'ivn_a3', hid: 'CD9-2024', type: 'single-tree-registration', siteName: 'Riverside', plantingDate: '2024-09-21', totalTrees: 1, matchedTrees: 0, location: pt(-90.168, 18.409) },
+  { uid: 'ivn_a4', hid: 'CD8-2024', type: 'multi-tree-registration', siteName: 'Riverside', plantingDate: '2024-10-05', totalTrees: 8800, matchedTrees: 8800, location: quad(-90.179, 18.401, 0.008, 0.006) },
+  { uid: 'ivn_a5', hid: 'EF3-2025', type: 'multi-tree-registration', siteName: 'South Basin', plantingDate: '2025-02-14', totalTrees: 3000, matchedTrees: 500, blocked: true, location: quad(-90.128, 18.334, 0.006, 0.005) },
+  { uid: 'ivn_a6', hid: 'EF7-2025', type: 'multi-tree-registration', siteName: 'Volcano Valley', plantingDate: '2025-03-02', totalTrees: 6400, matchedTrees: 0, crossProjectName: 'Volcano Valley (id 227)', location: quad(-90.298, 18.502, 0.009, 0.007) },
+  { uid: 'ivn_a7', hid: 'LEG-0001', type: 'multi-tree-registration', siteName: 'Legacy holding', plantingDate: '2019-11-01', totalTrees: 20000, matchedTrees: 14000, legacy: true, location: quad(-90.052, 18.381, 0.011, 0.008) },
+  { uid: 'ivn_a8', hid: 'GH4-2025', type: 'single-tree-registration', siteName: 'South Basin', plantingDate: '2025-04-18', totalTrees: 1, matchedTrees: 0, location: pt(-90.117, 18.329) },
   // Not linked to any site (site is optional on an intervention).
-  { uid: 'ivn_a11', hid: 'KL9-2025', type: 'multi-tree-registration', siteName: '', plantingDate: '2025-06-01', totalTrees: 900, matchedTrees: 0 },
+  { uid: 'ivn_a11', hid: 'KL9-2025', type: 'multi-tree-registration', siteName: '', plantingDate: '2025-06-01', totalTrees: 900, matchedTrees: 0, location: quad(-90.222, 18.362, 0.004, 0.004) },
   // Not matchable yet: must be fully synced from the field + capture complete first.
-  { uid: 'ivn_a9', hid: 'IJ2-2025', type: 'multi-tree-registration', siteName: 'North Ridge', plantingDate: '2025-05-09', totalTrees: 2000, matchedTrees: 0, notReady: 'syncing' },
-  { uid: 'ivn_a10', hid: 'IJ5-2025', type: 'multi-tree-registration', siteName: 'Riverside', plantingDate: '2025-05-20', totalTrees: 1500, matchedTrees: 0, notReady: 'incomplete' },
+  { uid: 'ivn_a9', hid: 'IJ2-2025', type: 'multi-tree-registration', siteName: 'North Ridge', plantingDate: '2025-05-09', totalTrees: 2000, matchedTrees: 0, notReady: 'syncing', location: quad(-90.104, 18.462, 0.005, 0.004) },
+  { uid: 'ivn_a10', hid: 'IJ5-2025', type: 'multi-tree-registration', siteName: 'Riverside', plantingDate: '2025-05-20', totalTrees: 1500, matchedTrees: 0, notReady: 'incomplete', location: quad(-90.188, 18.394, 0.005, 0.004) },
 ];
 
 const daysAgoISO = (n: number) => {

@@ -11,9 +11,11 @@ interface Props {
   checked: boolean;
   disabled?: boolean;
   onToggle: (uid: string) => void;
+  /** switch to the map view focused on this location */
+  onViewMap?: (uid: string) => void;
 }
 
-export function InterventionMatchCard({ intervention: i, checked, disabled, onToggle }: Props) {
+export function InterventionMatchCard({ intervention: i, checked, disabled, onToggle, onViewMap }: Props) {
   const available = Math.max(0, i.totalTrees - i.matchedTrees);
   const pct = i.totalTrees > 0 ? Math.round((i.matchedTrees / i.totalTrees) * 100) : 0;
   const isSingle = i.type === 'single-tree-registration';
@@ -47,9 +49,18 @@ export function InterventionMatchCard({ intervention: i, checked, disabled, onTo
         <span className="truncate">{i.siteName || 'No site'}</span>
         <span className="text-muted-foreground/40">·</span>
         <span className="whitespace-nowrap">{fmtDate(i.plantingDate)}</span>
-        <span className="text-muted-foreground/40">·</span>
-        <MapIcon size={12} className="flex-shrink-0" />
-        <span className="whitespace-nowrap">View on map</span>
+        {onViewMap && (
+          <>
+            <span className="text-muted-foreground/40">·</span>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onViewMap(i.uid); }}
+              className="flex items-center gap-1 text-primary hover:underline whitespace-nowrap"
+            >
+              <MapIcon size={12} className="flex-shrink-0" /> View on map
+            </button>
+          </>
+        )}
       </div>
 
       {/* allocated / available bar */}
