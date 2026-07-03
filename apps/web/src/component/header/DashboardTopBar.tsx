@@ -144,6 +144,9 @@ export default function DashboardTopBar() {
         ) : (
           <div className="flex items-center gap-2">
             {registeredActions.map((a, i) => {
+              if (a.node) {
+                return <div key={i} className="flex items-center">{a.node}</div>
+              }
               const Icon = a.icon
               const isPrimary = a.variant === 'primary' || (!a.variant && i === registeredActions.length - 1)
               return (

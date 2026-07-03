@@ -8,6 +8,8 @@ export interface TopBarAction {
   icon?: React.ComponentType<{ size?: number }>
   variant?: 'primary' | 'outline' | 'ghost'
   hideLabelOnMobile?: boolean
+  /** Custom desktop rendering (e.g. a toggle). Mobile falls back to label + onClick. */
+  node?: ReactNode
 }
 
 interface TopBarActionsContextValue {

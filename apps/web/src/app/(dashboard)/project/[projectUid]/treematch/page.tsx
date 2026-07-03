@@ -3,8 +3,8 @@
 import React, { useMemo, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
-  Link2, Wand2, Settings2, FileSpreadsheet, Search,
-  TreePine, CheckCircle2, Coins, Sprout, Play, EyeOff, Info,
+  Link2, SlidersHorizontal, Download, Search, List, Map as MapIcon,
+  CheckCircle2, Sprout, Play, EyeOff, Info, ArrowLeftRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,17 +33,22 @@ import {
 } from './component/mockData';
 
 const Stat = ({
-  icon: Icon, label, value, tone, description,
-}: { icon: React.ElementType; label: string; value: string; tone?: string; description: string }) => (
-  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background border border-border">
-    <Icon size={15} className={cn('flex-shrink-0', tone ?? 'text-muted-foreground')} />
-    <div className="leading-none">
-      <div className="text-sm font-semibold text-foreground">{value}</div>
-      <div className="flex items-center gap-1 mt-0.5">
-        <span className="text-[10px] text-muted-foreground">{label}</span>
+  icon: Icon, label, value, iconClass, valueClass, description,
+}: {
+  icon: React.ElementType; label: string; value: string;
+  iconClass: string; valueClass?: string; description: string;
+}) => (
+  <div className="flex items-center gap-3 px-4 py-3.5 min-w-0">
+    <div className={cn('h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0', iconClass)}>
+      <Icon size={17} />
+    </div>
+    <div className="min-w-0">
+      <div className={cn('text-2xl font-bold tracking-tight leading-none', valueClass ?? 'text-foreground')}>{value}</div>
+      <div className="flex items-center gap-1 mt-1">
+        <span className="text-[11px] text-muted-foreground whitespace-nowrap">{label}</span>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Info size={11} className="text-muted-foreground/70 cursor-help" />
+            <Info size={11} className="text-muted-foreground/70 cursor-help flex-shrink-0" />
           </TooltipTrigger>
           <TooltipContent side="bottom">{description}</TooltipContent>
         </Tooltip>
@@ -67,6 +72,7 @@ export default function TreeMatchPage() {
   const [selContrib, setSelContrib] = useState<Set<string>>(new Set());
 
   // Left-pane filters
+  const [leftView, setLeftView] = useState<'list' | 'map'>('list');
   const [ivType, setIvType] = useState('all');
   const [ivSite, setIvSite] = useState('all');
   const [onlyAvailable, setOnlyAvailable] = useState(true);
@@ -180,6 +186,7 @@ export default function TreeMatchPage() {
   // Coverage: do the selected plant locations hold enough trees for the selected donations?
   const selSupply = selIntervList.reduce((s, i) => s + Math.max(0, i.totalTrees - i.matchedTrees), 0);
   const selDemand = selContribList.reduce((s, c) => s + Math.max(0, c.units - c.allocated), 0);
+  const matchable = Math.min(selSupply, selDemand);
 
   const applyMatch = (allocs: PreviewAllocation[]) => {
     const byHid: Record<string, number> = {};
@@ -206,9 +213,18 @@ export default function TreeMatchPage() {
   useTopBarActions(
     enabled
       ? [
-          ...(autoMatch ? [{ label: 'Run auto-match', icon: Wand2, variant: 'outline' as const, onClick: runAuto, hideLabelOnMobile: true }] : []),
-          { label: 'Rules', icon: Settings2, variant: 'outline' as const, onClick: () => setRulesOpen(true) },
-          { label: 'Export', icon: FileSpreadsheet, variant: 'outline' as const, onClick: () => setExportOpen(true) },
+          {
+            label: 'Auto-match',
+            onClick: () => setAutoMatch(v => !v),
+            node: (
+              <label className="flex items-center gap-2 h-8 px-3 rounded-lg border border-border bg-background text-xs font-medium text-foreground cursor-pointer whitespace-nowrap">
+                Auto-match
+                <Switch checked={autoMatch} onCheckedChange={setAutoMatch} />
+              </label>
+            ),
+          },
+          { label: 'Rules', icon: SlidersHorizontal, variant: 'outline' as const, onClick: () => setRulesOpen(true) },
+          { label: 'Export', icon: Download, variant: 'primary' as const, onClick: () => setExportOpen(true) },
         ]
       : [],
     [enabled, autoMatch, rules],
@@ -218,30 +234,29 @@ export default function TreeMatchPage() {
     <div className="w-full flex-1 min-h-0 flex flex-col overflow-hidden bg-muted/30">
       {/* Stats ribbon. The title + actions live in the shared dashboard top bar. */}
       {enabled && (
-        <div className="flex-shrink-0 border-b border-border bg-background px-4 py-2 flex items-center gap-2 flex-wrap">
-          <Stat
-            icon={Sprout} label="Trees planted" value={fmtNum(stats.planted)} tone="text-primary"
-            description="Total trees recorded across all plant locations in this project, matched and unmatched combined."
-          />
-          <Stat
-            icon={CheckCircle2} label="Matched" value={fmtNum(stats.matched)} tone="text-emerald-600"
-            description="Planted trees already linked to a donation."
-          />
-          <Stat
-            icon={TreePine} label="Unmatched trees" value={fmtNum(stats.unmatched)} tone="text-amber-600"
-            description="Planted trees not yet linked to a donation. Trees planted minus matched."
-          />
-          <Stat
-            icon={Coins} label="Open donation trees" value={fmtNum(stats.openDon)} tone="text-indigo-600"
-            description="Trees paid for by donors that have not yet been linked to a planted location."
-          />
-
-          <div className="flex-1" />
-
-          <label className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Switch checked={autoMatch} onCheckedChange={setAutoMatch} />
-            Auto-match
-          </label>
+        <div className="flex-shrink-0 px-4 pt-3">
+          <div className="rounded-xl border border-border bg-background grid grid-cols-2 lg:grid-cols-4 lg:divide-x divide-border overflow-hidden">
+            <Stat
+              icon={Sprout} label="Trees planted" value={fmtNum(stats.planted)}
+              iconClass="bg-primary/10 text-primary"
+              description="Total trees recorded across all plant locations in this project, matched and unmatched combined."
+            />
+            <Stat
+              icon={CheckCircle2} label="Matched" value={fmtNum(stats.matched)}
+              iconClass="bg-primary/10 text-primary" valueClass="text-primary"
+              description="Planted trees already linked to a donation."
+            />
+            <Stat
+              icon={Sprout} label="Unmatched trees" value={fmtNum(stats.unmatched)}
+              iconClass="bg-amber-500/10 text-amber-600"
+              description="Planted trees not yet linked to a donation. Trees planted minus matched."
+            />
+            <Stat
+              icon={Link2} label="Open donation trees" value={fmtNum(stats.openDon)}
+              iconClass="bg-primary/10 text-primary"
+              description="Trees paid for by donors that have not yet been linked to a planted location."
+            />
+          </div>
         </div>
       )}
 
@@ -264,24 +279,48 @@ export default function TreeMatchPage() {
         </div>
       ) : (
         <>
-          <div className="flex-1 min-h-0 flex overflow-hidden">
+          <div className="flex-1 min-h-0 flex overflow-hidden px-4 py-3">
             {/* LEFT: plant locations */}
-            <div className="w-1/2 flex flex-col border-r border-border min-h-0">
-              <div className="flex-shrink-0 px-3 py-2 border-b border-border bg-background/60 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-sm font-semibold text-foreground">Plant locations</h2>
-                    <p className="text-[11px] text-muted-foreground">Single &amp; multi-tree, synced &amp; complete</p>
+            <div className="flex-1 min-w-0 flex flex-col min-h-0 rounded-xl border border-border bg-background overflow-hidden">
+              <div className="flex-shrink-0 px-4 pt-3.5 pb-3 space-y-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-[15px] font-semibold text-foreground">Plant locations</h2>
+                      <Badge variant="secondary" className="rounded-full px-2 text-[11px]">{shownInterventions.length}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">Single &amp; multi-tree · synced &amp; complete</p>
                   </div>
-                  <Badge variant="secondary" className="text-[11px]">{shownInterventions.length}</Badge>
+                  <div className="flex items-center rounded-lg bg-muted p-0.5 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setLeftView('list')}
+                      className={cn(
+                        'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
+                        leftView === 'list' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                      )}
+                    >
+                      <List size={13} /> List
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLeftView('map')}
+                      className={cn(
+                        'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
+                        leftView === 'map' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                      )}
+                    >
+                      <MapIcon size={13} /> Map
+                    </button>
+                  </div>
                 </div>
                 <div className="relative">
-                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <Input value={ivSearch} onChange={e => setIvSearch(e.target.value)} placeholder="Search HID" className="h-8 pl-8 text-xs" />
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input value={ivSearch} onChange={e => setIvSearch(e.target.value)} placeholder="Search HID or site" className="h-9 pl-9 text-xs rounded-lg" />
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
                   <Select value={ivType} onValueChange={setIvType}>
-                    <SelectTrigger size="sm" className="text-xs w-[112px]"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="flex-1 h-9 text-xs rounded-lg"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All types</SelectItem>
                       <SelectItem value="single">Single-tree</SelectItem>
@@ -289,58 +328,86 @@ export default function TreeMatchPage() {
                     </SelectContent>
                   </Select>
                   <Select value={ivSite} onValueChange={setIvSite}>
-                    <SelectTrigger size="sm" className="text-xs w-[120px]"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="flex-1 h-9 text-xs rounded-lg"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {sites.map(s => <SelectItem key={s} value={s}>{s === 'all' ? 'All sites' : s === 'none' ? 'Not linked to site' : s}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-center gap-3 flex-wrap text-[11px] text-muted-foreground">
+                <div className="flex items-center gap-4 flex-wrap text-xs text-muted-foreground">
                   <label className="flex items-center gap-1.5"><Checkbox checked={onlyAvailable} onCheckedChange={v => setOnlyAvailable(!!v)} /> Only with available</label>
                   <label className="flex items-center gap-1.5"><Checkbox checked={includeBlocked} onCheckedChange={v => setIncludeBlocked(!!v)} /> Show blocked</label>
                   <label className="flex items-center gap-1.5"><Checkbox checked={crossProject} onCheckedChange={v => setCrossProject(!!v)} /> Cross-project (same RO)</label>
                 </div>
               </div>
-              <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                {notReadyCount > 0 && (
-                  <p className="text-[11px] text-muted-foreground bg-muted/40 border border-border rounded-md px-2.5 py-1.5">
-                    {notReadyCount} plant location(s) not shown (still syncing or capture incomplete).
-                  </p>
-                )}
-                {shownInterventions.map(i => (
-                  <InterventionMatchCard key={i.uid} intervention={i} checked={selInterv.has(i.uid)} onToggle={toggleInterv} />
-                ))}
-                {shownInterventions.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-10">No plant locations match these filters.</p>
-                )}
-              </div>
+              {leftView === 'map' ? (
+                <div className="flex-1 m-3 mt-0 rounded-lg border border-dashed border-border bg-muted/40 flex items-center justify-center">
+                  <div className="text-center text-muted-foreground">
+                    <MapIcon size={22} className="mx-auto opacity-50" />
+                    <p className="mt-2 text-xs">Map view is not part of this prototype.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2.5">
+                  {notReadyCount > 0 && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-2">
+                      <Info size={13} className="flex-shrink-0" />
+                      {notReadyCount} plant location(s) not shown (still syncing or capture incomplete).
+                    </div>
+                  )}
+                  {shownInterventions.map(i => (
+                    <InterventionMatchCard key={i.uid} intervention={i} checked={selInterv.has(i.uid)} onToggle={toggleInterv} />
+                  ))}
+                  {shownInterventions.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-10">No plant locations match these filters.</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* MIDDLE: dashed connector with live match preview */}
+            <div className="relative w-9 flex-shrink-0 self-stretch">
+              <div className="absolute inset-y-2 left-1/2 -translate-x-1/2 border-l border-dashed border-border" />
+              {canMatch && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-1">
+                  <div className="rounded-md bg-emerald-950 text-white text-xs font-semibold px-2.5 py-1 whitespace-nowrap shadow-md">
+                    {fmtNum(matchable)} trees
+                  </div>
+                  <span className={cn(
+                    'text-[10px] font-semibold whitespace-nowrap',
+                    selSupply >= selDemand ? 'text-emerald-700' : 'text-amber-700',
+                  )}>
+                    {selSupply === selDemand ? 'exact match' : selSupply > selDemand ? 'fits available' : `short by ${fmtNum(selDemand - selSupply)}`}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* RIGHT: donations */}
-            <div className="w-1/2 flex flex-col min-h-0">
-              <div className="flex-shrink-0 px-3 py-2 border-b border-border bg-background/60 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-sm font-semibold text-foreground">Donations</h2>
-                    <p className="text-[11px] text-muted-foreground">Paid project contributions</p>
+            <div className="flex-1 min-w-0 flex flex-col min-h-0 rounded-xl border border-border bg-background overflow-hidden">
+              <div className="flex-shrink-0 px-4 pt-3.5 pb-3 space-y-2.5">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-[15px] font-semibold text-foreground">Donations</h2>
+                    <Badge variant="secondary" className="rounded-full px-2 text-[11px]">{shownContributions.length}</Badge>
                   </div>
-                  <Badge variant="secondary" className="text-[11px]">{shownContributions.length}</Badge>
+                  <p className="text-xs text-muted-foreground mt-0.5">Paid project contributions</p>
                 </div>
                 <Tabs value={rightTab} onValueChange={setRightTab}>
-                  <TabsList className="h-7">
-                    <TabsTrigger value="toMatch" className="text-xs px-3">To match</TabsTrigger>
-                    <TabsTrigger value="ignored" className="text-xs px-3">Ignored ({ignoredList.length})</TabsTrigger>
+                  <TabsList className="w-full h-9">
+                    <TabsTrigger value="toMatch" className="flex-1 text-xs">To match</TabsTrigger>
+                    <TabsTrigger value="ignored" className="flex-1 text-xs">Ignored ({ignoredList.length})</TabsTrigger>
                   </TabsList>
                 </Tabs>
                 {rightTab !== 'ignored' && (
                   <div className="flex items-center gap-2 flex-wrap">
                     <div className="relative flex-1 min-w-[130px]">
-                      <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                      <Input value={donSearch} onChange={e => setDonSearch(e.target.value)} placeholder="Search donor or ref" className="h-8 pl-8 text-xs" />
+                      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                      <Input value={donSearch} onChange={e => setDonSearch(e.target.value)} placeholder="Search donor or ref" className="h-9 pl-9 text-xs rounded-lg" />
                     </div>
                     {rightTab === 'toMatch' && (
                       <Select value={sort} onValueChange={setSort}>
-                        <SelectTrigger size="sm" className="text-xs w-[104px]"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-9 text-xs rounded-lg w-[104px]"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="oldest">Oldest</SelectItem>
                           <SelectItem value="largest">Largest</SelectItem>
@@ -348,7 +415,7 @@ export default function TreeMatchPage() {
                       </Select>
                     )}
                     <Select value={payout} onValueChange={setPayout}>
-                      <SelectTrigger size="sm" className="text-xs w-[150px]"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-9 text-xs rounded-lg w-[130px]"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {payouts.map(p => <SelectItem key={p} value={p}>{p === 'All' ? 'All payouts' : isPayoutPaid(p) ? p : `${p} · pending`}</SelectItem>)}
                       </SelectContent>
@@ -356,22 +423,24 @@ export default function TreeMatchPage() {
                   </div>
                 )}
                 {rightTab === 'toMatch' && (
-                  <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Checkbox checked={paidWindowOnly} onCheckedChange={v => setPaidWindowOnly(!!v)} />
                     Donations older than 90 days
                   </label>
                 )}
               </div>
-              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2.5">
                 {rightTab === 'toMatch' && payout === 'All' && hiddenByPayout > 0 && (
-                  <p className="text-[11px] text-muted-foreground bg-muted/40 border border-border rounded-md px-2.5 py-1.5">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-2">
+                    <Info size={13} className="flex-shrink-0" />
                     {hiddenByPayout} donation(s) hidden: payout not yet paid out to you.
-                  </p>
+                  </div>
                 )}
                 {rightTab === 'toMatch' && payout === 'All' && hiddenByWindow > 0 && (
-                  <p className="text-[11px] text-muted-foreground bg-muted/40 border border-border rounded-md px-2.5 py-1.5">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-2">
+                    <Info size={13} className="flex-shrink-0" />
                     {hiddenByWindow} donation(s) newer than 90 days hidden.
-                  </p>
+                  </div>
                 )}
                 {shownContributions.map(c => (
                   <DonationCard
@@ -391,21 +460,14 @@ export default function TreeMatchPage() {
           </div>
 
           {/* Bottom action bar */}
-          <div className="flex-shrink-0 border-t border-border bg-background px-4 py-2.5">
+          <div className="flex-shrink-0 border-t border-border bg-background px-4 py-3">
             <div className="flex items-center gap-3 flex-wrap">
-              <div className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
-                <span className="font-semibold text-foreground">{selIntervList.length}</span> plant location(s)
-                <span>↔</span>
-                <span className="font-semibold text-foreground">{selContribList.length}</span> donation(s)
-                {canMatch && (
-                  <>
-                    <span className="text-muted-foreground/50">·</span>
-                    <span className={cn('font-medium', selSupply >= selDemand ? 'text-emerald-700' : 'text-amber-700')}>
-                      {fmtNum(selSupply)} available / {fmtNum(selDemand)} needed
-                      {selSupply >= selDemand ? ' — enough' : ` — short by ${fmtNum(selDemand - selSupply)}`}
-                    </span>
-                  </>
-                )}
+              <div className="text-sm text-muted-foreground flex items-center gap-1.5 whitespace-nowrap">
+                <span className="font-semibold text-foreground">{selIntervList.length}</span>
+                plant location{selIntervList.length === 1 ? '' : 's'}
+                <ArrowLeftRight size={13} className="text-muted-foreground/70" />
+                <span className="font-semibold text-foreground">{selContribList.length}</span>
+                donation{selContribList.length === 1 ? '' : 's'}
               </div>
 
               <Separator orientation="vertical" className="h-6" />
@@ -413,7 +475,7 @@ export default function TreeMatchPage() {
               <div className="flex items-center gap-2">
                 <Label className="text-xs text-muted-foreground">Type</Label>
                 <Select value={matchType} onValueChange={v => setMatchType(v as typeof matchType)}>
-                  <SelectTrigger size="sm" className="text-xs w-[130px]"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-9 text-xs rounded-lg w-[140px]"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="full">Full donation</SelectItem>
                     <SelectItem value="partial">Partial (cap)</SelectItem>
@@ -429,22 +491,22 @@ export default function TreeMatchPage() {
                   value={maxTree}
                   onChange={e => setMaxTree(e.target.value.replace(/\D/g, ''))}
                   placeholder="max trees / donation"
-                  className="h-8 w-[140px] text-xs"
+                  className="h-9 w-[140px] text-xs rounded-lg"
                 />
               )}
 
               <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Checkbox checked={allowPartial} onCheckedChange={v => setAllowPartial(!!v)} /> allow partial
+                <Checkbox checked={allowPartial} onCheckedChange={v => setAllowPartial(!!v)} /> Allow partial
               </label>
-              <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Switch checked={privateMatch} onCheckedChange={setPrivateMatch} />
-                <span className="flex items-center gap-1"><EyeOff size={12} /> private</span>
+                <span className="flex items-center gap-1"><EyeOff size={12} /> Match privately</span>
               </label>
 
               <div className="flex-1" />
 
-              <Button disabled={!canMatch} onClick={() => setConfirmOpen(true)}>
-                <Play size={14} /> Match
+              <Button size="lg" className="rounded-lg px-5" disabled={!canMatch} onClick={() => setConfirmOpen(true)}>
+                <Play size={14} /> {canMatch ? `Match ${fmtNum(matchable)} trees` : 'Match trees'}
               </Button>
             </div>
           </div>
