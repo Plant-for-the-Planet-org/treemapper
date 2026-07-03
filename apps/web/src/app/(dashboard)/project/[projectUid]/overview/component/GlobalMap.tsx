@@ -28,6 +28,7 @@ import {
     Download,
     CloudCheck,
     CloudAlert,
+    Maximize2,
 } from 'lucide-react';
 import * as turf from '@turf/turf';
 import { cn } from '@/lib/utils';
@@ -88,6 +89,7 @@ import {
 } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useTreematchStore } from '@/stores/treematchStore';
 import { mockSupportingDonors, donorLabel, fmtNum } from '../../treematch/component/mockData';
 
@@ -635,6 +637,7 @@ const TreeTooltip: React.FC<{
     const speciesImage = buildSpeciesImageUrl(tree.speciesImage);
     const [treeImgError, setTreeImgError] = useState(false);
     const [speciesImgError, setSpeciesImgError] = useState(false);
+    const [showFullImage, setShowFullImage] = useState(false);
 
     const showTreeImage = treeImage && !treeImgError;
     const showSpeciesImage = speciesImage && !speciesImgError;
@@ -664,12 +667,22 @@ const TreeTooltip: React.FC<{
                 {/* Image header / banner — scrolls with the content */}
                 <div className="relative h-32 bg-muted">
                     {showTreeImage ? (
-                        <img
-                            src={treeImage as string}
-                            alt={tree.tag || tree.hid}
-                            className="w-full h-full object-cover"
-                            onError={() => setTreeImgError(true)}
-                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowFullImage(true)}
+                            className="group relative w-full h-full block cursor-zoom-in"
+                        >
+                            <img
+                                src={treeImage as string}
+                                alt={tree.tag || tree.hid}
+                                className="w-full h-full object-cover"
+                                onError={() => setTreeImgError(true)}
+                            />
+                            <span className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                            <span className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Maximize2 className="w-3.5 h-3.5" />
+                            </span>
+                        </button>
                     ) : isLoadingDetail ? (
                         <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground">
                             <Loader2 className="w-7 h-7 animate-spin" strokeWidth={1.5} />
@@ -841,6 +854,19 @@ const TreeTooltip: React.FC<{
                     )}
                 </div>
             </div>
+
+            {showTreeImage && (
+                <Dialog open={showFullImage} onOpenChange={setShowFullImage}>
+                    <DialogContent className="max-w-4xl w-full p-2 bg-transparent ring-0 sm:max-w-4xl">
+                        <DialogTitle className="sr-only">{tree.tag || tree.hid} photo</DialogTitle>
+                        <img
+                            src={treeImage as string}
+                            alt={tree.tag || tree.hid}
+                            className="w-full max-h-[85vh] object-contain rounded-lg"
+                        />
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     );
 };
