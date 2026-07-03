@@ -57,7 +57,7 @@ export class NotificationRepository {
     const { page = 1, limit = 20, unreadOnly, category, priority } = query;
     const offset = (page - 1) * limit;
 
-    let whereConditions = [eq(notifications.userId, userId)];
+    let whereConditions = [eq(notifications.userId, userId), isNull(notifications.deletedAt)];
 
     if (unreadOnly) {
       whereConditions.push(eq(notifications.isRead, false));
@@ -99,7 +99,7 @@ export class NotificationRepository {
     const [notification] = await this.drizzle.db
       .select()
       .from(notifications)
-      .where(eq(notifications.id, id))
+      .where(and(eq(notifications.id, id), isNull(notifications.deletedAt)))
       .limit(1);
 
     return notification || null;
@@ -109,7 +109,7 @@ export class NotificationRepository {
     const [notification] = await this.drizzle.db
       .select()
       .from(notifications)
-      .where(eq(notifications.uid, uid))
+      .where(and(eq(notifications.uid, uid), isNull(notifications.deletedAt)))
       .limit(1);
 
     return notification || null;
@@ -164,7 +164,8 @@ export class NotificationRepository {
         and(
           eq(notifications.userId, userId),
           eq(notifications.isRead, false),
-          eq(notifications.isArchived, false)
+          eq(notifications.isArchived, false),
+          isNull(notifications.deletedAt)
         )
       );
 
@@ -172,7 +173,7 @@ export class NotificationRepository {
   }
 
   async getNotificationStats(userId: number): Promise<NotificationStatsDto> {
-    const baseWhere = eq(notifications.userId, userId);
+    const baseWhere = and(eq(notifications.userId, userId), isNull(notifications.deletedAt));
 
     const [
       [{ total }],
@@ -267,12 +268,16 @@ export class NotificationRepository {
     };
   }
 
+  // Soft delete only: expired notifications are stamped with deletedAt and
+  // filtered out of every read, never physically removed.
   async deleteExpiredNotifications(): Promise<number> {
     const result = await this.drizzle.db
-      .delete(notifications)
+      .update(notifications)
+      .set({ deletedAt: new Date(), updatedAt: new Date() })
       .where(
         and(
-          sql`expires_at < NOW()`
+          sql`expires_at < NOW()`,
+          isNull(notifications.deletedAt)
         )
       );
 
@@ -286,6 +291,7 @@ export class NotificationRepository {
       .where(
         and(
           isNull(notifications.sentAt),
+          isNull(notifications.deletedAt),
           sql`scheduled_for <= NOW()`,
           or(
             isNull(notifications.expiresAt),
@@ -320,6 +326,7 @@ export class NotificationRepository {
     const whereConditions = [
       eq(notifications.userId, userId),
       eq(notifications.isArchived, false),
+      isNull(notifications.deletedAt),
     ];
 
     if (unreadOnly) {
@@ -358,6 +365,7 @@ export class NotificationRepository {
           retryCount: notifications.retryCount,
           createdAt: notifications.createdAt,
           updatedAt: notifications.updatedAt,
+          deletedAt: notifications.deletedAt,
         })
         .from(notifications)
         .where(whereClause)
@@ -377,7 +385,8 @@ export class NotificationRepository {
           and(
             eq(notifications.userId, userId),
             eq(notifications.isRead, false),
-            eq(notifications.isArchived, false)
+            eq(notifications.isArchived, false),
+            isNull(notifications.deletedAt)
           )
         ),
     ]);
