@@ -1286,6 +1286,12 @@ export class MonitoringPlotsService {
             });
         }
         if (toRemove.length > 0) {
+          // Intentional hard delete: plotGroupMembership is a reversible
+          // group<->plot link row, not record data. Removing a plot from a
+          // group carries no history to preserve (re-adding recreates the same
+          // link), and a soft-delete flag here would only fight the
+          // (groupId, interventionId) unique constraint on re-add. The plots
+          // (interventions) themselves are untouched and remain soft-deletable.
           await tx
             .delete(plotGroupMembership)
             .where(inArray(plotGroupMembership.id, toRemove));

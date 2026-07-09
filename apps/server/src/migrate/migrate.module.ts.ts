@@ -6,6 +6,7 @@ import { DatabaseModule } from '../database/database.module';
 import { UsersModule } from 'src/users/users.module';
 import { ProjectsModule } from 'src/projects/projects.module';
 import { NotificationModule } from 'src/notification/notification.module';
+import { SuperAdminGuard } from 'src/auth/super-admin.guard';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { NotificationModule } from 'src/notification/notification.module';
     NotificationModule
   ],
   controllers: [MigrationController,],
-  providers: [MigrationService],
+  providers: [MigrationService, SuperAdminGuard],
   exports: [MigrationService]
 })
 export class MigrationModule { }

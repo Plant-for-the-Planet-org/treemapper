@@ -3,6 +3,7 @@ import { DrizzleService } from '../database/drizzle.service';
 import { image, intervention, project, projectMember, survey, user, userDevice, workspace, workspaceMember } from '../database/schema';
 import { AvatarDTO, CreateSurvey } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CreateDeviceDto } from './dto/create-device.dto';
 import { User } from './entities/user.entity';
 import { eq, and, isNull } from 'drizzle-orm';
@@ -390,7 +391,7 @@ export class UsersService {
 
 
 
-    async update(id: number, updateUserDto: UpdateUserDto): Promise<any> {
+    async update(id: number, updateUserDto: UpdateProfileDto): Promise<any> {
         // Get current user data for audit log
         const currentUser = await this.drizzleService.db
             .select()
@@ -444,8 +445,11 @@ export class UsersService {
     }
 
     private prepareUpdateData(dto: any): Partial<typeof user.$inferInsert> {
+        // `type` is deliberately NOT here: it gates SuperAdminGuard, so a user
+        // must never be able to change it on their own account. Keep this list
+        // limited to non-privileged profile fields.
         const ALLOWED: (keyof typeof user.$inferInsert)[] = [
-            'firstName', 'lastName', 'displayName', 'bio', 'isPrivate', 'locale', 'country', 'type',
+            'firstName', 'lastName', 'displayName', 'bio', 'isPrivate', 'locale', 'country',
         ];
 
         const updateData: any = {};

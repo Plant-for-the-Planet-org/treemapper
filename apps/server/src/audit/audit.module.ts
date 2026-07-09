@@ -2,11 +2,13 @@ import { Global, Module } from '@nestjs/common';
 import { AuditService } from './audit.service';
 import { AuditController } from './audit.controller';
 import { DatabaseModule } from 'src/database/database.module';
+import { WorkspacePermissionsGuard } from '../workspace/workspace-permissions.guard';
+import { SuperAdminGuard } from '../auth/super-admin.guard';
 
 @Global()
 @Module({
     imports: [DatabaseModule],
-    providers: [AuditService],
+    providers: [AuditService, WorkspacePermissionsGuard, SuperAdminGuard],
     controllers: [AuditController],
     exports: [AuditService],
 })

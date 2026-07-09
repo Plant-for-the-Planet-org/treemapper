@@ -156,8 +156,10 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   async getCurrentThread(
     @Param('interventionUid') interventionUid: string,
+    @CurrentUser() user: any,
   ): Promise<ReviewThreadResponse | null> {
-    return this.approvalBoardService.getCurrentThread(interventionUid);
+    const userId = user.id || user.sub;
+    return this.approvalBoardService.getCurrentThread(interventionUid, userId);
   }
 
   @Get('interventions/:interventionUid')
@@ -165,8 +167,10 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   async getInterventionDetails(
     @Param('interventionUid') interventionUid: string,
+    @CurrentUser() user: any,
   ) {
-    return this.approvalBoardService.getInterventionDetails(interventionUid);
+    const userId = user.id || user.sub;
+    return this.approvalBoardService.getInterventionDetails(interventionUid, userId);
   }
 
   // ================== Comments by Thread ==================
@@ -176,8 +180,10 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'threadUid', description: 'Thread UID' })
   async getThreadComments(
     @Param('threadUid') threadUid: string,
+    @CurrentUser() user: any,
   ): Promise<ReviewCommentResponse[]> {
-    return this.approvalBoardService.getCommentsByThreadUid(threadUid);
+    const userId = user.id || user.sub;
+    return this.approvalBoardService.getCommentsByThreadUid(threadUid, userId);
   }
 
   @Post('projects/:id/threads/:threadUid/comments')
@@ -216,8 +222,10 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   async getComments(
     @Param('interventionUid') interventionUid: string,
+    @CurrentUser() user: any,
   ): Promise<ReviewCommentResponse[]> {
-    return this.approvalBoardService.getInterventionComments(interventionUid);
+    const userId = user.id || user.sub;
+    return this.approvalBoardService.getInterventionComments(interventionUid, userId);
   }
 
   // ================== Review Status ==================
@@ -227,8 +235,10 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   async getReviewStatus(
     @Param('interventionUid') interventionUid: string,
+    @CurrentUser() user: any,
   ): Promise<InterventionReviewSummary> {
-    return this.approvalBoardService.getInterventionReviewStatus(interventionUid);
+    const userId = user.id || user.sub;
+    return this.approvalBoardService.getInterventionReviewStatus(interventionUid, userId);
   }
 
   // ================== User Summary (Mobile) ==================

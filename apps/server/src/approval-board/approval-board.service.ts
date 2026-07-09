@@ -207,7 +207,7 @@ export class ApprovalBoardService {
         });
       }
 
-      return this.getInterventionReviewStatus(interventionUid, tx);
+      return this.getInterventionReviewStatus(interventionUid, undefined, tx);
     });
   }
 
@@ -274,7 +274,7 @@ export class ApprovalBoardService {
         }
       }
 
-      return this.getInterventionReviewStatus(interventionUid, tx);
+      return this.getInterventionReviewStatus(interventionUid, undefined, tx);
     });
 
     if (decisionProjectId.value) {
@@ -358,14 +358,16 @@ export class ApprovalBoardService {
 
   // ================== Current Thread ==================
 
-  async getCurrentThread(interventionUid: string): Promise<ReviewThreadResponse | null> {
+  async getCurrentThread(interventionUid: string, userId: number): Promise<ReviewThreadResponse | null> {
     const [inv] = await this.drizzleService.db
-      .select({ id: intervention.id, reviewStatus: intervention.reviewStatus })
+      .select({ id: intervention.id, projectId: intervention.projectId, reviewStatus: intervention.reviewStatus })
       .from(intervention)
       .where(and(eq(intervention.uid, interventionUid), isNull(intervention.deletedAt)))
       .limit(1);
 
     if (!inv) throw new NotFoundException('Intervention not found');
+
+    await this.authzService.assertProjectAccess(userId, inv.projectId);
 
     // Intervention must be in the review workflow to have/create a thread
     if (!inv.reviewStatus) return null;
@@ -448,14 +450,25 @@ export class ApprovalBoardService {
 
   // ================== Comments by Thread ==================
 
-  async getCommentsByThreadUid(threadUid: string): Promise<ReviewCommentResponse[]> {
+  async getCommentsByThreadUid(threadUid: string, userId: number): Promise<ReviewCommentResponse[]> {
+    // A thread belongs to either an intervention or a site (enforced by the
+    // review_thread_one_entity check constraint); resolve the owning project
+    // from whichever entity it points to so access can be checked.
     const [thread] = await this.drizzleService.db
-      .select({ id: reviewThread.id })
+      .select({
+        id: reviewThread.id,
+        projectId: sql<number | null>`COALESCE(${intervention.projectId}, ${site.projectId})`,
+      })
       .from(reviewThread)
+      .leftJoin(intervention, eq(reviewThread.interventionId, intervention.id))
+      .leftJoin(site, eq(reviewThread.siteId, site.id))
       .where(eq(reviewThread.uid, threadUid))
       .limit(1);
 
     if (!thread) throw new NotFoundException('Thread not found');
+    if (thread.projectId == null) throw new NotFoundException('Thread not found');
+
+    await this.authzService.assertProjectAccess(userId, thread.projectId);
 
     return this.getCommentsByThreadId(thread.id);
   }
@@ -575,14 +588,16 @@ export class ApprovalBoardService {
     };
   }
 
-  async getInterventionComments(interventionUid: string): Promise<ReviewCommentResponse[]> {
+  async getInterventionComments(interventionUid: string, userId: number): Promise<ReviewCommentResponse[]> {
     const [inv] = await this.drizzleService.db
-      .select({ id: intervention.id })
+      .select({ id: intervention.id, projectId: intervention.projectId })
       .from(intervention)
       .where(and(eq(intervention.uid, interventionUid), isNull(intervention.deletedAt)))
       .limit(1);
 
     if (!inv) throw new NotFoundException('Intervention not found');
+
+    await this.authzService.assertProjectAccess(userId, inv.projectId);
 
     const threads = await this.drizzleService.db
       .select({ id: reviewThread.id })
@@ -624,6 +639,7 @@ export class ApprovalBoardService {
 
   async getInterventionReviewStatus(
     interventionUid: string,
+    userId?: number,
     tx?: any,
   ): Promise<InterventionReviewSummary> {
     const db = tx || this.drizzleService.db;
@@ -657,6 +673,13 @@ export class ApprovalBoardService {
 
     if (!inv) throw new NotFoundException('Intervention not found');
 
+    // userId is omitted only by already-authorized internal callers (post-decision
+    // flows guarded by ApprovalDecisionGuard). The public controller route always
+    // passes it so cross-tenant reads are blocked.
+    if (userId !== undefined) {
+      await this.authzService.assertProjectAccess(userId, inv.projectId);
+    }
+
     return {
       interventionId: inv.interventionId,
       interventionUid: inv.interventionUid,
@@ -683,12 +706,13 @@ export class ApprovalBoardService {
    * Return a richer intervention details object used by the approval modal.
    * Includes intervention fields, species distribution, a sample of trees and simple aggregates.
    */
-  async getInterventionDetails(interventionUid: string): Promise<any> {
+  async getInterventionDetails(interventionUid: string, userId: number): Promise<any> {
     const db = this.drizzleService.db;
 
     const [inv] = await db
       .select({
         id: intervention.id,
+        projectId: intervention.projectId,
         interventionUid: intervention.uid,
         interventionHid: intervention.hid,
         interventionDescription: intervention.description,
@@ -712,6 +736,8 @@ export class ApprovalBoardService {
       .limit(1);
 
     if (!inv) throw new NotFoundException('Intervention not found');
+
+    await this.authzService.assertProjectAccess(userId, inv.projectId);
 
     // Parse PostGIS GeoJSON string into an object (if present)
     const parsedLocation = inv.location ? JSON.parse(inv.location as unknown as string) : null;
