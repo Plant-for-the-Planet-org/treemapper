@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Leaf, MapPin, Globe, Info, FileText, ArrowLeft, Loader2, TreePine, Target, Shield, Plus } from 'lucide-react';
+import { Leaf, MapPin, Globe, Info, FileText, ArrowLeft, Loader2, TreePine, Target, Shield, Plus, Building2 } from 'lucide-react';
 import ProjectMap from '@/component/MapSelect';
 import { toast } from 'react-toastify'
 import { createNewProject } from '@shared-core/fetchApi/api.fetch';
@@ -113,6 +113,7 @@ const ProjectTypeSelector = ({ value, onChange, projectTypes }) => {
                             htmlFor={`type-${type.id}`}
                             className={cn(
                                 'relative flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 transition-colors font-normal',
+                                type.id === 'other' && 'col-span-2',
                                 selected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/40'
                             )}
                         >
@@ -436,6 +437,12 @@ export function CreateProjectUI() {
             label: 'Conservation',
             icon: Shield,
             description: 'Habitat protection',
+        },
+        {
+            id: 'urban-tree-planting',
+            label: 'Urban Tree Planting',
+            icon: Building2,
+            description: 'Greening urban spaces',
         },
         {
             id: 'other',
