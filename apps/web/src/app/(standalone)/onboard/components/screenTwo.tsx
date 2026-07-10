@@ -40,6 +40,7 @@ export const ScreenTwo = ({ onNext, onBack, loading }) => {
     'Research & Data Collection',
     'Environmental Education',
     'Land Use Planning',
+    'Greening Urban Spaces',
     'Other'
   ];
 
