@@ -1490,9 +1490,11 @@ export class InterventionsService {
       .leftJoin(user, eq(intervention.userId, user.id))
       .where(and(...whereConditions, isNull(intervention.deletedAt)))
       .orderBy(
-        sortOrder === SortOrderEnum.DESC
-          ? desc(intervention.createdAt)
-          : asc(intervention.createdAt)
+        // id tiebreaker keeps the order stable when many rows share the same
+        // createdAt (bulk imports); without it LIMIT/OFFSET pages can overlap.
+        ...(sortOrder === SortOrderEnum.DESC
+          ? [desc(intervention.createdAt), desc(intervention.id)]
+          : [asc(intervention.createdAt), asc(intervention.id)])
       )
       .limit(limit)
       .offset(offset);

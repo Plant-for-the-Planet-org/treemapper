@@ -168,7 +168,12 @@ const TreeMapperUI = () => {
         const newInterventions = response.data.intervention || [];
 
         if (append) {
-          setInterventions(prev => [...prev, ...newInterventions]);
+          // Dedupe by uid: offset pages can overlap when rows shift between
+          // requests, which rendered the same intervention twice in the list.
+          setInterventions(prev => {
+            const seen = new Set(prev.map((i: Intervention) => i.uid));
+            return [...prev, ...newInterventions.filter((i: Intervention) => !seen.has(i.uid))];
+          });
         } else {
           setInterventions(newInterventions);
 
