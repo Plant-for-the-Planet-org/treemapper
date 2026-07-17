@@ -133,7 +133,7 @@ export class TtcContributionsClient {
     try {
       const response = await firstValueFrom(
         this.httpService.get<TtcContributionListResponse>(url, {
-          headers: this.headers(),c
+          headers: this.headers()
         }),
       );
       return response.data;

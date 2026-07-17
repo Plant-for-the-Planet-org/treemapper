@@ -157,7 +157,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
 
   const canImpersonate = User?.type === 'superadmin'
   const isImpersonating = !!(User as { impersonated?: boolean } | null)?.impersonated
-
+  const isPlatformProjectWorkspace = selectedProject?.workspace?.slug?.toLowerCase() === 'platform-projects'
   const handleExitImpersonation = async () => {
     try {
       const resp = await exitImpersonationWork(accessToken || '')
@@ -222,13 +222,13 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         ...(isAdminOrOwner ? [{ icon: Smartphone, label: 'Devices', id: 'device-management' }] : []),
       ],
     },
-    {
+    ...(isPlatformProjectWorkspace ? [{
       label: 'Matching',
       items: [
         // Dummy TreeMatch UI (mock data). Real build gates this on role + matching-enabled flag.
         { icon: Link2, label: 'TreeMatch', id: 'treematch' },
       ],
-    },
+    }] : []),
     {
       label: 'Analyse',
       items: [
