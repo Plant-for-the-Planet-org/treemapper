@@ -91,7 +91,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useTreematchStore } from '@/stores/treematchStore';
-import { mockSupportingDonors, donorLabel, fmtNum } from '../../treematch/component/mockData';
+import { mockSupportingDonors } from '../../treematch/component/mockData';
+import { fmtNum } from '../../treematch/component/types';
 
 // Static map props. These MUST be module-level constants (stable references).
 // react-map-gl compares `style` / `interactiveLayerIds` by reference and
@@ -507,13 +508,13 @@ const InterventionPanel: React.FC<{
                     <div className="px-4 pt-3">
                         <div className="flex items-center gap-1.5 mb-2">
                             <HeartHandshake className="w-3.5 h-3.5 text-primary" />
-                            <span className="text-sm font-medium text-foreground">Supported by Donors</span>
+                            <span className="text-sm font-medium text-foreground">Supporting donations</span>
                             <span className="text-xs text-muted-foreground font-normal">({supportingDonors.length})</span>
                         </div>
                         <div className="flex flex-col gap-1.5">
                             {supportingDonors.map(d => (
-                                <div key={d.contributionUid} className="flex items-center justify-between gap-2 text-sm">
-                                    <span className="text-foreground truncate">{donorLabel(d.donor)}</span>
+                                <div key={d.contributionId} className="flex items-center justify-between gap-2 text-sm">
+                                    <span className="font-mono text-foreground truncate">{d.donationRef}</span>
                                     <span className="text-xs text-muted-foreground shrink-0">{fmtNum(d.trees)} trees</span>
                                 </div>
                             ))}

@@ -1,48 +1,49 @@
 'use client'
 
-import { ArrowRight, Sparkles, EyeOff } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MockIntervention, MockContribution, fmtNum, donorLabel } from './mockData';
+import {
+  TreeMatchIntervention, Contribution, fmtNum, availableTrees, contribAvailable,
+} from './types';
 
 export interface PreviewAllocation {
-  donor: string;
-  contributionUid: string;
+  /** the donation reference (donation.uid) -- there is no donor name to show */
+  donationRef: string;
+  contributionId: number;
   interventionHid: string;
+  /** intervention uid; the server ledger keys matches by uid, not hid */
+  interventionUid: string;
   trees: number;
 }
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  interventions: MockIntervention[];
-  contributions: MockContribution[];
-  matchType: 'full' | 'partial';
-  maxTreeCount: number | null;
-  allowPartial: boolean;
-  privateMatch: boolean;
+  interventions: TreeMatchIntervention[];
+  contributions: Contribution[];
+  /** true while the allocation write-back is in flight */
+  submitting?: boolean;
   onConfirm: (allocations: PreviewAllocation[]) => void;
 }
 
 // Greedy two-pointer fill: walk contributions, consume from interventions.
 function computePreview(
-  interventions: MockIntervention[],
-  contributions: MockContribution[],
-  maxTreeCount: number | null,
+  interventions: TreeMatchIntervention[],
+  contributions: Contribution[],
 ): PreviewAllocation[] {
-  const supply = interventions.map((i) => ({ hid: i.hid, left: Math.max(0, i.totalTrees - i.matchedTrees) }));
+  const supply = interventions.map((i) => ({ hid: i.hid, uid: i.uid, left: availableTrees(i) }));
   const out: PreviewAllocation[] = [];
   let s = 0;
   for (const c of contributions) {
-    let need = Math.max(0, c.units - c.allocated);
-    if (maxTreeCount != null) need = Math.min(need, maxTreeCount);
+    let need = contribAvailable(c);
     while (need > 0 && s < supply.length) {
       if (supply[s].left <= 0) { s++; continue; }
       const take = Math.min(need, supply[s].left);
-      out.push({ donor: donorLabel(c.donor), contributionUid: c.uid, interventionHid: supply[s].hid, trees: take });
+      out.push({ donationRef: c.donation.uid, contributionId: c.id, interventionHid: supply[s].hid, interventionUid: supply[s].uid, trees: take });
       supply[s].left -= take;
       need -= take;
     }
@@ -51,11 +52,11 @@ function computePreview(
 }
 
 export function MatchConfirmDialog({
-  open, onOpenChange, interventions, contributions, matchType, maxTreeCount, allowPartial, privateMatch, onConfirm,
+  open, onOpenChange, interventions, contributions, submitting, onConfirm,
 }: Props) {
-  const preview = computePreview(interventions, contributions, matchType === 'partial' ? maxTreeCount : null);
+  const preview = computePreview(interventions, contributions);
   const totalTrees = preview.reduce((sum, p) => sum + p.trees, 0);
-  const demand = contributions.reduce((sum, c) => sum + Math.max(0, c.units - c.allocated), 0);
+  const demand = contributions.reduce((sum, c) => sum + contribAvailable(c), 0);
   const shortfall = demand - totalTrees;
 
   return (
@@ -68,24 +69,13 @@ export function MatchConfirmDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center gap-2 flex-wrap text-xs">
-          <Badge variant="secondary" className="capitalize">{matchType}</Badge>
-          {allowPartial && <Badge variant="outline">allow partial</Badge>}
-          {maxTreeCount != null && matchType === 'partial' && <Badge variant="outline">cap {fmtNum(maxTreeCount)}/donation</Badge>}
-          {privateMatch && (
-            <Badge variant="outline" className="gap-1 text-purple-700 border-purple-300 bg-purple-50">
-              <EyeOff size={10} /> private
-            </Badge>
-          )}
-        </div>
-
         <div className="mt-1 max-h-64 overflow-y-auto rounded-lg border border-border divide-y divide-border">
           {preview.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-6">Nothing to allocate.</p>
           )}
           {preview.map((p, idx) => (
             <div key={idx} className="flex items-center gap-2 p-2.5 text-sm">
-              <span className="text-muted-foreground truncate flex-1">{p.donor}</span>
+              <span className="font-mono text-muted-foreground truncate flex-1">{p.donationRef}</span>
               <ArrowRight size={13} className="text-muted-foreground/50 flex-shrink-0" />
               <span className="font-medium text-foreground truncate flex-1">{p.interventionHid}</span>
               <Badge variant="secondary" className="text-[11px] flex-shrink-0">{fmtNum(p.trees)} trees</Badge>
@@ -104,9 +94,9 @@ export function MatchConfirmDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={() => onConfirm(preview)} disabled={preview.length === 0}>
-            <Sparkles size={14} /> Confirm match
+          <Button variant="outline" disabled={submitting} onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button onClick={() => onConfirm(preview)} disabled={preview.length === 0 || submitting}>
+            <Sparkles size={14} /> {submitting ? 'Recording…' : 'Confirm match'}
           </Button>
         </DialogFooter>
       </DialogContent>

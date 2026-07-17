@@ -68,6 +68,8 @@ export const postUrlApi = {
   projectForms: `${baseUrl}/projects`,
   // Device management (project-scoped)
   notifyProjectDevices: `${baseUrl}/projects`,
+  // TreeMatch auto-match run (project-scoped)
+  treematch: `${baseUrl}/treematch/projects`,
 } as const;
 
 
@@ -130,6 +132,8 @@ export const getUrlApi = {
   projectForms: `${baseUrl}/projects`,
   // Device management (project-scoped)
   projectDevices: `${baseUrl}/projects`,
+  // TreeMatch (project-scoped; donations are proxied to the TTC backend)
+  treematch: `${baseUrl}/treematch/projects`,
 } as const;
 
 export const patchUrlApi = {
@@ -146,6 +150,8 @@ export const patchUrlApi = {
   userDetails: `${baseUrl}/users/me`,
   // Forms (project-scoped)
   projectForms: `${baseUrl}/projects`,
+  // TreeMatch donation ignore flag (project-scoped)
+  treematch: `${baseUrl}/treematch/projects`,
 
 } as const;
 
@@ -173,6 +179,10 @@ export const putUrlApi = {
   editIntervention: `${baseUrl}/interventions`,
   editTree: `${baseUrl}/interventions/trees`,
   addTreeRemeasurement: `${baseUrl}/interventions/trees`,
+  // TreeMatch allocation write-back (proxied to the TTC backend)
+  treematchAllocations: `${baseUrl}/treematch/projects`,
+  // TreeMatch auto-match rules (full-list replace)
+  treematchRules: `${baseUrl}/treematch/projects`,
 
 } as const;
 

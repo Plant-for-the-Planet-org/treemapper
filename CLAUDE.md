@@ -122,10 +122,50 @@ rewrites to a local server on `SERVER_PORT` (default 3001), and every API call
 500s if that server isn't running. Since it's a `NEXT_PUBLIC_*` var, changing it
 requires restarting the dev server, not just a reload.
 
-You do **not** need the local `server` or `mobile` app to preview the TreeMatch
-screens -- they render from mock data. `/api/server/*` calls will fail
-(`ECONNREFUSED :3001`, since no local backend runs), but that does not block the
-mock UI.
+The TreeMatch screens load real data through the local server
+(`/api/treematch/projects/:uid/...`), so previewing them needs `apps/server`
+running on :3001 (the `mobile` app is never needed). The donations pane proxies
+the TTC contributions API: the server reads `TREEMATCH_TTC_URL` +
+`TREEMATCH_TTC_API_KEY` (falling back to `OLD_BACKEND_URL` + `API_KEY`), and
+review-app TTC deploys (`*.startplanting.org`) may additionally need a
+Cloudflare Access service token in `TREEMATCH_TTC_CF_CLIENT_ID` /
+`TREEMATCH_TTC_CF_CLIENT_SECRET` -- when the edge is gated, it returns a 403
+HTML page before the API is ever reached. If the donation backend is unreachable the pane
+shows an error banner; the plant-locations pane still works from the local DB.
+Only the overview map's "supporting donors" popover is still mock
+(`treematch/component/mockData.ts`); donation `status` (public/private)
+is injected by the server proxy until TTC returns it.
+
+Matches persist in the server's match ledger (migration 0006): the
+`treematch_contribution` mirror (TTC snapshot + local `ignore` flag + write-back
+sync state), the `treematch_allocation` ledger (one active row per
+contribution/intervention pair, soft delete = unmatch), plus
+`treematch_intervention_block` and the append-only `treematch_event` log. All
+unit columns are integer centi-units (100 = 1 tree, TTC convention); convert
+only at the API boundary. The PUT write-back runs in three phases (local tx
+with mirrors 'pending' -> TTC PUT -> confirm or compensate), and its DTO
+requires both the absolute per-contribution totals and the per-pair `matches`
+deltas -- the server 409s when they disagree with the mirror (stale client).
+`matchedTrees` on the interventions list and stats is a real ledger read.
+
+Auto-match rules are real (migration 0007): `treematch_rule` stores a
+per-project ordered strategy list (WHEN donations -> PREFER locations -> ORDER
+tiebreak; text + CHECK vocabulary, saving is a full-list replace that
+soft-deletes the old revision, so rule uids change on every save), and
+`treematch_automatch_run` records each run (its partial unique index on
+`(project_id) WHERE status='running'` is the concurrency guard). Rules apply
+ONLY when auto-match runs (`POST /treematch/projects/:id/automatch`,
+synchronous); manual matching stays unrestricted. The engine honors TTC
+`allocationPriority` (consumes only 'automatic' and 'first', 'first' first),
+skips ignored donations, appends an implicit default rule (any donation ->
+oldest locations, oldest first), fetches TTC contributions once per distinct
+rule filter (profileType/country are query-only, items don't carry them), and
+derives its absolutes from the post-refresh mirror rows so the ledger's 409
+staleness check stays coherent. The greedy planner is pure
+(`services/automatch-planner.ts`) with unit tests (`yarn test` in apps/server
+-- the repo's first jest spec). Donation ignore/restore persists via
+`PATCH .../contributions/:id/ignore` (no stub creation: unmirrored ids 404).
+The rules 'payout' condition from the old mock was dropped (no payouts API).
 
 ## Token injection (previewing the authed app)
 

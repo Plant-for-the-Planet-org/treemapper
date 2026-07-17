@@ -1,13 +1,13 @@
 'use client'
 
-import { TreePine, Sprout, MapPin, Lock, Ban, ArrowLeftRight, Map as MapIcon } from 'lucide-react';
+import { TreePine, Sprout, MapPin, Lock, Ban, ArrowLeftRight, Map as MapIcon, EyeOff } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { MockIntervention, fmtNum, fmtDate } from './mockData';
+import { TreeMatchIntervention, fmtNum, fmtDate, availableTrees } from './types';
 
 interface Props {
-  intervention: MockIntervention;
+  intervention: TreeMatchIntervention;
   checked: boolean;
   disabled?: boolean;
   onToggle: (uid: string) => void;
@@ -16,8 +16,8 @@ interface Props {
 }
 
 export function InterventionMatchCard({ intervention: i, checked, disabled, onToggle, onViewMap }: Props) {
-  const available = Math.max(0, i.totalTrees - i.matchedTrees);
-  const pct = i.totalTrees > 0 ? Math.round((i.matchedTrees / i.totalTrees) * 100) : 0;
+  const available = availableTrees(i);
+  const pct = i.totalTreeCount > 0 ? Math.round((i.matchedTrees / i.totalTreeCount) * 100) : 0;
   const isSingle = i.type === 'single-tree-registration';
   const Icon = isSingle ? Sprout : TreePine;
   const inactive = disabled || available === 0 || i.blocked;
@@ -48,7 +48,7 @@ export function InterventionMatchCard({ intervention: i, checked, disabled, onTo
         <MapPin size={12} className="flex-shrink-0" />
         <span className="truncate">{i.siteName || 'No site'}</span>
         <span className="text-muted-foreground/40">·</span>
-        <span className="whitespace-nowrap">{fmtDate(i.plantingDate)}</span>
+        <span className="whitespace-nowrap">{fmtDate(i.interventionStartDate)}</span>
         {onViewMap && (
           <>
             <span className="text-muted-foreground/40">·</span>
@@ -70,15 +70,20 @@ export function InterventionMatchCard({ intervention: i, checked, disabled, onTo
             <span className="text-lg font-bold text-foreground leading-none">{fmtNum(available)}</span> available
           </span>
           <span className="text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">{fmtNum(i.matchedTrees)}</span> / {fmtNum(i.totalTrees)} matched
+            <span className="font-semibold text-foreground">{fmtNum(i.matchedTrees)}</span> / {fmtNum(i.totalTreeCount)} matched
           </span>
         </div>
         <div className="h-2 w-full rounded-full bg-primary/15 overflow-hidden">
           <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
         </div>
 
-        {(i.blocked || i.crossProjectName || i.legacy) && (
+        {(i.blocked || i.crossProjectName || i.legacy || i.isPrivate) && (
           <div className="mt-2.5 flex flex-wrap gap-1">
+            {i.isPrivate && (
+              <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-purple-700 border-purple-200 bg-purple-50">
+                <EyeOff size={10} /> private
+              </Badge>
+            )}
             {i.blocked && (
               <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-amber-700 border-amber-200 bg-amber-50">
                 <Ban size={10} /> blocked from matching

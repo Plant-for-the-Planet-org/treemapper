@@ -5,13 +5,15 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { MockIntervention, MockContribution, fmtNum, donorLabel } from './mockData';
+import {
+  TreeMatchIntervention, Contribution, fmtNum, availableTrees, contribAvailable,
+} from './types';
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  interventions: MockIntervention[];
-  contributions: MockContribution[];
+  interventions: TreeMatchIntervention[];
+  contributions: Contribution[];
 }
 
 const toCsv = (headers: string[], rows: (string | number)[][]) =>
@@ -34,14 +36,22 @@ const download = (filename: string, csv: string) => {
 
 export function ExportDialog({ open, onOpenChange, interventions, contributions }: Props) {
   const locRows = interventions
-    .filter(i => i.totalTrees - i.matchedTrees > 0)
-    .map(i => [i.hid, i.siteName, i.type, i.plantingDate.slice(0, 10), i.totalTrees, i.totalTrees - i.matchedTrees]);
-  const locCsv = toCsv(['hid', 'site', 'type', 'plantingDate', 'totalTrees', 'availableTrees'], locRows);
+    .filter(i => availableTrees(i) > 0)
+    .map(i => [i.hid, i.siteName, i.type, i.interventionStartDate.slice(0, 10), i.totalTreeCount, availableTrees(i)]);
+  const locCsv = toCsv(['hid', 'site', 'type', 'interventionStartDate', 'totalTreeCount', 'availableTrees'], locRows);
 
   const donRows = contributions
-    .filter(c => !c.ignored && c.units - c.allocated > 0)
-    .map(c => [c.uid, donorLabel(c.donor), c.country, c.payout, c.units, c.allocated, c.units - c.allocated, c.date.slice(0, 10)]);
-  const donCsv = toCsv(['projectContributionId', 'donor', 'country', 'payout', 'units', 'allocated', 'unitsToMatch', 'paymentDate'], donRows);
+    .filter(c => !c.ignore && contribAvailable(c) > 0)
+    .map(c => [
+      c.id, c.donation.uid, c.status,
+      c.unitType, c.units, c.unitsAllocated, contribAvailable(c),
+      c.donation.paymentDate.slice(0, 10), c.donation.amount, c.donation.currency ?? '',
+    ]);
+  const donCsv = toCsv(
+    ['contributionId', 'donationRef', 'status', 'unitType',
+      'units', 'unitsAllocated', 'available', 'paymentDate', 'amount', 'currency'],
+    donRows,
+  );
 
   const downloadTwoFiles = () => {
     download('treematch-plant-locations.csv', locCsv);
@@ -80,7 +90,8 @@ export function ExportDialog({ open, onOpenChange, interventions, contributions 
             <FileSpreadsheet size={14} /> Download two files
           </Button>
           <p className="text-[11px] text-muted-foreground">
-            The real build exports an .xlsx with two sheets (plant locations + donations). This dummy downloads CSV.
+            Covers the records loaded in the lists; use Load more to pull in older pages first.
+            The real build exports an .xlsx with two sheets (plant locations + donations); this downloads CSV.
           </p>
         </div>
       </DialogContent>

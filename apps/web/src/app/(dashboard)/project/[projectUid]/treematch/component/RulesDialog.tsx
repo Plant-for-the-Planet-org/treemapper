@@ -1,7 +1,7 @@
 'use client'
 
-import { useRef, useState, useMemo } from 'react';
-import { Plus, ChevronUp, ChevronDown, Pencil, Trash2, Ban, Wand2 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Plus, ChevronUp, ChevronDown, Pencil, Trash2, Ban, Wand2, Save, Loader2 } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
@@ -13,68 +13,77 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import {
-  MockRule, RuleWhen, RulePrefer, RuleOrder, MockContribution,
-  MOCK_INTERVENTIONS, MOCK_CONTRIBUTIONS, MOCK_PAYOUTS, fmtNum, donorLabel,
-} from './mockData';
+  Contribution, TreeMatchRule, RuleWhenType, RulePreferType, RuleOrderBy,
+  fmtNum, unitLabel,
+} from './types';
 
-const WHEN_OPTIONS: { v: RuleWhen; label: string }[] = [
+const WHEN_OPTIONS: { v: RuleWhenType; label: string }[] = [
   { v: 'all', label: 'Any donation' },
   { v: 'company', label: 'Company donations' },
   { v: 'individual', label: 'Individual donations' },
   { v: 'country', label: 'Donations from country' },
-  { v: 'donor', label: 'Specific contribution' },
-  { v: 'payout', label: 'Payout' },
+  { v: 'donor', label: 'Specific donation' },
 ];
-const PREFER_OPTIONS: { v: RulePrefer; label: string }[] = [
+const PREFER_OPTIONS: { v: RulePreferType; label: string }[] = [
   { v: 'oldest', label: 'Oldest available locations' },
   { v: 'site', label: 'Specific site' },
   { v: 'capacity', label: 'Locations with most capacity' },
 ];
-const ORDER_OPTIONS: { v: RuleOrder; label: string }[] = [
+const ORDER_OPTIONS: { v: RuleOrderBy; label: string }[] = [
   { v: 'oldest', label: 'Oldest donations first' },
   { v: 'largest', label: 'Largest donations first' },
 ];
-const needsWhenValue = (w: RuleWhen) => ['country', 'donor', 'payout'].includes(w);
+const needsWhenValue = (w: RuleWhenType) => ['country', 'donor'].includes(w);
 
-const whenText = (r: MockRule) => {
-  switch (r.when) {
+const whenText = (r: TreeMatchRule) => {
+  switch (r.whenType) {
     case 'company': return 'Company donations';
     case 'individual': return 'Individual donations';
     case 'country': return `Donations from ${r.whenValue || '…'}`;
-    case 'donor': return `Contribution ${r.whenValue || '…'}`;
-    case 'payout': return `Payout "${r.whenValue || '…'}"`;
+    case 'donor': return `Donation ${r.whenValue || '…'}`;
     default: return 'Any donation';
   }
 };
-const preferText = (r: MockRule) =>
-  r.prefer === 'site' ? `Site ${r.preferValue || '…'}`
-    : r.prefer === 'capacity' ? 'locations with most capacity'
+const preferText = (r: TreeMatchRule) =>
+  r.preferType === 'site' ? `Site ${r.preferSiteName || '…'}`
+    : r.preferType === 'capacity' ? 'locations with most capacity'
       : 'oldest available locations';
-const orderText = (r: MockRule) => (r.order === 'oldest' ? 'oldest first' : 'largest first');
+const orderText = (r: TreeMatchRule) => (r.orderBy === 'oldest' ? 'oldest first' : 'largest first');
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  rules: MockRule[];
-  onRulesChange: (rules: MockRule[]) => void;
-  ignored: MockContribution[];
-  onRestore: (uid: string) => void;
+  rules: TreeMatchRule[];
+  onRulesChange: (rules: TreeMatchRule[]) => void;
+  /** the source project's real sites, for the "specific site" preference */
+  sites: { uid: string; name: string }[];
+  /** fixed ISO-2 list, shared with the donations country filter */
+  countries: string[];
+  /** donation refs of the loaded pages (v1: no ref search endpoint) */
+  donationRefs: string[];
+  ignored: Contribution[];
+  onRestore: (id: number) => void;
+  /** unsaved edits exist; Run auto-match saves them first */
+  dirty: boolean;
+  saving: boolean;
+  running: boolean;
+  onSave: () => void;
   onRunAuto: () => void;
 }
 
-export function RulesDialog({ open, onOpenChange, rules, onRulesChange, ignored, onRestore, onRunAuto }: Props) {
+export function RulesDialog({
+  open, onOpenChange, rules, onRulesChange, sites, countries, donationRefs,
+  ignored, onRestore, dirty, saving, running, onSave, onRunAuto,
+}: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const idc = useRef(0);
+  const busy = saving || running;
 
-  const sites = useMemo(() => Array.from(new Set(MOCK_INTERVENTIONS.map(i => i.siteName).filter(Boolean))), []);
-  const countries = useMemo(() => Array.from(new Set(MOCK_CONTRIBUTIONS.map(c => c.country))), []);
-  const contributionRefs = useMemo(() => MOCK_CONTRIBUTIONS.map(c => c.uid), []);
-  const payouts = useMemo(() => MOCK_PAYOUTS.filter(p => p.status === 'paid').map(p => p.label), []);
-  const whenValueOptions = (w: RuleWhen): string[] =>
-    w === 'country' ? countries : w === 'donor' ? contributionRefs : w === 'payout' ? payouts : [];
+  const whenValueOptions = (w: RuleWhenType): string[] =>
+    w === 'country' ? countries : w === 'donor' ? donationRefs : [];
 
-  const update = (id: string, patch: Partial<MockRule>) =>
-    onRulesChange(rules.map(r => (r.id === id ? { ...r, ...patch } : r)));
+  const update = (localId: string, patch: Partial<TreeMatchRule>) =>
+    onRulesChange(rules.map(r => (r.localId === localId ? { ...r, ...patch } : r)));
   const move = (idx: number, dir: -1 | 1) => {
     const j = idx + dir;
     if (j < 0 || j >= rules.length) return;
@@ -82,19 +91,27 @@ export function RulesDialog({ open, onOpenChange, rules, onRulesChange, ignored,
     [next[idx], next[j]] = [next[j], next[idx]];
     onRulesChange(next);
   };
-  const remove = (id: string) => {
-    onRulesChange(rules.filter(r => r.id !== id));
-    if (editingId === id) setEditingId(null);
+  const remove = (localId: string) => {
+    onRulesChange(rules.filter(r => r.localId !== localId));
+    if (editingId === localId) setEditingId(null);
   };
   const add = () => {
-    const id = `r_new_${++idc.current}`;
-    onRulesChange([...rules, { id, enabled: true, when: 'all', prefer: 'oldest', order: 'oldest' }]);
-    setEditingId(id);
+    const localId = `new_${++idc.current}`;
+    onRulesChange([...rules, { localId, enabled: true, whenType: 'all', preferType: 'oldest', orderBy: 'oldest' }]);
+    setEditingId(localId);
   };
-  const changeWhen = (r: MockRule, v: RuleWhen) =>
-    update(r.id, { when: v, whenValue: needsWhenValue(v) ? whenValueOptions(v)[0] : undefined });
-  const changePrefer = (r: MockRule, v: RulePrefer) =>
-    update(r.id, { prefer: v, preferValue: v === 'site' ? sites[0] : undefined });
+  const changeWhen = (r: TreeMatchRule, v: RuleWhenType) =>
+    update(r.localId, { whenType: v, whenValue: needsWhenValue(v) ? whenValueOptions(v)[0] : undefined });
+  const changePrefer = (r: TreeMatchRule, v: RulePreferType) =>
+    update(r.localId, {
+      preferType: v,
+      preferSiteUid: v === 'site' ? sites[0]?.uid : undefined,
+      preferSiteName: v === 'site' ? sites[0]?.name : undefined,
+    });
+  const changeSite = (r: TreeMatchRule, uid: string) => {
+    const s = sites.find(x => x.uid === uid);
+    update(r.localId, { preferSiteUid: uid, preferSiteName: s?.name });
+  };
 
   const enabledCount = rules.filter(r => r.enabled).length;
 
@@ -117,7 +134,7 @@ export function RulesDialog({ open, onOpenChange, rules, onRulesChange, ignored,
           {/* Rules */}
           <TabsContent value="rules" className="mt-3 space-y-2 max-h-[54vh] overflow-y-auto pr-1">
             {rules.map((r, idx) => (
-              <div key={r.id} className="rounded-lg border border-border bg-card p-3">
+              <div key={r.localId} className="rounded-lg border border-border bg-card p-3">
                 <div className="flex items-start gap-2">
                   <div className="flex flex-col text-muted-foreground/60">
                     <button type="button" disabled={idx === 0} onClick={() => move(idx, -1)} className="hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed">
@@ -134,37 +151,43 @@ export function RulesDialog({ open, onOpenChange, rules, onRulesChange, ignored,
                       <span className="text-muted-foreground"> {' '}→ prefer {preferText(r)} · {orderText(r)}</span>
                     </div>
 
-                    {editingId === r.id && (
+                    {editingId === r.localId && (
                       <div className="mt-3 rounded-md bg-muted/40 p-3 grid gap-3 sm:grid-cols-3">
                         <div className="space-y-1">
                           <Label className="text-[11px] text-muted-foreground">When</Label>
-                          <Select value={r.when} onValueChange={v => changeWhen(r, v as RuleWhen)}>
+                          <Select value={r.whenType} onValueChange={v => changeWhen(r, v as RuleWhenType)}>
                             <SelectTrigger size="sm" className="text-xs w-full"><SelectValue /></SelectTrigger>
                             <SelectContent>{WHEN_OPTIONS.map(o => <SelectItem key={o.v} value={o.v} className="text-xs">{o.label}</SelectItem>)}</SelectContent>
                           </Select>
-                          {needsWhenValue(r.when) && (
-                            <Select value={r.whenValue || ''} onValueChange={v => update(r.id, { whenValue: v })}>
+                          {needsWhenValue(r.whenType) && (
+                            <Select value={r.whenValue || ''} onValueChange={v => update(r.localId, { whenValue: v })}>
                               <SelectTrigger size="sm" className="text-xs w-full"><SelectValue placeholder="Select…" /></SelectTrigger>
-                              <SelectContent>{whenValueOptions(r.when).map(o => <SelectItem key={o} value={o} className="text-xs">{o}</SelectItem>)}</SelectContent>
+                              <SelectContent>{whenValueOptions(r.whenType).map(o => <SelectItem key={o} value={o} className="text-xs">{o}</SelectItem>)}</SelectContent>
                             </Select>
                           )}
                         </div>
                         <div className="space-y-1">
                           <Label className="text-[11px] text-muted-foreground">Prefer</Label>
-                          <Select value={r.prefer} onValueChange={v => changePrefer(r, v as RulePrefer)}>
+                          <Select value={r.preferType} onValueChange={v => changePrefer(r, v as RulePreferType)}>
                             <SelectTrigger size="sm" className="text-xs w-full"><SelectValue /></SelectTrigger>
-                            <SelectContent>{PREFER_OPTIONS.map(o => <SelectItem key={o.v} value={o.v} className="text-xs">{o.label}</SelectItem>)}</SelectContent>
+                            <SelectContent>
+                              {PREFER_OPTIONS.map(o => (
+                                <SelectItem key={o.v} value={o.v} className="text-xs" disabled={o.v === 'site' && sites.length === 0}>
+                                  {o.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
                           </Select>
-                          {r.prefer === 'site' && (
-                            <Select value={r.preferValue || ''} onValueChange={v => update(r.id, { preferValue: v })}>
+                          {r.preferType === 'site' && (
+                            <Select value={r.preferSiteUid || ''} onValueChange={v => changeSite(r, v)}>
                               <SelectTrigger size="sm" className="text-xs w-full"><SelectValue placeholder="Select site…" /></SelectTrigger>
-                              <SelectContent>{sites.map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}</SelectContent>
+                              <SelectContent>{sites.map(s => <SelectItem key={s.uid} value={s.uid} className="text-xs">{s.name}</SelectItem>)}</SelectContent>
                             </Select>
                           )}
                         </div>
                         <div className="space-y-1">
                           <Label className="text-[11px] text-muted-foreground">Order donations</Label>
-                          <Select value={r.order} onValueChange={v => update(r.id, { order: v as RuleOrder })}>
+                          <Select value={r.orderBy} onValueChange={v => update(r.localId, { orderBy: v as RuleOrderBy })}>
                             <SelectTrigger size="sm" className="text-xs w-full"><SelectValue /></SelectTrigger>
                             <SelectContent>{ORDER_OPTIONS.map(o => <SelectItem key={o.v} value={o.v} className="text-xs">{o.label}</SelectItem>)}</SelectContent>
                           </Select>
@@ -176,11 +199,11 @@ export function RulesDialog({ open, onOpenChange, rules, onRulesChange, ignored,
                     )}
                   </div>
 
-                  <Switch checked={r.enabled} onCheckedChange={v => update(r.id, { enabled: v })} />
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingId(editingId === r.id ? null : r.id)}>
+                  <Switch checked={r.enabled} onCheckedChange={v => update(r.localId, { enabled: v })} />
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingId(editingId === r.localId ? null : r.localId)}>
                     <Pencil size={13} />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" onClick={() => remove(r.id)}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" onClick={() => remove(r.localId)}>
                     <Trash2 size={13} />
                   </Button>
                 </div>
@@ -207,13 +230,13 @@ export function RulesDialog({ open, onOpenChange, rules, onRulesChange, ignored,
               <p className="text-sm text-muted-foreground text-center py-6">No ignored donations.</p>
             )}
             {ignored.map(c => (
-              <div key={c.uid} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+              <div key={c.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
                 <Ban size={15} className="text-rose-500" />
                 <div className="min-w-0 flex-1">
-                  <span className="text-sm font-medium text-foreground">{donorLabel(c.donor)}</span>
-                  <p className="text-xs text-muted-foreground mt-0.5">{fmtNum(c.units)} trees · {c.ignoreReason || 'No reason given'}</p>
+                  <span className="font-mono text-sm font-medium text-foreground">{c.donation.uid}</span>
+                  <p className="text-xs text-muted-foreground mt-0.5">{fmtNum(c.units)} {unitLabel(c)} · {c.ignoreReason || 'No reason given'}</p>
                 </div>
-                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => onRestore(c.uid)}>Restore</Button>
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => onRestore(c.id)}>Restore</Button>
               </div>
             ))}
             <Separator className="my-1" />
@@ -224,8 +247,17 @@ export function RulesDialog({ open, onOpenChange, rules, onRulesChange, ignored,
         </Tabs>
 
         <DialogFooter>
-          <p className="text-[11px] text-muted-foreground mr-auto self-center">{enabledCount} of {rules.length} rules enabled · default always applies last</p>
-          <Button onClick={onRunAuto}><Wand2 size={14} /> Run auto-match</Button>
+          <p className="text-[11px] text-muted-foreground mr-auto self-center">
+            {enabledCount} of {rules.length} rules enabled · default always applies last
+            {dirty ? ' · unsaved changes' : ''}
+          </p>
+          <Button variant="outline" disabled={!dirty || busy} onClick={onSave}>
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save changes
+          </Button>
+          <Button disabled={busy} onClick={onRunAuto}>
+            {running ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
+            {running ? 'Matching…' : 'Run auto-match'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

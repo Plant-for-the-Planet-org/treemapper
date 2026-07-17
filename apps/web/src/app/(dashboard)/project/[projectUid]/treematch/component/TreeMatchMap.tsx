@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import {
   BASEMAP_STYLES, BASEMAP_OPTIONS, type BasemapKey,
 } from '../../overview/component/map/constants';
-import { MockIntervention, fmtNum, fmtDate } from './mockData';
+import { TreeMatchIntervention, fmtNum, fmtDate, availableTrees } from './types';
 
 // Colors by match status. Selected locations use the brand green so "in the
 // match" reads at a glance; the legend mirrors these.
@@ -35,8 +35,8 @@ const SELECTED_COLOR = '#007A49';
 
 type MatchStatus = keyof typeof STATUS_COLOR;
 
-const statusOf = (i: MockIntervention): MatchStatus =>
-  i.blocked ? 'blocked' : i.totalTrees - i.matchedTrees > 0 ? 'available' : 'matched';
+const statusOf = (i: TreeMatchIntervention): MatchStatus =>
+  i.blocked ? 'blocked' : availableTrees(i) > 0 ? 'available' : 'matched';
 
 // Stable references — react-map-gl re-applies these on reference change.
 const MAP_CONTAINER_STYLE = { width: '100%', height: '100%' };
@@ -55,7 +55,7 @@ const LEGEND: { label: string; color: string }[] = [
 
 interface Props {
   /** already filtered by the left-pane filters */
-  interventions: MockIntervention[];
+  interventions: TreeMatchIntervention[];
   selected: Set<string>;
   /** uid of the location whose detail card is open on the map */
   focusUid: string | null;
@@ -70,18 +70,25 @@ export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange,
   const [basemap, setBasemap] = useState<BasemapKey>('satellite');
   const [hoverCursor, setHoverCursor] = useState(false);
 
+  // Some interventions carry no stored geometry -- they simply don't render.
+  const locatable = useMemo(() => interventions.filter(i => i.location), [interventions]);
+
   // One marker per location at its point / polygon centroid.
-  const markers = useMemo(() => interventions.map(i => {
-    const c = i.location.type === 'Point'
-      ? i.location.coordinates
-      : (turf.centroid(i.location as any).geometry.coordinates as [number, number]);
-    return { i, lng: c[0], lat: c[1], status: statusOf(i), available: Math.max(0, i.totalTrees - i.matchedTrees) };
-  }), [interventions]);
+  const markers = useMemo(() => locatable.map(i => {
+    try {
+      const c = i.location!.type === 'Point'
+        ? (i.location!.coordinates as [number, number])
+        : (turf.centroid(i.location as any).geometry.coordinates as [number, number]);
+      return { i, lng: c[0], lat: c[1], status: statusOf(i), available: availableTrees(i) };
+    } catch {
+      return null;
+    }
+  }).filter((m): m is NonNullable<typeof m> => m !== null), [locatable]);
 
   const areaGeoJSON = useMemo(() => ({
     type: 'FeatureCollection' as const,
-    features: interventions
-      .filter(i => i.location.type === 'Polygon')
+    features: locatable
+      .filter(i => i.location!.type !== 'Point')
       .map(i => ({
         type: 'Feature' as const,
         properties: {
@@ -92,16 +99,16 @@ export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange,
         },
         geometry: i.location,
       })),
-  }), [interventions, selected, focusUid]);
+  }), [locatable, selected, focusUid]);
 
   const fitAll = useCallback(() => {
-    if (interventions.length === 0) return;
+    if (locatable.length === 0) return;
     try {
-      const fc = turf.featureCollection(interventions.map(i => turf.feature(i.location as any)));
+      const fc = turf.featureCollection(locatable.map(i => turf.feature(i.location as any)));
       const [minX, minY, maxX, maxY] = turf.bbox(fc);
       mapRef.current?.fitBounds([minX, minY, maxX, maxY], { padding: 70, duration: 800, maxZoom: 14.5 });
     } catch { /* ignore */ }
-  }, [interventions]);
+  }, [locatable]);
 
   const handleLoad = useCallback(() => { setMapLoaded(true); }, []);
   useEffect(() => { if (mapLoaded) fitAll(); }, [mapLoaded, fitAll]);
@@ -121,8 +128,8 @@ export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange,
   }, [onFocusChange]);
 
   const focus = interventions.find(i => i.uid === focusUid) ?? null;
-  const focusAvailable = focus ? Math.max(0, focus.totalTrees - focus.matchedTrees) : 0;
-  const focusPct = focus && focus.totalTrees > 0 ? Math.round((focus.matchedTrees / focus.totalTrees) * 100) : 0;
+  const focusAvailable = focus ? availableTrees(focus) : 0;
+  const focusPct = focus && focus.totalTreeCount > 0 ? Math.round((focus.matchedTrees / focus.totalTreeCount) * 100) : 0;
   const focusSelected = !!focus && selected.has(focus.uid);
   const focusInactive = !!focus && (focus.blocked || focusAvailable === 0);
   const FocusIcon = focus?.type === 'single-tree-registration' ? Sprout : TreePine;
@@ -234,7 +241,7 @@ export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange,
                 <MapPin size={12} className="flex-shrink-0" />
                 <span className="truncate">{focus.siteName || 'No site'}</span>
                 <span className="text-muted-foreground/40">·</span>
-                <span className="whitespace-nowrap">{fmtDate(focus.plantingDate)}</span>
+                <span className="whitespace-nowrap">{fmtDate(focus.interventionStartDate)}</span>
               </div>
             </div>
             <Button variant="ghost" size="icon-xs" className="text-muted-foreground flex-shrink-0" onClick={() => onFocusChange(null)}>
@@ -248,7 +255,7 @@ export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange,
                 <span className="text-lg font-bold text-foreground leading-none">{fmtNum(focusAvailable)}</span> available
               </span>
               <span className="text-xs text-muted-foreground">
-                <span className="font-semibold text-foreground">{fmtNum(focus.matchedTrees)}</span> / {fmtNum(focus.totalTrees)} matched
+                <span className="font-semibold text-foreground">{fmtNum(focus.matchedTrees)}</span> / {fmtNum(focus.totalTreeCount)} matched
               </span>
             </div>
             <div className="h-2 w-full rounded-full bg-primary/15 overflow-hidden">
