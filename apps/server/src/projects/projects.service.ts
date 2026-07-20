@@ -1972,15 +1972,18 @@ export class ProjectsService {
         primaryWorkspaceUid: invite.workspace.uid
       }).where(eq(user.id, userId))
 
-      const existingInvite = await this.drizzleService.db.select().from(projectInvites).where(eq(projectInvites.email, email))
-      if (existingInvite) {
-        await this.drizzleService.db.update(projectInvites).set({
-          status: 'discarded',
-          discardedAt: new Date(),
-          discardedById: invite.inviter.id,
-          updatedAt: new Date()
-        })
-      }
+      await this.drizzleService.db.update(projectInvites).set({
+        status: 'discarded',
+        discardedAt: new Date(),
+        discardedById: invite.inviter.id,
+        updatedAt: new Date()
+      }).where(
+        and(
+          eq(projectInvites.email, email),
+          eq(projectInvites.projectId, invite.invite.projectId),
+          eq(projectInvites.status, 'pending')
+        )
+      )
       await this.userCacheService.invalidateUser(userData)
       return {
         message: `You have successfully joined ${invite.project.name}`,

@@ -219,7 +219,8 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         { icon: Upload, label: 'Bulk Upload', id: 'bulkupload' },
         ...(!isContributor ? [{ icon: CheckSquare, label: 'Approvals', id: 'approvals' }] : []),
         ...(!isContributor ? [{ icon: FileText, label: 'Forms', id: 'forms' }] : []),
-        ...(isAdminOrOwner ? [{ icon: Smartphone, label: 'Devices', id: 'device-management' }] : []),
+        // Devices hidden from sidebar for now; page still exists at /device-management
+        // ...(isAdminOrOwner ? [{ icon: Smartphone, label: 'Devices', id: 'device-management' }] : []),
       ],
     },
     ...(isPlatformProjectWorkspace ? [{
