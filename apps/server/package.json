@@ -78,7 +78,7 @@
     "rxjs": "7.8.2",
     "swagger-ui-express": "5.0.1",
     "ts-node": "10.9.2",
-    "typeorm": "0.3.30",
+    "typeorm": "0.3.31",
     "typescript": "5.9.3",
     "uuid": "11.1.1",
     "xlsx": "0.18.5"
