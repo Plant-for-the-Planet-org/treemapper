@@ -65,6 +65,9 @@ const SpeciesManagementDashboard = () => {
   const selectedProject = useProjectStore(state => state.selectedProject);
   const userRole = selectedProject?.userRole;
   const canManageSpecies = ['owner', 'admin'].includes(userRole || '');
+  // Contributors record unknown species in the field, so they may identify
+  // them later. They still cannot add, edit or remove project species.
+  const canAssignUnknown = ['owner', 'admin', 'contributor'].includes(userRole || '');
 
   // Combined species list for display
   const allSpecies = [
@@ -99,8 +102,8 @@ const SpeciesManagementDashboard = () => {
   }, [selectedProject]);
 
   const fetchProjectSpecies = async () => {
-    setLoading(true);
     if (!selectedProject?.uid) return;
+    setLoading(true);
 
     const response = await getProjectSpecies(accessToken || '', selectedProject?.uid);
     setLoading(false);
@@ -645,7 +648,7 @@ const SpeciesManagementDashboard = () => {
   };
 
   const handleBulkAssignSave = async () => {
-    if (!canManageSpecies) {
+    if (!canAssignUnknown) {
       toast.error('You do not have permission to assign species.');
       return;
     }
@@ -666,10 +669,16 @@ const SpeciesManagementDashboard = () => {
       if (response.statusCode === 200 || response.statusCode === 201) {
         const count = response.data?.assignedCount ?? selectedUnknownSpecies.length;
         const merged = response.data?.mergedCount ?? 0;
+        const skipped = response.data?.skippedCount ?? 0;
         toast.success(
           `Assigned ${count} species to ${bulkSelectedSpecies.scientificName}` +
           (merged > 0 ? ` (${merged} merged into existing records)` : '')
         );
+        // Records someone else already identified, or that were removed while
+        // this list was open, are not part of the assignment.
+        if (skipped > 0) {
+          toast.info(`${skipped} skipped: no longer unknown or no longer available.`);
+        }
         setSelectedUnknownSpecies([]);
         setShowBulkAssignModal(false);
         setBulkSelectedSpecies(null);
@@ -710,7 +719,7 @@ const SpeciesManagementDashboard = () => {
     <div className="bg-muted/20 flex flex-col h-screen w-full">
       {/* Bulk Action Bar */}
       <AnimatePresence>
-        {selectedUnknownSpecies.length > 0 && (
+        {canAssignUnknown && selectedUnknownSpecies.length > 0 && (
           <BulkActionBar
             selectedCount={selectedUnknownSpecies.length}
             onAssignSpecies={handleBulkAssignSpecies}
@@ -764,6 +773,7 @@ const SpeciesManagementDashboard = () => {
                     onClick={() => handleSelectSpecies(species)}
                     onToggleFavorite={handleToggleFavorite}
                     onToggleDisabled={handleToggleDisabled}
+                    canManage={canManageSpecies}
                   />
                 ))}
               </div>
@@ -780,6 +790,7 @@ const SpeciesManagementDashboard = () => {
               onAssign={handleBulkAssignSpecies}
               onClear={handleClearSelection}
               onSelectSpecies={handleSelectSpecies}
+              canAssign={canAssignUnknown}
             />
           </aside>
         </div>
@@ -1076,11 +1087,15 @@ const SpeciesManagementDashboard = () => {
                 {selectedUnknownSpecies.length === 1 ? 'record' : 'records'} and update the related trees. This cannot be undone automatically.
               </p>
 
+              <p className="text-sm text-muted-foreground">
+                If an intervention already lists this species, the records are merged into it, and that record and its trees are renamed to match.
+              </p>
+
               <div className="flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={handleCancel} disabled={loading} className="h-8">
                   Cancel
                 </Button>
-                <Button size="sm" onClick={handleBulkAssignSave} disabled={loading || !canManageSpecies} className="h-8 gap-1.5">
+                <Button size="sm" onClick={handleBulkAssignSave} disabled={loading || !canAssignUnknown} className="h-8 gap-1.5">
                   {loading ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                   {loading ? 'Assigning...' : 'Assign Species'}
                 </Button>

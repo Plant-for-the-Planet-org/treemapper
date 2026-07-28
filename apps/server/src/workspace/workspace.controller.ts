@@ -25,6 +25,7 @@ import { Request } from 'express';
 import { WorkspaceService } from './workspace.service';
 import { CreateNewWorkspaceDto } from './dto/create-organization.dto';
 import { UpdateWorkspaceSettingsDto } from './dto/workspace-settings.dto';
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { OrganizationResponseDto, SelectOrganizationDto, SelectPrimaryWorkspaceDto, UserOrganizationResponseDto } from './dto/organization-response.dto';
 import { User } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/auth/current-user.decorator';
@@ -176,7 +177,11 @@ export class WorkspaceController {
 
     @Patch('/:uid')
     @UseGuards(WorkspacePermissionsGuard)
-    async updateWorkspace(@Param('uid') uid: string, @Body() body: any, @CurrentUser() user: User) {
+    async updateWorkspace(
+        @Param('uid') uid: string,
+        @Body(new ValidationPipe({ whitelist: true })) body: UpdateWorkspaceDto,
+        @CurrentUser() user: User,
+    ) {
         return await this.workspaceService.updateWorkspace(uid, body, user.id);
     }
 
