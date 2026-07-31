@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
-  TreeMatchIntervention, Contribution, fmtNum, availableTrees, contribAvailable,
+  TreeMatchIntervention, Contribution, fmtNum, availableTrees, contribAvailable, toMajorAmount,
 } from './types';
 
 interface Props {
@@ -45,7 +45,8 @@ export function ExportDialog({ open, onOpenChange, interventions, contributions 
     .map(c => [
       c.id, c.donation.uid,
       c.unitType, c.units, c.unitsAllocated, contribAvailable(c),
-      c.donation.paymentDate.slice(0, 10), c.donation.amount, c.donation.currency ?? '',
+      // The CSV carries the real amount, not TTC's minor-unit integer.
+      c.donation.paymentDate.slice(0, 10), toMajorAmount(c.donation.amount), c.donation.currency ?? '',
     ]);
   const donCsv = toCsv(
     ['contributionId', 'donationRef', 'unitType',

@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
+import { ArrowRight, ArrowLeftRight, Sparkles, AlertCircle } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   TreeMatchIntervention, Contribution, fmtNum, fmtTrees, availableTrees,
-  contribAvailable, MAX_MATCH_PAIRS,
+  contribAvailable, requestedTrees, MatchAmounts, MAX_MATCH_PAIRS,
 } from './types';
 
 export interface PreviewAllocation {
@@ -26,6 +26,8 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   interventions: TreeMatchIntervention[];
   contributions: Contribution[];
+  /** per-donation partials; a donation with no entry asks for everything open */
+  amounts: MatchAmounts;
   /** true while the match write is in flight */
   submitting?: boolean;
   /** what the server said when the last attempt failed; shown here, since this
@@ -35,15 +37,18 @@ interface Props {
 }
 
 // Greedy two-pointer fill: walk contributions, consume from interventions.
+// What each contribution needs is what the user asked it for on the card, which
+// defaults to everything it still has open.
 function computePreview(
   interventions: TreeMatchIntervention[],
   contributions: Contribution[],
+  amounts: MatchAmounts,
 ): PreviewAllocation[] {
   const supply = interventions.map((i) => ({ hid: i.hid, uid: i.uid, left: availableTrees(i) }));
   const out: PreviewAllocation[] = [];
   let s = 0;
   for (const c of contributions) {
-    let need = contribAvailable(c);
+    let need = requestedTrees(c, amounts);
     while (need > 0 && s < supply.length) {
       if (supply[s].left <= 0) { s++; continue; }
       const take = Math.min(need, supply[s].left);
@@ -56,12 +61,23 @@ function computePreview(
 }
 
 export function MatchConfirmDialog({
-  open, onOpenChange, interventions, contributions, submitting, error, onConfirm,
+  open, onOpenChange, interventions, contributions, amounts, submitting, error, onConfirm,
 }: Props) {
-  const preview = computePreview(interventions, contributions);
+  const preview = computePreview(interventions, contributions, amounts);
   const totalTrees = preview.reduce((sum, p) => sum + p.trees, 0);
-  const demand = contributions.reduce((sum, c) => sum + contribAvailable(c), 0);
+  const demand = contributions.reduce((sum, c) => sum + requestedTrees(c, amounts), 0);
   const shortfall = demand - totalTrees;
+  // What the partials deliberately leave on the donations, as opposed to the
+  // shortfall, which is demand the selected locations could not cover.
+  const heldBack = contributions.reduce((sum, c) => sum + contribAvailable(c), 0) - demand;
+
+  // Matching across projects is allowed, but the rows above show only the HID,
+  // so nothing on this screen says the trees are coming out of a different
+  // project's stock. Name the projects before the write, not after.
+  const usedUids = new Set(preview.map(p => p.interventionUid));
+  const crossProjects = [...new Set(
+    interventions.filter(i => i.crossProjectName && usedUids.has(i.uid)).map(i => i.crossProjectName!),
+  )];
 
   // The server takes at most MAX_MATCH_PAIRS pairs in one call, and the whole
   // call is one transaction. Splitting it into several requests would give up
@@ -95,13 +111,28 @@ export function MatchConfirmDialog({
 
         <div className="rounded-lg bg-muted/50 p-3 text-sm space-y-1">
           <div className="flex justify-between"><span className="text-muted-foreground">Trees to allocate</span><span className="font-semibold">{fmtTrees(totalTrees)}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Donation demand</span><span>{fmtTrees(demand)}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">Requested by donations</span><span>{fmtTrees(demand)}</span></div>
+          {heldBack > 0 && (
+            <div className="flex justify-between text-muted-foreground">
+              <span>Left open on purpose (partial)</span><span>{fmtTrees(heldBack)}</span>
+            </div>
+          )}
           {shortfall > 0 && (
             <div className="flex justify-between text-amber-700">
               <span>Unmatched (carries forward)</span><span className="font-semibold">{fmtTrees(shortfall)}</span>
             </div>
           )}
         </div>
+
+        {crossProjects.length > 0 && (
+          <div className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+            <ArrowLeftRight size={14} className="mt-0.5 flex-shrink-0" />
+            <span>
+              These trees come from {crossProjects.join(', ')}, not this project.
+              They will count as claimed there.
+            </span>
+          </div>
+        )}
 
         {tooManyPairs && (
           <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">

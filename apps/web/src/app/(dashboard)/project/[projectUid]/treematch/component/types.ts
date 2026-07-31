@@ -84,7 +84,9 @@ export interface Donation {
   /** the donation reference -- the stable, always-visible identifier for an RO */
   uid: string;
   paymentDate: string; // ISO
-  amount: number; // major units
+  /** minor units (100 = one euro/dollar/peso), the same hundredths scale TTC
+   * uses for `units`. Render it through `toMajorAmount`, never raw. */
+  amount: number;
   currency: string;
 }
 
@@ -122,6 +124,32 @@ export const contribMatchState = (c: Contribution): ContribMatchState => {
   if (c.unitsAllocated <= 0) return 'none';
   if (c.unitsAllocated >= c.units) return 'complete';
   return 'partial';
+};
+
+// ---------------------------------------------------------------------------
+// Partial matching
+// ---------------------------------------------------------------------------
+
+/** How many trees each donation should claim in the next match, keyed by
+ * contribution id. Held as the raw input string, not a number, so the field can
+ * sit empty while the user retypes it. A donation with no entry claims
+ * everything still open, which is what selecting a card has always meant. */
+export type MatchAmounts = Record<number, string>;
+
+/** Trees a donation will claim in the next match: the typed partial if there is
+ * one, otherwise its full open amount.
+ *
+ * Typed partials are whole trees only. Open amounts are not, since TTC works in
+ * hundredths, so leaving the field untouched is the only way to close out a
+ * donation with a fractional remainder -- which is exactly what the card's
+ * "Max" button restores. */
+export const requestedTrees = (c: Contribution, amounts: MatchAmounts): number => {
+  const open = contribAvailable(c);
+  const raw = amounts[c.id];
+  if (raw === undefined) return open;
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return Math.min(n, Math.floor(open));
 };
 
 // ---------------------------------------------------------------------------
@@ -184,8 +212,24 @@ export const COUNTRY_OPTIONS = [
 // Formatting helpers
 // ---------------------------------------------------------------------------
 
-export const fmtAmount = (a: number, c: string) =>
-  new Intl.NumberFormat('en', { style: 'currency', currency: c, maximumFractionDigits: 0 }).format(a);
+/** TTC sends the paid amount in minor units, so 1401300 is 14,013.00. Every
+ * currency seen on this endpoint (EUR, USD, GBP, CHF, MXN, PLN, CZK, RUB, AED)
+ * is a two-decimal one; a zero-decimal currency such as JPY would need TTC's
+ * scale confirmed before this divisor can be trusted for it. */
+export const toMajorAmount = (minorUnits: number) => minorUnits / 100;
+
+/** Money. Like fmtTrees, decimals only when there are any. */
+export const fmtAmount = (a: number, c: string) => {
+  const digits = Number.isInteger(a) ? 0 : 2;
+  return new Intl.NumberFormat('en', {
+    style: 'currency',
+    currency: c,
+    // Currency style defaults minimumFractionDigits to 2, which would be
+    // greater than the maximum below and throw a RangeError.
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(a);
+};
 
 /** Counts (totals, pages, list lengths). Always whole. */
 export const fmtNum = (n: number) => new Intl.NumberFormat('en').format(n);

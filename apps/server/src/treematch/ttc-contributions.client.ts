@@ -144,23 +144,14 @@ export class TtcContributionsClient {
     if (params.ignored) query.set('ignored', 'true');
 
     const url = `${this.baseUrl}/treemapper/projects/${encodeURIComponent(projectGuid)}/contributions?${query.toString()}`;
-    // TEMP DEBUG: exact upstream call + raw response. Remove when done.
-    this.logger.log(`[TTC DEBUG] GET ${url}`);
     try {
       const response = await firstValueFrom(
         this.httpService.get<TtcContributionListResponse>(url, {
-          headers: this.headers()
+          headers: this.headers(),
         }),
-      );
-      this.logger.log(
-        `[TTC DEBUG] ${response.status} ${url} -> ${JSON.stringify(response.data, null, 2)}`,
       );
       return response.data;
     } catch (error) {
-      // TEMP DEBUG: raw upstream failure body (rethrow only keeps the message).
-      this.logger.error(
-        `[TTC DEBUG] FAILED ${url} -> status=${error?.response?.status} body=${JSON.stringify(error?.response?.data)}`,
-      );
       this.rethrow(error, 'list contributions');
     }
   }

@@ -1274,10 +1274,7 @@ export const getTreematchInterventions = async (token: string, projectUid: strin
 // server-side).
 export const getTreematchContributions = async (token: string, projectUid: string, queryParams: Record<string, any> = {}) => {
   const uri = `${getUrlApi.treematch}/${projectUid}/contributions${toQueryString(queryParams)}`
-  // TEMP DEBUG: request URI + response as the browser sees them. Remove when done.
-  console.log('[TreeMatch DEBUG] GET', uri, 'params:', queryParams)
   const result = await fetchGetCall(uri, token)
-  console.log('[TreeMatch DEBUG] response', uri, result)
   return result
 }
 

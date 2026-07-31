@@ -187,6 +187,17 @@ those lookups need their own pool connection, and taking one while holding the
 row locks could starve the pool. The in-transaction filter then trusts only that
 pre-authorized set, so a soft-deleted project's locations read as not found.
 
+**TTC serializes the contributions endpoint**, so plan reads around it. Measured
+against `app-development.plant-for-the-planet.org`: ~700ms sequentially, and four
+concurrent requests complete in ~450ms steps for a 2.7s wall time. Separate curl
+processes on separate TCP connections queue the same way, so this is upstream,
+not our axios agent, the Nest server or the Next dev rewrite (the interventions
+route, which is local Postgres, stays at 20-60ms while interleaved with it). The
+practical rule: extra contributions calls do not overlap, they stack, so call
+count multiplies latency roughly linearly. Anything that fans out over pages is
+not viable here, and a short-TTL server-side cache is the obvious next lever if
+this endpoint gets busier.
+
 Deliberately not built: unmatch (a `DELETE` plus the same derived write-back),
 auto-match and rules (removed from the backend; to be reintroduced), and any
 reconciliation job -- the absolute derived write-back is the convergence
@@ -202,8 +213,32 @@ no TanStack Query on this screen.
 
 - **Ignored donations are a second server view**, not a client filter: the tab
   fetches `?ignored=true` with its own pagination, and the default view never
-  contains ignored rows. Ignoring drops the row from the list it leaves and
-  refetches the one it joins.
+  contains ignored rows. It is loaded when the tab is first opened, never on
+  mount, because every contributions call is a serialized ~700ms TTC round trip
+  (see the server section) and an eager fetch doubled time-to-first-paint for a
+  pane nobody was looking at. The tab therefore shows no count until it has been
+  opened once. Ignoring drops the row from the list it leaves and marks the list
+  it joins stale; that one reloads on the next visit, not immediately.
+- **Only three of the five donation filters are server-side.** Sort, donor type
+  and country map to TTC parameters and cover the whole project. The donation
+  reference search and the match-state filter are client-side over the loaded
+  pages *only*, because TTC's contributions endpoint has no reference search and
+  no allocation-state filter. This is a real limitation, not a stopgap that can
+  be closed locally: fetching every page to filter properly is impossible at
+  scale (one project has 172k contributions, and TTC serves ~1 page per 700ms
+  serialized). The UI states the scope inline and the empty state distinguishes
+  "no match in what is loaded" from "nothing here"; fixing it for real needs a
+  TTC-side `search` plus allocation-state filter.
+- **`donation.amount` is in minor units** (100 = one euro/dollar/peso), the same
+  hundredths scale as `units`, despite reading like a plain amount. Render it
+  through `toMajorAmount` in `component/types.ts`, never raw. Getting this wrong
+  showed a €14,013 donation as €1,401,300. Every currency seen on this endpoint
+  (EUR, USD, GBP, CHF, MXN, PLN, CZK, RUB, AED) has two decimals; a zero-decimal
+  currency such as JPY would need TTC's scale confirmed first.
+- **Requests are deduplicated by key while in flight** (`inFlight` ref in
+  `page.tsx`). React StrictMode double-invokes every mount effect in dev, and
+  each duplicate costs another serialized TTC round trip. Refetches that follow
+  a write pass `force = true` so they are never swallowed.
 - **The match write sends pairs only** and takes the response's `applied` map
   (TTC's accepted absolute totals) as truth for the donation side. The location
   side has no per-location number in the response, so it is bumped optimistically

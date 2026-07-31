@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import type { DateRange } from 'react-day-picker';
 import {
@@ -33,9 +33,9 @@ import { DonationCard } from './component/DonationCard';
 import { ExportDialog } from './component/ExportDialog';
 import { MatchConfirmDialog, PreviewAllocation } from './component/MatchConfirmDialog';
 import {
-  TreeMatchIntervention, Contribution, TreeMatchPagination, MatchPair,
+  TreeMatchIntervention, Contribution, TreeMatchPagination, MatchPair, MatchAmounts,
   MAX_MATCH_PAIRS, COUNTRY_OPTIONS,
-  fmtNum, fmtTrees, contribMatchState, contribAvailable, availableTrees,
+  fmtNum, fmtTrees, contribMatchState, contribAvailable, availableTrees, requestedTrees,
 } from './component/types';
 
 // Auto-match and its rules were removed from the backend and will come back as
@@ -113,14 +113,34 @@ export default function TreeMatchPage() {
 
   // Ignored donations are a separate view on the server (`ignored=true`), never
   // mixed into the default one, so they get their own list and pagination.
+  // Loaded when the tab is first opened rather than on mount: the contributions
+  // endpoint proxies TTC, which serves these one at a time (~700ms each), so an
+  // eager fetch doubled the time to first paint of a pane nobody was looking at.
   const [ignoredList, setIgnoredList] = useState<Contribution[]>([]);
   const [ignoredPagination, setIgnoredPagination] = useState<TreeMatchPagination>(EMPTY_PAGINATION);
   const [ignoredLoading, setIgnoredLoading] = useState(false);
   const [ignoredLoadingMore, setIgnoredLoadingMore] = useState(false);
   const [ignoredError, setIgnoredError] = useState<string | null>(null);
+  // Until it has been fetched once there is no real total, so the tab shows no
+  // count rather than a misleading zero.
+  const [ignoredLoaded, setIgnoredLoaded] = useState(false);
+  // Set when an ignore/restore changes a list the user is not currently on, so
+  // the refetch happens on the next visit instead of costing a call now.
+  const donStale = useRef(false);
+  const ignoredStale = useRef(false);
+
+  // React StrictMode invokes every mount effect twice in development, and each
+  // duplicate costs another serialized TTC round trip. Identical requests that
+  // are already in flight are collapsed into one; `force` opts out, so a reload
+  // that follows a write is never swallowed.
+  const inFlight = useRef(new Set<string>());
 
   const [selInterv, setSelInterv] = useState<Set<string>>(new Set());
   const [selContrib, setSelContrib] = useState<Set<number>>(new Set());
+  // Partial matching. Only donations the user has typed a number into appear
+  // here; everything else claims its full open amount, so an untouched card
+  // behaves exactly as it did before this existed.
+  const [matchAmounts, setMatchAmounts] = useState<MatchAmounts>({});
 
   // Left-pane filters (all applied server-side)
   const [leftView, setLeftView] = useState<'list' | 'map'>('list');
@@ -161,8 +181,12 @@ export default function TreeMatchPage() {
     return () => clearTimeout(t);
   }, [ivSearch]);
 
-  const fetchInterventions = async (page: number, append: boolean) => {
+  const fetchInterventions = async (page: number, append: boolean, force = false) => {
     if (!ivProjectUid || !accessToken) return;
+    const key = `iv:${ivProjectUid}:${page}:${append}:${ivType}:${ivSite}:${onlyAvailable}:${debouncedIvSearch}`
+      + `:${ivDates?.from?.toISOString() ?? ''}:${ivDates?.to?.toISOString() ?? ''}`;
+    if (!force && inFlight.current.has(key)) return;
+    inFlight.current.add(key);
     if (append) setIvLoadingMore(true); else setIvLoading(true);
     setIvError(null);
     try {
@@ -199,13 +223,17 @@ export default function TreeMatchPage() {
       setIvError(err instanceof Error ? err.message : 'Failed to load plant locations');
       if (!append) { setInterventions([]); setIvPagination(EMPTY_PAGINATION); }
     } finally {
+      inFlight.current.delete(key);
       setIvLoading(false);
       setIvLoadingMore(false);
     }
   };
 
-  const fetchContributions = async (page: number, append: boolean) => {
+  const fetchContributions = async (page: number, append: boolean, force = false) => {
     if (!projectUid || !accessToken) return;
+    const key = `don:${projectUid}:${page}:${append}:${sort}:${profileType}:${country}`;
+    if (!force && inFlight.current.has(key)) return;
+    inFlight.current.add(key);
     if (append) setDonLoadingMore(true); else setDonLoading(true);
     setDonError(null);
     try {
@@ -220,7 +248,9 @@ export default function TreeMatchPage() {
         const items: Contribution[] = response.data.items || [];
         setContributions(prev => (append ? [...prev, ...items] : items));
         setDonPagination(response.data.pagination || EMPTY_PAGINATION);
-        if (!append) setSelContrib(new Set());
+        // A fresh page replaces the rows, so the open amounts the partials were
+        // typed against are gone too. Appends keep both: they are keyed by id.
+        if (!append) { setSelContrib(new Set()); setMatchAmounts({}); }
       } else {
         throw new Error(response?.message || 'Failed to load donations');
       }
@@ -229,6 +259,8 @@ export default function TreeMatchPage() {
       setDonError(err instanceof Error ? err.message : 'Failed to load donations');
       if (!append) { setContributions([]); setDonPagination(EMPTY_PAGINATION); }
     } finally {
+      inFlight.current.delete(key);
+      donStale.current = false;
       setDonLoading(false);
       setDonLoadingMore(false);
     }
@@ -236,8 +268,11 @@ export default function TreeMatchPage() {
 
   // The ignored view takes no donor or country filter: the server skips them
   // in this mode.
-  const fetchIgnored = async (page: number, append: boolean) => {
+  const fetchIgnored = async (page: number, append: boolean, force = false) => {
     if (!projectUid || !accessToken) return;
+    const key = `ign:${projectUid}:${page}:${append}`;
+    if (!force && inFlight.current.has(key)) return;
+    inFlight.current.add(key);
     if (append) setIgnoredLoadingMore(true); else setIgnoredLoading(true);
     setIgnoredError(null);
     try {
@@ -258,6 +293,9 @@ export default function TreeMatchPage() {
       setIgnoredError(err instanceof Error ? err.message : 'Failed to load ignored donations');
       if (!append) { setIgnoredList([]); setIgnoredPagination(EMPTY_PAGINATION); }
     } finally {
+      inFlight.current.delete(key);
+      ignoredStale.current = false;
+      setIgnoredLoaded(true);
       setIgnoredLoading(false);
       setIgnoredLoadingMore(false);
     }
@@ -274,12 +312,14 @@ export default function TreeMatchPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken, projectUid, sort, profileType, country]);
 
-  // Loaded up front so the tab count is the real server total, not a count of
-  // whatever happened to be on a loaded page.
+  // Switching projects invalidates the ignored view without fetching it: the
+  // next visit to the tab reloads it.
   useEffect(() => {
-    fetchIgnored(1, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, projectUid]);
+    setIgnoredList([]);
+    setIgnoredPagination(EMPTY_PAGINATION);
+    setIgnoredLoaded(false);
+    ignoredStale.current = false;
+  }, [projectUid]);
 
   // The site filter lists the sites of whichever project is selected in the
   // plant-locations pane.
@@ -300,22 +340,61 @@ export default function TreeMatchPage() {
     setMapFocus(null);
   };
 
+  // Each view is fetched on the first visit, then only when a write elsewhere
+  // has made it stale. Switching back and forth costs nothing.
   const changeRightTab = (tab: string) => {
     setRightTab(tab);
-    if (tab === 'ignored') fetchIgnored(1, false);
+    if (tab === 'ignored' && (!ignoredLoaded || ignoredStale.current)) {
+      fetchIgnored(1, false, true);
+    }
+    if (tab === 'toMatch' && donStale.current) {
+      fetchContributions(1, false, true);
+    }
   };
 
   // The default server view never contains ignored donations, so only the
   // client-side filters apply here.
+  //
+  // Sort, donor type and country are server-side and cover the whole project.
+  // These two are not: TTC's contributions endpoint has no reference search and
+  // no allocation-state filter, so they can only narrow the pages already
+  // fetched. Everything below that reports a count says which set it counted,
+  // because a filtered miss and an unfetched page look identical otherwise.
   const shownContributions = useMemo(() => {
     let list = contributions;
     if (matchState !== 'all') list = list.filter(c => contribMatchState(c) === matchState);
-    if (donSearch) {
-      const q = donSearch.toLowerCase();
+    if (donSearch.trim()) {
+      const q = donSearch.trim().toLowerCase();
       list = list.filter(c => c.donation.uid.toLowerCase().includes(q));
     }
     return list;
   }, [contributions, matchState, donSearch]);
+
+  const localFilterActive = matchState !== 'all' || donSearch.trim() !== '';
+  const moreDonPages = donPagination.page < donPagination.totalPages;
+  const donNotSearched = Math.max(0, donPagination.total - contributions.length);
+
+  // The reference search and the match-state filter run over loaded pages only
+  // (TTC offers neither), so "rows on screen" and "donations that exist" are two
+  // different numbers. While one of those filters is on, this line is the only
+  // place either number is spelled out, and the pane's footer button is hidden:
+  // a full-width "load more" under a one-row list reads as "more rows below",
+  // which is exactly the wrong thing to say. Paging deeper survives as a link
+  // inside this note, where it reads as searching rather than as pagination.
+  const donFilterNote = useMemo(() => {
+    if (!localFilterActive) return null;
+    const shown = shownContributions.length;
+    const searched = contributions.length;
+    if (!moreDonPages) {
+      return shown === 0
+        ? 'No donation matches these filters.'
+        : `Showing ${fmtNum(shown)} of ${fmtNum(searched)} donation${searched === 1 ? '' : 's'}.`;
+    }
+    const scope = `the first ${fmtNum(searched)} of ${fmtNum(donPagination.total)} donations`;
+    return shown === 0
+      ? `No match in ${scope}.`
+      : `Showing ${fmtNum(shown)} of ${scope}.`;
+  }, [localFilterActive, shownContributions.length, contributions.length, moreDonPages, donPagination.total]);
 
   // Project-level stats. Planted and matched come from the server (project-wide,
   // independent of filters); matched adds this session's matches until the next
@@ -327,10 +406,67 @@ export default function TreeMatchPage() {
     return { planted, matched, unmatched: Math.max(0, planted - matched), openDon };
   }, [serverStats, sessionMatchedTrees, contributions]);
 
-  const toggleInterv = (uid: string) =>
+  const selIntervList = interventions.filter(i => selInterv.has(i.uid));
+  const selContribList = contributions.filter(c => selContrib.has(c.id));
+  // Coverage: do the selected plant locations hold enough trees for what the
+  // selected donations are asking for? Demand is the requested amount, not the
+  // open amount, so a partial shrinks the number on the connector too.
+  const selSupply = selIntervList.reduce((s, i) => s + availableTrees(i), 0);
+  const selDemand = selContribList.reduce((s, c) => s + requestedTrees(c, matchAmounts), 0);
+  const matchable = Math.min(selSupply, selDemand);
+  const canMatch = selIntervList.length > 0 && selContribList.length > 0 && selDemand > 0;
+
+  // Selection guards. The greedy fill walks the donations and consumes locations
+  // only until each one is satisfied, so a location picked after the selection
+  // already covers the demand is never reached, and a donation picked after the
+  // locations are exhausted only adds shortfall. Both rules block *adding* only;
+  // deselecting always works. They cannot trap the user either: whichever side
+  // is short stays open, and when the two are exactly equal nothing more is
+  // needed anyway.
+  const supplyCoversDemand = selDemand > 0 && selSupply >= selDemand;
+  const demandCoversSupply = selSupply > 0 && selDemand >= selSupply;
+  const intervBlocked = (uid: string) => supplyCoversDemand && !selInterv.has(uid);
+  const contribBlocked = (id: number) => demandCoversSupply && !selContrib.has(id);
+
+  // Guarded in the handlers, not just on the cards: the map view toggles
+  // locations through this same function and would otherwise walk past the rule.
+  const toggleInterv = (uid: string) => {
+    if (intervBlocked(uid)) return;
     setSelInterv(prev => { const n = new Set(prev); n.has(uid) ? n.delete(uid) : n.add(uid); return n; });
-  const toggleContrib = (id: number) =>
-    setSelContrib(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  };
+  const toggleContrib = (id: number) => {
+    if (contribBlocked(id)) return;
+    const turningOn = !selContrib.has(id);
+    // Ticking a donation whose field was cleared means "match this one", so the
+    // empty field goes back to the full open amount instead of asking for zero.
+    if (turningOn && Number(matchAmounts[id] ?? NaN) <= 0) {
+      setMatchAmounts(prev => { const n = { ...prev }; delete n[id]; return n; });
+    }
+    setSelContrib(prev => { const n = new Set(prev); turningOn ? n.add(id) : n.delete(id); return n; });
+  };
+
+  // Typing a number is itself the selection: it picks the donation up, and
+  // clearing the field puts it back down. That keeps the field and the checkbox
+  // from ever disagreeing about whether the donation is in the match.
+  const setMatchAmount = (id: number, raw: string) => {
+    // Typing is a selection, so it has to respect the same block the checkbox
+    // does, or the field becomes a way around it.
+    if (contribBlocked(id)) return;
+    setMatchAmounts(prev => ({ ...prev, [id]: raw }));
+    const trees = raw === '' ? 0 : Number(raw);
+    setSelContrib(prev => {
+      const n = new Set(prev);
+      if (trees > 0) n.add(id); else n.delete(id);
+      return n;
+    });
+  };
+
+  // "Max": forget the partial. The card then shows the exact open amount again,
+  // fraction included, which a whole-tree field could not have been typed back.
+  const resetMatchAmount = (id: number) => {
+    setMatchAmounts(prev => { const n = { ...prev }; delete n[id]; return n; });
+    setSelContrib(prev => new Set(prev).add(id));
+  };
 
   // The ignore flag lives in TTC, and the two list views are separate, so
   // ignoring moves a donation from one to the other. The row is dropped from the
@@ -343,6 +479,7 @@ export default function TreeMatchPage() {
       setContributions(prev => prev.filter(c => c.id !== id));
       setDonPagination(prev => ({ ...prev, total: Math.max(0, prev.total - 1) }));
       setSelContrib(prev => { const n = new Set(prev); n.delete(id); return n; });
+      setMatchAmounts(prev => { const n = { ...prev }; delete n[id]; return n; });
     } else {
       setIgnoredList(prev => prev.filter(c => c.id !== id));
       setIgnoredPagination(prev => ({ ...prev, total: Math.max(0, prev.total - 1) }));
@@ -353,24 +490,26 @@ export default function TreeMatchPage() {
       if (response?.statusCode && response.statusCode !== 200) {
         throw new Error(response?.message || 'The server rejected the change');
       }
-      if (ignoreValue) fetchIgnored(1, false); else fetchContributions(1, false);
+      // The row joined the other view, which the user is not on. Reload it only
+      // if it is on screen; otherwise mark it stale and let the next visit pay
+      // for the round trip.
+      if (ignoreValue) {
+        if (rightTab === 'ignored') fetchIgnored(1, false, true);
+        else ignoredStale.current = true;
+      } else if (rightTab === 'toMatch') {
+        fetchContributions(1, false, true);
+      } else {
+        donStale.current = true;
+      }
     } catch (err) {
       console.error('TreeMatch ignore update failed:', err);
       setActionError(err instanceof Error ? err.message : 'Failed to update the donation');
       // The optimistic drop was wrong, so reload the list it was dropped from.
-      if (ignoreValue) fetchContributions(1, false); else fetchIgnored(1, false);
+      if (ignoreValue) fetchContributions(1, false, true); else fetchIgnored(1, false, true);
     }
   };
   const ignore = (id: number) => setIgnoreFlag(id, true);
   const restore = (id: number) => setIgnoreFlag(id, false);
-
-  const selIntervList = interventions.filter(i => selInterv.has(i.uid));
-  const selContribList = contributions.filter(c => selContrib.has(c.id));
-  const canMatch = selIntervList.length > 0 && selContribList.length > 0;
-  // Coverage: do the selected plant locations hold enough trees for the selected donations?
-  const selSupply = selIntervList.reduce((s, i) => s + availableTrees(i), 0);
-  const selDemand = selContribList.reduce((s, c) => s + contribAvailable(c), 0);
-  const matchable = Math.min(selSupply, selDemand);
 
   // Record the match. The request carries (donation, location) pairs only: the
   // server derives each donation's new absolute total by summing its own rows,
@@ -408,7 +547,7 @@ export default function TreeMatchPage() {
         // Nothing was written either way. A 409 means a plant location no longer
         // has that many trees free, so the left pane is what moved; anything
         // else came from the donation backend.
-        if (status === 409) fetchInterventions(1, false); else fetchContributions(1, false);
+        if (status === 409) fetchInterventions(1, false, true); else fetchContributions(1, false, true);
         return;
       }
 
@@ -431,6 +570,7 @@ export default function TreeMatchPage() {
       setSessionMatchedTrees(prev => prev + trees);
       setSelInterv(new Set());
       setSelContrib(new Set());
+      setMatchAmounts({});
       setConfirmOpen(false);
       setLastAction(`Matched ${fmtTrees(trees)} trees across ${fmtNum(matches.length)} plant location link(s).`);
     } catch (err) {
@@ -584,9 +724,20 @@ export default function TreeMatchPage() {
               focusUid={mapFocus}
               onFocusChange={setMapFocus}
               onToggle={toggleInterv}
+              isBlocked={intervBlocked}
             />
           ) : (
             <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2.5">
+              {/* Blocked cards look broken without a reason next to them. */}
+              {supplyCoversDemand && (
+                <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-2">
+                  <Info size={13} className="flex-shrink-0 mt-0.5" />
+                  <span>
+                    These plant locations already cover the selected donations.
+                    Deselect one, or select another donation, to pick more.
+                  </span>
+                </div>
+              )}
               {notReadyCount > 0 && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-2">
                   <Info size={13} className="flex-shrink-0" />
@@ -596,7 +747,7 @@ export default function TreeMatchPage() {
               {ivError && (
                 <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 space-y-1.5">
                   <p>{ivError}</p>
-                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fetchInterventions(1, false)}>Retry</Button>
+                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fetchInterventions(1, false, true)}>Retry</Button>
                 </div>
               )}
               {ivLoading && (
@@ -609,6 +760,7 @@ export default function TreeMatchPage() {
                   key={i.uid}
                   intervention={i}
                   checked={selInterv.has(i.uid)}
+                  disabled={intervBlocked(i.uid)}
                   onToggle={toggleInterv}
                   onViewMap={(uid) => { setMapFocus(uid); setLeftView('map'); }}
                 />
@@ -661,7 +813,13 @@ export default function TreeMatchPage() {
               <div className="flex items-center gap-2">
                 <h2 className="text-[15px] font-semibold text-foreground">Donations</h2>
                 <Badge variant="secondary" className="rounded-full px-2 text-[11px]">
-                  {fmtNum(rightTab === 'ignored' ? ignoredPagination.total : donPagination.total)}
+                  {/* With a local filter on, the badge counts the rows actually
+                    * on screen. The project total is not dropped, it moves into
+                    * the note under the tabs, which is the one line that can
+                    * explain the gap between the two. */}
+                  {fmtNum(rightTab === 'ignored'
+                    ? ignoredPagination.total
+                    : localFilterActive ? shownContributions.length : donPagination.total)}
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">Paid project contributions</p>
@@ -669,7 +827,11 @@ export default function TreeMatchPage() {
             <Tabs value={rightTab} onValueChange={changeRightTab}>
               <TabsList className="w-full h-9">
                 <TabsTrigger value="toMatch" className="flex-1 text-xs">To match</TabsTrigger>
-                <TabsTrigger value="ignored" className="flex-1 text-xs">Ignored ({fmtNum(ignoredPagination.total)})</TabsTrigger>
+                {/* The count appears once the view has been fetched; before that
+                    there is no server total, and 0 would be a guess. */}
+                <TabsTrigger value="ignored" className="flex-1 text-xs">
+                  Ignored{ignoredLoaded ? ` (${fmtNum(ignoredPagination.total)})` : ''}
+                </TabsTrigger>
               </TabsList>
             </Tabs>
             {rightTab !== 'ignored' && (
@@ -718,7 +880,7 @@ export default function TreeMatchPage() {
                 {ignoredError && (
                   <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 space-y-1.5">
                     <p>{ignoredError}</p>
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fetchIgnored(1, false)}>Retry</Button>
+                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fetchIgnored(1, false, true)}>Retry</Button>
                   </div>
                 )}
                 {ignoredLoading && (
@@ -755,12 +917,45 @@ export default function TreeMatchPage() {
                 {donError && (
                   <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 space-y-1.5">
                     <p>{donError}</p>
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fetchContributions(1, false)}>Retry</Button>
+                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fetchContributions(1, false, true)}>Retry</Button>
                   </div>
                 )}
                 {donLoading && (
                   <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
                     <Loader2 size={15} className="animate-spin" /> Loading donations…
+                  </div>
+                )}
+                {!donLoading && !donError && demandCoversSupply && (
+                  <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-2">
+                    <Info size={13} className="flex-shrink-0 mt-0.5" />
+                    <span>
+                      The selected donations already claim every tree the selected
+                      plant locations have. Deselect one, or select another location,
+                      to pick more.
+                    </span>
+                  </div>
+                )}
+                {!donLoading && !donError && donFilterNote && (
+                  <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-2">
+                    <Info size={13} className="flex-shrink-0 mt-0.5" />
+                    <span>
+                      {donFilterNote}
+                      {moreDonPages && (
+                        <>
+                          {' '}
+                          <button
+                            type="button"
+                            disabled={donLoadingMore}
+                            onClick={() => fetchContributions(donPagination.page + 1, true)}
+                            className="font-medium text-foreground underline underline-offset-2 hover:text-primary disabled:no-underline disabled:opacity-60"
+                          >
+                            {donLoadingMore
+                              ? 'Searching…'
+                              : `Search ${fmtNum(Math.min(PAGE_SIZE, donNotSearched))} more`}
+                          </button>
+                        </>
+                      )}
+                    </span>
                   </div>
                 )}
                 {!donLoading && shownContributions.map(c => (
@@ -770,12 +965,21 @@ export default function TreeMatchPage() {
                     checked={selContrib.has(c.id)}
                     onToggle={toggleContrib}
                     onIgnore={ignore}
+                    blocked={contribBlocked(c.id)}
+                    amount={matchAmounts[c.id]}
+                    onAmountChange={setMatchAmount}
+                    onAmountReset={resetMatchAmount}
                   />
                 ))}
-                {!donLoading && !donError && shownContributions.length === 0 && (
+                {/* The filtered empty case is already stated by the note above,
+                  * word for word, so this only covers "the project has none". */}
+                {!donLoading && !donError && !localFilterActive && shownContributions.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-10">Nothing here.</p>
                 )}
-                {!donLoading && donPagination.page < donPagination.totalPages && (
+                {/* Unfiltered only: here the list really is every loaded row, so
+                  * a pagination footer describes it honestly. Filtered, it would
+                  * not, and the note above carries the action instead. */}
+                {!donLoading && !localFilterActive && moreDonPages && (
                   <Button
                     variant="outline" size="sm" className="w-full"
                     disabled={donLoadingMore}
@@ -783,7 +987,7 @@ export default function TreeMatchPage() {
                   >
                     {donLoadingMore
                       ? <><Loader2 size={13} className="animate-spin" /> Loading…</>
-                      : `Load more (${fmtNum(contributions.length)} of ${fmtNum(donPagination.total)})`}
+                      : `Load more (${fmtNum(contributions.length)} of ${fmtNum(donPagination.total)} loaded)`}
                   </Button>
                 )}
               </>
@@ -817,6 +1021,7 @@ export default function TreeMatchPage() {
         onOpenChange={(v) => { if (!matchSubmitting) { setConfirmOpen(v); if (!v) setMatchError(null); } }}
         interventions={selIntervList}
         contributions={selContribList}
+        amounts={matchAmounts}
         submitting={matchSubmitting}
         error={matchError}
         onConfirm={applyMatch}

@@ -59,10 +59,14 @@ interface Props {
   focusUid: string | null;
   onFocusChange: (uid: string | null) => void;
   onToggle: (uid: string) => void;
+  /** the selection already covers the chosen donations, so this location cannot
+   * be added right now. Without it the button below would look live and do
+   * nothing, since the parent's toggle refuses blocked locations. */
+  isBlocked?: (uid: string) => boolean;
   className?: string;
 }
 
-export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange, onToggle, className }: Props) {
+export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange, onToggle, isBlocked, className }: Props) {
   const mapRef = useRef<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [basemap, setBasemap] = useState<BasemapKey>('satellite');
@@ -130,6 +134,7 @@ export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange,
   const focusPct = focus && focus.totalTreeCount > 0 ? Math.round((focus.matchedTrees / focus.totalTreeCount) * 100) : 0;
   const focusSelected = !!focus && selected.has(focus.uid);
   const focusInactive = !!focus && focusAvailable === 0;
+  const focusBlocked = !!focus && !focusSelected && !!isBlocked?.(focus.uid);
   const FocusIcon = focus?.type === 'single-tree-registration' ? Sprout : TreePine;
 
   return (
@@ -275,10 +280,19 @@ export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange,
               <Button variant="outline" size="sm" className="w-full mt-3" onClick={() => onToggle(focus.uid)}>
                 <X size={13} /> Remove from match
               </Button>
+            ) : focusBlocked ? (
+              <Button size="sm" className="w-full mt-3" disabled>
+                Donations already covered
+              </Button>
             ) : (
               <Button size="sm" className="w-full mt-3" onClick={() => onToggle(focus.uid)}>
                 <Plus size={13} /> Add to match
               </Button>
+            )}
+            {focusBlocked && (
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                The locations you picked already cover the selected donations.
+              </p>
             )}
             {focusSelected && !focusInactive && (
               <p className="mt-2 text-[11px] text-muted-foreground">
