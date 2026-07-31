@@ -29,7 +29,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { useTreematchStore } from '@/stores/treematchStore'
 
 // ---------- Approval settings helpers ----------
 
@@ -690,8 +689,10 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
 // ---------- ForestCloud ----------
 
 const ForestCloudSettings = ({ selectedProject, canEdit }: any) => {
-  const enabled = useTreematchStore(state => state.enabled)
-  const setEnabled = useTreematchStore(state => state.setEnabled)
+  // Local only: there is no per-project TreeMatch flag on the server, so this
+  // toggle does not gate anything outside this panel. It stays visible for when
+  // that setting exists.
+  const [enabled, setEnabled] = useState(true)
 
   return (
     <div className="space-y-4">

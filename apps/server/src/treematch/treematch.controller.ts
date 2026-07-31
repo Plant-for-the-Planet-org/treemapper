@@ -7,7 +7,6 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -16,27 +15,20 @@ import { ProjectPermissionsGuard } from '../projects/guards/project-permissions.
 import { ProjectRoles } from '../projects/decorators/project-roles.decorator';
 import { Membership } from '../projects/decorators/membership.decorator';
 import { ProjectGuardResponse } from '../projects/projects.service';
-import { TreeMatchService } from './services/treematch.service';
-import { TreeMatchRulesService } from './services/treematch-rules.service';
-import { TreeMatchAutomatchService } from './services/treematch-automatch.service';
+import { TreeMatchService } from './treematch.service';
 import {
+  CreateMatchesDto,
   GetTreeMatchContributionsQueryDto,
   GetTreeMatchInterventionsQueryDto,
-  PutTreeMatchRulesDto,
   SetContributionIgnoreDto,
-  WriteBackAllocationsDto,
 } from './dto/treematch.dto';
 
-// Matching donations to plant locations is a restoration-organisation admin
+// Matching contributions to plant locations is a restoration-organisation admin
 // task, so every route is owner/admin only.
 @UseGuards(JwtAuthGuard)
 @Controller('treematch')
 export class TreeMatchController {
-  constructor(
-    private readonly treeMatchService: TreeMatchService,
-    private readonly rulesService: TreeMatchRulesService,
-    private readonly automatchService: TreeMatchAutomatchService,
-  ) {}
+  constructor(private readonly treeMatchService: TreeMatchService) {}
 
   @Get('/projects/:id/interventions')
   @ProjectRoles('owner', 'admin')
@@ -58,36 +50,24 @@ export class TreeMatchController {
     return this.treeMatchService.getContributions(membership.projectId, query);
   }
 
-  @Put('/projects/:id/contributions/allocated')
+  // 200 (not 201): the allocation rows are an internal detail, and the useful
+  // answer is the absolute totals TTC applied.
+  //
+  // The locations may belong to other projects the caller administers, so the
+  // service authorizes each of them; the guard only covers the path project.
+  @Post('/projects/:id/matches')
+  @HttpCode(200)
   @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
-  async writeAllocations(
+  async createMatches(
     @Membership() membership: ProjectGuardResponse,
-    @Body() dto: WriteBackAllocationsDto,
+    @Body() dto: CreateMatchesDto,
   ) {
-    return this.treeMatchService.writeAllocations(
+    return this.treeMatchService.createMatches(
       membership.projectId,
       membership.userId,
       dto,
     );
-  }
-
-  @Get('/projects/:id/rules')
-  @ProjectRoles('owner', 'admin')
-  @UseGuards(ProjectPermissionsGuard)
-  async getRules(@Membership() membership: ProjectGuardResponse) {
-    return this.rulesService.getRules(membership.projectId);
-  }
-
-  // Full-list replace; the body's array order is the rule priority.
-  @Put('/projects/:id/rules')
-  @ProjectRoles('owner', 'admin')
-  @UseGuards(ProjectPermissionsGuard)
-  async putRules(
-    @Membership() membership: ProjectGuardResponse,
-    @Body() dto: PutTreeMatchRulesDto,
-  ) {
-    return this.rulesService.replaceRules(membership.projectId, membership.userId, dto);
   }
 
   // :contributionId is TTC's ProjectContribution id, the only id the web has.
@@ -95,25 +75,9 @@ export class TreeMatchController {
   @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
   async setContributionIgnore(
-    @Membership() membership: ProjectGuardResponse,
     @Param('contributionId', ParseIntPipe) contributionId: number,
     @Body() dto: SetContributionIgnoreDto,
   ) {
-    return this.treeMatchService.setContributionIgnore(
-      membership.projectId,
-      membership.userId,
-      contributionId,
-      dto,
-    );
-  }
-
-  // Runs the auto-match engine synchronously and returns the result summary.
-  // 200 (not 201): the run record is an implementation detail.
-  @Post('/projects/:id/automatch')
-  @HttpCode(200)
-  @ProjectRoles('owner', 'admin')
-  @UseGuards(ProjectPermissionsGuard)
-  async runAutomatch(@Membership() membership: ProjectGuardResponse) {
-    return this.automatchService.run(membership.projectId, membership.userId);
+    return this.treeMatchService.setContributionIgnore(contributionId, dto);
   }
 }

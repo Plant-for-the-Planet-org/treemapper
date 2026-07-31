@@ -1,7 +1,7 @@
 'use client'
 
-// Map view for TreeMatch (dummy UI). Draws the mock plant locations colored by
-// match status. Clicking a location opens a small card with its numbers and an
+// Map view for TreeMatch. Draws the loaded plant locations colored by match
+// status. Clicking a location opens a small card with its numbers and an
 // "Add to match" button that feeds the same selection state as the list view,
 // so a match started on the map finishes through the normal bottom action bar.
 // Map plumbing (basemaps, layer patterns) follows the overview GlobalMap.
@@ -11,7 +11,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import Map, { Source, Layer, Marker } from 'react-map-gl/maplibre';
 import * as turf from '@turf/turf';
 import {
-  TreePine, Sprout, MapPin, Ban, X, Check, Plus, ArrowLeftRight, Lock,
+  TreePine, Sprout, MapPin, X, Check, Plus, ArrowLeftRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,21 +22,20 @@ import { cn } from '@/lib/utils';
 import {
   BASEMAP_STYLES, BASEMAP_OPTIONS, type BasemapKey,
 } from '../../overview/component/map/constants';
-import { TreeMatchIntervention, fmtNum, fmtDate, availableTrees } from './types';
+import { TreeMatchIntervention, fmtTrees, fmtDate, availableTrees } from './types';
 
 // Colors by match status. Selected locations use the brand green so "in the
 // match" reads at a glance; the legend mirrors these.
 const STATUS_COLOR = {
   available: '#68B030',
   matched: '#94A3B8',
-  blocked: '#F59E0B',
 } as const;
 const SELECTED_COLOR = '#007A49';
 
 type MatchStatus = keyof typeof STATUS_COLOR;
 
 const statusOf = (i: TreeMatchIntervention): MatchStatus =>
-  i.blocked ? 'blocked' : availableTrees(i) > 0 ? 'available' : 'matched';
+  availableTrees(i) > 0 ? 'available' : 'matched';
 
 // Stable references — react-map-gl re-applies these on reference change.
 const MAP_CONTAINER_STYLE = { width: '100%', height: '100%' };
@@ -50,7 +49,6 @@ const LEGEND: { label: string; color: string }[] = [
   { label: 'Available', color: STATUS_COLOR.available },
   { label: 'Selected', color: SELECTED_COLOR },
   { label: 'Fully matched', color: STATUS_COLOR.matched },
-  { label: 'Blocked', color: STATUS_COLOR.blocked },
 ];
 
 interface Props {
@@ -131,7 +129,7 @@ export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange,
   const focusAvailable = focus ? availableTrees(focus) : 0;
   const focusPct = focus && focus.totalTreeCount > 0 ? Math.round((focus.matchedTrees / focus.totalTreeCount) * 100) : 0;
   const focusSelected = !!focus && selected.has(focus.uid);
-  const focusInactive = !!focus && (focus.blocked || focusAvailable === 0);
+  const focusInactive = !!focus && focusAvailable === 0;
   const FocusIcon = focus?.type === 'single-tree-registration' ? Sprout : TreePine;
 
   return (
@@ -187,7 +185,6 @@ export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange,
                 style={{ backgroundColor: isSel ? SELECTED_COLOR : STATUS_COLOR[m.status] }}
               >
                 {isSel && <Check size={11} strokeWidth={3} />}
-                {m.status === 'blocked' && !isSel && <Ban size={11} strokeWidth={3} />}
                 {m.available > 0 ? fmtShort(m.available) : 'Full'}
               </button>
             </Marker>
@@ -231,7 +228,7 @@ export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange,
           <div className="px-4 pt-3 pb-1 flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <FocusIcon size={15} className={cn('flex-shrink-0', focus.legacy ? 'text-amber-500' : 'text-primary')} />
+                <FocusIcon size={15} className="flex-shrink-0 text-primary" />
                 <span className="text-sm font-bold truncate">{focus.hid}</span>
                 <span className="text-[9px] font-semibold uppercase tracking-[0.08em] rounded-md bg-muted px-1.5 py-0.5 text-muted-foreground flex-shrink-0">
                   {focus.type === 'single-tree-registration' ? 'single' : 'multi'}
@@ -252,39 +249,27 @@ export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange,
           <div className="px-4 pb-3.5">
             <div className="flex items-end justify-between mb-1.5 mt-1.5">
               <span className="text-xs text-muted-foreground">
-                <span className="text-lg font-bold text-foreground leading-none">{fmtNum(focusAvailable)}</span> available
+                <span className="text-lg font-bold text-foreground leading-none">{fmtTrees(focusAvailable)}</span> available
               </span>
               <span className="text-xs text-muted-foreground">
-                <span className="font-semibold text-foreground">{fmtNum(focus.matchedTrees)}</span> / {fmtNum(focus.totalTreeCount)} matched
+                <span className="font-semibold text-foreground">{fmtTrees(focus.matchedTrees)}</span> / {fmtTrees(focus.totalTreeCount)} matched
               </span>
             </div>
             <div className="h-2 w-full rounded-full bg-primary/15 overflow-hidden">
               <div className="h-full rounded-full bg-primary" style={{ width: `${focusPct}%` }} />
             </div>
 
-            {(focus.blocked || focus.crossProjectName || focus.legacy) && (
+            {focus.crossProjectName && (
               <div className="mt-2.5 flex flex-wrap gap-1">
-                {focus.blocked && (
-                  <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-amber-700 border-amber-200 bg-amber-50">
-                    <Ban size={10} /> blocked from matching
-                  </Badge>
-                )}
-                {focus.crossProjectName && (
-                  <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-blue-700 border-blue-200 bg-blue-50">
-                    <ArrowLeftRight size={10} /> {focus.crossProjectName}
-                  </Badge>
-                )}
-                {focus.legacy && (
-                  <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-purple-700 border-purple-200 bg-purple-50">
-                    <Lock size={10} /> legacy holding
-                  </Badge>
-                )}
+                <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-blue-700 border-blue-200 bg-blue-50">
+                  <ArrowLeftRight size={10} /> {focus.crossProjectName}
+                </Badge>
               </div>
             )}
 
             {focusInactive ? (
               <Button size="sm" className="w-full mt-3" disabled>
-                {focus.blocked ? 'Blocked from matching' : 'Fully matched'}
+                Fully matched
               </Button>
             ) : focusSelected ? (
               <Button variant="outline" size="sm" className="w-full mt-3" onClick={() => onToggle(focus.uid)}>

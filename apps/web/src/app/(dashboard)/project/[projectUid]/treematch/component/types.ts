@@ -4,6 +4,12 @@
 //  - Donations: GET /treematch/projects/{uid}/contributions
 //    (proxied TTC contributions; the server converts centi-units to whole
 //    trees, so every unit number here is trees)
+//  - Recording a match: POST /treematch/projects/{uid}/matches
+//
+// Ownership matters for reading these: TTC owns contributions, their allocated
+// totals and the ignore flag, and TreeMapper stores none of it. TreeMapper owns
+// trees and interventions, plus one table saying how many of its own trees are
+// claimed by which contribution.
 
 // ---------------------------------------------------------------------------
 // Plant locations (intervention)
@@ -43,21 +49,19 @@ export interface TreeMatchIntervention {
   interventionStartDate: string; // ISO
   totalTreeCount: number;
   captureStatus: CaptureStatus | string;
+  /** part of the response, deliberately not surfaced: matching does not care
+   * whether a location is publicly visible */
   isPrivate: boolean;
   location: TreeMatchGeometry | null;
   area?: number | null;
 
-  /** trees already allocated to a donation, read from the server's match
-   * ledger; local matches bump it optimistically until the next fetch. */
+  /** trees already claimed by a donation, summed from treematch_allocation;
+   * local matches bump it optimistically until the next fetch */
   matchedTrees: number;
 
-  // --- Future ledger fields, never set by the current API ---
-  /** manually excluded from matching by the RO */
-  blocked?: boolean;
-  /** belongs to a different project of the same RO (cross-project matching) */
+  /** set by the client, not the API: the location belongs to another project of
+   * the same owner (matching across projects is allowed) */
   crossProjectName?: string;
-  /** hidden intervention holding legacy pre-TreeMapper trees */
-  legacy?: boolean;
 }
 
 export const availableTrees = (i: TreeMatchIntervention) =>
@@ -71,10 +75,8 @@ export const availableTrees = (i: TreeMatchIntervention) =>
 // 'm2' exists for conservation projects sold by area.
 export type UnitType = 'tree' | 'm2' | string;
 
-export type AllocationPriority = 'manual' | 'automatic' | 'first' | 'never';
-
-/** Whether the contribution may be shown on the public project page. */
-export type ContributionStatus = 'public' | 'private';
+// TTC's own ordering hint. Not surfaced: it only ever mattered to auto-match.
+export type AllocationPriority = 'manual' | 'automatic' | 'first';
 
 /** The parent donation. One donation can fund several projects/ROs. */
 export interface Donation {
@@ -89,13 +91,10 @@ export interface Donation {
 // Donor identity is deliberately absent and is never coming: ROs do not get to
 // see who donated. A contribution is identified by its donation reference
 // (donation.uid) everywhere in the UI.
-//
-// `status` and `ignore` are planned TTC response fields; until the endpoint
-// returns them, the server proxy injects sample values so these UI paths stay
-// alive.
 export interface Contribution {
   id: number;
-  /** whole trees (converted from TTC centi-units server-side) */
+  /** whole trees (converted from TTC centi-units server-side); can be
+   * fractional, since TTC allows partial units */
   units: number;
   unitsAllocated: number;
   /** server-computed units - unitsAllocated */
@@ -103,11 +102,10 @@ export interface Contribution {
   unitType: UnitType;
   currency: string | null;
   allocationPriority: AllocationPriority;
-  status: ContributionStatus;
-  /** excluded from matching by the RO */
-  ignore: boolean;
-  /** why it was ignored; local-only until the API carries it */
-  ignoreReason?: string;
+  /** excluded from matching. Owned by TTC, so it arrives with every read and
+   * is changed through the ignore endpoint, never locally */
+  ignored: boolean;
+  ignoreReason?: string | null;
   donation: Donation;
 }
 
@@ -145,7 +143,7 @@ export interface InterventionListData {
   stats: {
     /** project-wide planted total (independent of filters) */
     plantedTrees: number;
-    /** project-wide matched total; 0 until the match ledger exists */
+    /** project-wide claimed total (independent of filters) */
     matchedTrees: number;
   };
 }
@@ -156,96 +154,27 @@ export interface ContributionListData {
 }
 
 // ---------------------------------------------------------------------------
-// Auto-match rules (GET/PUT /treematch/projects/{uid}/rules)
+// Recording a match
 // ---------------------------------------------------------------------------
 
-// A rule reads: WHEN <these donations> -> PREFER <these locations> -> ORDER BY
-// <tiebreak>. Rules run top to bottom (array order = priority); each matches
-// what it can and passes the rest down. A locked "everything else" default
-// always applies last (server-side too).
-//
-// 'company' and 'individual' map to the contributions endpoint's `profileType`
-// filter (company is aliased 'organization' there). Plant organisations are
-// excluded from that endpoint entirely, so those two values are an exhaustive,
-// mutually exclusive split of everything TreeMatch can ever see.
-export type RuleWhenType = 'all' | 'company' | 'individual' | 'country' | 'donor';
-export type RulePreferType = 'oldest' | 'site' | 'capacity';
-export type RuleOrderBy = 'oldest' | 'largest';
-
-/** A rule as edited in the dialog. */
-export interface TreeMatchRule {
-  /** server uid; absent on new unsaved rows (uids change on every save) */
-  uid?: string;
-  /** client-only stable React key */
-  localId: string;
-  enabled: boolean;
-  whenType: RuleWhenType;
-  /** ISO-2 country for 'country', donation ref for 'donor' */
-  whenValue?: string;
-  preferType: RulePreferType;
-  preferSiteUid?: string;
-  preferSiteName?: string;
-  orderBy: RuleOrderBy;
+/** One (donation, plant location) pair, in whole trees. The request carries
+ * nothing else: the server derives each contribution's absolute total itself. */
+export interface MatchPair {
+  contributionId: number;
+  interventionUid: string;
+  trees: number;
 }
 
-/** A rule as the server returns it. */
-export interface TreeMatchRuleItem {
-  uid: string;
-  position: number;
-  enabled: boolean;
-  whenType: RuleWhenType;
-  whenValue?: string;
-  preferType: RulePreferType;
-  preferSite?: { uid: string; name: string };
-  orderBy: RuleOrderBy;
-}
+/** The server caps one request at this many pairs. */
+export const MAX_MATCH_PAIRS = 200;
 
-export const ruleFromItem = (item: TreeMatchRuleItem): TreeMatchRule => ({
-  uid: item.uid,
-  localId: item.uid,
-  enabled: item.enabled,
-  whenType: item.whenType,
-  whenValue: item.whenValue,
-  preferType: item.preferType,
-  preferSiteUid: item.preferSite?.uid,
-  preferSiteName: item.preferSite?.name,
-  orderBy: item.orderBy,
-});
-
-/** The PUT body shape; also the basis for dirty comparison. */
-export const ruleToPayload = (rule: TreeMatchRule) => ({
-  enabled: rule.enabled,
-  whenType: rule.whenType,
-  ...(rule.whenValue ? { whenValue: rule.whenValue } : {}),
-  preferType: rule.preferType,
-  ...(rule.preferSiteUid ? { preferSiteUid: rule.preferSiteUid } : {}),
-  orderBy: rule.orderBy,
-});
-
-// Result of POST /treematch/projects/{uid}/automatch (whole trees).
-export interface AutomatchRuleResult {
-  /** null = the implicit default catch-all */
-  ruleUid: string | null;
-  label: string;
-  matchedTrees: number;
-  contributionsUsed: number;
-  /** the rule prefers a site that no longer exists */
-  siteMissing?: boolean;
-}
-
-export interface AutomatchResult {
-  runUid: string;
-  matchedTrees: number;
-  contributionsMatched: number;
-  locationsFilled: number;
-  perRule: AutomatchRuleResult[];
-  /** not every donation was scanned (pagination cap); a re-run matches more */
-  truncated?: boolean;
+/** TTC's accepted absolute totals, in whole trees, keyed by contribution id. */
+export interface CreateMatchesResponse {
+  applied: Record<string, number>;
 }
 
 // The contributions endpoint filters by ISO-2 payment country but does not
-// return the country per item, so the choices are a fixed list. Shared by the
-// donations filter and the rules editor.
+// return the country per item, so the choices are a fixed list.
 export const COUNTRY_OPTIONS = [
   'DE', 'AT', 'CH', 'US', 'GB', 'FR', 'NL', 'BE', 'ES', 'IT',
   'SE', 'NO', 'DK', 'CA', 'AU', 'MX', 'IN',
@@ -258,7 +187,15 @@ export const COUNTRY_OPTIONS = [
 export const fmtAmount = (a: number, c: string) =>
   new Intl.NumberFormat('en', { style: 'currency', currency: c, maximumFractionDigits: 0 }).format(a);
 
+/** Counts (totals, pages, list lengths). Always whole. */
 export const fmtNum = (n: number) => new Intl.NumberFormat('en').format(n);
+
+/** Tree and unit quantities. TTC works in hundredths of a unit, so these can be
+ * fractional; decimals are shown only when there are any. */
+export const fmtTrees = (n: number) =>
+  new Intl.NumberFormat('en', {
+    maximumFractionDigits: Number.isInteger(n) ? 0 : 2,
+  }).format(n);
 
 export const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' });

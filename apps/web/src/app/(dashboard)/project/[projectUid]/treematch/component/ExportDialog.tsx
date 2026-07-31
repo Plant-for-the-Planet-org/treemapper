@@ -41,14 +41,14 @@ export function ExportDialog({ open, onOpenChange, interventions, contributions 
   const locCsv = toCsv(['hid', 'site', 'type', 'interventionStartDate', 'totalTreeCount', 'availableTrees'], locRows);
 
   const donRows = contributions
-    .filter(c => !c.ignore && contribAvailable(c) > 0)
+    .filter(c => !c.ignored && contribAvailable(c) > 0)
     .map(c => [
-      c.id, c.donation.uid, c.status,
+      c.id, c.donation.uid,
       c.unitType, c.units, c.unitsAllocated, contribAvailable(c),
       c.donation.paymentDate.slice(0, 10), c.donation.amount, c.donation.currency ?? '',
     ]);
   const donCsv = toCsv(
-    ['contributionId', 'donationRef', 'status', 'unitType',
+    ['contributionId', 'donationRef', 'unitType',
       'units', 'unitsAllocated', 'available', 'paymentDate', 'amount', 'currency'],
     donRows,
   );

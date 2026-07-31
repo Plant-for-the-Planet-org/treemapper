@@ -12,10 +12,41 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import {
-  Contribution, TreeMatchRule, RuleWhenType, RulePreferType, RuleOrderBy,
-  fmtNum, unitLabel,
-} from './types';
+import { Contribution, fmtNum, unitLabel } from './types';
+
+// ---------------------------------------------------------------------------
+// Parked feature. Auto-match and its rules were removed from the backend and
+// will be brought back as separate work; nothing imports this file today and
+// there are no endpoints behind it. It is kept whole so the editor does not
+// have to be rebuilt from scratch.
+//
+// The rule types live here rather than in types.ts, which now describes only
+// the live API surface. Move them back when the endpoints return.
+// ---------------------------------------------------------------------------
+
+// A rule reads: WHEN <these donations> -> PREFER <these locations> -> ORDER BY
+// <tiebreak>. Rules run top to bottom (array order = priority); each matches
+// what it can and passes the rest down. A locked "everything else" default
+// always applies last.
+export type RuleWhenType = 'all' | 'company' | 'individual' | 'country' | 'donor';
+export type RulePreferType = 'oldest' | 'site' | 'capacity';
+export type RuleOrderBy = 'oldest' | 'largest';
+
+/** A rule as edited in the dialog. */
+export interface TreeMatchRule {
+  /** server uid; absent on new unsaved rows (uids change on every save) */
+  uid?: string;
+  /** client-only stable React key */
+  localId: string;
+  enabled: boolean;
+  whenType: RuleWhenType;
+  /** ISO-2 country for 'country', donation ref for 'donor' */
+  whenValue?: string;
+  preferType: RulePreferType;
+  preferSiteUid?: string;
+  preferSiteName?: string;
+  orderBy: RuleOrderBy;
+}
 
 const WHEN_OPTIONS: { v: RuleWhenType; label: string }[] = [
   { v: 'all', label: 'Any donation' },

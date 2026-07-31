@@ -1,13 +1,14 @@
 'use client'
 
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  TreeMatchIntervention, Contribution, fmtNum, availableTrees, contribAvailable,
+  TreeMatchIntervention, Contribution, fmtNum, fmtTrees, availableTrees,
+  contribAvailable, MAX_MATCH_PAIRS,
 } from './types';
 
 export interface PreviewAllocation {
@@ -15,7 +16,7 @@ export interface PreviewAllocation {
   donationRef: string;
   contributionId: number;
   interventionHid: string;
-  /** intervention uid; the server ledger keys matches by uid, not hid */
+  /** intervention uid; the server keys matches by uid, not hid */
   interventionUid: string;
   trees: number;
 }
@@ -25,8 +26,11 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   interventions: TreeMatchIntervention[];
   contributions: Contribution[];
-  /** true while the allocation write-back is in flight */
+  /** true while the match write is in flight */
   submitting?: boolean;
+  /** what the server said when the last attempt failed; shown here, since this
+   * is where the retry happens */
+  error?: string | null;
   onConfirm: (allocations: PreviewAllocation[]) => void;
 }
 
@@ -52,12 +56,18 @@ function computePreview(
 }
 
 export function MatchConfirmDialog({
-  open, onOpenChange, interventions, contributions, submitting, onConfirm,
+  open, onOpenChange, interventions, contributions, submitting, error, onConfirm,
 }: Props) {
   const preview = computePreview(interventions, contributions);
   const totalTrees = preview.reduce((sum, p) => sum + p.trees, 0);
   const demand = contributions.reduce((sum, c) => sum + contribAvailable(c), 0);
   const shortfall = demand - totalTrees;
+
+  // The server takes at most MAX_MATCH_PAIRS pairs in one call, and the whole
+  // call is one transaction. Splitting it into several requests would give up
+  // that all-or-nothing guarantee, so oversized selections are blocked instead.
+  const pairCount = new Set(preview.map(p => `${p.contributionId}:${p.interventionUid}`)).size;
+  const tooManyPairs = pairCount > MAX_MATCH_PAIRS;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -78,24 +88,41 @@ export function MatchConfirmDialog({
               <span className="font-mono text-muted-foreground truncate flex-1">{p.donationRef}</span>
               <ArrowRight size={13} className="text-muted-foreground/50 flex-shrink-0" />
               <span className="font-medium text-foreground truncate flex-1">{p.interventionHid}</span>
-              <Badge variant="secondary" className="text-[11px] flex-shrink-0">{fmtNum(p.trees)} trees</Badge>
+              <Badge variant="secondary" className="text-[11px] flex-shrink-0">{fmtTrees(p.trees)} trees</Badge>
             </div>
           ))}
         </div>
 
         <div className="rounded-lg bg-muted/50 p-3 text-sm space-y-1">
-          <div className="flex justify-between"><span className="text-muted-foreground">Trees to allocate</span><span className="font-semibold">{fmtNum(totalTrees)}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Donation demand</span><span>{fmtNum(demand)}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">Trees to allocate</span><span className="font-semibold">{fmtTrees(totalTrees)}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">Donation demand</span><span>{fmtTrees(demand)}</span></div>
           {shortfall > 0 && (
             <div className="flex justify-between text-amber-700">
-              <span>Unmatched (carries forward)</span><span className="font-semibold">{fmtNum(shortfall)}</span>
+              <span>Unmatched (carries forward)</span><span className="font-semibold">{fmtTrees(shortfall)}</span>
             </div>
           )}
         </div>
 
+        {tooManyPairs && (
+          <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+            <span>
+              This match needs {fmtNum(pairCount)} donation-to-location links, and one match can carry {fmtNum(MAX_MATCH_PAIRS)}.
+              Deselect a few and record it in more than one go.
+            </span>
+          </div>
+        )}
+
+        {error && (
+          <div className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+            <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
         <DialogFooter>
           <Button variant="outline" disabled={submitting} onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={() => onConfirm(preview)} disabled={preview.length === 0 || submitting}>
+          <Button onClick={() => onConfirm(preview)} disabled={preview.length === 0 || submitting || tooManyPairs}>
             <Sparkles size={14} /> {submitting ? 'Recording…' : 'Confirm match'}
           </Button>
         </DialogFooter>

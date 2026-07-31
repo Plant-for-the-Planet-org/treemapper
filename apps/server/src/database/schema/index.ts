@@ -280,22 +280,6 @@ export const formSiteAssignmentEnum = pgEnum('form_site_assignment', ['all', 'no
 // listed in `form.interventionTypes`.
 export const formInterventionAssignmentEnum = pgEnum('form_intervention_assignment', ['all', 'specific']);
 
-// TreeMatch write-back state of a mirrored contribution against the TTC
-// counter: 'pending' = local ledger changed but TTC not yet confirmed,
-// 'synced' = TTC holds the same total, 'failed' = last write-back errored.
-export const treematchSyncStatusEnum = pgEnum('treematch_sync_status', ['pending', 'synced', 'failed']);
-// TreeMatch action log types. unmatch/ignore/restore/block/unblock have no
-// endpoints yet; they are in the enum now so future endpoints need no migration.
-export const treematchEventTypeEnum = pgEnum('treematch_event_type', [
-  'match',
-  'unmatch',
-  'ignore',
-  'restore',
-  'block',
-  'unblock',
-  'sync_success',
-  'sync_failure',
-]);
 
 
 
@@ -1453,235 +1437,41 @@ export const form = pgTable('form', {
 }));
 
 // ---------------------------------------------------------------------------
-// TreeMatch: matching TTC (TreeCounter) donation contributions to
-// interventions. TTC stores only the absolute allocated counter per
-// contribution; these tables hold the detail (the "match ledger").
-// All unit columns are integer centi-units: 100 = 1 tree (TTC convention,
-// allows partial trees). Convert to whole trees only at the API boundary.
+// TreeMatch: allocating planted trees that exist here to contributions that
+// exist in TTC (TreeCounter).
+//
+// TTC owns contributions, their absolute allocated totals, and the ignore
+// flag. None of that is stored here. This one table exists for a single
+// reason: so TreeMapper knows how many of its own trees are already claimed.
+// Units are integer centi-units, TTC's scale: 100 = 1 tree (it allows partial
+// trees). Convert to whole trees only at the API boundary.
 // ---------------------------------------------------------------------------
 
-// Local mirror of a TTC contribution. Snapshot fields are nullable because a
-// stub row can be created from a match write before the next contributions
-// fetch refreshes it. unitsAllocated is the absolute total we intend TTC to
-// hold; sync columns track the last confirmed write-back.
-export const treematchContribution = pgTable('treematch_contribution', {
-  id: serial('id').primaryKey(),
-  uid: text('uid').notNull().unique(),
-  // TTC's ProjectContribution id (globally unique integer on their side).
-  ttcContributionId: integer('ttc_contribution_id').notNull().unique(),
-  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
-  // Donation snapshot, refreshed on every contributions fetch (display cache).
-  donationGuid: text('donation_guid'),
-  // Human-readable donation reference, e.g. PL-9F3K2. The only donor-facing id.
-  donationRef: text('donation_ref'),
-  paymentDate: timestamp('payment_date', { withTimezone: true }),
-  amount: doublePrecision('amount'),
-  currency: text('currency'),
-  // 'automatic' | 'first' | 'manual' -- TTC-owned vocabulary, kept as text.
-  allocationPriority: text('allocation_priority'),
-  // Total funded centi-units; null until the first fetch refresh.
-  units: integer('units'),
-  // Absolute allocated total in centi-units (TreeMapper is the source of truth).
-  unitsAllocated: integer('units_allocated').notNull().default(0),
-  // Local ignore flag (TTC does not carry ignore yet).
-  ignored: boolean('ignored').notNull().default(false),
-  ignoreReason: text('ignore_reason'),
-  ignoredById: integer('ignored_by_id').references(() => user.id, { onDelete: 'set null' }),
-  ignoredAt: timestamp('ignored_at', { withTimezone: true }),
-  // TTC write-back sync state (same idea as site.remoteSyncStatus).
-  syncStatus: treematchSyncStatusEnum('sync_status').notNull().default('synced'),
-  lastSyncedUnitsAllocated: integer('last_synced_units_allocated'),
-  lastSyncedAt: timestamp('last_synced_at', { withTimezone: true }),
-  syncError: text('sync_error'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }),
-}, (table) => ({
-  projectIdx: index('treematch_contribution_project_idx')
-    .on(table.projectId, table.ignored)
-    .where(sql`deleted_at IS NULL`),
-  // Cheap sweep for rows stuck in pending/failed after a crash mid write-back.
-  syncAttentionIdx: index('treematch_contribution_sync_attention_idx')
-    .on(table.syncStatus)
-    .where(sql`sync_status <> 'synced'`),
-  unitsNonNegative: check('treematch_contribution_units_non_negative',
-    sql`units IS NULL OR units >= 0`),
-  allocatedNonNegative: check('treematch_contribution_allocated_non_negative',
-    sql`units_allocated >= 0`),
-  allocatedWithinUnits: check('treematch_contribution_allocated_within_units',
-    sql`units IS NULL OR units_allocated <= units`),
-  ignoredHasReason: check('treematch_contribution_ignored_has_reason',
-    sql`ignored = false OR ignore_reason IS NOT NULL`),
-}));
-
-// Match ledger: how many centi-units of a contribution sit on an intervention.
-// units is the current absolute amount for the pair. Unmatch = soft delete
-// (deletedAt), so history stays and a later re-match inserts a fresh row.
+// One row per (TTC contribution, plant location) pair: how many centi-units of
+// that contribution sit on that location. There is no history and no audit
+// trail by design; unmatching a pair deletes the row.
 export const treematchAllocation = pgTable('treematch_allocation', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
-  contributionId: integer('contribution_id').notNull()
-    .references(() => treematchContribution.id, { onDelete: 'cascade' }),
+  // TTC's ProjectContribution id. No FK: TreeMapper does not store contributions.
+  ttcContributionId: integer('ttc_contribution_id').notNull(),
   // Cascade (not restrict): interventions are soft-deleted in normal operation;
   // hard deletes only happen via the project wipe cascade, where a restrict
   // here would make the multi-path cascade fail.
   interventionId: integer('intervention_id').notNull()
     .references(() => intervention.id, { onDelete: 'cascade' }),
-  // Denormalized (always the contribution's project) so project-wide stats
-  // need no joins.
-  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
   units: integer('units').notNull(),
-  createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'restrict' }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => ({
-  // One ACTIVE row per pair; soft-deleted history rows do not collide.
+  // One row per pair; re-matching the same pair adds to it. Leading column, so
+  // this also serves "the absolute total of this contribution".
   pairUnique: uniqueIndex('treematch_allocation_pair_unique')
-    .on(table.contributionId, table.interventionId)
-    .where(sql`deleted_at IS NULL`),
+    .on(table.ttcContributionId, table.interventionId),
+  // "How many trees of this location are claimed."
   interventionIdx: index('treematch_allocation_intervention_idx')
-    .on(table.interventionId)
-    .where(sql`deleted_at IS NULL`),
-  projectIdx: index('treematch_allocation_project_idx')
-    .on(table.projectId)
-    .where(sql`deleted_at IS NULL`),
+    .on(table.interventionId),
   unitsPositive: check('treematch_allocation_units_positive', sql`units > 0`),
-}));
-
-// Excludes an intervention from matching (e.g. re-plantings). deletedAt =
-// released (unblocked); at most one active block per intervention.
-export const treematchInterventionBlock = pgTable('treematch_intervention_block', {
-  id: serial('id').primaryKey(),
-  uid: text('uid').notNull().unique(),
-  interventionId: integer('intervention_id').notNull()
-    .references(() => intervention.id, { onDelete: 'cascade' }),
-  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
-  reason: text('reason').notNull(),
-  createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'restrict' }),
-  releasedById: integer('released_by_id').references(() => user.id, { onDelete: 'set null' }),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }),
-}, (table) => ({
-  activeBlockUnique: uniqueIndex('treematch_block_active_unique')
-    .on(table.interventionId)
-    .where(sql`deleted_at IS NULL`),
-  projectIdx: index('treematch_block_project_idx')
-    .on(table.projectId)
-    .where(sql`deleted_at IS NULL`),
-}));
-
-// Append-only TreeMatch action log (no updatedAt/deletedAt on purpose).
-// units is the centi-unit delta of the action where applicable; payload
-// snapshots human context (donationRef, hid, prior/new totals, error text)
-// so history stays readable even if referenced rows are cleaned up.
-export const treematchEvent = pgTable('treematch_event', {
-  id: serial('id').primaryKey(),
-  uid: text('uid').notNull().unique(),
-  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
-  type: treematchEventTypeEnum('type').notNull(),
-  contributionId: integer('contribution_id')
-    .references(() => treematchContribution.id, { onDelete: 'set null' }),
-  // Raw external id, survives the FK being nulled out.
-  ttcContributionId: integer('ttc_contribution_id'),
-  interventionId: integer('intervention_id')
-    .references(() => intervention.id, { onDelete: 'set null' }),
-  units: integer('units'),
-  // Null actor = system (e.g. a future auto-match job).
-  actorId: integer('actor_id').references(() => user.id, { onDelete: 'set null' }),
-  payload: jsonb('payload').$type<Record<string, unknown>>(),
-  occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
-}, (table) => ({
-  projectTimeIdx: index('treematch_event_project_time_idx')
-    .on(table.projectId, table.occurredAt),
-  contributionTimeIdx: index('treematch_event_contribution_time_idx')
-    .on(table.contributionId, table.occurredAt)
-    .where(sql`contribution_id IS NOT NULL`),
-  interventionTimeIdx: index('treematch_event_intervention_time_idx')
-    .on(table.interventionId, table.occurredAt)
-    .where(sql`intervention_id IS NOT NULL`),
-}));
-
-// Auto-match rules: per-project ordered strategy list, evaluated top to
-// bottom by the auto-match engine, with an implicit catch-all default
-// (any donation -> oldest locations, oldest donations first) always applied
-// last. Saving replaces the whole list; old rows are soft-deleted revisions.
-// Vocabulary columns are text + CHECK (not pgEnum) so values can come and go
-// without ALTER TYPE (e.g. a future 'payout' when-type).
-export const treematchRule = pgTable('treematch_rule', {
-  id: serial('id').primaryKey(),
-  uid: text('uid').notNull().unique(),
-  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
-  // 0-based priority; the engine runs rules in ascending position order.
-  position: integer('position').notNull(),
-  enabled: boolean('enabled').notNull().default(true),
-  // Which donations the rule applies to.
-  whenType: text('when_type').notNull(),
-  // ISO-2 country (uppercase) for 'country'; donation ref for 'donor'.
-  whenValue: text('when_value'),
-  // Which plant locations to fill first.
-  preferType: text('prefer_type').notNull(),
-  // Cascade (not set null): set null would violate the site_required CHECK,
-  // and restrict would break the project-wipe multi-path cascade (same
-  // reasoning as treematch_allocation.interventionId). Sites are soft-deleted
-  // in normal operation; the engine treats a soft-deleted site as matching
-  // nothing.
-  preferSiteId: integer('prefer_site_id').references(() => site.id, { onDelete: 'cascade' }),
-  // How to order the donations the rule matches.
-  orderBy: text('order_by').notNull(),
-  createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'restrict' }),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }),
-}, (table) => ({
-  positionUnique: uniqueIndex('treematch_rule_position_unique')
-    .on(table.projectId, table.position)
-    .where(sql`deleted_at IS NULL`),
-  projectIdx: index('treematch_rule_project_idx')
-    .on(table.projectId, table.position)
-    .where(sql`deleted_at IS NULL`),
-  validWhen: check('treematch_rule_valid_when',
-    sql`when_type IN ('all', 'company', 'individual', 'country', 'donor')`),
-  validPrefer: check('treematch_rule_valid_prefer',
-    sql`prefer_type IN ('oldest', 'site', 'capacity')`),
-  validOrder: check('treematch_rule_valid_order',
-    sql`order_by IN ('oldest', 'largest')`),
-  whenValueRequired: check('treematch_rule_when_value_required',
-    sql`when_type NOT IN ('country', 'donor') OR when_value IS NOT NULL`),
-  siteRequired: check('treematch_rule_site_required',
-    sql`prefer_type <> 'site' OR prefer_site_id IS NOT NULL`),
-}));
-
-// One row per auto-match run. The partial unique on (project_id) WHERE
-// status = 'running' doubles as the concurrency guard: a second run cannot
-// start while one is in flight. rules_snapshot records the evaluated rule
-// list (including the implicit default) so a run stays auditable after the
-// rules are edited. Append-mostly: one UPDATE at completion, no soft delete.
-export const treematchAutomatchRun = pgTable('treematch_automatch_run', {
-  id: serial('id').primaryKey(),
-  uid: text('uid').notNull().unique(),
-  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
-  createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'restrict' }),
-  status: text('status').notNull().default('running'),
-  // Totals in centi-units, like every other unit column.
-  matchedUnits: integer('matched_units').notNull().default(0),
-  contributionsMatched: integer('contributions_matched').notNull().default(0),
-  interventionsFilled: integer('interventions_filled').notNull().default(0),
-  rulesSnapshot: jsonb('rules_snapshot').$type<Record<string, unknown>[]>(),
-  // Per-rule breakdown + flags (e.g. truncated TTC pagination).
-  summary: jsonb('summary').$type<Record<string, unknown>>(),
-  error: text('error'),
-  startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
-  finishedAt: timestamp('finished_at', { withTimezone: true }),
-}, (table) => ({
-  activeRunUnique: uniqueIndex('treematch_automatch_run_active_unique')
-    .on(table.projectId)
-    .where(sql`status = 'running'`),
-  projectTimeIdx: index('treematch_automatch_run_project_time_idx')
-    .on(table.projectId, table.startedAt),
-  validStatus: check('treematch_automatch_run_valid_status',
-    sql`status IN ('running', 'completed', 'failed')`),
 }));
 
 export const userRelations = relations(user, ({ many }) => ({
@@ -1714,13 +1504,6 @@ export const userRelations = relations(user, ({ many }) => ({
   closedReviewThreads: many(reviewThread, { relationName: 'closedBy' }),
   reviewComments: many(reviewComment, { relationName: 'commentAuthor' }),
   createdForms: many(form, { relationName: 'formCreatedBy' }),
-  ignoredTreematchContributions: many(treematchContribution, { relationName: 'treematchIgnoredBy' }),
-  createdTreematchAllocations: many(treematchAllocation, { relationName: 'treematchAllocationCreatedBy' }),
-  createdTreematchBlocks: many(treematchInterventionBlock, { relationName: 'treematchBlockCreatedBy' }),
-  releasedTreematchBlocks: many(treematchInterventionBlock, { relationName: 'treematchBlockReleasedBy' }),
-  treematchEvents: many(treematchEvent, { relationName: 'treematchEventActor' }),
-  createdTreematchRules: many(treematchRule, { relationName: 'treematchRuleCreatedBy' }),
-  createdTreematchRuns: many(treematchAutomatchRun, { relationName: 'treematchRunCreatedBy' }),
 }));
 
 export const scientificSpeciesRelations = relations(scientificSpecies, ({ one, many }) => ({
@@ -1778,7 +1561,6 @@ export const interventionRelations = relations(intervention, ({ one, many }) => 
   observations: many(plotObservation),
   groupMemberships: many(plotGroupMembership),
   treematchAllocations: many(treematchAllocation),
-  treematchBlocks: many(treematchInterventionBlock),
 }));
 
 export const monitoringPlotRelations = relations(monitoringPlot, ({ one }) => ({
@@ -2016,9 +1798,6 @@ export const projectRelations = relations(project, ({ one, many }) => ({
   speciesRequests: many(speciesRequest),
   apiKey: one(projectApiKey),
   forms: many(form),
-  treematchContributions: many(treematchContribution),
-  treematchAllocations: many(treematchAllocation),
-  treematchEvents: many(treematchEvent),
 }));
 
 export const formRelations = relations(form, ({ one }) => ({
@@ -2138,105 +1917,9 @@ export const auditLogRelations = relations(auditLog, ({ one }) => ({
   }),
 }));
 
-export const treematchContributionRelations = relations(treematchContribution, ({ one, many }) => ({
-  project: one(project, {
-    fields: [treematchContribution.projectId],
-    references: [project.id],
-  }),
-  ignoredBy: one(user, {
-    fields: [treematchContribution.ignoredById],
-    references: [user.id],
-    relationName: 'treematchIgnoredBy',
-  }),
-  allocations: many(treematchAllocation),
-  events: many(treematchEvent),
-}));
-
 export const treematchAllocationRelations = relations(treematchAllocation, ({ one }) => ({
-  contribution: one(treematchContribution, {
-    fields: [treematchAllocation.contributionId],
-    references: [treematchContribution.id],
-  }),
   intervention: one(intervention, {
     fields: [treematchAllocation.interventionId],
     references: [intervention.id],
-  }),
-  project: one(project, {
-    fields: [treematchAllocation.projectId],
-    references: [project.id],
-  }),
-  createdBy: one(user, {
-    fields: [treematchAllocation.createdById],
-    references: [user.id],
-    relationName: 'treematchAllocationCreatedBy',
-  }),
-}));
-
-export const treematchInterventionBlockRelations = relations(treematchInterventionBlock, ({ one }) => ({
-  intervention: one(intervention, {
-    fields: [treematchInterventionBlock.interventionId],
-    references: [intervention.id],
-  }),
-  project: one(project, {
-    fields: [treematchInterventionBlock.projectId],
-    references: [project.id],
-  }),
-  createdBy: one(user, {
-    fields: [treematchInterventionBlock.createdById],
-    references: [user.id],
-    relationName: 'treematchBlockCreatedBy',
-  }),
-  releasedBy: one(user, {
-    fields: [treematchInterventionBlock.releasedById],
-    references: [user.id],
-    relationName: 'treematchBlockReleasedBy',
-  }),
-}));
-
-export const treematchEventRelations = relations(treematchEvent, ({ one }) => ({
-  project: one(project, {
-    fields: [treematchEvent.projectId],
-    references: [project.id],
-  }),
-  contribution: one(treematchContribution, {
-    fields: [treematchEvent.contributionId],
-    references: [treematchContribution.id],
-  }),
-  intervention: one(intervention, {
-    fields: [treematchEvent.interventionId],
-    references: [intervention.id],
-  }),
-  actor: one(user, {
-    fields: [treematchEvent.actorId],
-    references: [user.id],
-    relationName: 'treematchEventActor',
-  }),
-}));
-
-export const treematchRuleRelations = relations(treematchRule, ({ one }) => ({
-  project: one(project, {
-    fields: [treematchRule.projectId],
-    references: [project.id],
-  }),
-  preferSite: one(site, {
-    fields: [treematchRule.preferSiteId],
-    references: [site.id],
-  }),
-  createdBy: one(user, {
-    fields: [treematchRule.createdById],
-    references: [user.id],
-    relationName: 'treematchRuleCreatedBy',
-  }),
-}));
-
-export const treematchAutomatchRunRelations = relations(treematchAutomatchRun, ({ one }) => ({
-  project: one(project, {
-    fields: [treematchAutomatchRun.projectId],
-    references: [project.id],
-  }),
-  createdBy: one(user, {
-    fields: [treematchAutomatchRun.createdById],
-    references: [user.id],
-    relationName: 'treematchRunCreatedBy',
   }),
 }));

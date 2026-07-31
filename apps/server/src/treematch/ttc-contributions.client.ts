@@ -3,9 +3,11 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 
 /**
- * Client for the TreeCounter (TTC) TreeMapper endpoints:
- *   GET /treemapper/projects/{guid}/contributions
- *   PUT /treemapper/projectContributions/allocated
+ * Client for the TreeCounter (TTC) TreeMapper endpoints. TTC is the source of
+ * truth for contributions, their allocated totals, and the ignore flag:
+ *   GET   /treemapper/projects/{guid}/contributions
+ *   PUT   /treemapper/projectContributions/allocated
+ *   PATCH /treemapper/projectContributions/{id}/ignore
  *
  * Auth is a machine key sent as `X-TOKEN-API` (role MACHINE_TREEMAPPER).
  * All unit values are centi-units on the wire: 100 = 1 tree.
@@ -26,6 +28,8 @@ export interface TtcContributionItem {
   unitType: string;
   currency: string | null;
   allocationPriority: 'automatic' | 'first' | 'manual';
+  ignored: boolean;
+  ignoreReason: string | null;
   donation: {
     guid: string;
     uid: string;
@@ -33,6 +37,12 @@ export interface TtcContributionItem {
     amount: number;
     currency: string;
   };
+}
+
+export interface TtcIgnoreResponse {
+  id: number;
+  ignored: boolean;
+  ignoreReason: string | null;
 }
 
 export interface TtcContributionListResponse {
@@ -54,6 +64,9 @@ export interface TtcListParams {
   profileType?: 'individual' | 'company';
   country?: string;
   sortBy?: '+paymentDate' | '-paymentDate';
+  // true returns the ignored set only; TTC never mixes the two views, and in
+  // this mode it skips the other filters.
+  ignored?: boolean;
 }
 
 @Injectable()
@@ -128,16 +141,26 @@ export class TtcContributionsClient {
     if (params.profileType) query.set('profileType', params.profileType);
     if (params.country) query.set('country', params.country);
     if (params.sortBy) query.set('sortBy', params.sortBy);
+    if (params.ignored) query.set('ignored', 'true');
 
     const url = `${this.baseUrl}/treemapper/projects/${encodeURIComponent(projectGuid)}/contributions?${query.toString()}`;
+    // TEMP DEBUG: exact upstream call + raw response. Remove when done.
+    this.logger.log(`[TTC DEBUG] GET ${url}`);
     try {
       const response = await firstValueFrom(
         this.httpService.get<TtcContributionListResponse>(url, {
           headers: this.headers()
         }),
       );
+      this.logger.log(
+        `[TTC DEBUG] ${response.status} ${url} -> ${JSON.stringify(response.data, null, 2)}`,
+      );
       return response.data;
     } catch (error) {
+      // TEMP DEBUG: raw upstream failure body (rethrow only keeps the message).
+      this.logger.error(
+        `[TTC DEBUG] FAILED ${url} -> status=${error?.response?.status} body=${JSON.stringify(error?.response?.data)}`,
+      );
       this.rethrow(error, 'list contributions');
     }
   }
@@ -161,6 +184,27 @@ export class TtcContributionsClient {
       return response.data;
     } catch (error) {
       this.rethrow(error, 'write allocations');
+    }
+  }
+
+  // Absolute ignore state, not a flip. TTC clears the reason on un-ignore and
+  // rejects the change (422) when the contribution is already fully allocated.
+  async setIgnore(
+    ttcContributionId: number,
+    body: { ignored: boolean; reason?: string },
+  ): Promise<TtcIgnoreResponse> {
+    this.assertConfigured();
+
+    const url = `${this.baseUrl}/treemapper/projectContributions/${ttcContributionId}/ignore`;
+    try {
+      const response = await firstValueFrom(
+        this.httpService.patch<TtcIgnoreResponse>(url, body, {
+          headers: this.headers(),
+        }),
+      );
+      return response.data;
+    } catch (error) {
+      this.rethrow(error, 'set ignore flag');
     }
   }
 }

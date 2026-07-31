@@ -105,6 +105,18 @@ auto-upgrades anything.
 - `yarn.lock` is large (~21k lines, ~1000 packages) mostly because the mobile workspace pulls Expo/RN + transitive deps.
 - The web app inlines `NEXT_PUBLIC_*` env vars at build time. Changing them requires a rebuild.
 - The server uses Fastify, not Express. Some Nest examples assume Express -- adapt accordingly.
+- `engines.node` is pinned to `22.x`. On a machine running a newer Node, every
+  `yarn <script>` in `apps/server` aborts with "The engine node is incompatible"
+  before the script runs. Call the tool directly instead (`npx jest`,
+  `npx tsc --noEmit`, `npx drizzle-kit generate|migrate`, `npx nest start`).
+- `drizzle.config.ts` reads `DATABASE_URL` (not the `DB_*` vars), and in this
+  repo's `.env` it points at a **shared staging** database, not localhost. Check
+  where it aims before running `drizzle-kit migrate`.
+- `drizzle-kit generate` prompts interactively when a table keeps its name but
+  its columns change (it cannot tell a rename from a drop-plus-add), and the
+  prompt cannot be answered without a TTY. To replace a table cleanly, generate
+  two migrations: remove it from the schema and generate the drop, then add the
+  new definition and generate the create.
 
 ## Running the web app for preview
 
@@ -132,40 +144,90 @@ Cloudflare Access service token in `TREEMATCH_TTC_CF_CLIENT_ID` /
 `TREEMATCH_TTC_CF_CLIENT_SECRET` -- when the edge is gated, it returns a 403
 HTML page before the API is ever reached. If the donation backend is unreachable the pane
 shows an error banner; the plant-locations pane still works from the local DB.
-Only the overview map's "supporting donors" popover is still mock
-(`treematch/component/mockData.ts`); donation `status` (public/private)
-is injected by the server proxy until TTC returns it.
 
-Matches persist in the server's match ledger (migration 0006): the
-`treematch_contribution` mirror (TTC snapshot + local `ignore` flag + write-back
-sync state), the `treematch_allocation` ledger (one active row per
-contribution/intervention pair, soft delete = unmatch), plus
-`treematch_intervention_block` and the append-only `treematch_event` log. All
-unit columns are integer centi-units (100 = 1 tree, TTC convention); convert
-only at the API boundary. The PUT write-back runs in three phases (local tx
-with mirrors 'pending' -> TTC PUT -> confirm or compensate), and its DTO
-requires both the absolute per-contribution totals and the per-pair `matches`
-deltas -- the server 409s when they disagree with the mirror (stale client).
-`matchedTrees` on the interventions list and stats is a real ledger read.
+## TreeMatch server architecture
 
-Auto-match rules are real (migration 0007): `treematch_rule` stores a
-per-project ordered strategy list (WHEN donations -> PREFER locations -> ORDER
-tiebreak; text + CHECK vocabulary, saving is a full-list replace that
-soft-deletes the old revision, so rule uids change on every save), and
-`treematch_automatch_run` records each run (its partial unique index on
-`(project_id) WHERE status='running'` is the concurrency guard). Rules apply
-ONLY when auto-match runs (`POST /treematch/projects/:id/automatch`,
-synchronous); manual matching stays unrestricted. The engine honors TTC
-`allocationPriority` (consumes only 'automatic' and 'first', 'first' first),
-skips ignored donations, appends an implicit default rule (any donation ->
-oldest locations, oldest first), fetches TTC contributions once per distinct
-rule filter (profileType/country are query-only, items don't carry them), and
-derives its absolutes from the post-refresh mirror rows so the ledger's 409
-staleness check stays coherent. The greedy planner is pure
-(`services/automatch-planner.ts`) with unit tests (`yarn test` in apps/server
--- the repo's first jest spec). Donation ignore/restore persists via
-`PATCH .../contributions/:id/ignore` (no stub creation: unmirrored ids 404).
-The rules 'payout' condition from the old mock was dropped (no payouts API).
+Rewritten 2026-07-30 (migrations 0008 + 0009) against the 2026-07-28 TTC
+contract. **Ownership is the whole design**: TTC owns contributions, their
+absolute `unitsAllocated` totals, and the `ignored` / `ignoreReason` flags.
+TreeMapper owns trees and interventions. Nothing from TTC is mirrored here.
+
+One table, `treematch_allocation`: one row per (`ttc_contribution_id`,
+`intervention_id`) pair holding `units` in centi-units (100 = 1 tree, TTC's
+scale; convert only at the API boundary, via `treematch/match-math.ts`). No FK
+on the contribution id -- there is nothing local to point at. No `project_id`
+(join `intervention`), no `created_by_id`, no `deleted_at`: there is no
+allocation history and no audit trail by design. It exists for one reason, so
+TreeMapper knows how many of its own trees are already claimed.
+
+Four routes, all owner/admin: `GET .../interventions`, `GET .../contributions`
+(thin TTC proxy, passes `ignored` through), `POST .../matches`,
+`PATCH .../contributions/:contributionId/ignore` (proxy of the TTC endpoint).
+
+`POST .../matches` takes pairs only -- `{ matches: [{ contributionId,
+interventionUid, trees }] }`. It never receives absolute totals: the server
+derives each contribution's new total as `SUM(units)` over its own rows, so the
+client cannot be stale and there is no 409 staleness check. One transaction:
+`pg_advisory_xact_lock` per contribution (ascending) -> `SELECT ... FOR UPDATE`
+on the locations (ascending; same eligibility rule as the read, so a plot or an
+incomplete capture is a 404) -> capacity check against `total_tree_count * 100`
+-> upsert the pairs -> derive the totals -> TTC `PUT`. The TTC call is inside the
+transaction on purpose: any failure rolls the whole thing back, so TreeMapper
+never claims trees TTC has not accepted, and that removes all sync state, pending
+rows and compensation logic.
+
+**Cross-project matching is allowed**: TTC only cares that a contribution's total
+is right, not which project holds the trees, so the locations in a `POST
+.../matches` body may live in any project. The route guard only proves
+owner/admin on the project in the path (the contributions side), so
+`TreeMatchService.authorizeSourceProjects` checks every other project the target
+locations belong to, using the same resolution the guard uses (`project_member`,
+then the workspace-admin fallback). It runs *before* the transaction on purpose:
+those lookups need their own pool connection, and taking one while holding the
+row locks could starve the pool. The in-transaction filter then trusts only that
+pre-authorized set, so a soft-deleted project's locations read as not found.
+
+Deliberately not built: unmatch (a `DELETE` plus the same derived write-back),
+auto-match and rules (removed from the backend; to be reintroduced), and any
+reconciliation job -- the absolute derived write-back is the convergence
+mechanism. The TTC ignore endpoint is not project-scoped, so the proxy cannot
+verify the contribution belongs to the project in the path.
+
+## TreeMatch client (apps/web)
+
+Updated 2026-07-30 for the rewrite above. `apps/web/src/app/(dashboard)/project/
+[projectUid]/treematch/` plus `overview/component/GlobalMap.tsx` and the
+ForestCloud tab of `settings/page.tsx`. Plain `useState` + the shared fetchers,
+no TanStack Query on this screen.
+
+- **Ignored donations are a second server view**, not a client filter: the tab
+  fetches `?ignored=true` with its own pagination, and the default view never
+  contains ignored rows. Ignoring drops the row from the list it leaves and
+  refetches the one it joins.
+- **The match write sends pairs only** and takes the response's `applied` map
+  (TTC's accepted absolute totals) as truth for the donation side. The location
+  side has no per-location number in the response, so it is bumped optimistically
+  and corrected by the next fetch. A 409 means a location no longer has that many
+  trees free (refetch the left pane); anything else came from TTC (refetch the
+  right). `MAX_MATCH_PAIRS` (200) is enforced in the confirm dialog rather than
+  split across requests, which would give up the all-or-nothing guarantee.
+- **Auto-match and rules are hidden, not deleted.** `RulesDialog.tsx` stays on
+  disk, unimported and self-contained (it carries its own rule types, since
+  `types.ts` describes only the live API), and the three fetchers are commented
+  out in `api.fetch.ts`. Restoring them also needs `putUrlApi.treematchRules`
+  back in `api.url.ts`.
+- Gone from the UI, all of it data the API does not have: the donation
+  `status` (public/private) badge, the `allocationPriority` chip (an auto-match
+  concept), the `blocked` and `legacy` intervention badges plus the map's
+  "Blocked" legend entry, the plant-location private badge and the
+  public/private filter, and the overview map's "supporting donations" list
+  (donation refs live only in TTC and there is no per-intervention donor read).
+- `treematchStore` is deleted. The TreeMatch page no longer has an on/off gate;
+  the ForestCloud settings toggle is local state until a real per-project flag
+  exists on the server.
+- Unit numbers can be fractional (TTC works in hundredths), so tree quantities
+  render through `fmtTrees` (decimals only when there are any) and counts
+  through `fmtNum`.
 
 ## Token injection (previewing the authed app)
 

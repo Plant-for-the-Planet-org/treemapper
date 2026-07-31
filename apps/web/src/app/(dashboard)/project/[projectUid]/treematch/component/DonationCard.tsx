@@ -1,21 +1,13 @@
 'use client'
 
-import { Calendar, EyeOff, Ban as BanIcon, Sparkles, Check } from 'lucide-react';
+import { Calendar, Ban as BanIcon, Check } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
-  Contribution, AllocationPriority, fmtNum, fmtDate, fmtAmount,
-  contribAvailable, unitLabel,
+  Contribution, fmtTrees, fmtDate, fmtAmount, contribAvailable, unitLabel,
 } from './types';
-
-const PRIORITY_META: Record<AllocationPriority, { label: string; icon?: React.ElementType; cls: string }> = {
-  automatic: { label: 'Automatic', icon: Sparkles, cls: 'bg-primary/10 text-primary' },
-  first: { label: 'First', cls: 'bg-indigo-50 text-indigo-700' },
-  manual: { label: 'Manual', cls: 'bg-muted text-muted-foreground' },
-  never: { label: 'Never', icon: BanIcon, cls: 'bg-rose-50 text-rose-700' },
-};
 
 // Dashed "empty" track, like the mock: short green dashes on a transparent base.
 const DASHED_TRACK = 'repeating-linear-gradient(90deg, rgb(16 185 129 / 0.3) 0px, rgb(16 185 129 / 0.3) 7px, transparent 7px, transparent 12px)';
@@ -32,9 +24,7 @@ export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onR
   const available = contribAvailable(c);
   const pct = c.units > 0 ? Math.round((c.unitsAllocated / c.units) * 100) : 0;
   const fullyMatched = available === 0;
-  const selectable = !c.ignore && !fullyMatched && c.allocationPriority !== 'never';
-  const priority = PRIORITY_META[c.allocationPriority];
-  const PriorityIcon = priority.icon;
+  const selectable = !c.ignored && !fullyMatched;
   const units = unitLabel(c);
 
   return (
@@ -47,24 +37,19 @@ export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onR
         'rounded-xl border bg-card px-4 py-3.5 transition-colors',
         checked ? 'border-primary ring-1 ring-primary/30 bg-primary/5' : 'border-border',
         selectable && 'cursor-pointer hover:border-primary/40',
-        (!selectable && !c.ignore) && 'opacity-60',
+        (!selectable && !c.ignored) && 'opacity-60',
       )}
     >
       <div className="flex items-center gap-2.5">
-        {!c.ignore && (
+        {!c.ignored && (
           <Checkbox checked={checked} disabled={!selectable} className="pointer-events-none" />
         )}
         {/* The donation reference is the identity: ROs never see who donated. */}
         <span className="font-mono text-[15px] font-bold text-foreground truncate">{c.donation.uid}</span>
-        {c.status === 'private' && (
-          <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-purple-700 border-purple-200 bg-purple-50 flex-shrink-0">
-            <EyeOff size={10} /> private
-          </Badge>
-        )}
-        <span className="ml-auto text-[15px] font-bold text-foreground whitespace-nowrap">{fmtNum(c.units)} {units}</span>
+        <span className="ml-auto text-[15px] font-bold text-foreground whitespace-nowrap">{fmtTrees(c.units)} {units}</span>
       </div>
 
-      <div className={cn('mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap', !c.ignore && 'pl-[26px]')}>
+      <div className={cn('mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap', !c.ignored && 'pl-[26px]')}>
         <Calendar size={12} />
         <span className="whitespace-nowrap">Paid {fmtDate(c.donation.paymentDate)}</span>
         <span className="text-muted-foreground/40">·</span>
@@ -72,13 +57,13 @@ export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onR
       </div>
 
       {/* units bar */}
-      <div className={cn('mt-3', !c.ignore && 'pl-[26px]')}>
+      <div className={cn('mt-3', !c.ignored && 'pl-[26px]')}>
         <div className="flex items-end justify-between mb-1.5">
           <span className="text-xs text-muted-foreground">
-            <span className="text-lg font-bold text-foreground leading-none">{fmtNum(available)}</span> {units} to match
+            <span className="text-lg font-bold text-foreground leading-none">{fmtTrees(available)}</span> {units} to match
           </span>
           <span className="text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">{fmtNum(c.unitsAllocated)}</span> matched
+            <span className="font-semibold text-foreground">{fmtTrees(c.unitsAllocated)}</span> matched
           </span>
         </div>
         <div className="h-2 w-full rounded-full overflow-hidden" style={{ backgroundImage: DASHED_TRACK }}>
@@ -87,22 +72,18 @@ export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onR
 
         <div className="mt-2.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium', priority.cls)}>
-              {PriorityIcon && <PriorityIcon size={11} />}
-              {priority.label}
-            </span>
             {fullyMatched && (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
                 <Check size={11} /> fully matched
               </span>
             )}
-            {c.ignore && (
+            {c.ignored && (
               <Badge variant="outline" className="text-[10px] gap-1 rounded-full text-rose-700 border-rose-200 bg-rose-50">
                 <BanIcon size={10} /> ignored
               </Badge>
             )}
           </div>
-          {c.ignore ? (
+          {c.ignored ? (
             <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px]" onClick={(e) => { e.stopPropagation(); onRestore?.(c.id); }}>
               Restore
             </Button>
@@ -115,7 +96,7 @@ export function DonationCard({ contribution: c, checked, onToggle, onIgnore, onR
           )}
         </div>
 
-        {c.ignore && c.ignoreReason && (
+        {c.ignored && c.ignoreReason && (
           <p className="mt-1.5 text-[11px] text-muted-foreground italic">{c.ignoreReason}</p>
         )}
       </div>

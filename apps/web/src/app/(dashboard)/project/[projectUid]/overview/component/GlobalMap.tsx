@@ -9,7 +9,6 @@ import {
     Calendar,
     Ruler,
     Heart,
-    HeartHandshake,
     AlertCircle,
     RefreshCw,
     Loader2,
@@ -90,9 +89,6 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { useTreematchStore } from '@/stores/treematchStore';
-import { mockSupportingDonors } from '../../treematch/component/mockData';
-import { fmtNum } from '../../treematch/component/types';
 
 // Static map props. These MUST be module-level constants (stable references).
 // react-map-gl compares `style` / `interactiveLayerIds` by reference and
@@ -413,12 +409,9 @@ const InterventionPanel: React.FC<{
     onClose: () => void;
     onSelectTree: (tree: MapTree) => void;
 }> = ({ intervention, trees, isLoading = false, projectUid, onClose, onSelectTree }) => {
-    const treematchEnabled = useTreematchStore(state => state.enabled);
-    // Donors supporting this intervention (dummy; real build reads the ledger).
-    const supportingDonors = useMemo(
-        () => (treematchEnabled ? mockSupportingDonors(intervention.hid) : []),
-        [treematchEnabled, intervention.hid],
-    );
+    // No "supporting donations" list here: which donations paid for a given
+    // intervention is TTC's data, and TreeMapper deliberately keeps no
+    // per-intervention donor read, so there is nothing truthful to show.
     const centroidCoords = useMemo(() => {
         try {
             let c: any;
@@ -501,26 +494,6 @@ const InterventionPanel: React.FC<{
                         <div className="text-sm font-medium text-foreground">{intervention.totalTreeCount?.toLocaleString() ?? 0}</div>
                     </div>
                 </div>
-
-                {/* Supported by Donors — shown when this intervention is linked to
-                    one or more donations (TreeMatch). Dummy data. */}
-                {supportingDonors.length > 0 && (
-                    <div className="px-4 pt-3">
-                        <div className="flex items-center gap-1.5 mb-2">
-                            <HeartHandshake className="w-3.5 h-3.5 text-primary" />
-                            <span className="text-sm font-medium text-foreground">Supporting donations</span>
-                            <span className="text-xs text-muted-foreground font-normal">({supportingDonors.length})</span>
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                            {supportingDonors.map(d => (
-                                <div key={d.contributionId} className="flex items-center justify-between gap-2 text-sm">
-                                    <span className="font-mono text-foreground truncate">{d.donationRef}</span>
-                                    <span className="text-xs text-muted-foreground shrink-0">{fmtNum(d.trees)} trees</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
 
                 {/* Coordinates — only for single points; a polygon has no single
                     lat/lng, so we offer its geometry via the GeoJSON download. */}
