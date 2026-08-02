@@ -164,9 +164,13 @@ export const deleteUrlApi = {
   revokeProjectApiKey: `${baseUrl}/projects`,
   // Forms (project-scoped)
   projectForms: `${baseUrl}/projects`,
+  // TreeMatch: discard an auto-match run (project-scoped)
+  treematch: `${baseUrl}/treematch/projects`,
 } as const;
 
 export const putUrlApi = {
+  // TreeMatch auto-match rules (project-scoped, full-list replace)
+  treematch: `${baseUrl}/treematch/projects`,
   updatePrjSpecies: `${baseUrl}/project-species`,
   updateSiteData: `${baseUrl}/projects`,
   avatarUpdate: `${baseUrl}/users/avatar`,

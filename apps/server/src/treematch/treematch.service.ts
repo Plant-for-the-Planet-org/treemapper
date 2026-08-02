@@ -26,6 +26,19 @@ import { CENTI, aggregateMatches, exceedsCapacity, toTrees } from './match-math'
 // Roles that may claim a project's trees, same set the routes require.
 const MATCHER_ROLES = ['owner', 'admin'];
 
+// A plant location with free trees, as auto-match planning needs it.
+export interface MatchableIntervention {
+  id: number;
+  uid: string;
+  // Shown in the auto-match plan review; the uid means nothing to a reader.
+  hid: string;
+  siteId: number | null;
+  interventionStartDate: Date | null;
+  // review_status = 'approved' and not flagged.
+  approved: boolean;
+  availableCenti: number;
+}
+
 @Injectable()
 export class TreeMatchService {
   constructor(
@@ -36,7 +49,7 @@ export class TreeMatchService {
   ) {}
 
   // TTC identifies a project by the same uid TreeMapper uses.
-  private async getProjectUid(projectId: number): Promise<string> {
+  async getProjectUid(projectId: number): Promise<string> {
     const [row] = await this.drizzleService.db
       .select({ uid: project.uid })
       .from(project)
@@ -216,6 +229,59 @@ export class TreeMatchService {
     };
   }
 
+  /**
+   * Every plant location in this project that still has free trees, unpaginated.
+   *
+   * Same eligibility rule as `getInterventions` and the match write path, so
+   * auto-match can never plan a pair the write path would reject. Project-local
+   * by design: cross-project matching is a deliberate manual action, not
+   * something a rule should reach into.
+   */
+  async loadMatchableInterventions(projectId: number): Promise<MatchableIntervention[]> {
+    const matched = this.drizzleService.db
+      .select({
+        interventionId: treematchAllocation.interventionId,
+        matchedCenti: sql<number>`sum(${treematchAllocation.units})`.as('matched_centi'),
+      })
+      .from(treematchAllocation)
+      .groupBy(treematchAllocation.interventionId)
+      .as('matched');
+
+    const rows = await this.drizzleService.db
+      .select({
+        id: intervention.id,
+        uid: intervention.uid,
+        hid: intervention.hid,
+        siteId: intervention.siteId,
+        interventionStartDate: intervention.interventionStartDate,
+        reviewStatus: intervention.reviewStatus,
+        flag: intervention.flag,
+        totalTreeCount: intervention.totalTreeCount,
+        matchedCenti: sql<number>`coalesce(${matched.matchedCenti}, 0)`,
+      })
+      .from(intervention)
+      .leftJoin(matched, eq(matched.interventionId, intervention.id))
+      .where(and(
+        eq(intervention.projectId, projectId),
+        isNull(intervention.deletedAt),
+        eq(intervention.discriminator, 'intervention' as const),
+        eq(intervention.captureStatus, 'complete' as const),
+        inArray(intervention.type, [...MATCHABLE_INTERVENTION_TYPES] as any),
+        sql`coalesce(${intervention.totalTreeCount}, 0) * ${CENTI} > coalesce(${matched.matchedCenti}, 0)`,
+      ))
+      .orderBy(intervention.id);
+
+    return rows.map((row) => ({
+      id: row.id,
+      uid: row.uid,
+      hid: row.hid,
+      siteId: row.siteId,
+      interventionStartDate: row.interventionStartDate,
+      approved: row.reviewStatus === 'approved' && !row.flag,
+      availableCenti: (row.totalTreeCount || 0) * CENTI - Number(row.matchedCenti || 0),
+    }));
+  }
+
   // Straight proxy. TTC owns contributions, their allocated totals and the
   // ignore flag, so nothing here is stored or merged with local state.
   async getContributions(
@@ -375,10 +441,20 @@ export class TreeMatchService {
       // Serialise on each contribution, ascending, so two concurrent requests
       // cannot each derive a total that ignores the other. Contribution locks
       // are always taken before location locks, giving one global lock order.
-      for (const contributionId of contributionIds) {
-        await tx.execute(
-          sql`SELECT pg_advisory_xact_lock(hashtext(${`treematch:${contributionId}`}))`,
-        );
+      //
+      // One statement, not one per id: a plan can carry thousands of pairs, and
+      // a round trip each would spend most of the transaction waiting while
+      // already holding locks. ORDER BY inside the query preserves the lock
+      // order that stops concurrent requests deadlocking.
+      if (contributionIds.length) {
+        // sql.param, not a bare array: drizzle expands a bare JS array into a
+        // row constructor, `($1, $2, $3)`, which unnest cannot take. This binds
+        // the whole list as one array parameter whatever its length.
+        await tx.execute(sql`
+          SELECT pg_advisory_xact_lock(hashtext('treematch:' || id))
+          FROM unnest(${sql.param(contributionIds)}::bigint[]) AS t(id)
+          ORDER BY id
+        `);
       }
 
       // Resolve and lock the locations. Eligibility is the same rule the read
@@ -445,26 +521,30 @@ export class TreeMatchService {
         }
       }
 
-      for (const pair of pairs) {
-        await tx
-          .insert(treematchAllocation)
-          .values({
+      // One multi-row upsert, not one statement per pair. A plan can carry
+      // thousands of pairs and a round trip each would hold every lock taken
+      // above for the whole walk. `excluded` is the row this insert would have
+      // written, so the add-to-existing behaviour is unchanged.
+      await tx
+        .insert(treematchAllocation)
+        .values(
+          pairs.map((pair) => ({
             uid: generateUid('tma'),
             ttcContributionId: pair.contributionId,
             interventionId: idByUid.get(pair.interventionUid)!,
             units: pair.centiUnits,
-          })
-          .onConflictDoUpdate({
-            target: [
-              treematchAllocation.ttcContributionId,
-              treematchAllocation.interventionId,
-            ],
-            set: {
-              units: sql`${treematchAllocation.units} + ${pair.centiUnits}`,
-              updatedAt: new Date(),
-            },
-          });
-      }
+          })),
+        )
+        .onConflictDoUpdate({
+          target: [
+            treematchAllocation.ttcContributionId,
+            treematchAllocation.interventionId,
+          ],
+          set: {
+            units: sql`${treematchAllocation.units} + excluded.units`,
+            updatedAt: new Date(),
+          },
+        });
 
       // The absolute total TTC should hold is just the sum of our own rows, so
       // the client never sends it and therefore can never be stale.

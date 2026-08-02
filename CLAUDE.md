@@ -112,6 +112,18 @@ auto-upgrades anything.
 - `drizzle.config.ts` reads `DATABASE_URL` (not the `DB_*` vars), and in this
   repo's `.env` it points at a **shared staging** database, not localhost. Check
   where it aims before running `drizzle-kit migrate`.
+- Jest cannot resolve the absolute `src/...` imports that some server files use
+  (`projects.service.ts` and others): `rootDir` is `src` and there is no
+  `moduleNameMapper`. Specs that only import leaf modules are fine, which is why
+  the suite passes; the moment a spec imports a service that pulls in the DI
+  graph it dies with "Cannot find module 'src/util/uidGenerator'". Workaround
+  without touching the config:
+  `npx jest <path> --moduleNameMapper '{"^src/(.*)$":"<rootDir>/$1"}'`.
+- `npx eslint` reports hundreds of prettier errors on files nobody has touched
+  (78-line `match-math.ts` gives 26), so a large error count on a file you just
+  edited does not mean you introduced it. Compare against a neighbouring file
+  before reacting, and do not run `--fix` on a file you only partly changed: it
+  reformats the whole thing and buries the real diff.
 - `drizzle-kit generate` prompts interactively when a table keeps its name but
   its columns change (it cannot tell a rename from a drop-plus-add), and the
   prompt cannot be answered without a TTY. To replace a table cleanly, generate
@@ -198,11 +210,167 @@ count multiplies latency roughly linearly. Anything that fans out over pages is
 not viable here, and a short-TTL server-side cache is the obvious next lever if
 this endpoint gets busier.
 
-Deliberately not built: unmatch (a `DELETE` plus the same derived write-back),
-auto-match and rules (removed from the backend; to be reintroduced), and any
-reconciliation job -- the absolute derived write-back is the convergence
-mechanism. The TTC ignore endpoint is not project-scoped, so the proxy cannot
-verify the contribution belongs to the project in the path.
+Deliberately not built: unmatch (a `DELETE` plus the same derived write-back)
+and any reconciliation job -- the absolute derived write-back is the
+convergence mechanism. The TTC ignore endpoint is not project-scoped, so the
+proxy cannot verify the contribution belongs to the project in the path.
+
+## TreeMatch auto-match (server)
+
+Rebuilt 2026-07-31 (migration 0007) on top of the write path above, not beside
+it. `apps/server/src/treematch/automatch/`. Backend only so far; the web editor
+(`RulesDialog.tsx`) is still parked and unimported.
+
+Two tables, both pure additions. `treematch_rule` is the ordered per-project
+rule list: `position`, `enabled`, `label`, and the whole rule body in a
+`definition` jsonb. Jsonb rather than a column per field because the condition
+catalogue keeps growing (see `docs/treematch-automatch-rules.md`) and the
+database never queries inside it; the old table needed a migration and a CHECK
+edit for every new condition. Saving replaces the whole list, so rows are
+hard-deleted and reinserted at positions 0..n-1 and rule uids churn -- safe,
+because nothing points at a rule row. No `deleted_at` and no `created_by_id` on
+purpose. `treematch_automatch_run` holds one row per run with both the plan and
+the outcome; the partial unique index on `(project_id) WHERE status IN
+('planning','planned','applying')` is the concurrency guard and the "one open
+plan per project" rule at once. `treematch_allocation` is untouched: no
+`source` column and no run id, so rows a run wrote are indistinguishable from
+hand-made ones.
+
+**A run plans, then stops.** `POST .../automatch/runs` returns 202 with a run
+uid and nothing has reached TTC; the client polls the run until its status
+leaves `planning`, then `POST .../runs/:runUid/apply` writes. Apply is
+literally `TreeMatchService.createMatches(...)` -- same advisory locks, same
+lock order, same capacity check, same derived totals, same in-transaction TTC
+PUT. Auto-match adds no second way to write an allocation, which is also why
+`MAX_PLAN_PAIRS` is defined as `MAX_MATCH_PAIRS`: a plan is always appliable in
+one request, so the all-or-nothing guarantee survives. A 409 on apply means
+capacity moved; the run is marked failed and the user runs again.
+
+The apply body may carry `pairs`, a subset of the stored plan, which is how the
+review dialog drops links before writing. Only the (contributionId,
+interventionUid) key is matched; **tree amounts always come from the stored
+plan**, so the request can narrow the write but never widen it or change an
+amount. An entry naming no stored pair is a 400 and the run goes back to
+`planned` rather than losing the plan.
+
+**`MAX_MATCH_PAIRS` is 2000, raised from 200 on 2026-08-02.** That was only safe
+because the write path stopped issuing a round trip per pair: the advisory locks
+are now one statement over `unnest($1::bigint[])` (ordered in-query, so the lock
+order that prevents deadlocks is unchanged) and the allocation upsert is one
+multi-row insert using `excluded.units`. Both were a loop before, so 2000 pairs
+meant ~4000 sequential round trips with every row lock already held. Two things
+are still unverified at this size: TTC's own request limit (nothing in the
+contract states one) and how long the transaction holds locks while waiting on
+that PUT. If matching starts timing out under load, this is the first place to
+look.
+
+> ⚠️ Passing a bare JS array into a drizzle `sql` template does **not** produce a
+> Postgres array: it expands to a row constructor, `($1, $2, $3)`, so
+> `unnest(${ids}::bigint[])` is invalid SQL and fails at runtime, not at
+> compile time. Use `sql.param(ids)`, which binds the whole list as one
+> parameter. Check any new raw `sql` with `new PgDialect().sqlToQuery(...)` or
+> `.toSQL()` before trusting it.
+
+**The sweep is bounded by local capacity, not by TTC.** Free trees are summed
+locally first; if the total is zero the run finishes with an empty plan and
+makes no TTC call at all. Otherwise it pages TTC only until the open donations
+it has collected cover that capacity, with a **100-page ceiling per signature**
+(10,000 donations, ~70s; raised from 20 on 2026-08-02).
+
+Reading everything is still not on offer and cannot be: 172k contributions is
+~1,720 pages, ~20 minutes, and every extra rule signature stacks another sweep.
+What replaced the short cap is visibility and control -- the run row carries a
+`progress` jsonb rewritten after every page (per-list page counts, donations
+read, usable count), and `stop_requested` lets the user cut the sweep short and
+plan with what it has. The flag is read between pages, so a stop lands within
+about one page. Both are pure additions (migration 0008). A full sweep is not an option: 172k contributions at ~700ms per
+serialized page is ~20 minutes, and each distinct `when.sweep` stacks on top.
+Sweep direction defaults to `+paymentDate` (true FIFO); `scan: 'newest'` on the
+run body is the escape hatch for a project whose oldest pages are all matched
+already, where oldest-first would spend the whole page budget skipping them.
+The single upstream ask that would make this cheap is an "unallocated only"
+filter on TTC's contributions endpoint.
+
+`automatch-planner.ts` is pure -- no DI, no DB, no clock (`now` is passed in) --
+and covered by `automatch-planner.spec.ts`. Consumption state is shared across
+rules, so a donation selected by two rules can never be spent twice. A rule with
+`action: 'skip'` is the exclusion rule: it claims its donations and places
+nothing. A preferred site that has been deleted makes the rule match nothing and
+fall through rather than failing the run.
+
+**`allocationPriority` is a rule condition, not a gate (changed 2026-08-02).**
+Until then the planner refused any donation whose priority was not `automatic`
+or `first`, an allowlist inherited from the original design so `manual` stayed
+under human control. It was the wrong gate: **every** contribution sampled on
+`app-development` came back `manual` (four projects, 100 each on 2026-07-31, and
+a 371-donation individual sweep on 2026-08-02 in which not one was anything
+else), so the allowlist excluded the entire backend and auto-match was
+structurally unable to place anything. A run reading 371 donations that manual
+matching happily lists is the symptom.
+
+It is now an ordinary entry in `RULE_FILTER_FIELDS`, so a project that wants the
+old behaviour writes it as a rule: an exclusion rule with
+`{ field: 'allocationPriority', op: 'eq', value: 'manual' }` and `action: 'skip'`
+holds those donations back from every later rule including the catch-all. The
+value is deliberately **not** validated against TTC's three known values -- that
+narrowing is exactly the mistake the allowlist made, and a priority TTC adds
+later must not break a stored rule or a running plan.
+
+Consequence worth stating plainly: auto-match will now consume `manual`
+donations, and **there is no unmatch route**, so a wrong plan cannot be undone
+in the app. The plan review dialog is the only stop before the write.
+
+**Not on a queue, on purpose.** Bull is installed but its only processor
+(`analytics`) is commented out, the Redis config is wired through one module,
+and local dev has no Redis and no `REDIS_URL`. Planning runs in-process as a
+floating promise; the run row is the coordination point. A crashed process
+leaves a stale row that the next run takes over (`planning` after 5 min,
+`applying` after 10, `planned` after its `expires_at`).
+
+**A run narrates itself in the server log.** Every line is prefixed with the run
+uid (`[tmar_...]`), because planning is async and runs from different projects
+interleave. The default level is the whole story, about a dozen lines: the rules
+it loaded, local capacity, one line per TTC list swept (pages, donations, open
+trees, why it stopped), one line per rule, and the outcome. An empty plan always
+ends in a `warn` that names the reason. `filteredOut` also prints the priority
+histogram, because a rule filtering on `allocationPriority` is the easiest way
+to reject everything by accident and is invisible otherwise.
+
+The reason counting lives in the planner, not the service: `planAutomatch`
+returns a `diagnostics` block (per-rule drop counts by reason, priority
+histogram, capacity) because the planner is pure and cannot log. Nothing reads
+`diagnostics` to make a decision, so adding to it is always safe.
+
+**The sweep reports every page at the default level**, with its own timing and a
+running "collected / target". It looks noisy for a phase that is mostly waiting,
+and that is the point: the sweep is the slow part (TTC serializes pages at
+~0.7s, and a list runs to 20 of them), so two lists means half a minute in which
+a quieter log shows nothing at all and the run reads as frozen. Putting these
+behind a flag was the first version and it was wrong.
+
+Set `TREEMATCH_AUTOMATCH_DEBUG=true` in `apps/server/.env` for the extra tier: a
+per-page `allocationPriority` histogram, which shows the spread at source rather
+than only in the summary.
+
+A project can have more free trees than any sweep could ever cover (816 has 7.6M
+across 1760 locations). `wantedCenti` is then unreachable, so every list burns
+its full 20-page budget and the run always costs the worst case. The page-cap
+warn fires for each list; it is a design limit, not a fault.
+
+**An empty plan carries a reason code.** `TreematchAutomatchPlan.empty` is set
+whenever a run places nothing: a `reason` from `TreematchAutomatchEmptyReason`
+plus the counts behind it. A code, not a sentence, because the server log and
+the review dialog word it for different readers -- `describeEmptyReason` for the
+log, `explainEmpty` in `AutomatchPlanDialog.tsx` for the user, where each reason
+also carries what to do next. No migration was needed: `plan` is jsonb, which is
+the point of storing it that way.
+
+There is no sweep cursor. A run always starts at page 1, oldest first, so
+**re-running reads exactly the same donations** -- TTC has no "unallocated only"
+filter, so matching or ignoring what it found does not move the window either.
+The truncation notice in the dialog used to promise a re-run would "pick up
+where the free trees run out", which was never true. Only `scan: 'newest'` reads
+different pages, and the web client never sends it.
 
 ## TreeMatch client (apps/web)
 
@@ -246,11 +414,41 @@ no TanStack Query on this screen.
   trees free (refetch the left pane); anything else came from TTC (refetch the
   right). `MAX_MATCH_PAIRS` (200) is enforced in the confirm dialog rather than
   split across requests, which would give up the all-or-nothing guarantee.
-- **Auto-match and rules are hidden, not deleted.** `RulesDialog.tsx` stays on
-  disk, unimported and self-contained (it carries its own rule types, since
-  `types.ts` describes only the live API), and the three fetchers are commented
-  out in `api.fetch.ts`. Restoring them also needs `putUrlApi.treematchRules`
-  back in `api.url.ts`.
+- **Auto-match is live again** (2026-07-31). An "Auto-match" button in the
+  shared top bar opens `RulesDialog.tsx`; running it opens
+  `AutomatchPlanDialog.tsx`, which is deliberately built like
+  `MatchConfirmDialog` because applying a plan is the same write. The button
+  reads "Review plan" instead when a run is left open, since a planned run holds
+  the project's only run slot until it is applied or discarded. The rule types
+  moved from `RulesDialog.tsx` into `types.ts` now that they describe live API.
+  - **The rules dialog can be closed while a run is planning.** Planning is
+    server-side and took 60s on the 172k-donation project, so trapping the user
+    behind a spinner is wrong; the page keeps polling and opens the plan when it
+    is ready. Only a save holds the dialog.
+  - **The plan list is editable before it is applied.** `AutomatchPlanDialog`
+    keeps a set of removed pair keys (keyed, not indexed, so it survives
+    re-ordering) and sends only what is left. Removing a whole donation takes
+    all of its links, because one donation can be split across locations. The
+    per-rule breakdown is deliberately *not* adjusted by removals: it describes
+    what the planner decided, not what the user kept.
+  - **Progress while reading is a component, not a spinner.**
+    `AutomatchProgressPanel` draws a bar per donation list from the run's
+    `progress` field, which the existing 1.5s poll already fetches. The elapsed
+    counter ticks locally, because progress only moves when a page lands (~0.7s)
+    and a frozen counter reads as a stall.
+  - **The editor writes at most one condition per rule**, though the API accepts
+    ten. A deeper editor needs no server change.
+  - A rule's preferred site must belong to the *donations'* project, not the
+    left pane's: auto-match fills this project's locations only, while the left
+    pane can be pointed at another project. `ruleSites` is fetched separately
+    for that reason; do not reuse `sites`.
+  - **Every success arrives as envelope `statusCode: 200`**, whatever the HTTP
+    code. `POST .../automatch/runs` answers 202 on the wire but 200 in the body
+    (`ResponseInterceptor`), and only failures carry the real code. Check for
+    200, not 202.
+  - Refs that stop background work must be set true on mount, not only cleared
+    on unmount: StrictMode's mount/cleanup/mount left the run poller's
+    `pollAlive` false for the whole session and every poll gave up silently.
 - Gone from the UI, all of it data the API does not have: the donation
   `status` (public/private) badge, the `allocationPriority` chip (an auto-match
   concept), the `blocked` and `legacy` intervention badges plus the map's

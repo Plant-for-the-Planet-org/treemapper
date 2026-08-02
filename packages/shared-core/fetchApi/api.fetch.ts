@@ -1299,46 +1299,115 @@ export const postTreematchMatches = async (
   return result
 }
 
-// --- Auto-match and rules -------------------------------------------------
-// Removed from the backend (GET/PUT .../rules and POST .../automatch are gone)
-// and kept here, commented, because the feature is coming back as separate
-// work. Restoring these also needs putUrlApi.treematchRules in api.url.ts.
+// --- Auto-match rules -------------------------------------------------------
+
+// Auto-match rules of the project, in priority order. Each item:
+// { uid, position, enabled, label, when: { sweep, country?, filters? },
+//   prefer: { type, siteUid?, siteName?, onlyApproved? }, orderBy, action }.
+export const getTreematchRules = async (token: string, projectUid: string) => {
+  const uri = `${getUrlApi.treematch}/${projectUid}/rules`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Replace the whole rule list; array order is priority. Rules get fresh uids on
+// every save, so the response should replace the local state rather than be
+// merged into it.
+export const putTreematchRules = async (
+  token: string,
+  projectUid: string,
+  rules: {
+    enabled: boolean
+    label: string
+    when: {
+      sweep: string
+      country?: string
+      filters?: { field: string; op: string; value: string | number | (string | number)[] }[]
+    }
+    prefer: { type: string; siteUid?: string; onlyApproved?: boolean }
+    orderBy: string
+    action: string
+  }[],
+) => {
+  const uri = `${putUrlApi.treematch}/${projectUid}/rules`
+  const result = await fetchPutCall(uri, { rules }, token)
+  return result
+}
+
+// --- Auto-match runs --------------------------------------------------------
+// A run plans first and stops: this returns 202 with a run whose status is
+// still 'planning'. Nothing reaches the donation backend until the plan is
+// applied. Poll getTreematchAutomatchRun until the status leaves 'planning'.
+
+export const postTreematchAutomatchRun = async (
+  token: string,
+  projectUid: string,
+  options: { maxTrees?: number } = {},
+) => {
+  const uri = `${postUrlApi.treematch}/${projectUid}/automatch/runs`
+  const result = await fetchPostCall(uri, options, token)
+  return result
+}
+
+// Returns { uid, status, plan, matchedTrees, contributionsMatched,
+// locationsFilled, error, startedAt, plannedAt, finishedAt, expiresAt }.
+export const getTreematchAutomatchRun = async (
+  token: string,
+  projectUid: string,
+  runUid: string,
+) => {
+  const uri = `${getUrlApi.treematch}/${projectUid}/automatch/runs/${runUid}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// The most recent run of the project, or null. Used on mount to pick up a plan
+// left open by an earlier visit.
+export const getTreematchLatestAutomatchRun = async (token: string, projectUid: string) => {
+  const uri = `${getUrlApi.treematch}/${projectUid}/automatch/runs/latest`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Stop a sweep that is still reading and plan with what it has. Takes effect
+// between pages, so the run stays 'planning' for up to one more page.
+export const postTreematchAutomatchStop = async (
+  token: string,
+  projectUid: string,
+  runUid: string,
+) => {
+  const uri = `${postUrlApi.treematch}/${projectUid}/automatch/runs/${runUid}/stop`
+  const result = await fetchPostCall(uri, {}, token)
+  return result
+}
+
+// Write the plan. Goes through the same match path as a manual match, so the
+// response is the same { applied } map of absolute totals in whole trees.
 //
-// // Auto-match rules of the project, ordered by priority. Each item:
-// // { uid, position, enabled, whenType, whenValue?, preferSite?: {uid, name},
-// //   preferType, orderBy }.
-// export const getTreematchRules = async (token: string, projectUid: string) => {
-//   const uri = `${getUrlApi.treematch}/${projectUid}/rules`
-//   const result = await fetchGetCall(uri, token)
-//   return result
-// }
-//
-// // Replace the whole rule list; array order = priority. Rules get fresh uids
-// // on every save, so the response should replace the local state.
-// export const putTreematchRules = async (
-//   token: string,
-//   projectUid: string,
-//   rules: {
-//     enabled: boolean
-//     whenType: string
-//     whenValue?: string
-//     preferType: string
-//     preferSiteUid?: string
-//     orderBy: string
-//   }[],
-// ) => {
-//   const uri = `${putUrlApi.treematchRules}/${projectUid}/rules`
-//   const result = await fetchPutCall(uri, { rules }, token)
-//   return result
-// }
-//
-// // Run the auto-match engine (synchronous). Returns { runUid, matchedTrees,
-// // contributionsMatched, locationsFilled, perRule, truncated? }.
-// export const postTreematchAutomatch = async (token: string, projectUid: string) => {
-//   const uri = `${postUrlApi.treematch}/${projectUid}/automatch`
-//   const result = await fetchPostCall(uri, {}, token)
-//   return result
-// }
+// `pairs` narrows the write to a subset of the stored plan, which is how the
+// review dialog drops links. The tree amounts always come from the plan the
+// server holds; this only says which pairs to keep. Omit it to apply all.
+export const postTreematchAutomatchApply = async (
+  token: string,
+  projectUid: string,
+  runUid: string,
+  pairs?: Array<{ contributionId: number; interventionUid: string }>,
+) => {
+  const uri = `${postUrlApi.treematch}/${projectUid}/automatch/runs/${runUid}/apply`
+  const result = await fetchPostCall(uri, pairs ? { pairs } : {}, token)
+  return result
+}
+
+// Throw a plan away without writing it. Also frees the project's run slot.
+export const deleteTreematchAutomatchRun = async (
+  token: string,
+  projectUid: string,
+  runUid: string,
+) => {
+  const uri = `${deleteUrlApi.treematch}/${projectUid}/automatch/runs/${runUid}`
+  const result = await fetchDeleteCall(uri, token)
+  return result
+}
 
 // Set or clear the ignore flag on a donation (TTC contribution id). The flag
 // lives in TTC; this is a proxy. Ignored donations move to their own list view

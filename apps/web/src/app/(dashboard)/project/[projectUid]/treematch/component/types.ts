@@ -194,11 +194,175 @@ export interface MatchPair {
 }
 
 /** The server caps one request at this many pairs. */
-export const MAX_MATCH_PAIRS = 200;
+// Mirrors MAX_MATCH_PAIRS on the server: one match request is one transaction
+// and one donation-backend write, so this is what keeps a match all-or-nothing.
+export const MAX_MATCH_PAIRS = 2000;
 
 /** TTC's accepted absolute totals, in whole trees, keyed by contribution id. */
 export interface CreateMatchesResponse {
   applied: Record<string, number>;
+}
+
+// ---------------------------------------------------------------------------
+// Auto-match rules
+//
+// A rule reads: WHEN <these donations> -> PREFER <these locations> -> ORDER BY
+// <this donation order>. Rules run top to bottom, each takes what it can and
+// passes the remainder down, and a locked catch-all always runs last.
+// ---------------------------------------------------------------------------
+
+/** Which TTC list a rule's donations come from. `profileType` and `country` are
+ * not returned per donation, so anything other than 'any' costs the server its
+ * own paged sweep of the donation backend. Keep the count low. */
+export type RuleSweep = 'any' | 'company' | 'individual' | 'country';
+
+export type RulePreferType = 'oldest' | 'newest' | 'site' | 'capacityHigh' | 'capacityLow';
+export type RuleOrderBy = 'oldest' | 'newest' | 'largest' | 'smallest';
+
+/** 'skip' is the exclusion rule: it holds its donations back from every later
+ * rule and places nothing. */
+export type RuleAction = 'match' | 'skip';
+
+export type RuleFilterField =
+  | 'openTrees' | 'totalTrees' | 'matchState' | 'unitType'
+  | 'currency' | 'paymentDate' | 'olderThanDays' | 'donationRef'
+  | 'allocationPriority';
+
+export type RuleFilterOp = 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte' | 'in';
+
+export interface RuleFilter {
+  field: RuleFilterField;
+  op: RuleFilterOp;
+  value: string | number | Array<string | number>;
+}
+
+/** A rule as the API returns it. The server accepts up to 10 filters; the
+ * editor writes at most one, so a deeper editor needs no API change. */
+export interface TreeMatchRule {
+  /** changes on every save: the server replaces the whole list */
+  uid: string;
+  position: number;
+  enabled: boolean;
+  label: string;
+  when: { sweep: RuleSweep; country?: string; filters?: RuleFilter[] };
+  prefer: {
+    type: RulePreferType;
+    siteUid?: string;
+    /** resolved by the server; empty string means the site is gone */
+    siteName?: string;
+    onlyApproved?: boolean;
+  };
+  orderBy: RuleOrderBy;
+  action: RuleAction;
+}
+
+/** A rule while it is being edited. Unsaved rows have no uid yet, so the list
+ * is keyed by a client-only id instead. */
+export interface DraftRule extends Omit<TreeMatchRule, 'uid' | 'position'> {
+  localId: string;
+  uid?: string;
+}
+
+/** The server takes at most this many rules. */
+export const MAX_RULES = 50;
+
+// ---------------------------------------------------------------------------
+// Auto-match runs
+//
+// A run plans and stops. Nothing is written until the plan is applied, which
+// goes through the same match path as a manual match.
+// ---------------------------------------------------------------------------
+
+export type AutomatchRunStatus =
+  | 'planning' | 'planned' | 'applying' | 'completed' | 'failed' | 'discarded';
+
+export interface AutomatchPlanPair {
+  contributionId: number;
+  interventionUid: string;
+  trees: number;
+  /** resolved server-side: a sweep reaches donations this client never loaded */
+  donationRef: string | null;
+  interventionHid: string;
+}
+
+export interface AutomatchPlanRule {
+  /** null is the locked catch-all */
+  ruleUid: string | null;
+  label: string;
+  matchedTrees: number;
+  contributionsUsed: number;
+  /** the rule prefers a site that no longer exists, so it matched nothing */
+  siteMissing?: boolean;
+  /** donations an exclusion rule held back */
+  skipped?: number;
+}
+
+/** An empty plan has several very different causes and they need different
+ * answers from the user, so the server names which one it was. */
+export type AutomatchEmptyReason =
+  | 'noLocations'
+  | 'noFreeTrees'
+  | 'noDonations'
+  | 'allIgnored'
+  | 'allAllocated'
+  | 'filteredOut'
+  | 'noRoom';
+
+export interface AutomatchPlanEmpty {
+  reason: AutomatchEmptyReason;
+  donationsSeen: number;
+  ignoredDonations: number;
+  openDonations: number;
+  /** open, not ignored, and a priority auto-match may consume */
+  usableDonations: number;
+  priorityCounts: Record<string, number>;
+  freeTrees: number;
+  locations: number;
+  locationsWithRoom: number;
+}
+
+export interface AutomatchPlan {
+  pairs: AutomatchPlanPair[];
+  perRule: AutomatchPlanRule[];
+  /** how far the donation sweep reached. Ordering inside a rule is true over
+   * this window, not over the whole project. */
+  scan: { pagesRead: number; donationsSeen: number; truncated: boolean };
+  /** the plan hit the pair or tree cap and was cut short */
+  capped: boolean;
+  /** present only when the plan placed nothing */
+  empty?: AutomatchPlanEmpty;
+}
+
+/** Live sweep state, rewritten server-side after every donation page. Only
+ * meaningful while the run is 'planning'. */
+export interface AutomatchProgress {
+  lists: Array<{
+    /** '' is the unfiltered list, otherwise the rule's sweep signature */
+    signature: string;
+    page: number;
+    maxPages: number;
+    done: boolean;
+  }>;
+  donationsRead: number;
+  /** open, not ignored, and a priority auto-match may consume */
+  usableDonations: number;
+  stopped?: boolean;
+}
+
+export interface AutomatchRun {
+  uid: string;
+  status: AutomatchRunStatus;
+  plan?: AutomatchPlan | null;
+  progress?: AutomatchProgress | null;
+  stopRequested?: boolean;
+  matchedTrees: number;
+  contributionsMatched: number;
+  locationsFilled: number;
+  error?: string | null;
+  startedAt: string;
+  plannedAt?: string | null;
+  finishedAt?: string | null;
+  expiresAt?: string | null;
 }
 
 // The contributions endpoint filters by ISO-2 payment country but does not

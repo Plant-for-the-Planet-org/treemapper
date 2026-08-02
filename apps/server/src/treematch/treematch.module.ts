@@ -5,6 +5,8 @@ import { ProjectsModule } from '../projects/projects.module';
 import { TreeMatchController } from './treematch.controller';
 import { TreeMatchService } from './treematch.service';
 import { TtcContributionsClient } from './ttc-contributions.client';
+import { TreeMatchRulesService } from './automatch/treematch-rules.service';
+import { TreeMatchAutomatchService } from './automatch/treematch-automatch.service';
 
 @Module({
   imports: [
@@ -14,6 +16,11 @@ import { TtcContributionsClient } from './ttc-contributions.client';
     HttpModule.register({ timeout: 30000, maxRedirects: 5 }),
   ],
   controllers: [TreeMatchController],
-  providers: [TreeMatchService, TtcContributionsClient],
+  providers: [
+    TreeMatchService,
+    TtcContributionsClient,
+    TreeMatchRulesService,
+    TreeMatchAutomatchService,
+  ],
 })
 export class TreeMatchModule {}

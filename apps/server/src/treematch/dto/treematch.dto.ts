@@ -175,10 +175,19 @@ export class MatchPairDto {
   trees: number;
 }
 
+// One request is one transaction and one TTC PUT, so this ceiling is what keeps
+// a whole auto-match plan appliable in a single all-or-nothing write. Raised
+// from 200 once the write path stopped issuing a round trip per pair; the locks
+// and the upsert are now a fixed number of statements whatever the size.
+//
+// The remaining unknown is TTC's own request limit: nothing in the contract
+// states one, and the largest batch tried against it so far is far below this.
+export const MAX_MATCH_PAIRS = 2000;
+
 export class CreateMatchesDto {
   @IsArray()
   @ArrayMinSize(1)
-  @ArrayMaxSize(200)
+  @ArrayMaxSize(MAX_MATCH_PAIRS)
   @ValidateNested({ each: true })
   @Type(() => MatchPairDto)
   matches: MatchPairDto[];

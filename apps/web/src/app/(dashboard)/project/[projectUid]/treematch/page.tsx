@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import type { DateRange } from 'react-day-picker';
 import {
   Link2, Download, Search, List, Map as MapIcon,
-  CheckCircle2, Sprout, Play, Info, ArrowLeftRight, Loader2,
+  CheckCircle2, Sprout, Play, Info, ArrowLeftRight, Loader2, Wand2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +22,10 @@ import { useToken } from '@/context/useTokenContext';
 import {
   getTreematchInterventions, getTreematchContributions, postTreematchMatches,
   patchTreematchContributionIgnore, getUserProjectSites,
+  getTreematchRules, putTreematchRules, postTreematchAutomatchRun,
+  getTreematchAutomatchRun, getTreematchLatestAutomatchRun,
+  postTreematchAutomatchApply, deleteTreematchAutomatchRun,
+  postTreematchAutomatchStop,
 } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useTopBarActions } from '@/component/header/TopBarActions';
@@ -32,18 +36,22 @@ import { TreeMatchMap } from './component/TreeMatchMap';
 import { DonationCard } from './component/DonationCard';
 import { ExportDialog } from './component/ExportDialog';
 import { MatchConfirmDialog, PreviewAllocation } from './component/MatchConfirmDialog';
+import { RulesDialog } from './component/RulesDialog';
+import { AutomatchPlanDialog } from './component/AutomatchPlanDialog';
 import {
   TreeMatchIntervention, Contribution, TreeMatchPagination, MatchPair, MatchAmounts,
-  MAX_MATCH_PAIRS, COUNTRY_OPTIONS,
+  MAX_MATCH_PAIRS, COUNTRY_OPTIONS, AutomatchRun, AutomatchPlanPair, DraftRule, TreeMatchRule,
   fmtNum, fmtTrees, contribMatchState, contribAvailable, availableTrees, requestedTrees,
 } from './component/types';
 
-// Auto-match and its rules were removed from the backend and will come back as
-// separate work. `./component/RulesDialog` is kept on disk, unimported, with no
-// entry point in the UI. Restoring it means bringing back the three fetchers
-// commented out in shared-core/fetchApi/api.fetch.ts.
-
 const PAGE_SIZE = 20;
+
+// A run plans in the background: the POST returns as soon as the row exists and
+// the sweep of the donation backend carries on server-side. Each page it reads
+// is a serialized ~700ms round trip, so this polls at a human pace rather than
+// a tight one, and gives up rather than hanging forever.
+const RUN_POLL_MS = 1500;
+const RUN_POLL_TIMEOUT_MS = 3 * 60 * 1000;
 const EMPTY_PAGINATION: TreeMatchPagination = { total: 0, page: 1, limit: PAGE_SIZE, totalPages: 0 };
 
 const Stat = ({
@@ -72,6 +80,24 @@ const Stat = ({
 );
 
 interface Site { id: number | string; uid: string; name: string; }
+
+// Rule uids change on every save, so "has anything changed" compares the bodies
+// and ignores both the uid and the client-only key.
+const stripLocalIds = (list: DraftRule[]) =>
+  list.map(({ localId, uid, ...rest }) => rest);
+
+// API rule -> editable draft. The client key is stable for the row's lifetime;
+// the server uid is kept so a save can be told apart from a first write.
+const toDraft = (rule: TreeMatchRule, idx: number): DraftRule => ({
+  localId: `saved_${rule.uid}_${idx}`,
+  uid: rule.uid,
+  enabled: rule.enabled,
+  label: rule.label,
+  when: rule.when,
+  prefer: rule.prefer,
+  orderBy: rule.orderBy,
+  action: rule.action,
+});
 
 export default function TreeMatchPage() {
   const { projectUid } = useParams<{ projectUid: string }>();
@@ -175,6 +201,56 @@ export default function TreeMatchPage() {
   // total for an optimistic ribbon, and reset whenever fresh server stats
   // (which include these matches) arrive.
   const [sessionMatchedTrees, setSessionMatchedTrees] = useState(0);
+
+  // Auto-match. Rules are edited as a whole list and saved as a whole list, so
+  // they are held as drafts with a client-only key: the server hands out fresh
+  // uids on every save.
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const [rules, setRules] = useState<DraftRule[]>([]);
+  const [savedRules, setSavedRules] = useState<DraftRule[]>([]);
+  const [rulesLoaded, setRulesLoaded] = useState(false);
+  // Auto-match fills this project's plant locations only, so a rule's preferred
+  // site has to be one of this project's sites. `sites` follows the left pane,
+  // which can be showing a different project, so it cannot be reused there.
+  const [ruleSites, setRuleSites] = useState<Site[]>([]);
+  const [rulesSaving, setRulesSaving] = useState(false);
+  const [rulesError, setRulesError] = useState<string | null>(null);
+  const [maxTrees, setMaxTrees] = useState('');
+
+  // A run holds the project's only run slot until it is applied or discarded,
+  // so an open plan is picked up again on the next visit rather than stranded.
+  const [run, setRun] = useState<AutomatchRun | null>(null);
+  const [planOpen, setPlanOpen] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [applying, setApplying] = useState(false);
+  const [discarding, setDiscarding] = useState(false);
+  const [planError, setPlanError] = useState<string | null>(null);
+  const [stopping, setStopping] = useState(false);
+  const [runElapsed, setRunElapsed] = useState(0);
+  // Stops the poll loop if the page unmounts mid-run. Set back to true on
+  // mount, not just cleared on unmount: StrictMode runs mount, cleanup, mount
+  // in development, so a cleanup-only ref stays false for the rest of the
+  // session and every poll gives up before its first request.
+  const pollAlive = useRef(true);
+  useEffect(() => {
+    pollAlive.current = true;
+    return () => { pollAlive.current = false; };
+  }, []);
+
+  // The elapsed readout ticks locally rather than off the poll: a run's progress
+  // only changes when a donation page lands (~0.7s), and a counter that freezes
+  // between them reads as a stall.
+  useEffect(() => {
+    if (!running) { setRunElapsed(0); return; }
+    const startedAt = Date.now();
+    const t = setInterval(() => setRunElapsed(Math.floor((Date.now() - startedAt) / 1000)), 1000);
+    return () => clearInterval(t);
+  }, [running]);
+
+  const rulesDirty = useMemo(
+    () => JSON.stringify(stripLocalIds(rules)) !== JSON.stringify(stripLocalIds(savedRules)),
+    [rules, savedRules],
+  );
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedIvSearch(ivSearch), 400);
@@ -581,9 +657,291 @@ export default function TreeMatchPage() {
     }
   };
 
+  // --- Auto-match -----------------------------------------------------------
+
+  // Rules and any open plan load together on the first visit to the dialog, not
+  // on mount: neither is needed to match by hand, and both are extra requests.
+  const openRules = async () => {
+    setRulesOpen(true);
+    if (rulesLoaded || !accessToken || !projectUid) return;
+    try {
+      // The left pane already holds this project's sites unless it has been
+      // pointed at another one, so only that case costs an extra request.
+      if (crossProject) {
+        const siteResponse = await getUserProjectSites(accessToken, projectUid);
+        if (siteResponse?.statusCode === 200) setRuleSites(siteResponse.data || []);
+      } else {
+        setRuleSites(sites);
+      }
+
+      const response = await getTreematchRules(accessToken, projectUid);
+      if (response?.statusCode === 200) {
+        const drafts = (response.data?.items || []).map(toDraft);
+        setRules(drafts);
+        setSavedRules(drafts);
+        setRulesLoaded(true);
+      } else {
+        setRulesError(response?.message || 'Failed to load the rules');
+      }
+    } catch (err) {
+      console.error('Error fetching auto-match rules:', err);
+      setRulesError(err instanceof Error ? err.message : 'Failed to load the rules');
+    }
+  };
+
+  // Returns the saved list so runRules can save and run in one go.
+  const saveRules = async (): Promise<DraftRule[] | null> => {
+    if (!accessToken || !projectUid) return null;
+    setRulesSaving(true);
+    setRulesError(null);
+    try {
+      const response = await putTreematchRules(
+        accessToken,
+        projectUid,
+        rules.map(r => ({
+          enabled: r.enabled,
+          label: r.label.trim() || 'Rule',
+          when: r.when,
+          prefer: r.prefer,
+          orderBy: r.orderBy,
+          action: r.action,
+        })),
+      );
+      if (response?.statusCode !== 200 || !response?.data) {
+        setRulesError(response?.message || 'Failed to save the rules');
+        return null;
+      }
+      // Fresh uids come back, so the response replaces the local list rather
+      // than being merged into it.
+      const drafts = (response.data.items || []).map(toDraft);
+      setRules(drafts);
+      setSavedRules(drafts);
+      setRulesLoaded(true);
+      return drafts;
+    } catch (err) {
+      console.error('Error saving auto-match rules:', err);
+      setRulesError(err instanceof Error ? err.message : 'Failed to save the rules');
+      return null;
+    } finally {
+      setRulesSaving(false);
+    }
+  };
+
+  // Poll a run until it stops planning. The sweep is server-side, so this only
+  // watches; nothing is written by any of it.
+  const pollRun = async (runUid: string): Promise<AutomatchRun | null> => {
+    const deadline = Date.now() + RUN_POLL_TIMEOUT_MS;
+    for (;;) {
+      if (!pollAlive.current) return null;
+      if (Date.now() > deadline) {
+        setPlanError('The run is taking longer than expected. Reopen the rules to check on it.');
+        return null;
+      }
+      await new Promise(resolve => setTimeout(resolve, RUN_POLL_MS));
+      if (!pollAlive.current) return null;
+
+      const response = await getTreematchAutomatchRun(accessToken, projectUid, runUid);
+      if (response?.statusCode !== 200 || !response?.data) {
+        setPlanError(response?.message || 'Lost track of the run');
+        return null;
+      }
+      const next: AutomatchRun = response.data;
+      setRun(next);
+      if (next.status !== 'planning') return next;
+    }
+  };
+
+  const runRules = async () => {
+    if (!accessToken || !projectUid) return;
+    setPlanError(null);
+    setRulesError(null);
+
+    // The plan is built from what the server has, so unsaved edits are saved
+    // first rather than silently ignored.
+    if (rulesDirty && !(await saveRules())) return;
+
+    setRunning(true);
+    try {
+      const trees = Number.parseInt(maxTrees, 10);
+      const response = await postTreematchAutomatchRun(
+        accessToken,
+        projectUid,
+        Number.isFinite(trees) && trees > 0 ? { maxTrees: trees } : {},
+      );
+      // The route answers 202 (the row exists, the sweep is still going), but
+      // the server wraps every success as statusCode 200 in the body and only
+      // reports the real code on failure. A 409 here means a plan from an
+      // earlier visit is still open.
+      if (Number(response?.statusCode) !== 200 || !response?.data) {
+        setRulesError(response?.message || 'Could not start the run');
+        return;
+      }
+
+      const started: AutomatchRun = response.data;
+      setRun(started);
+      const finished = started.status === 'planning' ? await pollRun(started.uid) : started;
+      if (!finished) return;
+
+      if (finished.status === 'failed') {
+        setRulesError(finished.error || 'The run failed');
+        return;
+      }
+      if (finished.status !== 'planned') return;
+
+      setRulesOpen(false);
+      setPlanOpen(true);
+    } catch (err) {
+      console.error('Auto-match run failed:', err);
+      setRulesError(err instanceof Error ? err.message : 'Could not start the run');
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  // Stop a sweep that is still reading. The run stays in 'planning' until the
+  // page in flight lands, so the poller carries on and opens the plan as usual.
+  const stopRun = async () => {
+    if (!run || !accessToken || !projectUid) return;
+    setStopping(true);
+    try {
+      const response = await postTreematchAutomatchStop(accessToken, projectUid, run.uid);
+      if (Number(response?.statusCode) !== 200) {
+        setRulesError(response?.message || 'Could not stop the run');
+        return;
+      }
+      setRun(prev => (prev ? { ...prev, stopRequested: true } : prev));
+    } catch (err) {
+      console.error('Stopping the auto-match run failed:', err);
+      setRulesError(err instanceof Error ? err.message : 'Could not stop the run');
+    } finally {
+      setStopping(false);
+    }
+  };
+
+  // Applying goes through the same write path as a manual match, so the
+  // response and the panes are updated exactly as they are there.
+  //
+  // `keep` is the subset the review dialog is left holding after the user has
+  // removed links. The server matches those against the plan it stored and
+  // takes the tree amounts from there, so this only ever narrows the write.
+  const applyPlan = async (keep?: AutomatchPlanPair[]) => {
+    if (!run?.plan || !accessToken || !projectUid) return;
+    const pairs = keep ?? run.plan.pairs;
+    if (!pairs.length) return;
+    const isSubset = pairs.length !== run.plan.pairs.length;
+    setApplying(true);
+    setPlanError(null);
+    try {
+      const response = await postTreematchAutomatchApply(
+        accessToken,
+        projectUid,
+        run.uid,
+        isSubset
+          ? pairs.map(p => ({ contributionId: p.contributionId, interventionUid: p.interventionUid }))
+          : undefined,
+      );
+      const status = Number(response?.statusCode ?? 0);
+      if (status !== 200 || !response?.data) {
+        setPlanError(response?.message || 'Failed to record the plan');
+        // Nothing was written. A 409 means a location no longer has that many
+        // trees free, so the left pane moved; anything else came from the
+        // donation backend. Either way the plan is spent.
+        if (status === 409) fetchInterventions(1, false, true);
+        else fetchContributions(1, false, true);
+        setRun(null);
+        return;
+      }
+
+      const byUid: Record<string, number> = {};
+      pairs.forEach(p => { byUid[p.interventionUid] = (byUid[p.interventionUid] || 0) + p.trees; });
+      setInterventions(prev => prev.map(i => byUid[i.uid]
+        ? { ...i, matchedTrees: Math.min(i.totalTreeCount, i.matchedTrees + byUid[i.uid]) }
+        : i));
+
+      const applied: Record<string, number> = response.data.applied || {};
+      setContributions(prev => prev.map(c => {
+        const total = applied[String(c.id)];
+        if (total === undefined) return c;
+        return { ...c, unitsAllocated: total, available: Math.max(0, c.units - total) };
+      }));
+
+      const trees = pairs.reduce((sum, p) => sum + p.trees, 0);
+      const donations = new Set(pairs.map(p => p.contributionId)).size;
+      setSessionMatchedTrees(prev => prev + trees);
+      // The plan may have used donations that are not on a loaded page, so what
+      // is on screen can lag. Reload it on the next visit rather than now.
+      donStale.current = true;
+      setPlanOpen(false);
+      setRun(null);
+      setLastAction(
+        `Auto-matched ${fmtTrees(trees)} trees across ${fmtNum(donations)} donation(s).`,
+      );
+    } catch (err) {
+      console.error('Applying the auto-match plan failed:', err);
+      setPlanError(err instanceof Error ? err.message : 'Failed to record the plan');
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const discardPlan = async () => {
+    if (!run || !accessToken || !projectUid) return;
+    setDiscarding(true);
+    setPlanError(null);
+    try {
+      const response = await deleteTreematchAutomatchRun(accessToken, projectUid, run.uid);
+      if (response?.statusCode !== 200) {
+        setPlanError(response?.message || 'Failed to discard the plan');
+        return;
+      }
+      setPlanOpen(false);
+      setRun(null);
+    } catch (err) {
+      console.error('Discarding the auto-match plan failed:', err);
+      setPlanError(err instanceof Error ? err.message : 'Failed to discard the plan');
+    } finally {
+      setDiscarding(false);
+    }
+  };
+
+  // A plan left open by an earlier visit still holds the project's run slot, so
+  // it is surfaced rather than blocking the next run with a 409 nobody expects.
+  useEffect(() => {
+    if (!accessToken || !projectUid) return;
+    let cancelled = false;
+    getTreematchLatestAutomatchRun(accessToken, projectUid)
+      .then(response => {
+        if (cancelled || response?.statusCode !== 200) return;
+        const latest: AutomatchRun | null = response.data ?? null;
+        if (latest?.status === 'planned') setRun(latest);
+      })
+      .catch(err => console.error('Error fetching the last auto-match run:', err));
+    return () => { cancelled = true; };
+  }, [accessToken, projectUid]);
+
+  // Switching projects invalidates every auto-match view.
+  useEffect(() => {
+    setRules([]);
+    setSavedRules([]);
+    setRuleSites([]);
+    setRulesLoaded(false);
+    setRulesError(null);
+    setRun(null);
+    setPlanOpen(false);
+    setPlanError(null);
+  }, [projectUid]);
+
   // Page actions live in the shared dashboard top bar, not a second header band.
   useTopBarActions(
-    [{ label: 'Export', icon: Download, variant: 'primary' as const, onClick: () => setExportOpen(true) }],
+    [
+      {
+        label: run?.status === 'planned' ? 'Review plan' : 'Auto-match',
+        icon: Wand2,
+        variant: 'outline' as const,
+        onClick: () => (run?.status === 'planned' ? setPlanOpen(true) : openRules()),
+      },
+      { label: 'Export', icon: Download, variant: 'primary' as const, onClick: () => setExportOpen(true) },
+    ],
     [],
   );
 
@@ -1025,6 +1383,37 @@ export default function TreeMatchPage() {
         submitting={matchSubmitting}
         error={matchError}
         onConfirm={applyMatch}
+      />
+      <RulesDialog
+        open={rulesOpen}
+        onOpenChange={(v) => { setRulesOpen(v); if (!v) setRulesError(null); }}
+        rules={rules}
+        onRulesChange={setRules}
+        sites={ruleSites}
+        countries={COUNTRY_OPTIONS}
+        maxTrees={maxTrees}
+        onMaxTreesChange={setMaxTrees}
+        dirty={rulesDirty}
+        saving={rulesSaving}
+        running={running}
+        progress={run?.progress}
+        elapsedSeconds={runElapsed}
+        stopRequested={run?.stopRequested}
+        stopping={stopping}
+        error={rulesError}
+        onSave={() => { void saveRules(); }}
+        onRun={() => { void runRules(); }}
+        onStop={() => { void stopRun(); }}
+      />
+      <AutomatchPlanDialog
+        open={planOpen}
+        onOpenChange={(v) => { setPlanOpen(v); if (!v) setPlanError(null); }}
+        run={run}
+        applying={applying}
+        discarding={discarding}
+        error={planError}
+        onApply={(keep) => { void applyPlan(keep); }}
+        onDiscard={() => { void discardPlan(); }}
       />
     </div>
   );
