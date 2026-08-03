@@ -75,7 +75,8 @@ export const availableTrees = (i: TreeMatchIntervention) =>
 // 'm2' exists for conservation projects sold by area.
 export type UnitType = 'tree' | 'm2' | string;
 
-// TTC's own ordering hint. Not surfaced: it only ever mattered to auto-match.
+// TTC's own ordering hint. Never shown on a donation card; it surfaces only as
+// an auto-match rule condition, where a project can hold one kind back.
 export type AllocationPriority = 'manual' | 'automatic' | 'first';
 
 /** The parent donation. One donation can fund several projects/ROs. */
@@ -162,6 +163,18 @@ export interface TreeMatchPagination {
   limit: number;
   totalPages: number;
 }
+
+/** Rows per page in both panes. The donations side is the constraint: every
+ * page is a serialized ~700ms TTC round trip. */
+export const PAGE_SIZE = 20;
+
+export const EMPTY_PAGINATION: TreeMatchPagination = {
+  total: 0, page: 1, limit: PAGE_SIZE, totalPages: 0,
+};
+
+/** A project site, as the sites endpoint returns it. `id` is what the location
+ * filter sends; `uid` is what an auto-match rule stores. */
+export interface Site { id: number | string; uid: string; name: string; }
 
 export interface InterventionListData {
   items: TreeMatchIntervention[];

@@ -1288,7 +1288,7 @@ export const getTreematchContributions = async (token: string, projectUid: strin
 // { applied: { [contributionId]: trees } }, TTC's accepted absolute totals.
 // A 409 means a plant location does not have that many trees free (the message
 // names the HID); a 422 comes from TTC (over-funded, or the contribution is
-// ignored). Max 200 pairs per call.
+// ignored). Max MAX_MATCH_PAIRS (2000) pairs per call.
 export const postTreematchMatches = async (
   token: string,
   projectUid: string,

@@ -54,6 +54,9 @@ const LEGEND: { label: string; color: string }[] = [
 interface Props {
   /** already filtered by the left-pane filters */
   interventions: TreeMatchIntervention[];
+  /** changes when the list is replaced rather than appended to, which is the
+   * only time the map should refit its bounds */
+  fitKey?: number;
   selected: Set<string>;
   /** uid of the location whose detail card is open on the map */
   focusUid: string | null;
@@ -66,7 +69,7 @@ interface Props {
   className?: string;
 }
 
-export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange, onToggle, isBlocked, className }: Props) {
+export function TreeMatchMap({ interventions, fitKey, selected, focusUid, onFocusChange, onToggle, isBlocked, className }: Props) {
   const mapRef = useRef<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [basemap, setBasemap] = useState<BasemapKey>('satellite');
@@ -113,7 +116,13 @@ export function TreeMatchMap({ interventions, selected, focusUid, onFocusChange,
   }, [locatable]);
 
   const handleLoad = useCallback(() => { setMapLoaded(true); }, []);
-  useEffect(() => { if (mapLoaded) fitAll(); }, [mapLoaded, fitAll]);
+  // Fit on first load and whenever the parent says the result set was replaced
+  // (a filter changed). Not on every change of `locatable`: "Load more" appends
+  // a page, and refitting there throws away the zoom the user just set.
+  useEffect(() => {
+    if (mapLoaded) fitAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapLoaded, fitKey]);
 
   // Center on the focused location (marker click or "View on map" in the list).
   useEffect(() => {

@@ -32,8 +32,15 @@ import {
   StartAutomatchRunDto,
 } from './dto/automatch.dto';
 
-// Matching contributions to plant locations is a restoration-organisation admin
-// task, so every route is owner/admin only.
+// Matching claims a project's trees against donations and writes the resulting
+// totals to TTC, so every route here is the project owner's alone. This is
+// deliberately narrower than the owner-or-admin rule the rest of the app uses,
+// and narrower than it was before 2026-08-03.
+//
+// It also excludes workspace owners and admins: the guard resolves them as
+// project admins when they have no membership of their own, and 'admin' is no
+// longer in the list. `TreeMatchService.assertCanMatchFrom` applies the same
+// rule to the other projects a cross-project match reads from.
 @UseGuards(JwtAuthGuard)
 @Controller('treematch')
 export class TreeMatchController {
@@ -44,7 +51,7 @@ export class TreeMatchController {
   ) {}
 
   @Get('/projects/:id/interventions')
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner')
   @UseGuards(ProjectPermissionsGuard)
   async getInterventions(
     @Membership() membership: ProjectGuardResponse,
@@ -54,7 +61,7 @@ export class TreeMatchController {
   }
 
   @Get('/projects/:id/contributions')
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner')
   @UseGuards(ProjectPermissionsGuard)
   async getContributions(
     @Membership() membership: ProjectGuardResponse,
@@ -70,7 +77,7 @@ export class TreeMatchController {
   // service authorizes each of them; the guard only covers the path project.
   @Post('/projects/:id/matches')
   @HttpCode(200)
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner')
   @UseGuards(ProjectPermissionsGuard)
   async createMatches(
     @Membership() membership: ProjectGuardResponse,
@@ -85,7 +92,7 @@ export class TreeMatchController {
 
   // :contributionId is TTC's ProjectContribution id, the only id the web has.
   @Patch('/projects/:id/contributions/:contributionId/ignore')
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner')
   @UseGuards(ProjectPermissionsGuard)
   async setContributionIgnore(
     @Param('contributionId', ParseIntPipe) contributionId: number,
@@ -97,7 +104,7 @@ export class TreeMatchController {
   // --- Auto-match rules -----------------------------------------------------
 
   @Get('/projects/:id/rules')
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner')
   @UseGuards(ProjectPermissionsGuard)
   async getRules(@Membership() membership: ProjectGuardResponse) {
     return this.rulesService.getRules(membership.projectId);
@@ -105,7 +112,7 @@ export class TreeMatchController {
 
   // Full-list replace: the body's array order is the rule order.
   @Put('/projects/:id/rules')
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner')
   @UseGuards(ProjectPermissionsGuard)
   async putRules(
     @Membership() membership: ProjectGuardResponse,
@@ -121,7 +128,7 @@ export class TreeMatchController {
   // a run only writes when it is applied.
   @Post('/projects/:id/automatch/runs')
   @HttpCode(202)
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner')
   @UseGuards(ProjectPermissionsGuard)
   async startRun(
     @Membership() membership: ProjectGuardResponse,
@@ -131,14 +138,14 @@ export class TreeMatchController {
   }
 
   @Get('/projects/:id/automatch/runs/latest')
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner')
   @UseGuards(ProjectPermissionsGuard)
   async getLatestRun(@Membership() membership: ProjectGuardResponse) {
     return this.automatchService.getLatestRun(membership.projectId);
   }
 
   @Get('/projects/:id/automatch/runs/:runUid')
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner')
   @UseGuards(ProjectPermissionsGuard)
   async getRun(
     @Membership() membership: ProjectGuardResponse,
@@ -151,7 +158,7 @@ export class TreeMatchController {
   // between pages, so the run stays in 'planning' for up to one more page.
   @Post('/projects/:id/automatch/runs/:runUid/stop')
   @HttpCode(200)
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner')
   @UseGuards(ProjectPermissionsGuard)
   async stopRun(
     @Membership() membership: ProjectGuardResponse,
@@ -165,7 +172,7 @@ export class TreeMatchController {
   // pairs, which is how the review dialog drops links before applying.
   @Post('/projects/:id/automatch/runs/:runUid/apply')
   @HttpCode(200)
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner')
   @UseGuards(ProjectPermissionsGuard)
   async applyRun(
     @Membership() membership: ProjectGuardResponse,
@@ -181,7 +188,7 @@ export class TreeMatchController {
   }
 
   @Delete('/projects/:id/automatch/runs/:runUid')
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner')
   @UseGuards(ProjectPermissionsGuard)
   async discardRun(
     @Membership() membership: ProjectGuardResponse,

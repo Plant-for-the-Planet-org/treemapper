@@ -23,8 +23,10 @@ import {
 import { TtcContributionsClient } from './ttc-contributions.client';
 import { CENTI, aggregateMatches, exceedsCapacity, toTrees } from './match-math';
 
-// Roles that may claim a project's trees, same set the routes require.
-const MATCHER_ROLES = ['owner', 'admin'];
+// Roles that may claim a project's trees, same set the routes require. Owner
+// only: matching writes totals to TTC on the project's behalf, so it does not
+// follow the app's usual owner-or-admin rule.
+const MATCHER_ROLES = ['owner'];
 
 // A plant location with free trees, as auto-match planning needs it.
 export interface MatchableIntervention {
@@ -336,7 +338,7 @@ export class TreeMatchService {
    *
    * Matching across projects is allowed on purpose: TTC only cares that a
    * contribution's total is right, not which project holds the trees. The route
-   * guard proves owner/admin on the project in the path, which is the
+   * guard proves ownership of the project in the path, which is the
    * contributions side, so every other project the target locations belong to
    * has to be authorized here.
    *
@@ -383,8 +385,11 @@ export class TreeMatchService {
     return allowed;
   }
 
-  // Same membership resolution the route guard uses, so cross-project matching
-  // grants exactly the access the rest of the app already grants.
+  // Same membership resolution the route guard uses, held to the same owner-only
+  // rule the routes are. There is deliberately no workspace-admin fallback here:
+  // the guard would resolve a workspace owner or admin as a project admin, and
+  // admins cannot match, so accepting one on this side would be a way into
+  // another project's trees that the front door does not offer.
   private async assertCanMatchFrom(
     projectUid: string,
     userId: number,
@@ -394,14 +399,8 @@ export class TreeMatchService {
       (await this.projectsService.getMemberRoleFromUid(projectUid, userId));
     if (membership && MATCHER_ROLES.includes(membership.role)) return;
 
-    // Workspace owners and admins reach every project in their workspace; the
-    // guard treats them as project admins, so honour the same rule.
-    const workspaceAdmin =
-      await this.projectsService.getWorkspaceAdminRoleForProject(projectUid, userId);
-    if (workspaceAdmin) return;
-
     throw new ForbiddenException(
-      'You need to be owner or admin of the project the plant locations belong to',
+      'You need to be the owner of the project the plant locations belong to',
     );
   }
 

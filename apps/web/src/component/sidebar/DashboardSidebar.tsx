@@ -78,6 +78,10 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
   const projectRole = selectedProject?.userRole
   const isContributor = projectRole === 'contributor'
   const isAdminOrOwner = projectRole === 'admin' || projectRole === 'owner'
+  // TreeMatch is owner-only, narrower than the admin-or-owner rule everything
+  // else uses: matching writes claims against a project's trees and pushes
+  // totals to the donation backend, which is the owner's call alone.
+  const isOwner = projectRole === 'owner'
 
   // The Workspace settings area is for people who own or admin at least one
   // workspace -- regardless of which project is currently selected. We resolve
@@ -223,10 +227,11 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         // ...(isAdminOrOwner ? [{ icon: Smartphone, label: 'Devices', id: 'device-management' }] : []),
       ],
     },
-    ...(isPlatformProjectWorkspace ? [{
+    ...((isPlatformProjectWorkspace && isOwner) ? [{
       label: 'Matching',
       items: [
-        // Dummy TreeMatch UI (mock data). Real build gates this on role + matching-enabled flag.
+        // Owner-only. The page repeats the check, so a direct URL does not get
+        // past it either. A per-project matching-enabled flag is still to come.
         { icon: Link2, label: 'TreeMatch', id: 'treematch' },
       ],
     }] : []),

@@ -91,8 +91,7 @@ export function ExportDialog({ open, onOpenChange, interventions, contributions 
             <FileSpreadsheet size={14} /> Download two files
           </Button>
           <p className="text-[11px] text-muted-foreground">
-            Covers the records loaded in the lists; use Load more to pull in older pages first.
-            The real build exports an .xlsx with two sheets (plant locations + donations); this downloads CSV.
+            Covers the records loaded in the lists, so use Load more first if you need older pages.
           </p>
         </div>
       </DialogContent>

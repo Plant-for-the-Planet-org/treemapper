@@ -1,597 +1,124 @@
 'use client'
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
-import type { DateRange } from 'react-day-picker';
-import {
-  Link2, Download, Search, List, Map as MapIcon,
-  CheckCircle2, Sprout, Play, Info, ArrowLeftRight, Loader2, Wand2,
-} from 'lucide-react';
+import { ArrowLeftRight, Download, Lock, Play, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 import { useToken } from '@/context/useTokenContext';
-import {
-  getTreematchInterventions, getTreematchContributions, postTreematchMatches,
-  patchTreematchContributionIgnore, getUserProjectSites,
-  getTreematchRules, putTreematchRules, postTreematchAutomatchRun,
-  getTreematchAutomatchRun, getTreematchLatestAutomatchRun,
-  postTreematchAutomatchApply, deleteTreematchAutomatchRun,
-  postTreematchAutomatchStop,
-} from '@shared-core/fetchApi/api.fetch';
+import { postTreematchMatches } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useTopBarActions } from '@/component/header/TopBarActions';
 
-import { PlantingDateFilter } from './component/PlantingDateFilter';
-import { InterventionMatchCard } from './component/InterventionMatchCard';
-import { TreeMatchMap } from './component/TreeMatchMap';
-import { DonationCard } from './component/DonationCard';
+import { StatsRibbon } from './component/StatsRibbon';
+import { LocationsPane } from './component/LocationsPane';
+import { MatchConnector } from './component/MatchConnector';
+import { DonationsPane } from './component/DonationsPane';
 import { ExportDialog } from './component/ExportDialog';
 import { MatchConfirmDialog, PreviewAllocation } from './component/MatchConfirmDialog';
 import { RulesDialog } from './component/RulesDialog';
 import { AutomatchPlanDialog } from './component/AutomatchPlanDialog';
+import { useFeedback } from './component/hooks/useFeedback';
+import { useTreematchLocations } from './component/hooks/useTreematchLocations';
+import { useTreematchDonations } from './component/hooks/useTreematchDonations';
+import { useMatchSelection } from './component/hooks/useMatchSelection';
+import { useAutomatchRun } from './component/hooks/useAutomatchRun';
 import {
-  TreeMatchIntervention, Contribution, TreeMatchPagination, MatchPair, MatchAmounts,
-  MAX_MATCH_PAIRS, COUNTRY_OPTIONS, AutomatchRun, AutomatchPlanPair, DraftRule, TreeMatchRule,
-  fmtNum, fmtTrees, contribMatchState, contribAvailable, availableTrees, requestedTrees,
+  COUNTRY_OPTIONS, MAX_MATCH_PAIRS, MatchPair,
+  contribAvailable, fmtNum, fmtTrees,
 } from './component/types';
 
-const PAGE_SIZE = 20;
-
-// A run plans in the background: the POST returns as soon as the row exists and
-// the sweep of the donation backend carries on server-side. Each page it reads
-// is a serialized ~700ms round trip, so this polls at a human pace rather than
-// a tight one, and gives up rather than hanging forever.
-const RUN_POLL_MS = 1500;
-const RUN_POLL_TIMEOUT_MS = 3 * 60 * 1000;
-const EMPTY_PAGINATION: TreeMatchPagination = { total: 0, page: 1, limit: PAGE_SIZE, totalPages: 0 };
-
-const Stat = ({
-  icon: Icon, label, value, iconClass, valueClass, description,
-}: {
-  icon: React.ElementType; label: string; value: string;
-  iconClass: string; valueClass?: string; description: string;
-}) => (
-  <div className="flex items-center gap-3 px-4 py-3.5 min-w-0">
-    <div className={cn('h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0', iconClass)}>
-      <Icon size={17} />
-    </div>
-    <div className="min-w-0">
-      <div className={cn('text-2xl font-bold tracking-tight leading-none', valueClass ?? 'text-foreground')}>{value}</div>
-      <div className="flex items-center gap-1 mt-1">
-        <span className="text-[11px] text-muted-foreground whitespace-nowrap">{label}</span>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Info size={11} className="text-muted-foreground/70 cursor-help flex-shrink-0" />
-          </TooltipTrigger>
-          <TooltipContent side="bottom">{description}</TooltipContent>
-        </Tooltip>
-      </div>
-    </div>
-  </div>
-);
-
-interface Site { id: number | string; uid: string; name: string; }
-
-// Rule uids change on every save, so "has anything changed" compares the bodies
-// and ignores both the uid and the client-only key.
-const stripLocalIds = (list: DraftRule[]) =>
-  list.map(({ localId, uid, ...rest }) => rest);
-
-// API rule -> editable draft. The client key is stable for the row's lifetime;
-// the server uid is kept so a save can be told apart from a first write.
-const toDraft = (rule: TreeMatchRule, idx: number): DraftRule => ({
-  localId: `saved_${rule.uid}_${idx}`,
-  uid: rule.uid,
-  enabled: rule.enabled,
-  label: rule.label,
-  when: rule.when,
-  prefer: rule.prefer,
-  orderBy: rule.orderBy,
-  action: rule.action,
-});
-
+// TreeMatch is owner-only. The sidebar hides the section for everyone else;
+// this repeats the check so a direct URL gets the same answer, and it wraps the
+// screen rather than sitting inside it so none of its hooks mount and none of
+// its requests fire for someone who may not make them.
+//
+// The project list is already in the store by the time this renders: the
+// dashboard layout holds its children behind a spinner until it has loaded, so
+// a missing project here means no access rather than "not yet".
 export default function TreeMatchPage() {
   const { projectUid } = useParams<{ projectUid: string }>();
+  const myProjects = useProjectStore(s => s.projects);
+  const project = myProjects.find(p => p.uid === projectUid);
+  const isOwner = project?.userRole === 'owner';
+
+  if (!isOwner) {
+    return (
+      <div className="w-full flex-1 min-h-0 flex items-center justify-center bg-muted/30 p-6">
+        <div className="max-w-sm rounded-xl border border-border bg-background px-6 py-8 text-center">
+          <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-muted">
+            <Lock size={18} className="text-muted-foreground" />
+          </div>
+          <h2 className="text-[15px] font-semibold text-foreground">TreeMatch is owner-only</h2>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Matching donations to planted trees is limited to the project owner.
+            Ask them if you need something matched.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // The name is only used to word messages about the project, so a project that
+  // somehow is not in the store falls back rather than blocking the screen.
+  return <TreeMatchWorkspace projectUid={projectUid} projectName={project?.name || 'This project'} />;
+}
+
+/**
+ * The screen itself: two panes that own their own data, a selection that reads
+ * both, and auto-match beside them. This holds what genuinely spans all of them,
+ * which is the manual match write and the dialogs it opens.
+ */
+function TreeMatchWorkspace({ projectUid, projectName }: { projectUid: string; projectName: string }) {
   const { accessToken } = useToken();
 
-  // Plant locations can come from any project where the user is owner or admin.
-  // The server authorizes every source project on the write, so a match can
-  // span projects; TTC does not care which project holds the trees. Donations
-  // always belong to the current project.
-  const myProjects = useProjectStore(s => s.projects);
-  const [ivProjectUid, setIvProjectUid] = useState<string>(projectUid);
-  useEffect(() => { setIvProjectUid(projectUid); }, [projectUid]);
-  const matchProjects = useMemo(() => {
-    const list = myProjects.filter(p => p.userRole === 'owner' || p.userRole === 'admin');
-    if (!list.some(p => p.uid === projectUid)) {
-      const current = myProjects.find(p => p.uid === projectUid);
-      if (current) list.unshift(current);
-    }
-    return list;
-  }, [myProjects, projectUid]);
-  const ivProjectName = myProjects.find(p => p.uid === ivProjectUid)?.name;
-  const crossProject = ivProjectUid !== projectUid;
+  const feedback = useFeedback();
+  const locations = useTreematchLocations(projectUid, accessToken);
+  const donations = useTreematchDonations(projectUid, accessToken, feedback);
+  const selection = useMatchSelection({
+    interventions: locations.items,
+    contributions: donations.items,
+    locationGeneration: locations.generation,
+    donationGeneration: donations.generation,
+  });
 
-  // Server data: plant locations (left) and donations (right), page-appended.
-  const [interventions, setInterventions] = useState<TreeMatchIntervention[]>([]);
-  const [ivPagination, setIvPagination] = useState<TreeMatchPagination>(EMPTY_PAGINATION);
-  const [ivLoading, setIvLoading] = useState(false);
-  const [ivLoadingMore, setIvLoadingMore] = useState(false);
-  const [ivError, setIvError] = useState<string | null>(null);
-  const [notReadyCount, setNotReadyCount] = useState(0);
-  const [serverStats, setServerStats] = useState({ plantedTrees: 0, matchedTrees: 0 });
-  const [sites, setSites] = useState<Site[]>([]);
-
-  const [contributions, setContributions] = useState<Contribution[]>([]);
-  const [donPagination, setDonPagination] = useState<TreeMatchPagination>(EMPTY_PAGINATION);
-  const [donLoading, setDonLoading] = useState(false);
-  const [donLoadingMore, setDonLoadingMore] = useState(false);
-  const [donError, setDonError] = useState<string | null>(null);
-
-  // Ignored donations are a separate view on the server (`ignored=true`), never
-  // mixed into the default one, so they get their own list and pagination.
-  // Loaded when the tab is first opened rather than on mount: the contributions
-  // endpoint proxies TTC, which serves these one at a time (~700ms each), so an
-  // eager fetch doubled the time to first paint of a pane nobody was looking at.
-  const [ignoredList, setIgnoredList] = useState<Contribution[]>([]);
-  const [ignoredPagination, setIgnoredPagination] = useState<TreeMatchPagination>(EMPTY_PAGINATION);
-  const [ignoredLoading, setIgnoredLoading] = useState(false);
-  const [ignoredLoadingMore, setIgnoredLoadingMore] = useState(false);
-  const [ignoredError, setIgnoredError] = useState<string | null>(null);
-  // Until it has been fetched once there is no real total, so the tab shows no
-  // count rather than a misleading zero.
-  const [ignoredLoaded, setIgnoredLoaded] = useState(false);
-  // Set when an ignore/restore changes a list the user is not currently on, so
-  // the refetch happens on the next visit instead of costing a call now.
-  const donStale = useRef(false);
-  const ignoredStale = useRef(false);
-
-  // React StrictMode invokes every mount effect twice in development, and each
-  // duplicate costs another serialized TTC round trip. Identical requests that
-  // are already in flight are collapsed into one; `force` opts out, so a reload
-  // that follows a write is never swallowed.
-  const inFlight = useRef(new Set<string>());
-
-  const [selInterv, setSelInterv] = useState<Set<string>>(new Set());
-  const [selContrib, setSelContrib] = useState<Set<number>>(new Set());
-  // Partial matching. Only donations the user has typed a number into appear
-  // here; everything else claims its full open amount, so an untouched card
-  // behaves exactly as it did before this existed.
-  const [matchAmounts, setMatchAmounts] = useState<MatchAmounts>({});
-
-  // Left-pane filters (all applied server-side)
-  const [leftView, setLeftView] = useState<'list' | 'map'>('list');
-  // Location whose detail card is open on the map (marker click or "View on map").
-  const [mapFocus, setMapFocus] = useState<string | null>(null);
-  const [ivType, setIvType] = useState('all');
-  const [ivSite, setIvSite] = useState('all'); // 'all' | 'none' | site id
-  const [ivDates, setIvDates] = useState<DateRange | undefined>(undefined);
-  const [onlyAvailable, setOnlyAvailable] = useState(true);
-  const [ivSearch, setIvSearch] = useState('');
-  const [debouncedIvSearch, setDebouncedIvSearch] = useState('');
-
-  // Right-pane filters. Sort, donor type and country are applied server-side
-  // (they map to the TTC contributions filters); match state and the reference
-  // search work on the loaded items.
-  const [rightTab, setRightTab] = useState('toMatch');
-  const [sort, setSort] = useState<'oldest' | 'newest'>('oldest');
-  const [profileType, setProfileType] = useState<'all' | 'individual' | 'company'>('all');
-  const [country, setCountry] = useState('all');
-  const [matchState, setMatchState] = useState<'all' | 'none' | 'partial' | 'complete'>('all');
-  const [donSearch, setDonSearch] = useState('');
-
-  // Dialogs + feedback
   const [exportOpen, setExportOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [matchSubmitting, setMatchSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   // The match error belongs in the confirm dialog, where the retry happens.
   const [matchError, setMatchError] = useState<string | null>(null);
-  const [lastAction, setLastAction] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
-  // Trees matched since the last interventions fetch; added to the server
-  // total for an optimistic ribbon, and reset whenever fresh server stats
-  // (which include these matches) arrive.
-  const [sessionMatchedTrees, setSessionMatchedTrees] = useState(0);
 
-  // Auto-match. Rules are edited as a whole list and saved as a whole list, so
-  // they are held as drafts with a client-only key: the server hands out fresh
-  // uids on every save.
-  const [rulesOpen, setRulesOpen] = useState(false);
-  const [rules, setRules] = useState<DraftRule[]>([]);
-  const [savedRules, setSavedRules] = useState<DraftRule[]>([]);
-  const [rulesLoaded, setRulesLoaded] = useState(false);
-  // Auto-match fills this project's plant locations only, so a rule's preferred
-  // site has to be one of this project's sites. `sites` follows the left pane,
-  // which can be showing a different project, so it cannot be reused there.
-  const [ruleSites, setRuleSites] = useState<Site[]>([]);
-  const [rulesSaving, setRulesSaving] = useState(false);
-  const [rulesError, setRulesError] = useState<string | null>(null);
-  const [maxTrees, setMaxTrees] = useState('');
+  const automatch = useAutomatchRun({
+    projectUid,
+    accessToken,
+    sites: locations.sites,
+    crossProject: locations.crossProject,
+    feedback,
+    reloadLocations: locations.reload,
+    reloadDonations: donations.reload,
+    onApplied: ({ byUid, applied, trees, donations: donationCount }) => {
+      locations.noteMatched(byUid, trees);
+      donations.applyTotals(applied);
+      // The plan may have used donations that are not on a loaded page, so what
+      // is on screen can lag. Reload it on the next visit rather than now.
+      donations.markStale();
+      feedback.notify(`Auto-matched ${fmtTrees(trees)} trees across ${fmtNum(donationCount)} donation(s).`);
+    },
+  });
 
-  // A run holds the project's only run slot until it is applied or discarded,
-  // so an open plan is picked up again on the next visit rather than stranded.
-  const [run, setRun] = useState<AutomatchRun | null>(null);
-  const [planOpen, setPlanOpen] = useState(false);
-  const [running, setRunning] = useState(false);
-  const [applying, setApplying] = useState(false);
-  const [discarding, setDiscarding] = useState(false);
-  const [planError, setPlanError] = useState<string | null>(null);
-  const [stopping, setStopping] = useState(false);
-  const [runElapsed, setRunElapsed] = useState(0);
-  // Stops the poll loop if the page unmounts mid-run. Set back to true on
-  // mount, not just cleared on unmount: StrictMode runs mount, cleanup, mount
-  // in development, so a cleanup-only ref stays false for the rest of the
-  // session and every poll gives up before its first request.
-  const pollAlive = useRef(true);
-  useEffect(() => {
-    pollAlive.current = true;
-    return () => { pollAlive.current = false; };
-  }, []);
-
-  // The elapsed readout ticks locally rather than off the poll: a run's progress
-  // only changes when a donation page lands (~0.7s), and a counter that freezes
-  // between them reads as a stall.
-  useEffect(() => {
-    if (!running) { setRunElapsed(0); return; }
-    const startedAt = Date.now();
-    const t = setInterval(() => setRunElapsed(Math.floor((Date.now() - startedAt) / 1000)), 1000);
-    return () => clearInterval(t);
-  }, [running]);
-
-  const rulesDirty = useMemo(
-    () => JSON.stringify(stripLocalIds(rules)) !== JSON.stringify(stripLocalIds(savedRules)),
-    [rules, savedRules],
+  // Planted and matched are project-wide and come from the server, independent
+  // of the filters. Open donation trees can only be summed over loaded pages.
+  const openDonationTrees = useMemo(
+    () => donations.items.reduce((sum, c) => sum + contribAvailable(c), 0),
+    [donations.items],
   );
 
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedIvSearch(ivSearch), 400);
-    return () => clearTimeout(t);
-  }, [ivSearch]);
-
-  const fetchInterventions = async (page: number, append: boolean, force = false) => {
-    if (!ivProjectUid || !accessToken) return;
-    const key = `iv:${ivProjectUid}:${page}:${append}:${ivType}:${ivSite}:${onlyAvailable}:${debouncedIvSearch}`
-      + `:${ivDates?.from?.toISOString() ?? ''}:${ivDates?.to?.toISOString() ?? ''}`;
-    if (!force && inFlight.current.has(key)) return;
-    inFlight.current.add(key);
-    if (append) setIvLoadingMore(true); else setIvLoading(true);
-    setIvError(null);
-    try {
-      const response = await getTreematchInterventions(accessToken, ivProjectUid, {
-        page,
-        limit: PAGE_SIZE,
-        type: ivType !== 'all' ? ivType : undefined,
-        siteId: ivSite !== 'all' && ivSite !== 'none' ? ivSite : undefined,
-        noSite: ivSite === 'none' ? true : undefined,
-        interventionStartDate: ivDates?.from ? format(ivDates.from, 'yyyy-MM-dd') : undefined,
-        interventionStartDateTo: ivDates?.to ? format(ivDates.to, 'yyyy-MM-dd') : undefined,
-        search: debouncedIvSearch || undefined,
-        onlyAvailable: onlyAvailable ? true : undefined,
-      });
-      if (response?.statusCode === 200 && response.data) {
-        // The endpoint has no notion of the page's project, so the source
-        // project name is stamped here when browsing another owned project.
-        const sourceName = crossProject ? (ivProjectName ?? 'Other project') : undefined;
-        const raw: TreeMatchIntervention[] = response.data.items || [];
-        const items = sourceName ? raw.map(i => ({ ...i, crossProjectName: sourceName })) : raw;
-        setInterventions(prev => (append ? [...prev, ...items] : items));
-        setIvPagination(response.data.pagination || EMPTY_PAGINATION);
-        setNotReadyCount(response.data.notReadyCount || 0);
-        setServerStats(response.data.stats || { plantedTrees: 0, matchedTrees: 0 });
-        // Fresh stats are summed from the allocation table and already include
-        // everything matched this session.
-        setSessionMatchedTrees(0);
-        if (!append) setSelInterv(new Set());
-      } else {
-        throw new Error(response?.message || 'Failed to load plant locations');
-      }
-    } catch (err) {
-      console.error('Error fetching TreeMatch interventions:', err);
-      setIvError(err instanceof Error ? err.message : 'Failed to load plant locations');
-      if (!append) { setInterventions([]); setIvPagination(EMPTY_PAGINATION); }
-    } finally {
-      inFlight.current.delete(key);
-      setIvLoading(false);
-      setIvLoadingMore(false);
-    }
-  };
-
-  const fetchContributions = async (page: number, append: boolean, force = false) => {
-    if (!projectUid || !accessToken) return;
-    const key = `don:${projectUid}:${page}:${append}:${sort}:${profileType}:${country}`;
-    if (!force && inFlight.current.has(key)) return;
-    inFlight.current.add(key);
-    if (append) setDonLoadingMore(true); else setDonLoading(true);
-    setDonError(null);
-    try {
-      const response = await getTreematchContributions(accessToken, projectUid, {
-        page,
-        limit: PAGE_SIZE,
-        sort,
-        profileType: profileType !== 'all' ? profileType : undefined,
-        country: country !== 'all' ? country : undefined,
-      });
-      if (response?.statusCode === 200 && response.data) {
-        const items: Contribution[] = response.data.items || [];
-        setContributions(prev => (append ? [...prev, ...items] : items));
-        setDonPagination(response.data.pagination || EMPTY_PAGINATION);
-        // A fresh page replaces the rows, so the open amounts the partials were
-        // typed against are gone too. Appends keep both: they are keyed by id.
-        if (!append) { setSelContrib(new Set()); setMatchAmounts({}); }
-      } else {
-        throw new Error(response?.message || 'Failed to load donations');
-      }
-    } catch (err) {
-      console.error('Error fetching TreeMatch contributions:', err);
-      setDonError(err instanceof Error ? err.message : 'Failed to load donations');
-      if (!append) { setContributions([]); setDonPagination(EMPTY_PAGINATION); }
-    } finally {
-      inFlight.current.delete(key);
-      donStale.current = false;
-      setDonLoading(false);
-      setDonLoadingMore(false);
-    }
-  };
-
-  // The ignored view takes no donor or country filter: the server skips them
-  // in this mode.
-  const fetchIgnored = async (page: number, append: boolean, force = false) => {
-    if (!projectUid || !accessToken) return;
-    const key = `ign:${projectUid}:${page}:${append}`;
-    if (!force && inFlight.current.has(key)) return;
-    inFlight.current.add(key);
-    if (append) setIgnoredLoadingMore(true); else setIgnoredLoading(true);
-    setIgnoredError(null);
-    try {
-      const response = await getTreematchContributions(accessToken, projectUid, {
-        page,
-        limit: PAGE_SIZE,
-        ignored: true,
-      });
-      if (response?.statusCode === 200 && response.data) {
-        const items: Contribution[] = response.data.items || [];
-        setIgnoredList(prev => (append ? [...prev, ...items] : items));
-        setIgnoredPagination(response.data.pagination || EMPTY_PAGINATION);
-      } else {
-        throw new Error(response?.message || 'Failed to load ignored donations');
-      }
-    } catch (err) {
-      console.error('Error fetching ignored TreeMatch contributions:', err);
-      setIgnoredError(err instanceof Error ? err.message : 'Failed to load ignored donations');
-      if (!append) { setIgnoredList([]); setIgnoredPagination(EMPTY_PAGINATION); }
-    } finally {
-      inFlight.current.delete(key);
-      ignoredStale.current = false;
-      setIgnoredLoaded(true);
-      setIgnoredLoading(false);
-      setIgnoredLoadingMore(false);
-    }
-  };
-
-  // Refetch page 1 whenever a server-side filter changes.
-  useEffect(() => {
-    fetchInterventions(1, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, ivProjectUid, ivType, ivSite, ivDates, onlyAvailable, debouncedIvSearch]);
-
-  useEffect(() => {
-    fetchContributions(1, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, projectUid, sort, profileType, country]);
-
-  // Switching projects invalidates the ignored view without fetching it: the
-  // next visit to the tab reloads it.
-  useEffect(() => {
-    setIgnoredList([]);
-    setIgnoredPagination(EMPTY_PAGINATION);
-    setIgnoredLoaded(false);
-    ignoredStale.current = false;
-  }, [projectUid]);
-
-  // The site filter lists the sites of whichever project is selected in the
-  // plant-locations pane.
-  useEffect(() => {
-    if (!ivProjectUid || !accessToken) return;
-    getUserProjectSites(accessToken, ivProjectUid)
-      .then(response => {
-        if (response?.statusCode === 200) setSites(response.data || []);
-      })
-      .catch(err => console.error('Error fetching sites:', err));
-  }, [ivProjectUid, accessToken]);
-
-  // Switching the source project invalidates the site filter and map focus.
-  const changeIvProject = (uid: string) => {
-    if (uid === ivProjectUid) return;
-    setIvProjectUid(uid);
-    setIvSite('all');
-    setMapFocus(null);
-  };
-
-  // Each view is fetched on the first visit, then only when a write elsewhere
-  // has made it stale. Switching back and forth costs nothing.
-  const changeRightTab = (tab: string) => {
-    setRightTab(tab);
-    if (tab === 'ignored' && (!ignoredLoaded || ignoredStale.current)) {
-      fetchIgnored(1, false, true);
-    }
-    if (tab === 'toMatch' && donStale.current) {
-      fetchContributions(1, false, true);
-    }
-  };
-
-  // The default server view never contains ignored donations, so only the
-  // client-side filters apply here.
-  //
-  // Sort, donor type and country are server-side and cover the whole project.
-  // These two are not: TTC's contributions endpoint has no reference search and
-  // no allocation-state filter, so they can only narrow the pages already
-  // fetched. Everything below that reports a count says which set it counted,
-  // because a filtered miss and an unfetched page look identical otherwise.
-  const shownContributions = useMemo(() => {
-    let list = contributions;
-    if (matchState !== 'all') list = list.filter(c => contribMatchState(c) === matchState);
-    if (donSearch.trim()) {
-      const q = donSearch.trim().toLowerCase();
-      list = list.filter(c => c.donation.uid.toLowerCase().includes(q));
-    }
-    return list;
-  }, [contributions, matchState, donSearch]);
-
-  const localFilterActive = matchState !== 'all' || donSearch.trim() !== '';
-  const moreDonPages = donPagination.page < donPagination.totalPages;
-  const donNotSearched = Math.max(0, donPagination.total - contributions.length);
-
-  // The reference search and the match-state filter run over loaded pages only
-  // (TTC offers neither), so "rows on screen" and "donations that exist" are two
-  // different numbers. While one of those filters is on, this line is the only
-  // place either number is spelled out, and the pane's footer button is hidden:
-  // a full-width "load more" under a one-row list reads as "more rows below",
-  // which is exactly the wrong thing to say. Paging deeper survives as a link
-  // inside this note, where it reads as searching rather than as pagination.
-  const donFilterNote = useMemo(() => {
-    if (!localFilterActive) return null;
-    const shown = shownContributions.length;
-    const searched = contributions.length;
-    if (!moreDonPages) {
-      return shown === 0
-        ? 'No donation matches these filters.'
-        : `Showing ${fmtNum(shown)} of ${fmtNum(searched)} donation${searched === 1 ? '' : 's'}.`;
-    }
-    const scope = `the first ${fmtNum(searched)} of ${fmtNum(donPagination.total)} donations`;
-    return shown === 0
-      ? `No match in ${scope}.`
-      : `Showing ${fmtNum(shown)} of ${scope}.`;
-  }, [localFilterActive, shownContributions.length, contributions.length, moreDonPages, donPagination.total]);
-
-  // Project-level stats. Planted and matched come from the server (project-wide,
-  // independent of filters); matched adds this session's matches until the next
-  // fetch. Open donation trees can only be summed over the loaded pages.
-  const stats = useMemo(() => {
-    const planted = serverStats.plantedTrees;
-    const matched = serverStats.matchedTrees + sessionMatchedTrees;
-    const openDon = contributions.reduce((s, c) => s + contribAvailable(c), 0);
-    return { planted, matched, unmatched: Math.max(0, planted - matched), openDon };
-  }, [serverStats, sessionMatchedTrees, contributions]);
-
-  const selIntervList = interventions.filter(i => selInterv.has(i.uid));
-  const selContribList = contributions.filter(c => selContrib.has(c.id));
-  // Coverage: do the selected plant locations hold enough trees for what the
-  // selected donations are asking for? Demand is the requested amount, not the
-  // open amount, so a partial shrinks the number on the connector too.
-  const selSupply = selIntervList.reduce((s, i) => s + availableTrees(i), 0);
-  const selDemand = selContribList.reduce((s, c) => s + requestedTrees(c, matchAmounts), 0);
-  const matchable = Math.min(selSupply, selDemand);
-  const canMatch = selIntervList.length > 0 && selContribList.length > 0 && selDemand > 0;
-
-  // Selection guards. The greedy fill walks the donations and consumes locations
-  // only until each one is satisfied, so a location picked after the selection
-  // already covers the demand is never reached, and a donation picked after the
-  // locations are exhausted only adds shortfall. Both rules block *adding* only;
-  // deselecting always works. They cannot trap the user either: whichever side
-  // is short stays open, and when the two are exactly equal nothing more is
-  // needed anyway.
-  const supplyCoversDemand = selDemand > 0 && selSupply >= selDemand;
-  const demandCoversSupply = selSupply > 0 && selDemand >= selSupply;
-  const intervBlocked = (uid: string) => supplyCoversDemand && !selInterv.has(uid);
-  const contribBlocked = (id: number) => demandCoversSupply && !selContrib.has(id);
-
-  // Guarded in the handlers, not just on the cards: the map view toggles
-  // locations through this same function and would otherwise walk past the rule.
-  const toggleInterv = (uid: string) => {
-    if (intervBlocked(uid)) return;
-    setSelInterv(prev => { const n = new Set(prev); n.has(uid) ? n.delete(uid) : n.add(uid); return n; });
-  };
-  const toggleContrib = (id: number) => {
-    if (contribBlocked(id)) return;
-    const turningOn = !selContrib.has(id);
-    // Ticking a donation whose field was cleared means "match this one", so the
-    // empty field goes back to the full open amount instead of asking for zero.
-    if (turningOn && Number(matchAmounts[id] ?? NaN) <= 0) {
-      setMatchAmounts(prev => { const n = { ...prev }; delete n[id]; return n; });
-    }
-    setSelContrib(prev => { const n = new Set(prev); turningOn ? n.add(id) : n.delete(id); return n; });
-  };
-
-  // Typing a number is itself the selection: it picks the donation up, and
-  // clearing the field puts it back down. That keeps the field and the checkbox
-  // from ever disagreeing about whether the donation is in the match.
-  const setMatchAmount = (id: number, raw: string) => {
-    // Typing is a selection, so it has to respect the same block the checkbox
-    // does, or the field becomes a way around it.
-    if (contribBlocked(id)) return;
-    setMatchAmounts(prev => ({ ...prev, [id]: raw }));
-    const trees = raw === '' ? 0 : Number(raw);
-    setSelContrib(prev => {
-      const n = new Set(prev);
-      if (trees > 0) n.add(id); else n.delete(id);
-      return n;
-    });
-  };
-
-  // "Max": forget the partial. The card then shows the exact open amount again,
-  // fraction included, which a whole-tree field could not have been typed back.
-  const resetMatchAmount = (id: number) => {
-    setMatchAmounts(prev => { const n = { ...prev }; delete n[id]; return n; });
-    setSelContrib(prev => new Set(prev).add(id));
-  };
-
-  // The ignore flag lives in TTC, and the two list views are separate, so
-  // ignoring moves a donation from one to the other. The row is dropped from the
-  // view it leaves right away, and the view it joins is refetched behind that.
-  const setIgnoreFlag = async (id: number, ignoreValue: boolean) => {
-    if (!projectUid || !accessToken) return;
-    setActionError(null);
-
-    if (ignoreValue) {
-      setContributions(prev => prev.filter(c => c.id !== id));
-      setDonPagination(prev => ({ ...prev, total: Math.max(0, prev.total - 1) }));
-      setSelContrib(prev => { const n = new Set(prev); n.delete(id); return n; });
-      setMatchAmounts(prev => { const n = { ...prev }; delete n[id]; return n; });
-    } else {
-      setIgnoredList(prev => prev.filter(c => c.id !== id));
-      setIgnoredPagination(prev => ({ ...prev, total: Math.max(0, prev.total - 1) }));
-    }
-
-    try {
-      const response = await patchTreematchContributionIgnore(accessToken, projectUid, id, ignoreValue);
-      if (response?.statusCode && response.statusCode !== 200) {
-        throw new Error(response?.message || 'The server rejected the change');
-      }
-      // The row joined the other view, which the user is not on. Reload it only
-      // if it is on screen; otherwise mark it stale and let the next visit pay
-      // for the round trip.
-      if (ignoreValue) {
-        if (rightTab === 'ignored') fetchIgnored(1, false, true);
-        else ignoredStale.current = true;
-      } else if (rightTab === 'toMatch') {
-        fetchContributions(1, false, true);
-      } else {
-        donStale.current = true;
-      }
-    } catch (err) {
-      console.error('TreeMatch ignore update failed:', err);
-      setActionError(err instanceof Error ? err.message : 'Failed to update the donation');
-      // The optimistic drop was wrong, so reload the list it was dropped from.
-      if (ignoreValue) fetchContributions(1, false, true); else fetchIgnored(1, false, true);
-    }
-  };
-  const ignore = (id: number) => setIgnoreFlag(id, true);
-  const restore = (id: number) => setIgnoreFlag(id, false);
-
-  // Record the match. The request carries (donation, location) pairs only: the
-  // server derives each donation's new absolute total by summing its own rows,
-  // so this client can never send a stale total. It writes those totals to the
-  // donation backend inside the same transaction, so either everything landed
-  // or nothing did.
+  /**
+   * Record the match. The request carries (donation, location) pairs only: the
+   * server derives each donation's new absolute total by summing its own rows,
+   * so this client can never send a stale total. It writes those totals to the
+   * donation backend inside the same transaction, so either everything landed
+   * or nothing did.
+   */
   const applyMatch = async (allocs: PreviewAllocation[]) => {
     if (!projectUid || !accessToken || allocs.length === 0) return;
 
@@ -612,9 +139,9 @@ export default function TreeMatchPage() {
       return;
     }
 
-    setMatchSubmitting(true);
+    setSubmitting(true);
     setMatchError(null);
-    setActionError(null);
+    feedback.clearError();
     try {
       const response = await postTreematchMatches(accessToken, projectUid, matches);
       const status = Number(response?.statusCode ?? 0);
@@ -623,797 +150,193 @@ export default function TreeMatchPage() {
         // Nothing was written either way. A 409 means a plant location no longer
         // has that many trees free, so the left pane is what moved; anything
         // else came from the donation backend.
-        if (status === 409) fetchInterventions(1, false, true); else fetchContributions(1, false, true);
+        if (status === 409) locations.reload(); else donations.reload();
         return;
       }
 
+      const trees = allocs.reduce((sum, a) => sum + a.trees, 0);
       // No per-location numbers come back, so the left pane is bumped locally
-      // and corrected by the next fetch.
-      setInterventions(prev => prev.map(i => byUid[i.uid]
-        ? { ...i, matchedTrees: Math.min(i.totalTreeCount, i.matchedTrees + byUid[i.uid]) }
-        : i));
+      // and corrected by the next fetch. The right pane takes the donation
+      // backend's accepted absolute totals, so there is nothing to guess at.
+      locations.noteMatched(byUid, trees);
+      donations.applyTotals((response.data.applied || {}) as Record<string, number>);
 
-      // The right pane takes the donation backend's accepted absolute totals,
-      // so there is nothing to guess at.
-      const applied: Record<string, number> = response.data.applied || {};
-      setContributions(prev => prev.map(c => {
-        const total = applied[String(c.id)];
-        if (total === undefined) return c;
-        return { ...c, unitsAllocated: total, available: Math.max(0, c.units - total) };
-      }));
-
-      const trees = allocs.reduce((s, a) => s + a.trees, 0);
-      setSessionMatchedTrees(prev => prev + trees);
-      setSelInterv(new Set());
-      setSelContrib(new Set());
-      setMatchAmounts({});
+      selection.clear();
       setConfirmOpen(false);
-      setLastAction(`Matched ${fmtTrees(trees)} trees across ${fmtNum(matches.length)} plant location link(s).`);
+      feedback.notify(`Matched ${fmtTrees(trees)} trees across ${fmtNum(matches.length)} plant location link(s).`);
     } catch (err) {
       console.error('TreeMatch match failed:', err);
       setMatchError(err instanceof Error ? err.message : 'Failed to record the match');
     } finally {
-      setMatchSubmitting(false);
+      setSubmitting(false);
     }
   };
-
-  // --- Auto-match -----------------------------------------------------------
-
-  // Rules and any open plan load together on the first visit to the dialog, not
-  // on mount: neither is needed to match by hand, and both are extra requests.
-  const openRules = async () => {
-    setRulesOpen(true);
-    if (rulesLoaded || !accessToken || !projectUid) return;
-    try {
-      // The left pane already holds this project's sites unless it has been
-      // pointed at another one, so only that case costs an extra request.
-      if (crossProject) {
-        const siteResponse = await getUserProjectSites(accessToken, projectUid);
-        if (siteResponse?.statusCode === 200) setRuleSites(siteResponse.data || []);
-      } else {
-        setRuleSites(sites);
-      }
-
-      const response = await getTreematchRules(accessToken, projectUid);
-      if (response?.statusCode === 200) {
-        const drafts = (response.data?.items || []).map(toDraft);
-        setRules(drafts);
-        setSavedRules(drafts);
-        setRulesLoaded(true);
-      } else {
-        setRulesError(response?.message || 'Failed to load the rules');
-      }
-    } catch (err) {
-      console.error('Error fetching auto-match rules:', err);
-      setRulesError(err instanceof Error ? err.message : 'Failed to load the rules');
-    }
-  };
-
-  // Returns the saved list so runRules can save and run in one go.
-  const saveRules = async (): Promise<DraftRule[] | null> => {
-    if (!accessToken || !projectUid) return null;
-    setRulesSaving(true);
-    setRulesError(null);
-    try {
-      const response = await putTreematchRules(
-        accessToken,
-        projectUid,
-        rules.map(r => ({
-          enabled: r.enabled,
-          label: r.label.trim() || 'Rule',
-          when: r.when,
-          prefer: r.prefer,
-          orderBy: r.orderBy,
-          action: r.action,
-        })),
-      );
-      if (response?.statusCode !== 200 || !response?.data) {
-        setRulesError(response?.message || 'Failed to save the rules');
-        return null;
-      }
-      // Fresh uids come back, so the response replaces the local list rather
-      // than being merged into it.
-      const drafts = (response.data.items || []).map(toDraft);
-      setRules(drafts);
-      setSavedRules(drafts);
-      setRulesLoaded(true);
-      return drafts;
-    } catch (err) {
-      console.error('Error saving auto-match rules:', err);
-      setRulesError(err instanceof Error ? err.message : 'Failed to save the rules');
-      return null;
-    } finally {
-      setRulesSaving(false);
-    }
-  };
-
-  // Poll a run until it stops planning. The sweep is server-side, so this only
-  // watches; nothing is written by any of it.
-  const pollRun = async (runUid: string): Promise<AutomatchRun | null> => {
-    const deadline = Date.now() + RUN_POLL_TIMEOUT_MS;
-    for (;;) {
-      if (!pollAlive.current) return null;
-      if (Date.now() > deadline) {
-        setPlanError('The run is taking longer than expected. Reopen the rules to check on it.');
-        return null;
-      }
-      await new Promise(resolve => setTimeout(resolve, RUN_POLL_MS));
-      if (!pollAlive.current) return null;
-
-      const response = await getTreematchAutomatchRun(accessToken, projectUid, runUid);
-      if (response?.statusCode !== 200 || !response?.data) {
-        setPlanError(response?.message || 'Lost track of the run');
-        return null;
-      }
-      const next: AutomatchRun = response.data;
-      setRun(next);
-      if (next.status !== 'planning') return next;
-    }
-  };
-
-  const runRules = async () => {
-    if (!accessToken || !projectUid) return;
-    setPlanError(null);
-    setRulesError(null);
-
-    // The plan is built from what the server has, so unsaved edits are saved
-    // first rather than silently ignored.
-    if (rulesDirty && !(await saveRules())) return;
-
-    setRunning(true);
-    try {
-      const trees = Number.parseInt(maxTrees, 10);
-      const response = await postTreematchAutomatchRun(
-        accessToken,
-        projectUid,
-        Number.isFinite(trees) && trees > 0 ? { maxTrees: trees } : {},
-      );
-      // The route answers 202 (the row exists, the sweep is still going), but
-      // the server wraps every success as statusCode 200 in the body and only
-      // reports the real code on failure. A 409 here means a plan from an
-      // earlier visit is still open.
-      if (Number(response?.statusCode) !== 200 || !response?.data) {
-        setRulesError(response?.message || 'Could not start the run');
-        return;
-      }
-
-      const started: AutomatchRun = response.data;
-      setRun(started);
-      const finished = started.status === 'planning' ? await pollRun(started.uid) : started;
-      if (!finished) return;
-
-      if (finished.status === 'failed') {
-        setRulesError(finished.error || 'The run failed');
-        return;
-      }
-      if (finished.status !== 'planned') return;
-
-      setRulesOpen(false);
-      setPlanOpen(true);
-    } catch (err) {
-      console.error('Auto-match run failed:', err);
-      setRulesError(err instanceof Error ? err.message : 'Could not start the run');
-    } finally {
-      setRunning(false);
-    }
-  };
-
-  // Stop a sweep that is still reading. The run stays in 'planning' until the
-  // page in flight lands, so the poller carries on and opens the plan as usual.
-  const stopRun = async () => {
-    if (!run || !accessToken || !projectUid) return;
-    setStopping(true);
-    try {
-      const response = await postTreematchAutomatchStop(accessToken, projectUid, run.uid);
-      if (Number(response?.statusCode) !== 200) {
-        setRulesError(response?.message || 'Could not stop the run');
-        return;
-      }
-      setRun(prev => (prev ? { ...prev, stopRequested: true } : prev));
-    } catch (err) {
-      console.error('Stopping the auto-match run failed:', err);
-      setRulesError(err instanceof Error ? err.message : 'Could not stop the run');
-    } finally {
-      setStopping(false);
-    }
-  };
-
-  // Applying goes through the same write path as a manual match, so the
-  // response and the panes are updated exactly as they are there.
-  //
-  // `keep` is the subset the review dialog is left holding after the user has
-  // removed links. The server matches those against the plan it stored and
-  // takes the tree amounts from there, so this only ever narrows the write.
-  const applyPlan = async (keep?: AutomatchPlanPair[]) => {
-    if (!run?.plan || !accessToken || !projectUid) return;
-    const pairs = keep ?? run.plan.pairs;
-    if (!pairs.length) return;
-    const isSubset = pairs.length !== run.plan.pairs.length;
-    setApplying(true);
-    setPlanError(null);
-    try {
-      const response = await postTreematchAutomatchApply(
-        accessToken,
-        projectUid,
-        run.uid,
-        isSubset
-          ? pairs.map(p => ({ contributionId: p.contributionId, interventionUid: p.interventionUid }))
-          : undefined,
-      );
-      const status = Number(response?.statusCode ?? 0);
-      if (status !== 200 || !response?.data) {
-        setPlanError(response?.message || 'Failed to record the plan');
-        // Nothing was written. A 409 means a location no longer has that many
-        // trees free, so the left pane moved; anything else came from the
-        // donation backend. Either way the plan is spent.
-        if (status === 409) fetchInterventions(1, false, true);
-        else fetchContributions(1, false, true);
-        setRun(null);
-        return;
-      }
-
-      const byUid: Record<string, number> = {};
-      pairs.forEach(p => { byUid[p.interventionUid] = (byUid[p.interventionUid] || 0) + p.trees; });
-      setInterventions(prev => prev.map(i => byUid[i.uid]
-        ? { ...i, matchedTrees: Math.min(i.totalTreeCount, i.matchedTrees + byUid[i.uid]) }
-        : i));
-
-      const applied: Record<string, number> = response.data.applied || {};
-      setContributions(prev => prev.map(c => {
-        const total = applied[String(c.id)];
-        if (total === undefined) return c;
-        return { ...c, unitsAllocated: total, available: Math.max(0, c.units - total) };
-      }));
-
-      const trees = pairs.reduce((sum, p) => sum + p.trees, 0);
-      const donations = new Set(pairs.map(p => p.contributionId)).size;
-      setSessionMatchedTrees(prev => prev + trees);
-      // The plan may have used donations that are not on a loaded page, so what
-      // is on screen can lag. Reload it on the next visit rather than now.
-      donStale.current = true;
-      setPlanOpen(false);
-      setRun(null);
-      setLastAction(
-        `Auto-matched ${fmtTrees(trees)} trees across ${fmtNum(donations)} donation(s).`,
-      );
-    } catch (err) {
-      console.error('Applying the auto-match plan failed:', err);
-      setPlanError(err instanceof Error ? err.message : 'Failed to record the plan');
-    } finally {
-      setApplying(false);
-    }
-  };
-
-  const discardPlan = async () => {
-    if (!run || !accessToken || !projectUid) return;
-    setDiscarding(true);
-    setPlanError(null);
-    try {
-      const response = await deleteTreematchAutomatchRun(accessToken, projectUid, run.uid);
-      if (response?.statusCode !== 200) {
-        setPlanError(response?.message || 'Failed to discard the plan');
-        return;
-      }
-      setPlanOpen(false);
-      setRun(null);
-    } catch (err) {
-      console.error('Discarding the auto-match plan failed:', err);
-      setPlanError(err instanceof Error ? err.message : 'Failed to discard the plan');
-    } finally {
-      setDiscarding(false);
-    }
-  };
-
-  // A plan left open by an earlier visit still holds the project's run slot, so
-  // it is surfaced rather than blocking the next run with a 409 nobody expects.
-  useEffect(() => {
-    if (!accessToken || !projectUid) return;
-    let cancelled = false;
-    getTreematchLatestAutomatchRun(accessToken, projectUid)
-      .then(response => {
-        if (cancelled || response?.statusCode !== 200) return;
-        const latest: AutomatchRun | null = response.data ?? null;
-        if (latest?.status === 'planned') setRun(latest);
-      })
-      .catch(err => console.error('Error fetching the last auto-match run:', err));
-    return () => { cancelled = true; };
-  }, [accessToken, projectUid]);
-
-  // Switching projects invalidates every auto-match view.
-  useEffect(() => {
-    setRules([]);
-    setSavedRules([]);
-    setRuleSites([]);
-    setRulesLoaded(false);
-    setRulesError(null);
-    setRun(null);
-    setPlanOpen(false);
-    setPlanError(null);
-  }, [projectUid]);
 
   // Page actions live in the shared dashboard top bar, not a second header band.
+  //
+  // The top bar keeps whatever array it was last handed, so everything these
+  // actions read has to be listed below. With no deps they froze at their
+  // mount-time values: the label never became "Review plan" (so a run left open
+  // by an earlier visit was unreachable and the next run 409'd), and the click
+  // handler kept the empty site list, which disabled "a specific site" in the
+  // rules editor for the whole session.
   useTopBarActions(
     [
       {
-        label: run?.status === 'planned' ? 'Review plan' : 'Auto-match',
+        // A run picked up on arrival polls with no dialog open, so the button is
+        // the only thing that can say it is happening. Pressing it opens the
+        // rules, where the progress panel lives.
+        label: automatch.run?.status === 'planned'
+          ? 'Review plan'
+          : automatch.running ? 'Planning…' : 'Auto-match',
         icon: Wand2,
         variant: 'outline' as const,
-        onClick: () => (run?.status === 'planned' ? setPlanOpen(true) : openRules()),
+        onClick: () => (automatch.run?.status === 'planned'
+          ? automatch.setPlanOpen(true)
+          : automatch.openRules()),
       },
       { label: 'Export', icon: Download, variant: 'primary' as const, onClick: () => setExportOpen(true) },
     ],
-    [],
+    [
+      automatch.run?.status, automatch.running, automatch.rulesLoaded,
+      accessToken, projectUid, locations.crossProject, locations.sites,
+    ],
   );
 
   return (
     <div className="w-full flex-1 min-h-0 flex flex-col overflow-hidden bg-muted/30">
       {/* Stats ribbon. The title + actions live in the shared dashboard top bar. */}
       <div className="flex-shrink-0 px-4 pt-3">
-        <div className="rounded-xl border border-border bg-background grid grid-cols-2 lg:grid-cols-4 lg:divide-x divide-border overflow-hidden">
-          <Stat
-            icon={Sprout} label="Trees planted" value={fmtTrees(stats.planted)}
-            iconClass="bg-primary/10 text-primary"
-            description={crossProject
-              ? `Total trees recorded across all plant locations in ${ivProjectName ?? 'the selected project'}, matched and unmatched combined.`
-              : 'Total trees recorded across all plant locations in this project, matched and unmatched combined.'}
-          />
-          <Stat
-            icon={CheckCircle2} label="Matched" value={fmtTrees(stats.matched)}
-            iconClass="bg-primary/10 text-primary" valueClass="text-primary"
-            description="Planted trees already claimed by a donation, across every plant location shown in this pane."
-          />
-          <Stat
-            icon={Sprout} label="Unmatched trees" value={fmtTrees(stats.unmatched)}
-            iconClass="bg-amber-500/10 text-amber-600"
-            description="Planted trees not yet linked to a donation. Trees planted minus matched."
-          />
-          <Stat
-            icon={Link2} label="Open donation trees" value={fmtTrees(stats.openDon)}
-            iconClass="bg-primary/10 text-primary"
-            description="Trees paid for by donors that have not yet been linked to a planted location. Sums the donations loaded so far."
-          />
-        </div>
+        <StatsRibbon
+          planted={locations.plantedTrees}
+          matched={locations.matchedTrees}
+          unmatched={Math.max(0, locations.plantedTrees - locations.matchedTrees)}
+          openDonationTrees={openDonationTrees}
+          sourceProjectName={locations.crossProject
+            ? (locations.projectName ?? 'the selected project')
+            : undefined}
+        />
       </div>
 
-      {lastAction && (
+      {feedback.lastAction && (
         <div className="flex-shrink-0 px-4 pt-2">
           <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-1.5">
-            {lastAction}
+            {feedback.lastAction}
           </div>
         </div>
       )}
-      {actionError && (
+      {feedback.actionError && (
         <div className="flex-shrink-0 px-4 pt-2">
           <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-md px-3 py-1.5">
-            {actionError}
+            {feedback.actionError}
           </div>
         </div>
       )}
 
       <div className="flex-1 min-h-0 flex overflow-hidden px-4 py-3">
-        {/* LEFT: plant locations */}
-        <div className="flex-1 min-w-0 flex flex-col min-h-0 rounded-xl border border-border bg-background overflow-hidden">
-          <div className="flex-shrink-0 px-4 pt-3.5 pb-3 space-y-2.5">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-[15px] font-semibold text-foreground">Plant locations</h2>
-                  <Badge variant="secondary" className="rounded-full px-2 text-[11px]">{fmtNum(ivPagination.total)}</Badge>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">Single &amp; multi-tree · synced &amp; complete</p>
-              </div>
-              <div className="flex items-center rounded-lg bg-muted p-0.5 flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setLeftView('list')}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
-                    leftView === 'list' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
-                  )}
-                >
-                  <List size={13} /> List
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLeftView('map')}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
-                    leftView === 'map' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
-                  )}
-                >
-                  <MapIcon size={13} /> Map
-                </button>
-              </div>
-            </div>
-            {matchProjects.length > 1 && (
-              <div className="space-y-1">
-                <Select value={ivProjectUid} onValueChange={changeIvProject}>
-                  <SelectTrigger className="h-9 w-full text-xs rounded-lg">
-                    <SelectValue placeholder="Select project" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {matchProjects.map(p => (
-                      <SelectItem key={p.uid} value={p.uid}>
-                        {p.name}{p.uid === projectUid ? ' (this project)' : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {crossProject && (
-                  <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                    <ArrowLeftRight size={11} className="flex-shrink-0" />
-                    Cross-project: locations from {ivProjectName ?? 'another project'}, matched to this project&apos;s donations.
-                  </p>
-                )}
-              </div>
-            )}
-            <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input value={ivSearch} onChange={e => setIvSearch(e.target.value)} placeholder="Search HID or site" className="h-9 pl-9 text-xs rounded-lg" />
-            </div>
-            <div className="flex items-center gap-2">
-              <Select value={ivType} onValueChange={setIvType}>
-                <SelectTrigger className="flex-1 h-9 text-xs rounded-lg"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All types</SelectItem>
-                  <SelectItem value="single">Single-tree</SelectItem>
-                  <SelectItem value="multi">Multi-tree</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={ivSite} onValueChange={setIvSite}>
-                <SelectTrigger className="flex-1 h-9 text-xs rounded-lg"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All sites</SelectItem>
-                  {sites.map(s => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}
-                  <SelectItem value="none">Not linked to site</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <PlantingDateFilter value={ivDates} onChange={setIvDates} />
-            <div className="flex items-center gap-4 flex-wrap text-xs text-muted-foreground">
-              <label className="flex items-center gap-1.5"><Checkbox checked={onlyAvailable} onCheckedChange={v => setOnlyAvailable(!!v)} /> Only with available</label>
-            </div>
-          </div>
-          {leftView === 'map' ? (
-            <TreeMatchMap
-              className="flex-1 min-h-0 m-3 mt-0"
-              interventions={interventions}
-              selected={selInterv}
-              focusUid={mapFocus}
-              onFocusChange={setMapFocus}
-              onToggle={toggleInterv}
-              isBlocked={intervBlocked}
-            />
-          ) : (
-            <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2.5">
-              {/* Blocked cards look broken without a reason next to them. */}
-              {supplyCoversDemand && (
-                <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-2">
-                  <Info size={13} className="flex-shrink-0 mt-0.5" />
-                  <span>
-                    These plant locations already cover the selected donations.
-                    Deselect one, or select another donation, to pick more.
-                  </span>
-                </div>
-              )}
-              {notReadyCount > 0 && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-2">
-                  <Info size={13} className="flex-shrink-0" />
-                  {notReadyCount} plant location(s) not shown (still syncing or capture incomplete).
-                </div>
-              )}
-              {ivError && (
-                <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 space-y-1.5">
-                  <p>{ivError}</p>
-                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fetchInterventions(1, false, true)}>Retry</Button>
-                </div>
-              )}
-              {ivLoading && (
-                <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
-                  <Loader2 size={15} className="animate-spin" /> Loading plant locations…
-                </div>
-              )}
-              {!ivLoading && interventions.map(i => (
-                <InterventionMatchCard
-                  key={i.uid}
-                  intervention={i}
-                  checked={selInterv.has(i.uid)}
-                  disabled={intervBlocked(i.uid)}
-                  onToggle={toggleInterv}
-                  onViewMap={(uid) => { setMapFocus(uid); setLeftView('map'); }}
-                />
-              ))}
-              {!ivLoading && !ivError && interventions.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-10">No plant locations match these filters.</p>
-              )}
-              {!ivLoading && ivPagination.page < ivPagination.totalPages && (
-                <Button
-                  variant="outline" size="sm" className="w-full"
-                  disabled={ivLoadingMore}
-                  onClick={() => fetchInterventions(ivPagination.page + 1, true)}
-                >
-                  {ivLoadingMore
-                    ? <><Loader2 size={13} className="animate-spin" /> Loading…</>
-                    : `Load more (${fmtNum(interventions.length)} of ${fmtNum(ivPagination.total)})`}
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
+        <LocationsPane
+          locations={locations}
+          pageProjectUid={projectUid}
+          selected={selection.selInterv}
+          isBlocked={selection.intervBlocked}
+          onToggle={selection.toggleInterv}
+          supplyCoversDemand={selection.supplyCoversDemand}
+        />
 
-        {/* MIDDLE: dashed connector with live match preview */}
-        <div className="relative w-9 flex-shrink-0 self-stretch">
-          <div className="absolute inset-y-2 left-1/2 -translate-x-1/2 border-l border-dashed border-border" />
-          {canMatch && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-1.5">
-              <div key={matchable} className="relative animate-in fade-in zoom-in-75 duration-300">
-                <span aria-hidden className="absolute -inset-1.5 rounded-full border-2 border-emerald-500/40 animate-pulse" />
-                <span aria-hidden className="absolute -inset-3 rounded-full border border-emerald-500/20 animate-pulse [animation-delay:400ms]" />
-                <div className="relative flex h-16 min-w-16 px-2 flex-col items-center justify-center rounded-full bg-emerald-950 text-white shadow-lg ring-4 ring-background">
-                  <span className="text-sm font-bold leading-none tabular-nums whitespace-nowrap">{fmtTrees(matchable)}</span>
-                  <span className="mt-0.5 text-[9px] font-medium uppercase tracking-wider text-emerald-300">trees</span>
-                </div>
-              </div>
-              <span className={cn(
-                'rounded-full bg-background px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap shadow-sm ring-1 ring-border',
-                selSupply >= selDemand ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400',
-              )}>
-                {selSupply === selDemand ? 'exact match' : selSupply > selDemand ? 'fits available' : `short by ${fmtTrees(selDemand - selSupply)}`}
-              </span>
-            </div>
-          )}
-        </div>
+        <MatchConnector
+          supply={selection.supply}
+          demand={selection.demand}
+          active={selection.canMatch}
+        />
 
-        {/* RIGHT: donations */}
-        <div className="flex-1 min-w-0 flex flex-col min-h-0 rounded-xl border border-border bg-background overflow-hidden">
-          <div className="flex-shrink-0 px-4 pt-3.5 pb-3 space-y-2.5">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-[15px] font-semibold text-foreground">Donations</h2>
-                <Badge variant="secondary" className="rounded-full px-2 text-[11px]">
-                  {/* With a local filter on, the badge counts the rows actually
-                    * on screen. The project total is not dropped, it moves into
-                    * the note under the tabs, which is the one line that can
-                    * explain the gap between the two. */}
-                  {fmtNum(rightTab === 'ignored'
-                    ? ignoredPagination.total
-                    : localFilterActive ? shownContributions.length : donPagination.total)}
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">Paid project contributions</p>
-            </div>
-            <Tabs value={rightTab} onValueChange={changeRightTab}>
-              <TabsList className="w-full h-9">
-                <TabsTrigger value="toMatch" className="flex-1 text-xs">To match</TabsTrigger>
-                {/* The count appears once the view has been fetched; before that
-                    there is no server total, and 0 would be a guess. */}
-                <TabsTrigger value="ignored" className="flex-1 text-xs">
-                  Ignored{ignoredLoaded ? ` (${fmtNum(ignoredPagination.total)})` : ''}
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-            {rightTab !== 'ignored' && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="relative flex-1 min-w-[130px]">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <Input value={donSearch} onChange={e => setDonSearch(e.target.value)} placeholder="Search donation ref" className="h-9 pl-9 text-xs rounded-lg" />
-                </div>
-                <Select value={sort} onValueChange={v => setSort(v as typeof sort)}>
-                  <SelectTrigger className="h-9 text-xs rounded-lg w-[104px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="oldest">Oldest</SelectItem>
-                    <SelectItem value="newest">Newest</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={profileType} onValueChange={v => setProfileType(v as typeof profileType)}>
-                  <SelectTrigger className="h-9 text-xs rounded-lg w-[120px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All donors</SelectItem>
-                    <SelectItem value="individual">Individuals</SelectItem>
-                    <SelectItem value="company">Companies</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={country} onValueChange={setCountry}>
-                  <SelectTrigger className="h-9 text-xs rounded-lg w-[120px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All countries</SelectItem>
-                    {COUNTRY_OPTIONS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={matchState} onValueChange={v => setMatchState(v as typeof matchState)}>
-                  <SelectTrigger className="h-9 text-xs rounded-lg w-[150px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All matches</SelectItem>
-                    <SelectItem value="none">No trees matched</SelectItem>
-                    <SelectItem value="partial">Partly matched</SelectItem>
-                    <SelectItem value="complete">Fully matched</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-          <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2.5">
-            {rightTab === 'ignored' ? (
-              <>
-                {ignoredError && (
-                  <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 space-y-1.5">
-                    <p>{ignoredError}</p>
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fetchIgnored(1, false, true)}>Retry</Button>
-                  </div>
-                )}
-                {ignoredLoading && (
-                  <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
-                    <Loader2 size={15} className="animate-spin" /> Loading ignored donations…
-                  </div>
-                )}
-                {!ignoredLoading && ignoredList.map(c => (
-                  <DonationCard
-                    key={c.id}
-                    contribution={c}
-                    checked={false}
-                    onToggle={toggleContrib}
-                    onRestore={restore}
-                  />
-                ))}
-                {!ignoredLoading && !ignoredError && ignoredList.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-10">No ignored donations.</p>
-                )}
-                {!ignoredLoading && ignoredPagination.page < ignoredPagination.totalPages && (
-                  <Button
-                    variant="outline" size="sm" className="w-full"
-                    disabled={ignoredLoadingMore}
-                    onClick={() => fetchIgnored(ignoredPagination.page + 1, true)}
-                  >
-                    {ignoredLoadingMore
-                      ? <><Loader2 size={13} className="animate-spin" /> Loading…</>
-                      : `Load more (${fmtNum(ignoredList.length)} of ${fmtNum(ignoredPagination.total)})`}
-                  </Button>
-                )}
-              </>
-            ) : (
-              <>
-                {donError && (
-                  <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 space-y-1.5">
-                    <p>{donError}</p>
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => fetchContributions(1, false, true)}>Retry</Button>
-                  </div>
-                )}
-                {donLoading && (
-                  <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
-                    <Loader2 size={15} className="animate-spin" /> Loading donations…
-                  </div>
-                )}
-                {!donLoading && !donError && demandCoversSupply && (
-                  <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-2">
-                    <Info size={13} className="flex-shrink-0 mt-0.5" />
-                    <span>
-                      The selected donations already claim every tree the selected
-                      plant locations have. Deselect one, or select another location,
-                      to pick more.
-                    </span>
-                  </div>
-                )}
-                {!donLoading && !donError && donFilterNote && (
-                  <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-2">
-                    <Info size={13} className="flex-shrink-0 mt-0.5" />
-                    <span>
-                      {donFilterNote}
-                      {moreDonPages && (
-                        <>
-                          {' '}
-                          <button
-                            type="button"
-                            disabled={donLoadingMore}
-                            onClick={() => fetchContributions(donPagination.page + 1, true)}
-                            className="font-medium text-foreground underline underline-offset-2 hover:text-primary disabled:no-underline disabled:opacity-60"
-                          >
-                            {donLoadingMore
-                              ? 'Searching…'
-                              : `Search ${fmtNum(Math.min(PAGE_SIZE, donNotSearched))} more`}
-                          </button>
-                        </>
-                      )}
-                    </span>
-                  </div>
-                )}
-                {!donLoading && shownContributions.map(c => (
-                  <DonationCard
-                    key={c.id}
-                    contribution={c}
-                    checked={selContrib.has(c.id)}
-                    onToggle={toggleContrib}
-                    onIgnore={ignore}
-                    blocked={contribBlocked(c.id)}
-                    amount={matchAmounts[c.id]}
-                    onAmountChange={setMatchAmount}
-                    onAmountReset={resetMatchAmount}
-                  />
-                ))}
-                {/* The filtered empty case is already stated by the note above,
-                  * word for word, so this only covers "the project has none". */}
-                {!donLoading && !donError && !localFilterActive && shownContributions.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-10">Nothing here.</p>
-                )}
-                {/* Unfiltered only: here the list really is every loaded row, so
-                  * a pagination footer describes it honestly. Filtered, it would
-                  * not, and the note above carries the action instead. */}
-                {!donLoading && !localFilterActive && moreDonPages && (
-                  <Button
-                    variant="outline" size="sm" className="w-full"
-                    disabled={donLoadingMore}
-                    onClick={() => fetchContributions(donPagination.page + 1, true)}
-                  >
-                    {donLoadingMore
-                      ? <><Loader2 size={13} className="animate-spin" /> Loading…</>
-                      : `Load more (${fmtNum(contributions.length)} of ${fmtNum(donPagination.total)} loaded)`}
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+        <DonationsPane
+          donations={donations}
+          projectName={projectName}
+          selected={selection.selContrib}
+          isBlocked={selection.contribBlocked}
+          onToggle={selection.toggleContrib}
+          amounts={selection.matchAmounts}
+          onAmountChange={selection.setAmount}
+          onAmountReset={selection.resetAmount}
+          demandCoversSupply={selection.demandCoversSupply}
+        />
       </div>
 
       {/* Bottom action bar */}
       <div className="flex-shrink-0 border-t border-border bg-background px-4 py-3">
         <div className="flex items-center gap-3 flex-wrap">
           <div className="text-sm text-muted-foreground flex items-center gap-1.5 whitespace-nowrap">
-            <span className="font-semibold text-foreground">{selIntervList.length}</span>
-            plant location{selIntervList.length === 1 ? '' : 's'}
+            <span className="font-semibold text-foreground">{selection.selIntervList.length}</span>
+            plant location{selection.selIntervList.length === 1 ? '' : 's'}
             <ArrowLeftRight size={13} className="text-muted-foreground/70" />
-            <span className="font-semibold text-foreground">{selContribList.length}</span>
-            donation{selContribList.length === 1 ? '' : 's'}
+            <span className="font-semibold text-foreground">{selection.selContribList.length}</span>
+            donation{selection.selContribList.length === 1 ? '' : 's'}
           </div>
 
           <div className="flex-1" />
 
-          <Button size="lg" className="rounded-lg px-5" disabled={!canMatch} onClick={() => { setMatchError(null); setConfirmOpen(true); }}>
-            <Play size={14} /> {canMatch ? `Match ${fmtTrees(matchable)} trees` : 'Match trees'}
+          <Button
+            size="lg" className="rounded-lg px-5"
+            disabled={!selection.canMatch}
+            onClick={() => { setMatchError(null); setConfirmOpen(true); }}
+          >
+            <Play size={14} />
+            {selection.canMatch ? `Match ${fmtTrees(selection.matchable)} trees` : 'Match trees'}
           </Button>
         </div>
       </div>
 
-      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} interventions={interventions} contributions={contributions} />
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        interventions={locations.items}
+        contributions={donations.items}
+      />
       <MatchConfirmDialog
         open={confirmOpen}
-        onOpenChange={(v) => { if (!matchSubmitting) { setConfirmOpen(v); if (!v) setMatchError(null); } }}
-        interventions={selIntervList}
-        contributions={selContribList}
-        amounts={matchAmounts}
-        submitting={matchSubmitting}
+        onOpenChange={(v) => { if (!submitting) { setConfirmOpen(v); if (!v) setMatchError(null); } }}
+        interventions={selection.selIntervList}
+        contributions={selection.selContribList}
+        amounts={selection.matchAmounts}
+        submitting={submitting}
         error={matchError}
         onConfirm={applyMatch}
       />
       <RulesDialog
-        open={rulesOpen}
-        onOpenChange={(v) => { setRulesOpen(v); if (!v) setRulesError(null); }}
-        rules={rules}
-        onRulesChange={setRules}
-        sites={ruleSites}
+        open={automatch.rulesOpen}
+        onOpenChange={(v) => { automatch.setRulesOpen(v); if (!v) automatch.setRulesError(null); }}
+        // Auto-match reads the same donation backend the right pane does, so a
+        // project it does not have yet gets the same answer here, said the same
+        // way, instead of a run that fails on its first sweep.
+        notOnPlatform={donations.notOnPlatform}
+        projectName={projectName}
+        rules={automatch.rules}
+        onRulesChange={automatch.setRules}
+        sites={automatch.ruleSites}
         countries={COUNTRY_OPTIONS}
-        maxTrees={maxTrees}
-        onMaxTreesChange={setMaxTrees}
-        dirty={rulesDirty}
-        saving={rulesSaving}
-        running={running}
-        progress={run?.progress}
-        elapsedSeconds={runElapsed}
-        stopRequested={run?.stopRequested}
-        stopping={stopping}
-        error={rulesError}
-        onSave={() => { void saveRules(); }}
-        onRun={() => { void runRules(); }}
-        onStop={() => { void stopRun(); }}
+        maxTrees={automatch.maxTrees}
+        onMaxTreesChange={automatch.setMaxTrees}
+        dirty={automatch.rulesDirty}
+        saving={automatch.rulesSaving}
+        running={automatch.running}
+        progress={automatch.run?.progress}
+        elapsedSeconds={automatch.elapsed}
+        stopRequested={automatch.run?.stopRequested}
+        stopping={automatch.stopping}
+        error={automatch.rulesError}
+        onSave={() => { void automatch.saveRules(); }}
+        onRun={() => { void automatch.runRules(); }}
+        onStop={() => { void automatch.stopRun(); }}
       />
       <AutomatchPlanDialog
-        open={planOpen}
-        onOpenChange={(v) => { setPlanOpen(v); if (!v) setPlanError(null); }}
-        run={run}
-        applying={applying}
-        discarding={discarding}
-        error={planError}
-        onApply={(keep) => { void applyPlan(keep); }}
-        onDiscard={() => { void discardPlan(); }}
+        open={automatch.planOpen}
+        onOpenChange={(v) => { automatch.setPlanOpen(v); if (!v) automatch.setPlanError(null); }}
+        run={automatch.run}
+        applying={automatch.applying}
+        discarding={automatch.discarding}
+        error={automatch.planError}
+        onApply={(keep) => { void automatch.applyPlan(keep); }}
+        onDiscard={() => { void automatch.discardPlan(); }}
       />
     </div>
   );

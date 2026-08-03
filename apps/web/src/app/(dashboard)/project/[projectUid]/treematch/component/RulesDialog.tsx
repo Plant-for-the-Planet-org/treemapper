@@ -19,6 +19,7 @@ import {
   RuleOrderBy, RulePreferType, RuleSweep, MAX_RULES, fmtNum,
 } from './types';
 import { AutomatchProgressPanel } from './AutomatchProgressPanel';
+import { ProjectUnderReviewNotice } from './ProjectUnderReviewNotice';
 
 // The editor writes at most one condition per rule, which covers every rule in
 // docs/treematch-automatch-rules.md. The API accepts up to ten, so a deeper
@@ -123,6 +124,10 @@ const orderText = (r: DraftRule) =>
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  /** the donation backend does not have this project yet, so there is nothing
+   * for a run to sweep and the editor is replaced by the reason */
+  notOnPlatform?: boolean;
+  projectName: string;
   rules: DraftRule[];
   onRulesChange: (rules: DraftRule[]) => void;
   /** the source project's sites, for the "a specific site" preference */
@@ -149,7 +154,7 @@ interface Props {
 }
 
 export function RulesDialog({
-  open, onOpenChange, rules, onRulesChange, sites, countries,
+  open, onOpenChange, notOnPlatform, projectName, rules, onRulesChange, sites, countries,
   maxTrees, onMaxTreesChange, dirty, saving, running, progress, elapsedSeconds,
   stopRequested, stopping, error, onSave, onRun, onStop,
 }: Props) {
@@ -220,6 +225,26 @@ export function RulesDialog({
     rules.filter(r => r.enabled && r.when.sweep !== 'any')
       .map(r => (r.when.sweep === 'country' ? `c:${r.when.country}` : r.when.sweep)),
   ).size;
+
+  // Rules only decide how donations are picked, so with no donations to pick
+  // from there is nothing to edit and nothing a run could do. The screen says
+  // why in the same words the donations pane uses, rather than letting a run
+  // start and fail on its first sweep.
+  if (notOnPlatform) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Auto-match rules</DialogTitle>
+          </DialogHeader>
+          <ProjectUnderReviewNotice projectName={projectName} />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     // Closing during a run is allowed on purpose: planning happens server-side

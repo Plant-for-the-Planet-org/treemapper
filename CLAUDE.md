@@ -172,9 +172,20 @@ on the contribution id -- there is nothing local to point at. No `project_id`
 allocation history and no audit trail by design. It exists for one reason, so
 TreeMapper knows how many of its own trees are already claimed.
 
-Four routes, all owner/admin: `GET .../interventions`, `GET .../contributions`
-(thin TTC proxy, passes `ignored` through), `POST .../matches`,
-`PATCH .../contributions/:contributionId/ignore` (proxy of the TTC endpoint).
+Four routes, all **project-owner only**: `GET .../interventions`,
+`GET .../contributions` (thin TTC proxy, passes `ignored` through),
+`POST .../matches`, `PATCH .../contributions/:contributionId/ignore` (proxy of
+the TTC endpoint).
+
+**Owner-only, not owner/admin (changed 2026-08-03).** Every route carries
+`@ProjectRoles('owner')`, `MATCHER_ROLES` is `['owner']`, and
+`assertCanMatchFrom` has no workspace-admin fallback. That is narrower than the
+rest of the app on purpose: matching claims a project's trees and writes totals
+to TTC on its behalf. It also excludes workspace owners and admins, because
+`ProjectPermissionsGuard` resolves them as project *admins* when they hold no
+membership of their own, and admins no longer pass. The web app hides the
+sidebar entry and the page for anyone who is not the owner, so an admin who used
+TreeMatch before now gets a 403 rather than a broken screen.
 
 `POST .../matches` takes pairs only -- `{ matches: [{ contributionId,
 interventionUid, trees }] }`. It never receives absolute totals: the server
@@ -191,10 +202,10 @@ rows and compensation logic.
 **Cross-project matching is allowed**: TTC only cares that a contribution's total
 is right, not which project holds the trees, so the locations in a `POST
 .../matches` body may live in any project. The route guard only proves
-owner/admin on the project in the path (the contributions side), so
+ownership of the project in the path (the contributions side), so
 `TreeMatchService.authorizeSourceProjects` checks every other project the target
-locations belong to, using the same resolution the guard uses (`project_member`,
-then the workspace-admin fallback). It runs *before* the transaction on purpose:
+locations belong to, using the same membership resolution the guard uses
+(`project_member`) and the same owner-only rule. It runs *before* the transaction on purpose:
 those lookups need their own pool connection, and taking one while holding the
 row locks could starve the pool. The in-transaction filter then trusts only that
 pre-authorized set, so a soft-deleted project's locations read as not found.
@@ -378,6 +389,26 @@ Updated 2026-07-30 for the rewrite above. `apps/web/src/app/(dashboard)/project/
 [projectUid]/treematch/` plus `overview/component/GlobalMap.tsx` and the
 ForestCloud tab of `settings/page.tsx`. Plain `useState` + the shared fetchers,
 no TanStack Query on this screen.
+
+**Split into hooks and panes on 2026-08-03** (`page.tsx` was 1553 lines and 32
+`useState` calls). `page.tsx` is now the owner gate plus a composition root:
+`component/hooks/useTreematchLocations` and `useTreematchDonations` own one pane
+of data each, `useMatchSelection` reads both and hands each pane back what is
+ticked and what may not be ticked, `useAutomatchRun` holds the rules and the run,
+and `useFeedback` holds the two page-level message lines. `StatsRibbon`,
+`LocationsPane`, `MatchConnector` and `DonationsPane` are the markup.
+
+Two seams are worth knowing before changing any of it:
+
+- **The panes never reference each other.** They meet only in
+  `useMatchSelection`. Each pane exposes a `generation` counter that changes when
+  its list is *replaced* rather than appended to; the selection clears itself off
+  that signal, and the map refits its bounds off the same one. Do not add a
+  direct call from one pane's hook into the other.
+- **The client-side donation filters live in `DonationsPane`, not the data
+  hook**, because they need the selection (selected rows stay in view), and the
+  selection is derived from the very list the hook owns. Putting them in the hook
+  makes the dependency circular.
 
 - **Ignored donations are a second server view**, not a client filter: the tab
   fetches `?ignored=true` with its own pagination, and the default view never
