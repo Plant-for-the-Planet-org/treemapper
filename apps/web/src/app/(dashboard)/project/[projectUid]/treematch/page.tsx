@@ -11,7 +11,7 @@ import { useTopBarActions } from '@/component/header/TopBarActions';
 
 import { StatsRibbon } from './component/StatsRibbon';
 import { LocationsPane } from './component/LocationsPane';
-import { MatchConnector } from './component/MatchConnector';
+import { MatchBalance } from './component/MatchBalance';
 import { DonationsPane } from './component/DonationsPane';
 import { ExportDialog } from './component/ExportDialog';
 import { MatchConfirmDialog, PreviewAllocation } from './component/MatchConfirmDialog';
@@ -233,7 +233,9 @@ function TreeMatchWorkspace({ projectUid, projectName }: { projectUid: string; p
         </div>
       )}
 
-      <div className="flex-1 min-h-0 flex overflow-hidden px-4 py-3">
+      {/* The panes sat either side of a connector rail; with that gone they need
+        * a gap of their own. */}
+      <div className="flex-1 min-h-0 flex gap-3 overflow-hidden px-4 py-3">
         <LocationsPane
           locations={locations}
           pageProjectUid={projectUid}
@@ -241,12 +243,6 @@ function TreeMatchWorkspace({ projectUid, projectName }: { projectUid: string; p
           isBlocked={selection.intervBlocked}
           onToggle={selection.toggleInterv}
           supplyCoversDemand={selection.supplyCoversDemand}
-        />
-
-        <MatchConnector
-          supply={selection.supply}
-          demand={selection.demand}
-          active={selection.canMatch}
         />
 
         <DonationsPane
@@ -272,6 +268,12 @@ function TreeMatchWorkspace({ projectUid, projectName }: { projectUid: string; p
             <span className="font-semibold text-foreground">{selection.selContribList.length}</span>
             donation{selection.selContribList.length === 1 ? '' : 's'}
           </div>
+
+          {/* Only once both sides have a usable selection is there a balance to
+            * report; before that the two numbers above say everything there is. */}
+          {selection.canMatch && (
+            <MatchBalance supply={selection.supply} demand={selection.demand} />
+          )}
 
           <div className="flex-1" />
 

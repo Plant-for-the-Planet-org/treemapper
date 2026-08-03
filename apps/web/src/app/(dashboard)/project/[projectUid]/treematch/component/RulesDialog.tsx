@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import {
   AutomatchProgress, DraftRule, RuleFilter, RuleFilterField, RuleFilterOp,
@@ -111,12 +110,11 @@ const filterText = (f?: RuleFilter) => {
   return ` with ${field.toLowerCase()} ${op} ${choice ?? f.value}`;
 };
 
-const preferText = (r: DraftRule) => {
-  const base = r.prefer.type === 'site'
+const preferText = (r: DraftRule) => (
+  r.prefer.type === 'site'
     ? `site ${r.prefer.siteName || '…'}`
-    : PREFER_OPTIONS.find(o => o.v === r.prefer.type)?.label.toLowerCase() ?? '';
-  return r.prefer.onlyApproved ? `${base}, approved only` : base;
-};
+    : PREFER_OPTIONS.find(o => o.v === r.prefer.type)?.label.toLowerCase() ?? ''
+);
 
 const orderText = (r: DraftRule) =>
   ORDER_OPTIONS.find(o => o.v === r.orderBy)?.label.toLowerCase() ?? '';
@@ -454,15 +452,6 @@ export function RulesDialog({
                                   </SelectContent>
                                 </Select>
                               )}
-                              <label className="flex items-center gap-2 pt-1 text-[11px] text-muted-foreground">
-                                <Checkbox
-                                  checked={Boolean(r.prefer.onlyApproved)}
-                                  onCheckedChange={v => update(r.localId, {
-                                    prefer: { ...r.prefer, onlyApproved: v === true },
-                                  })}
-                                />
-                                Only approved, unflagged locations
-                              </label>
                             </div>
                             <div className="space-y-1">
                               <Label className="text-[11px] text-muted-foreground">Order donations</Label>

@@ -268,7 +268,6 @@ export interface TreeMatchRule {
     siteUid?: string;
     /** resolved by the server; empty string means the site is gone */
     siteName?: string;
-    onlyApproved?: boolean;
   };
   orderBy: RuleOrderBy;
   action: RuleAction;

@@ -249,10 +249,13 @@ export function useAutomatchRun({
           // read resolves `siteName` for the editor, but the write DTO does not
           // have it and the API validates with forbidNonWhitelisted, so sending
           // it back rejects the whole save with a 400.
+          // The API still accepts `onlyApproved`, but the editor no longer
+          // offers it, so nothing written here carries it. Rebuilding the
+          // object rather than spreading is what drops it from a rule stored
+          // before it was removed, on the next save.
           prefer: {
             type: r.prefer.type,
             ...(r.prefer.type === 'site' && r.prefer.siteUid ? { siteUid: r.prefer.siteUid } : {}),
-            ...(r.prefer.onlyApproved !== undefined ? { onlyApproved: r.prefer.onlyApproved } : {}),
           },
           orderBy: r.orderBy,
           action: r.action,
