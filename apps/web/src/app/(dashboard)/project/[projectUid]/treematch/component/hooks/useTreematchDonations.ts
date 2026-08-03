@@ -198,9 +198,20 @@ export function useTreematchDonations(
    * The ignore flag lives in TTC, and the two list views are separate, so
    * ignoring moves a donation from one to the other. The row is dropped from the
    * view it leaves right away, and the view it joins is refetched behind that.
+   *
+   * `reason` is a free-text note TTC stores alongside the flag while it is set,
+   * and clears on restore, so it is only meaningful when ignoring.
+   *
+   * Returns the failure message rather than reporting it: ignoring runs from a
+   * dialog, which is where its error belongs, and restore has no dialog and
+   * passes it on to the page banner. Either way the caller decides.
    */
-  const setIgnoreFlag = async (id: number, ignoreValue: boolean) => {
-    if (!projectUid || !accessToken) return;
+  const setIgnoreFlag = async (
+    id: number,
+    ignoreValue: boolean,
+    reason?: string,
+  ): Promise<string | null> => {
+    if (!projectUid || !accessToken) return 'You are not signed in.';
     feedback.clearError();
 
     if (ignoreValue) {
@@ -212,7 +223,7 @@ export function useTreematchDonations(
     }
 
     try {
-      const response = await patchTreematchContributionIgnore(accessToken, projectUid, id, ignoreValue);
+      const response = await patchTreematchContributionIgnore(accessToken, projectUid, id, ignoreValue, reason);
       if (response?.statusCode && response.statusCode !== 200) {
         throw new Error(response?.message || 'The server rejected the change');
       }
@@ -227,11 +238,12 @@ export function useTreematchDonations(
       } else {
         openStale.current = true;
       }
+      return null;
     } catch (err) {
       console.error('TreeMatch ignore update failed:', err);
-      feedback.fail(err instanceof Error ? err.message : 'Failed to update the donation');
       // The optimistic drop was wrong, so reload the list it was dropped from.
       if (ignoreValue) void fetch(1, false, true); else void fetchIgnored(1, false, true);
+      return err instanceof Error ? err.message : 'Failed to update the donation';
     }
   };
 
@@ -270,8 +282,13 @@ export function useTreematchDonations(
     loadMore: () => { void fetch(pagination.page + 1, true); },
     reloadIgnored: () => { void fetchIgnored(1, false, true); },
     loadMoreIgnored: () => { void fetchIgnored(ignoredPagination.page + 1, true); },
-    ignore: (id: number) => { void setIgnoreFlag(id, true); },
-    restore: (id: number) => { void setIgnoreFlag(id, false); },
+    /** awaited by the dialog that collects the reason, which stays open and
+     * shows the message when it fails */
+    ignore: (id: number, reason?: string) => setIgnoreFlag(id, true, reason),
+    /** no dialog to report into, so a failure goes to the page banner */
+    restore: (id: number) => {
+      void setIgnoreFlag(id, false).then(message => { if (message) feedback.fail(message); });
+    },
     applyTotals,
     /** an auto-match plan can use donations no loaded page holds, so what is on
      * screen may lag; reload on the next visit rather than paying for it now */

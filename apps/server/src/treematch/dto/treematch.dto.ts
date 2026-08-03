@@ -139,7 +139,9 @@ export interface TreeMatchInterventionItemDto {
   matchedTrees: number;
   captureStatus: string;
   isPrivate: boolean;
-  location: any;
+  // GeoJSON, converted in SQL. Points for single-tree registrations, polygons
+  // for areas. `any` here is what let the raw WKB hex through unnoticed.
+  location: GeoJSON.Point | GeoJSON.Polygon | GeoJSON.MultiPolygon | null;
   area: number | null;
 }
 

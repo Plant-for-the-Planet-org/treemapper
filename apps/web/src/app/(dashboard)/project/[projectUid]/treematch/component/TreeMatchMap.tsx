@@ -39,7 +39,6 @@ const statusOf = (i: TreeMatchIntervention): MatchStatus =>
 
 // Stable references — react-map-gl re-applies these on reference change.
 const MAP_CONTAINER_STYLE = { width: '100%', height: '100%' };
-const INTERACTIVE_LAYER_IDS = ['tm-areas-fill'];
 const INITIAL_VIEW = { longitude: -90.14, latitude: 18.41, zoom: 10.5 };
 
 const fmtShort = (n: number) =>
@@ -78,13 +77,16 @@ export function TreeMatchMap({ interventions, fitKey, selected, focusUid, onFocu
   // Some interventions carry no stored geometry -- they simply don't render.
   const locatable = useMemo(() => interventions.filter(i => i.location), [interventions]);
 
-  // One marker per location at its point / polygon centroid.
-  const markers = useMemo(() => locatable.map(i => {
+  // A coordinate for every location, whichever geometry it has: the map centres
+  // on it when a location is focused, areas hang their count chip on it, and
+  // points are drawn there.
+  const centroids = useMemo(() => locatable.map(i => {
     try {
-      const c = i.location!.type === 'Point'
+      const isPoint = i.location!.type === 'Point';
+      const c = isPoint
         ? (i.location!.coordinates as [number, number])
         : (turf.centroid(i.location as any).geometry.coordinates as [number, number]);
-      return { i, lng: c[0], lat: c[1], status: statusOf(i), available: availableTrees(i) };
+      return { i, isPoint, lng: c[0], lat: c[1], status: statusOf(i), available: availableTrees(i) };
     } catch {
       return null;
     }
@@ -105,6 +107,35 @@ export function TreeMatchMap({ interventions, fitKey, selected, focusUid, onFocu
         geometry: i.location,
       })),
   }), [locatable, selected, focusUid]);
+
+  // Single-tree registrations are points, and they are most of the data: 25k of
+  // them against ~5k areas on the dev database. One HTML marker each would be
+  // 25k DOM nodes, so they are drawn by the map as a circle layer instead, the
+  // same way the areas are drawn as fills.
+  const pointGeoJSON = useMemo(() => ({
+    type: 'FeatureCollection' as const,
+    features: centroids.filter(m => m.isPoint).map(m => ({
+      type: 'Feature' as const,
+      properties: {
+        uid: m.i.uid,
+        color: selected.has(m.i.uid) ? SELECTED_COLOR : STATUS_COLOR[m.status],
+        selected: selected.has(m.i.uid),
+        focused: focusUid === m.i.uid,
+      },
+      geometry: { type: 'Point' as const, coordinates: [m.lng, m.lat] },
+    })),
+  }), [centroids, selected, focusUid]);
+
+  // Areas keep a chip at their centre: a polygon's fill says where it is but not
+  // how many trees are free, and that number is what the pane is for.
+  const areaMarkers = useMemo(() => centroids.filter(m => !m.isPoint), [centroids]);
+
+  // Naming a layer that is not in the style makes every click and hover query
+  // fail, so this follows what is actually drawn.
+  const interactiveLayerIds = useMemo(() => [
+    ...(areaGeoJSON.features.length > 0 ? ['tm-areas-fill'] : []),
+    ...(pointGeoJSON.features.length > 0 ? ['tm-points-circle'] : []),
+  ], [areaGeoJSON.features.length, pointGeoJSON.features.length]);
 
   const fitAll = useCallback(() => {
     if (locatable.length === 0) return;
@@ -127,11 +158,11 @@ export function TreeMatchMap({ interventions, fitKey, selected, focusUid, onFocu
   // Center on the focused location (marker click or "View on map" in the list).
   useEffect(() => {
     if (!focusUid || !mapLoaded) return;
-    const m = markers.find(x => x.i.uid === focusUid);
+    const m = centroids.find(x => x.i.uid === focusUid);
     const map = mapRef.current;
     if (!m || !map) return;
     map.easeTo({ center: [m.lng, m.lat], zoom: Math.max(map.getZoom?.() ?? 0, 13.5), duration: 700 });
-  }, [focusUid, mapLoaded, markers]);
+  }, [focusUid, mapLoaded, centroids]);
 
   const handleMapClick = useCallback((e: any) => {
     const uid = e.features?.[0]?.properties?.uid;
@@ -153,7 +184,7 @@ export function TreeMatchMap({ interventions, fitKey, selected, focusUid, onFocu
         initialViewState={INITIAL_VIEW}
         style={MAP_CONTAINER_STYLE}
         mapStyle={BASEMAP_STYLES[basemap]}
-        interactiveLayerIds={INTERACTIVE_LAYER_IDS}
+        interactiveLayerIds={interactiveLayerIds}
         cursor={hoverCursor ? 'pointer' : 'grab'}
         onLoad={handleLoad}
         onClick={handleMapClick}
@@ -182,8 +213,33 @@ export function TreeMatchMap({ interventions, fitKey, selected, focusUid, onFocu
           </Source>
         )}
 
-        {/* Count chips. HTML markers so we get full styling without map glyphs. */}
-        {markers.map(m => {
+        {/* Single-tree registrations. Drawn after the areas so a point inside a
+            polygon still reads on top of its fill. */}
+        {pointGeoJSON.features.length > 0 && (
+          <Source id="tm-points" type="geojson" data={pointGeoJSON}>
+            <Layer
+              id="tm-points-circle"
+              type="circle"
+              paint={{
+                'circle-color': ['get', 'color'],
+                // Selected and focused points grow, which is the only cue a
+                // circle has; the chips carry a tick instead.
+                'circle-radius': [
+                  'interpolate', ['linear'], ['zoom'],
+                  8, ['case', ['any', ['get', 'selected'], ['get', 'focused']], 5, 3],
+                  16, ['case', ['any', ['get', 'selected'], ['get', 'focused']], 11, 7],
+                ],
+                'circle-stroke-width': ['case', ['any', ['get', 'selected'], ['get', 'focused']], 2.5, 1.5],
+                'circle-stroke-color': '#ffffff',
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Count chips for areas. HTML markers so we get full styling without
+            map glyphs. Points are not given one: there are tens of thousands of
+            them and every chip is a DOM node. */}
+        {areaMarkers.map(m => {
           const isSel = selected.has(m.i.uid);
           const isFocus = focusUid === m.i.uid;
           return (

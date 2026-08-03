@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Info, Loader2, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DonationCard } from './DonationCard';
+import { IgnoreDonationDialog } from './IgnoreDonationDialog';
 import { ProjectUnderReviewNotice } from './ProjectUnderReviewNotice';
 import {
   COUNTRY_OPTIONS, Contribution, MatchAmounts, PAGE_SIZE, contribMatchState, fmtNum,
@@ -43,6 +44,10 @@ export function DonationsPane({
     reload, loadMore, reloadIgnored, loadMoreIgnored, ignore, restore,
   } = donations;
   const { matchState, search } = filters;
+
+  // Ignoring is confirmed in a dialog, which is also where the reason is typed,
+  // so the card's button opens this rather than writing straight away.
+  const [ignoreTarget, setIgnoreTarget] = useState<Contribution | null>(null);
 
   // The default server view never contains ignored donations, so only the
   // client-side filters apply here.
@@ -276,7 +281,7 @@ export function DonationsPane({
                 contribution={c}
                 checked={selected.has(c.id)}
                 onToggle={onToggle}
-                onIgnore={ignore}
+                onIgnore={() => setIgnoreTarget(c)}
                 blocked={isBlocked(c.id)}
                 amount={amounts[c.id]}
                 onAmountChange={onAmountChange}
@@ -305,6 +310,13 @@ export function DonationsPane({
           </>
         )}
       </div>
+
+      <IgnoreDonationDialog
+        open={!!ignoreTarget}
+        contribution={ignoreTarget}
+        onOpenChange={(v) => { if (!v) setIgnoreTarget(null); }}
+        onConfirm={ignore}
+      />
     </div>
   );
 }

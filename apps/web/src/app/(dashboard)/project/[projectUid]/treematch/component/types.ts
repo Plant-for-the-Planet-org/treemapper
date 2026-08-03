@@ -211,6 +211,11 @@ export interface MatchPair {
 // and one donation-backend write, so this is what keeps a match all-or-nothing.
 export const MAX_MATCH_PAIRS = 2000;
 
+/** Mirrors the server's MaxLength on the ignore reason. The field is capped in
+ * the dialog so a long note is trimmed while it is being typed, rather than
+ * coming back as a validation error after the round trip. */
+export const IGNORE_REASON_MAX = 500;
+
 /** TTC's accepted absolute totals, in whole trees, keyed by contribution id. */
 export interface CreateMatchesResponse {
   applied: Record<string, number>;

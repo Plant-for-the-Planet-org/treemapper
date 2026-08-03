@@ -170,7 +170,13 @@ export class TreeMatchService {
             totalTreeCount: intervention.totalTreeCount,
             captureStatus: intervention.captureStatus,
             isPrivate: intervention.isPrivate,
-            location: intervention.location,
+            // Selecting the column directly returns PostGIS WKB hex
+            // ("0103000020E6..."), not GeoJSON: the schema's `location` custom
+            // type declares GeoJSON but its `fromDriver` hands the driver string
+            // straight back. The map then reads no `type` on it, every centroid
+            // throws, and nothing draws. Every other service converts in SQL;
+            // this one has to as well.
+            location: sql<GeoJSON.Point | GeoJSON.Polygon | GeoJSON.MultiPolygon | null>`ST_AsGeoJSON(${intervention.location})::json`,
             area: intervention.area,
             matchedCenti: sql<number>`coalesce(${matched.matchedCenti}, 0)`,
           })
