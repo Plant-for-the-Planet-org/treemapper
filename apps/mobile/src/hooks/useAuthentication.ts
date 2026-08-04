@@ -6,6 +6,7 @@ import useProjectManagement from './realm/useProjectManagement'
 import useManageScientificSpecies from './realm/useManageScientificSpecies'
 import Bugsnag from '@bugsnag/expo'
 import useLogManagement from './realm/useLogManagement'
+import { deactivateCurrentDevice } from './useDeviceRegistration'
 
 
 const useAuthentication = () => {
@@ -24,7 +25,11 @@ const useAuthentication = () => {
 
   const logoutUser = () => {
     return new Promise((resolve, reject) => {
-      clearSession()
+      // Tell the server this device is signing out before the session goes
+      // away, otherwise the access token is gone and the call cannot be made.
+      // Never rejects, so it cannot block the logout.
+      deactivateCurrentDevice()
+        .then(() => clearSession())
         // .then(() => clearCredentials())
         .then(async () => {
           await deleteAllSyncedIntervention()

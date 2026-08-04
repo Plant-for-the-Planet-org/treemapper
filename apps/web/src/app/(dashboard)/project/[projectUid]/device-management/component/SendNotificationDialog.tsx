@@ -1,8 +1,11 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Send, Bell, Smartphone, Users, Filter, Clock, Zap } from 'lucide-react'
+import { Send, Bell, Smartphone, Users, Zap, Loader2 } from 'lucide-react'
 import { toast } from 'react-toastify'
+import { notifyProjectDevices } from '@shared-core/fetchApi/api.fetch'
+import { useToken } from '@/context/useTokenContext'
+import useProjectStore from '@shared-core/store/useProjectStore'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from '@/components/ui/dialog'
@@ -10,126 +13,122 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import type {
-  Device, NotificationCampaign, CampaignTarget, Priority,
-} from './mockData'
-import { MOCK_TEMPLATES } from './mockData'
+import { errorMessage } from './helpers'
+import type { NotifyResult, Priority } from './types'
 
+// Kept a little under the point where Android and iOS start truncating.
 const TITLE_MAX = 65
 const MESSAGE_MAX = 240
 
+// Matches the server's SendDeviceNotificationDto.
+type Recipients = 'fleet' | 'selected'
+
 export interface ComposePrefill {
-  target?: CampaignTarget
-  device?: Device | null
+  target?: Recipients
+  // Required when target is 'selected'.
+  deviceUids?: string[]
+  // What to call this audience in the UI, e.g. a person's name.
+  targetLabel?: string
   title?: string
   message?: string
 }
-
-// Mock segments — in production these would be saved, query-backed audiences.
-const SEGMENTS = [
-  { id: 'outdated', label: 'Outdated app versions', count: 3 },
-  { id: 'pending', label: 'Has pending sync', count: 8 },
-  { id: 'kijabe', label: 'Kijabe Ridge team', count: 4 },
-  { id: 'storage', label: 'Storage over 85%', count: 3 },
-]
 
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   prefill: ComposePrefill
   fleetCount: number
-  onSent: (campaign: NotificationCampaign) => void
+  onSent: () => void
 }
 
 const SendNotificationDialog = ({ open, onOpenChange, prefill, fleetCount, onSent }: Props) => {
-  const [recipients, setRecipients] = useState<CampaignTarget>('fleet')
-  const [segmentId, setSegmentId] = useState(SEGMENTS[0].id)
+  const [recipients, setRecipients] = useState<Recipients>('fleet')
   const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')
   const [priority, setPriority] = useState<Priority>('normal')
-  const [schedule, setSchedule] = useState<'now' | 'later'>('now')
-  const [scheduleAt, setScheduleAt] = useState('')
   const [sending, setSending] = useState(false)
 
-  const device = prefill.device ?? null
+  const selectedProject = useProjectStore(state => state.selectedProject)
+  const { accessToken } = useToken()
 
-  // Reset to reflect the entry point (fleet button, single device, or template).
+  const prefillUids = prefill.deviceUids ?? []
+  const hasSelection = prefillUids.length > 0
+
+  // Reset to reflect the entry point: the fleet button, a single device, or the
+  // "nudge outdated devices" link.
   useEffect(() => {
     if (open) {
-      setRecipients(prefill.target ?? (device ? 'device' : 'fleet'))
+      setRecipients(prefill.target ?? (hasSelection ? 'selected' : 'fleet'))
       setTitle((prefill.title ?? '').slice(0, TITLE_MAX))
       setMessage((prefill.message ?? '').slice(0, MESSAGE_MAX))
       setPriority('normal')
-      setSchedule('now')
-      setScheduleAt('')
     }
-  }, [open, prefill, device])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, prefill])
 
-  const segment = SEGMENTS.find(s => s.id === segmentId) ?? SEGMENTS[0]
+  const recipientCount = recipients === 'fleet' ? fleetCount : prefillUids.length
+  const targetLabel = recipients === 'fleet'
+    ? 'Whole fleet'
+    : prefill.targetLabel ?? `${prefillUids.length} device${prefillUids.length !== 1 ? 's' : ''}`
 
-  const recipientCount =
-    recipients === 'fleet' ? fleetCount
-      : recipients === 'segment' ? segment.count
-        : device ? 1 : 0
-
-  const targetLabel =
-    recipients === 'fleet' ? 'Whole fleet'
-      : recipients === 'segment' ? segment.label
-        : device?.user.name ?? 'Device'
-
-  const canSend = title.trim().length > 0 && message.trim().length > 0 && !sending
-    && recipientCount > 0 && (schedule === 'now' || scheduleAt.length > 0)
-
-  const applyTemplate = (id: string) => {
-    const t = MOCK_TEMPLATES.find(x => x.uid === id)
-    if (!t) return
-    setTitle(t.title.slice(0, TITLE_MAX))
-    setMessage(t.message.slice(0, MESSAGE_MAX))
-  }
+  const canSend = title.trim().length > 0 && message.trim().length > 0
+    && !sending && recipientCount > 0
 
   const handleSend = async () => {
-    setSending(true)
-    // Simulate a push request. The mobile app POC only receives notifications,
-    // so we fabricate a plausible delivery result here.
-    await new Promise(r => setTimeout(r, 700))
-
-    const scheduled = schedule === 'later'
-    const delivered = scheduled ? 0 : Math.max(0, recipientCount - Math.round(recipientCount * 0.08))
-    const opened = scheduled ? 0 : Math.round(delivered * 0.55)
-
-    const campaign: NotificationCampaign = {
-      uid: `camp-${Date.now()}`,
-      title: title.trim(),
-      message: message.trim(),
-      priority,
-      target: recipients,
-      targetLabel,
-      status: scheduled ? 'scheduled' : 'sent',
-      createdAt: new Date().toISOString(),
-      scheduledFor: scheduled ? new Date(scheduleAt).toISOString() : null,
-      recipients: recipientCount,
-      delivered,
-      opened,
-      failed: scheduled ? 0 : recipientCount - delivered,
-      sentBy: 'You',
+    if (!selectedProject?.uid) {
+      toast.error('No project selected')
+      return
     }
 
-    onSent(campaign)
-    setSending(false)
-    onOpenChange(false)
-    toast.success(scheduled
-      ? `Notification scheduled for ${recipientCount} device(s)`
-      : `Notification sent to ${recipientCount} device(s)`)
+    setSending(true)
+    try {
+      const response = await notifyProjectDevices(accessToken || '', selectedProject.uid, {
+        title: title.trim(),
+        message: message.trim(),
+        priority,
+        recipients,
+        ...(recipients === 'selected' ? { deviceUids: prefillUids } : {}),
+      })
+
+      const result: NotifyResult | undefined = response?.data
+      const statusCode = response?.statusCode ?? 200
+
+      // The server answers with its own statusCode in the body, so a failure
+      // does not throw. Read that rather than assuming success.
+      if (statusCode >= 400) {
+        toast.error(response?.message || 'Could not send the notification')
+        // A push failure still recorded the message in-app, so refresh either way.
+        if (result) onSent()
+        return
+      }
+
+      if (result && result.pushConfigured === false) {
+        toast.warning(
+          `Saved in the app for ${result.usersNotified} recipient(s). Push delivery is not set up on this server.`,
+        )
+      } else if (result) {
+        const skipped = result.devicesWithoutPushId
+        toast.success(
+          `Sent to ${result.pushAccepted} device(s)${skipped > 0 ? `, ${skipped} in-app only` : ''}`,
+        )
+      } else {
+        toast.success(response?.message || 'Notification sent')
+      }
+
+      onSent()
+      onOpenChange(false)
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not send the notification'))
+    } finally {
+      setSending(false)
+    }
   }
 
   const RecipientButton = ({
     value, icon: Icon, label, sub, disabled,
   }: {
-    value: CampaignTarget; icon: React.ElementType; label: string; sub: string; disabled?: boolean
+    value: Recipients; icon: React.ElementType; label: string; sub: string; disabled?: boolean
   }) => (
     <button
       type="button"
@@ -162,7 +161,8 @@ const SendNotificationDialog = ({ open, onOpenChange, prefill, fleetCount, onSen
             Send push notification
           </DialogTitle>
           <DialogDescription>
-            Delivered to the TreeMapper mobile app. Real-time push depends on the user&apos;s device.
+            Goes to the TreeMapper mobile app and to each recipient&apos;s in-app
+            notification list. Arrival depends on the device being reachable.
           </DialogDescription>
         </DialogHeader>
 
@@ -173,22 +173,13 @@ const SendNotificationDialog = ({ open, onOpenChange, prefill, fleetCount, onSen
             <div className="flex gap-2">
               <RecipientButton value="fleet" icon={Users} label="Whole fleet"
                 sub={`${fleetCount} reachable`} />
-              <RecipientButton value="segment" icon={Filter} label="Segment"
-                sub="Target a group" />
-              <RecipientButton value="device" icon={Smartphone}
-                label={device ? device.user.name : 'Single device'}
-                sub={device ? 'This device' : 'None selected'} disabled={!device} />
+              <RecipientButton value="selected" icon={Smartphone}
+                label={hasSelection ? targetLabel : 'Selected devices'}
+                sub={hasSelection
+                  ? `${prefillUids.length} device${prefillUids.length !== 1 ? 's' : ''}`
+                  : 'None selected'}
+                disabled={!hasSelection} />
             </div>
-            {recipients === 'segment' && (
-              <Select value={segmentId} onValueChange={setSegmentId}>
-                <SelectTrigger className="h-9 text-sm mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {SEGMENTS.map(s => (
-                    <SelectItem key={s.id} value={s.id}>{s.label} ({s.count})</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
           </div>
 
           {/* Title */}
@@ -217,67 +208,25 @@ const SendNotificationDialog = ({ open, onOpenChange, prefill, fleetCount, onSen
             />
           </div>
 
-          {/* Templates */}
+          {/* Priority */}
           <div className="space-y-1.5">
-            <Label className="text-xs text-gray-500">Start from a template</Label>
-            <div className="flex flex-wrap gap-2">
-              {MOCK_TEMPLATES.slice(0, 5).map(t => (
+            <Label className="text-xs text-gray-500">Priority</Label>
+            <div className="flex gap-2 max-w-[220px]">
+              {(['normal', 'high'] as const).map(p => (
                 <button
-                  key={t.uid} type="button" onClick={() => applyTemplate(t.uid)}
-                  className="text-xs rounded-full border border-border px-3 py-1 hover:bg-muted/50 transition-colors"
+                  key={p} type="button" onClick={() => setPriority(p)}
+                  className={cn(
+                    'flex-1 inline-flex items-center justify-center gap-1 rounded-lg border px-2 py-1.5 text-xs capitalize transition-colors',
+                    priority === p
+                      ? 'border-[#007A49] bg-[#e6f1ec] dark:bg-green-900/20 font-medium'
+                      : 'border-border hover:bg-muted/50',
+                  )}
                 >
-                  {t.label}
+                  {p === 'high' && <Zap size={12} />}{p}
                 </button>
               ))}
             </div>
           </div>
-
-          {/* Priority + schedule */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Priority</Label>
-              <div className="flex gap-2">
-                {(['normal', 'high'] as const).map(p => (
-                  <button
-                    key={p} type="button" onClick={() => setPriority(p)}
-                    className={cn(
-                      'flex-1 inline-flex items-center justify-center gap-1 rounded-lg border px-2 py-1.5 text-xs capitalize transition-colors',
-                      priority === p
-                        ? 'border-[#007A49] bg-[#e6f1ec] dark:bg-green-900/20 font-medium'
-                        : 'border-border hover:bg-muted/50',
-                    )}
-                  >
-                    {p === 'high' && <Zap size={12} />}{p}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Delivery</Label>
-              <div className="flex gap-2">
-                {(['now', 'later'] as const).map(s => (
-                  <button
-                    key={s} type="button" onClick={() => setSchedule(s)}
-                    className={cn(
-                      'flex-1 inline-flex items-center justify-center gap-1 rounded-lg border px-2 py-1.5 text-xs capitalize transition-colors',
-                      schedule === s
-                        ? 'border-[#007A49] bg-[#e6f1ec] dark:bg-green-900/20 font-medium'
-                        : 'border-border hover:bg-muted/50',
-                    )}
-                  >
-                    {s === 'later' && <Clock size={12} />}{s === 'now' ? 'Send now' : 'Schedule'}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {schedule === 'later' && (
-            <Input
-              type="datetime-local" value={scheduleAt}
-              onChange={e => setScheduleAt(e.target.value)} className="h-9"
-            />
-          )}
 
           {/* Preview */}
           {(title || message) && (
@@ -302,10 +251,12 @@ const SendNotificationDialog = ({ open, onOpenChange, prefill, fleetCount, onSen
             Cancel
           </Button>
           <Button onClick={handleSend} disabled={!canSend} className="bg-[#007A49] hover:bg-green-700 text-white">
-            <Send size={15} className="mr-1.5" />
-            {sending ? 'Sending...'
-              : schedule === 'later' ? `Schedule for ${recipientCount}`
-                : `Send to ${recipientCount} ${recipientCount === 1 ? 'device' : 'devices'}`}
+            {sending
+              ? <Loader2 size={15} className="mr-1.5 animate-spin" />
+              : <Send size={15} className="mr-1.5" />}
+            {sending
+              ? 'Sending...'
+              : `Send to ${recipientCount} ${recipientCount === 1 ? 'device' : 'devices'}`}
           </Button>
         </DialogFooter>
       </DialogContent>

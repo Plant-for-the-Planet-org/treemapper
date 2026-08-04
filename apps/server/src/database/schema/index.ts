@@ -625,31 +625,64 @@ export const notifications = pgTable('notifications', {
 // One row per physical device (deviceId is the client-generated id stored on
 // the device). On app open the mobile app upserts this row: if the same
 // deviceId logs in as a different user, ownership (userId) is reassigned.
-// Used for push delivery (oneSignalId) and, later, a web device-management view.
+// Used for push delivery (oneSignalId) and the web device-management view.
+//
+// The telemetry block (battery/storage/network/pending*/lastSyncAt) is a
+// snapshot from the last app open, not a time series. It powers the dashboard's
+// "needs attention" list, so a stale value is fine but a missing one is not
+// treated as zero: all telemetry columns are nullable and the UI shows "-"
+// until a device has reported once.
 export const userDevice = pgTable('user_device', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
   deviceId: text('device_id').notNull().unique(),
   userId: integer('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   oneSignalId: text('one_signal_id'),
+  // Stored lowercase ('ios' | 'android') so dashboard filters can match
+  // directly; the mobile app sends the platform-cased Device.osName.
   deviceOs: text('device_os'),
   deviceName: text('device_name'),
   deviceModel: text('device_model'),
   osVersion: text('os_version'),
   appVersion: text('app_version'),
+  // Monotonic build number. Comparing builds is reliable; comparing the
+  // human-readable appVersion string is not.
+  appBuild: integer('app_build'),
   locale: text('locale'),
   timezone: text('timezone'),
   notificationPermission: boolean('notification_permission').default(true).notNull(),
   isActive: boolean('is_active').default(true).notNull(),
+  batteryLevel: integer('battery_level'),
+  storageUsedPct: integer('storage_used_pct'),
+  networkType: text('network_type'),
+  // Field data recorded on the device but not yet uploaded.
+  pendingInterventions: integer('pending_interventions'),
+  pendingTrees: integer('pending_trees'),
+  lastSyncAt: timestamp('last_sync_at', { withTimezone: true }),
   lastActiveAt: timestamp('last_active_at', { withTimezone: true }).defaultNow().notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  // Soft delete, same rule as the rest of the schema: all reads filter on
+  // `deleted_at IS NULL`.
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => ({
   userDevicesIdx: index('user_device_user_idx').on(table.userId),
   oneSignalIdx: index('user_device_one_signal_idx')
     .on(table.oneSignalId)
     .where(sql`one_signal_id IS NOT NULL`),
   lastActiveIdx: index('user_device_last_active_idx').on(table.lastActiveAt),
+  validDeviceOs: check('valid_device_os',
+    sql`device_os IS NULL OR device_os IN ('ios', 'android')`),
+  validBatteryLevel: check('valid_battery_level',
+    sql`battery_level IS NULL OR (battery_level >= 0 AND battery_level <= 100)`),
+  validStorageUsedPct: check('valid_storage_used_pct',
+    sql`storage_used_pct IS NULL OR (storage_used_pct >= 0 AND storage_used_pct <= 100)`),
+  validNetworkType: check('valid_network_type',
+    sql`network_type IS NULL OR network_type IN ('wifi', 'cellular', 'offline')`),
+  validPendingInterventions: check('valid_pending_interventions',
+    sql`pending_interventions IS NULL OR pending_interventions >= 0`),
+  validPendingTrees: check('valid_pending_trees',
+    sql`pending_trees IS NULL OR pending_trees >= 0`),
 }));
 
 export const auditLog = pgTable('audit_log', {

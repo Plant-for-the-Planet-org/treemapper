@@ -146,6 +146,8 @@ export const patchUrlApi = {
   userDetails: `${baseUrl}/users/me`,
   // Forms (project-scoped)
   projectForms: `${baseUrl}/projects`,
+  // Device management (project-scoped)
+  projectDeviceState: `${baseUrl}/projects`,
 
 } as const;
 

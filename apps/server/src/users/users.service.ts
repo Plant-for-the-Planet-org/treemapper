@@ -590,27 +590,22 @@ export class UsersService {
                     .set({ lastActiveAt: now })
                     .where(eq(user.id, userId));
 
+                // Only the keys the client actually sent. The update branch
+                // leaves everything else untouched; the insert branch lets the
+                // remaining columns fall back to their schema defaults.
+                const fields = this.mapDeviceFields(dto);
+
                 if (existingDevice.length > 0) {
-                    const updateData: Partial<typeof userDevice.$inferInsert> = {
-                        userId,
-                        lastActiveAt: now,
-                        updatedAt: now,
-                    };
-
-                    if (dto.oneSignalId !== undefined) updateData.oneSignalId = dto.oneSignalId;
-                    if (dto.deviceOs !== undefined) updateData.deviceOs = dto.deviceOs;
-                    if (dto.deviceName !== undefined) updateData.deviceName = dto.deviceName;
-                    if (dto.deviceModel !== undefined) updateData.deviceModel = dto.deviceModel;
-                    if (dto.osVersion !== undefined) updateData.osVersion = dto.osVersion;
-                    if (dto.appVersion !== undefined) updateData.appVersion = dto.appVersion;
-                    if (dto.locale !== undefined) updateData.locale = dto.locale;
-                    if (dto.timezone !== undefined) updateData.timezone = dto.timezone;
-                    if (dto.notificationPermission !== undefined) updateData.notificationPermission = dto.notificationPermission;
-                    if (dto.isActive !== undefined) updateData.isActive = dto.isActive;
-
                     await tx
                         .update(userDevice)
-                        .set(updateData)
+                        .set({
+                            ...fields,
+                            userId,
+                            lastActiveAt: now,
+                            updatedAt: now,
+                            // A device that reports in is no longer deleted.
+                            deletedAt: null,
+                        })
                         .where(eq(userDevice.deviceId, dto.deviceId));
 
                     return {
@@ -621,17 +616,10 @@ export class UsersService {
 
                 const deviceUid = generateUid('dev');
                 await tx.insert(userDevice).values({
+                    ...fields,
                     uid: deviceUid,
                     deviceId: dto.deviceId,
                     userId,
-                    oneSignalId: dto.oneSignalId || null,
-                    deviceOs: dto.deviceOs || null,
-                    deviceName: dto.deviceName || null,
-                    deviceModel: dto.deviceModel || null,
-                    osVersion: dto.osVersion || null,
-                    appVersion: dto.appVersion || null,
-                    locale: dto.locale || null,
-                    timezone: dto.timezone || null,
                     notificationPermission: dto.notificationPermission ?? true,
                     isActive: dto.isActive ?? true,
                     lastActiveAt: now,
@@ -653,6 +641,44 @@ export class UsersService {
 
             throw new InternalServerErrorException('Failed to register device');
         }
+    }
+
+    // The mobile app sends the platform-cased value from expo-device's
+    // Device.osName: 'iOS', 'iPadOS', 'Android'. The column is constrained to
+    // 'ios' | 'android' so dashboard filters can match without normalizing on
+    // read. An OS we do not recognise becomes null rather than failing the
+    // insert, so a register call never breaks over a cosmetic field.
+    private normalizeDeviceOs(osName: string): string | null {
+        const lower = osName.trim().toLowerCase();
+        if (lower === 'ios' || lower === 'ipados') return 'ios';
+        if (lower === 'android') return 'android';
+        return null;
+    }
+
+    // Picks out the device columns the client sent, skipping keys it omitted so
+    // an update never overwrites a known value with null.
+    private mapDeviceFields(dto: CreateDeviceDto): Partial<typeof userDevice.$inferInsert> {
+        const fields: Partial<typeof userDevice.$inferInsert> = {};
+
+        if (dto.oneSignalId !== undefined) fields.oneSignalId = dto.oneSignalId;
+        if (dto.deviceOs !== undefined) fields.deviceOs = this.normalizeDeviceOs(dto.deviceOs);
+        if (dto.deviceName !== undefined) fields.deviceName = dto.deviceName;
+        if (dto.deviceModel !== undefined) fields.deviceModel = dto.deviceModel;
+        if (dto.osVersion !== undefined) fields.osVersion = dto.osVersion;
+        if (dto.appVersion !== undefined) fields.appVersion = dto.appVersion;
+        if (dto.appBuild !== undefined) fields.appBuild = dto.appBuild;
+        if (dto.locale !== undefined) fields.locale = dto.locale;
+        if (dto.timezone !== undefined) fields.timezone = dto.timezone;
+        if (dto.notificationPermission !== undefined) fields.notificationPermission = dto.notificationPermission;
+        if (dto.isActive !== undefined) fields.isActive = dto.isActive;
+        if (dto.batteryLevel !== undefined) fields.batteryLevel = dto.batteryLevel;
+        if (dto.storageUsedPct !== undefined) fields.storageUsedPct = dto.storageUsedPct;
+        if (dto.networkType !== undefined) fields.networkType = dto.networkType;
+        if (dto.pendingInterventions !== undefined) fields.pendingInterventions = dto.pendingInterventions;
+        if (dto.pendingTrees !== undefined) fields.pendingTrees = dto.pendingTrees;
+        if (dto.lastSyncAt !== undefined) fields.lastSyncAt = new Date(dto.lastSyncAt);
+
+        return fields;
     }
 
     //   async findByEmail(email: string): Promise<User | null> {

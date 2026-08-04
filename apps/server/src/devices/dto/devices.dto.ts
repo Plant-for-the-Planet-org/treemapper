@@ -6,6 +6,7 @@ import {
   ArrayNotEmpty,
   MaxLength,
   ValidateIf,
+  IsBoolean,
 } from 'class-validator';
 
 // Push notification composed from the dashboard. Recipients are resolved on the
@@ -34,4 +35,9 @@ export class SendDeviceNotificationDto {
   @ArrayNotEmpty()
   @IsString({ each: true })
   deviceUids?: string[];
+}
+
+export class UpdateDeviceStateDto {
+  @IsBoolean()
+  isActive: boolean;
 }

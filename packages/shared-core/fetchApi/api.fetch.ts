@@ -250,6 +250,19 @@ export const notifyProjectDevices = async (token: string, projectId: string, par
   return result
 }
 
+// Activates or deactivates a single device. A deactivated device stays listed
+// but stops receiving notifications.
+export const updateProjectDeviceState = async (
+  token: string,
+  projectId: string,
+  deviceUid: string,
+  params: { isActive: boolean },
+) => {
+  const uri = `${patchUrlApi.projectDeviceState}/${projectId}/devices/${deviceUid}`
+  const result = await fetchPatchCall(uri, params, token)
+  return result
+}
+
 export const getProjectAnalytics = async (token: string, id: string, pageSize?: number) => {
   const uri = `${getUrlApi.getProjectAnalytics}/${id}/leaderboard${pageSize ? `?pageSize=${pageSize}` : ''}`
   const result = await fetchGetCall(uri, token)
