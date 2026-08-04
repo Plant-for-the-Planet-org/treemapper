@@ -377,6 +377,10 @@ export class InterventionsService {
       });
     }
 
+    // Dedupe so a client that sends the same uid twice does not trip the
+    // count-mismatch check below and get a false "not found" rejection.
+    const uniqueInterventionUids = Array.from(new Set(dto.interventionUids));
+
     return await this.drizzleService.db.transaction(async (tx) => {
       const interventions = await tx
         .select({
@@ -388,15 +392,15 @@ export class InterventionsService {
         .from(intervention)
         .where(
           and(
-            inArray(intervention.uid, dto.interventionUids),
+            inArray(intervention.uid, uniqueInterventionUids),
             eq(intervention.projectId, membership.projectId),
             isNull(intervention.deletedAt),
           ),
         );
 
-      if (interventions.length !== dto.interventionUids.length) {
+      if (interventions.length !== uniqueInterventionUids.length) {
         const foundUids = new Set(interventions.map((i) => i.uid));
-        const missing = dto.interventionUids.filter((u) => !foundUids.has(u));
+        const missing = uniqueInterventionUids.filter((u) => !foundUids.has(u));
         throw new BadRequestException({
           code: 'INVALID_SELECTION',
           message: 'Some interventions do not belong to this project or were not found',
@@ -622,21 +626,25 @@ export class InterventionsService {
       throw new BadRequestException({ code: 'INVALID_DATE', message: 'Invalid interventionStartDate' });
     }
 
+    // Dedupe so a client that sends the same uid twice does not trip the
+    // count-mismatch check below and get a false "not found" rejection.
+    const uniqueInterventionUids = Array.from(new Set(dto.interventionUids));
+
     return await this.drizzleService.db.transaction(async (tx) => {
       const rows = await tx
         .select({ id: intervention.id, uid: intervention.uid, interventionEndDate: intervention.interventionEndDate })
         .from(intervention)
         .where(
           and(
-            inArray(intervention.uid, dto.interventionUids),
+            inArray(intervention.uid, uniqueInterventionUids),
             eq(intervention.projectId, membership.projectId),
             isNull(intervention.deletedAt),
           ),
         );
 
-      if (rows.length !== dto.interventionUids.length) {
+      if (rows.length !== uniqueInterventionUids.length) {
         const foundUids = new Set(rows.map((r) => r.uid));
-        const missing = dto.interventionUids.filter((u) => !foundUids.has(u));
+        const missing = uniqueInterventionUids.filter((u) => !foundUids.has(u));
         throw new BadRequestException({
           code: 'INVALID_SELECTION',
           message: 'Some interventions do not belong to this project or were not found',
@@ -1490,9 +1498,11 @@ export class InterventionsService {
       .leftJoin(user, eq(intervention.userId, user.id))
       .where(and(...whereConditions, isNull(intervention.deletedAt)))
       .orderBy(
-        sortOrder === SortOrderEnum.DESC
-          ? desc(intervention.createdAt)
-          : asc(intervention.createdAt)
+        // id tiebreaker keeps the order stable when many rows share the same
+        // createdAt (bulk imports); without it LIMIT/OFFSET pages can overlap.
+        ...(sortOrder === SortOrderEnum.DESC
+          ? [desc(intervention.createdAt), desc(intervention.id)]
+          : [asc(intervention.createdAt), asc(intervention.id)])
       )
       .limit(limit)
       .offset(offset);
@@ -3887,7 +3897,10 @@ async interventionEdit(
             const existingSpecies = await tx
               .select()
               .from(interventionSpecies)
-              .where(eq(interventionSpecies.uid, speciesChange.uid))
+              .where(and(
+                eq(interventionSpecies.uid, speciesChange.uid),
+                eq(interventionSpecies.interventionId, currentIntervention.id),
+              ))
               .limit(1);
 
             if (existingSpecies.length > 0) {
@@ -3905,7 +3918,7 @@ async interventionEdit(
                   commonName: speciesChange.commonName ?? existingSpecies[0].commonName,
                   updatedAt: new Date(),
                 })
-                .where(eq(interventionSpecies.uid, speciesChange.uid));
+                .where(eq(interventionSpecies.id, existingSpecies[0].id));
 
               newValues.species.push({
                 action: 'update',
@@ -3920,31 +3933,43 @@ async interventionEdit(
             const existingSpecies = await tx
               .select()
               .from(interventionSpecies)
-              .where(eq(interventionSpecies.uid, speciesChange.uid))
+              .where(and(
+                eq(interventionSpecies.uid, speciesChange.uid),
+                eq(interventionSpecies.interventionId, currentIntervention.id),
+              ))
               .limit(1);
 
             if (existingSpecies.length > 0) {
-              // If reassignment is specified, update trees first
+              // If reassignment is specified, update trees first. The target
+              // must belong to the same intervention, otherwise trees would be
+              // re-pointed onto a foreign (possibly other-project) species.
               if (speciesChange.reassignToSpeciesUid) {
                 const targetSpecies = await tx
                   .select({ id: interventionSpecies.id })
                   .from(interventionSpecies)
-                  .where(eq(interventionSpecies.uid, speciesChange.reassignToSpeciesUid))
+                  .where(and(
+                    eq(interventionSpecies.uid, speciesChange.reassignToSpeciesUid),
+                    eq(interventionSpecies.interventionId, currentIntervention.id),
+                  ))
                   .limit(1);
 
-                if (targetSpecies.length > 0) {
-                  await tx
-                    .update(tree)
-                    .set({ interventionSpeciesId: targetSpecies[0].id, updatedAt: new Date() })
-                    .where(eq(tree.interventionSpeciesId, existingSpecies[0].id));
+                if (targetSpecies.length === 0) {
+                  throw new BadRequestException(
+                    'Reassignment target species not found in this intervention',
+                  );
                 }
+
+                await tx
+                  .update(tree)
+                  .set({ interventionSpeciesId: targetSpecies[0].id, updatedAt: new Date() })
+                  .where(eq(tree.interventionSpeciesId, existingSpecies[0].id));
               }
 
               // Soft delete the species
               await tx
                 .update(interventionSpecies)
                 .set({ deletedAt: new Date() })
-                .where(eq(interventionSpecies.uid, speciesChange.uid));
+                .where(eq(interventionSpecies.id, existingSpecies[0].id));
 
               oldValues.species.push({
                 action: 'remove',

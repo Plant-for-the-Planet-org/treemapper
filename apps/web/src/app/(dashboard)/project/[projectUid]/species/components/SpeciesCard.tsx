@@ -12,11 +12,14 @@ export const SpeciesCard = ({
   onClick,
   onToggleFavorite,
   onToggleDisabled,
+  canManage = false,
 }: any) => {
   const isDisabled = species.isDisabled || species.disabled
   const trees = species.totalCount || species.totalSpecimenCount || species.count || 0
   const interventions = species.interventionCount || species.interventionUsageCount || 0
-  const canAct = !!species.projectSpeciesUid
+  // Favourite and disable are owner/admin only on the server, so contributors
+  // are not shown buttons that would silently fail.
+  const canAct = canManage && !!species.projectSpeciesUid
 
   return (
     <motion.div layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>

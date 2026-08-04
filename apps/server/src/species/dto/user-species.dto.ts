@@ -45,6 +45,12 @@ export class CreateUserSpeciesDto {
 
 }
 
+// Partial update: none of these may carry a default value. class-transformer
+// runs the property initialisers, so a default turns "field not sent" into
+// "field sent as false" and the update would reset favourite / disabled on
+// every save.
+// `aliases`, `description` and `isNativeSpecies` have no column on
+// `project_species` yet, so they are accepted and ignored.
 export class UpdateUserSpeciesDto {
 
   @IsOptional()
@@ -74,15 +80,15 @@ export class UpdateUserSpeciesDto {
 
   @IsOptional()
   @IsBoolean()
-  favourite?: boolean = false;
+  favourite?: boolean;
 
   @IsOptional()
   @IsBoolean()
-  isNativeSpecies?: boolean = false;
+  isNativeSpecies?: boolean;
 
   @IsOptional()
   @IsBoolean()
-  isDisbaledSpecies?: boolean = false;
+  isDisbaledSpecies?: boolean;
 
 }
 

@@ -1,7 +1,8 @@
 'use client'
 
 import React from 'react'
-import { Search, ArrowUp, ArrowDown, CheckSquare, X, Trees, Loader, ListFilter, Flag, FlagOff, MapPin, Leaf, Calendar } from 'lucide-react'
+// Leaf icon unused while bulk species edit is hidden
+import { Search, ArrowUp, ArrowDown, CheckSquare, X, Trees, Loader, ListFilter, Flag, FlagOff, MapPin, Calendar } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -73,7 +74,8 @@ export const InterventionsPanel = ({
   pagination, activeFilterCount, clearAllFilters, hasMore, observerRef, fetchInterventionData, onCreate,
   isBulkMode, selectedUids, onToggleSelect, onEnterBulkMode, onExitBulkMode,
   onSelectAll, onClearSelection,
-  onOpenBulkUpdate, onOpenBulkSpeciesEdit, onOpenBulkStartDateEdit, lockedType,
+  // onOpenBulkSpeciesEdit not destructured while bulk species edit is hidden
+  onOpenBulkUpdate, onOpenBulkStartDateEdit, lockedType,
 }: Props) => {
   const [filterOpen, setFilterOpen] = React.useState(false)
   const listRef = React.useRef<HTMLDivElement>(null)
@@ -267,7 +269,8 @@ export const InterventionsPanel = ({
           <div className="flex items-center gap-0.5">
             {[
               { title: 'Assign site', icon: MapPin, onClick: onOpenBulkUpdate },
-              { title: 'Edit species', icon: Leaf, onClick: onOpenBulkSpeciesEdit },
+              // Bulk species edit hidden for now
+              // { title: 'Edit species', icon: Leaf, onClick: onOpenBulkSpeciesEdit },
               { title: 'Edit date', icon: Calendar, onClick: onOpenBulkStartDateEdit },
             ].map(({ title, icon: Icon, onClick }) => (
               <button

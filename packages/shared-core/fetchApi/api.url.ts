@@ -68,6 +68,8 @@ export const postUrlApi = {
   projectForms: `${baseUrl}/projects`,
   // Device management (project-scoped)
   notifyProjectDevices: `${baseUrl}/projects`,
+  // TreeMatch: record matches (project-scoped)
+  treematch: `${baseUrl}/treematch/projects`,
 } as const;
 
 
@@ -130,6 +132,8 @@ export const getUrlApi = {
   projectForms: `${baseUrl}/projects`,
   // Device management (project-scoped)
   projectDevices: `${baseUrl}/projects`,
+  // TreeMatch (project-scoped; donations are proxied to the TTC backend)
+  treematch: `${baseUrl}/treematch/projects`,
 } as const;
 
 export const patchUrlApi = {
@@ -146,6 +150,8 @@ export const patchUrlApi = {
   userDetails: `${baseUrl}/users/me`,
   // Forms (project-scoped)
   projectForms: `${baseUrl}/projects`,
+  // TreeMatch donation ignore flag (project-scoped)
+  treematch: `${baseUrl}/treematch/projects`,
 
 } as const;
 
@@ -158,9 +164,13 @@ export const deleteUrlApi = {
   revokeProjectApiKey: `${baseUrl}/projects`,
   // Forms (project-scoped)
   projectForms: `${baseUrl}/projects`,
+  // TreeMatch: discard an auto-match run (project-scoped)
+  treematch: `${baseUrl}/treematch/projects`,
 } as const;
 
 export const putUrlApi = {
+  // TreeMatch auto-match rules (project-scoped, full-list replace)
+  treematch: `${baseUrl}/treematch/projects`,
   updatePrjSpecies: `${baseUrl}/project-species`,
   updateSiteData: `${baseUrl}/projects`,
   avatarUpdate: `${baseUrl}/users/avatar`,
@@ -173,7 +183,6 @@ export const putUrlApi = {
   editIntervention: `${baseUrl}/interventions`,
   editTree: `${baseUrl}/interventions/trees`,
   addTreeRemeasurement: `${baseUrl}/interventions/trees`,
-
 } as const;
 
 // Export the base URL for other modules that might need it

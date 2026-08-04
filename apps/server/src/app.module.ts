@@ -24,6 +24,7 @@ import { PublicApiModule } from './public-api/public-api.module';
 import { MonitoringPlotsModule } from './monitoring-plots/monitoring-plots.module';
 import { FormsModule } from './forms/forms.module';
 import { DevicesModule } from './devices/devices.module';
+import { TreeMatchModule } from './treematch/treematch.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { DevicesModule } from './devices/devices.module';
     MonitoringPlotsModule,
     FormsModule,
     DevicesModule,
+    TreeMatchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

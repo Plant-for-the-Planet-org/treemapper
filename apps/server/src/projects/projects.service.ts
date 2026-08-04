@@ -423,9 +423,6 @@ export class ProjectsService {
           )
         )
         .limit(1);
-      if (!membershipQuery) {
-        throw new NotFoundException('Role not found');
-      }
       const payload = membershipQuery.length > 0 ? { projectName: projectData.name, projectId: projectData.id, role: membershipQuery[0].role, userId: membershipQuery[0].userId, siteAccess: membershipQuery[0].siteAccess, restrictedSites: membershipQuery[0].restrictedSites, extraPermissions: membershipQuery[0].extraPermissions } : null
       if (payload) {
         await this.projectCacheService.setUserProject(projectData.uid, userId, payload)
@@ -749,6 +746,19 @@ export class ProjectsService {
           message: `Project Invites sent to ${email}.`
 
         })
+      this.auditLogsService.log('project_invite', {
+        action: 'invite',
+        entityId: invitation.id,
+        entityUid: invitation.token,
+        userId: membership.userId,
+        projectId: membership.projectId,
+        newValues: {
+          email,
+          role,
+          projectName: membership.projectName,
+        },
+        source: 'web',
+      });
       return {
         message: 'Invitation sent successfully',
         statusCode: 201,
@@ -863,12 +873,18 @@ export class ProjectsService {
           updatedAt: new Date()
         })
         .where(eq(projectInvites.id, invite.invite.id));
-      await this.auditLogsService.createAuditLog('project_invite', {
-        action: 'invite',
+      this.auditLogsService.log('project_invite', {
+        action: 'soft_delete',
         entityId: invite.invite.id,
-
-
-      })
+        entityUid: invite.invite.token,
+        userId: userData.id,
+        projectId,
+        newValues: {
+          status: 'discarded',
+          email: invite.invite.email,
+        },
+        source: 'web',
+      });
       return {
         message: `Invitation discarded`,
         statusCode: 200,
@@ -907,12 +923,10 @@ export class ProjectsService {
           )
         )
 
-      if (!inviteResult) {
-        throw new NotFoundException('Invitation not found');
-      }
-
-
-      return inviteResult ? inviteResult : [];
+      // A select always returns an array (empty when the project has no active
+      // invite link yet), so an empty result is a valid "no link" state, not an
+      // error.
+      return inviteResult;
 
     } catch (error) {
       if (error instanceof UnauthorizedException || error instanceof NotFoundException) {
@@ -1186,12 +1200,6 @@ export class ProjectsService {
         };
       }
 
-      await this.drizzleService.db.update(user).set({
-        primaryProjectUid: invite.project.uid,
-        primaryWorkspaceUid: invite.workspace.uid
-      }).where(eq(user.id, userId))
-
-
       if (new Date(invite.invite.expiresAt) < new Date()) {
         // await this.drizzleService.db TODO: Expire invite here
         //   .update(projectInvites)
@@ -1274,6 +1282,15 @@ export class ProjectsService {
             joinedAt: new Date(),
           })
           .returning();
+
+        // Repoint the user's primary project/workspace only now that membership
+        // is actually being created. Doing this earlier (before the expiry check
+        // and this insert) left the user pointed at a project they never joined
+        // whenever the invite turned out to be expired.
+        await tx.update(user).set({
+          primaryProjectUid: invite.project.uid,
+          primaryWorkspaceUid: invite.workspace.uid,
+        }).where(eq(user.id, userId));
 
         await tx
           .update(projectInvites)
@@ -1972,16 +1989,33 @@ export class ProjectsService {
         primaryWorkspaceUid: invite.workspace.uid
       }).where(eq(user.id, userId))
 
-      const existingInvite = await this.drizzleService.db.select().from(projectInvites).where(eq(projectInvites.email, email))
-      if (existingInvite) {
-        await this.drizzleService.db.update(projectInvites).set({
-          status: 'discarded',
-          discardedAt: new Date(),
-          discardedById: invite.inviter.id,
-          updatedAt: new Date()
-        })
-      }
+      await this.drizzleService.db.update(projectInvites).set({
+        status: 'discarded',
+        discardedAt: new Date(),
+        discardedById: invite.inviter.id,
+        updatedAt: new Date()
+      }).where(
+        and(
+          eq(projectInvites.email, email),
+          eq(projectInvites.projectId, invite.invite.projectId),
+          eq(projectInvites.status, 'pending')
+        )
+      )
       await this.userCacheService.invalidateUser(userData)
+      this.auditLogsService.log('bulk_invite', {
+        action: 'accept_invite',
+        entityId: invite.invite.id,
+        entityUid: invite.invite.token,
+        userId,
+        projectId: invite.invite.projectId,
+        newValues: {
+          projectName: invite.project.name,
+          role: result.projectRole,
+          email,
+          inviteType: 'bulk_link',
+        },
+        source: 'web',
+      });
       return {
         message: `You have successfully joined ${invite.project.name}`,
         statusCode: 200,

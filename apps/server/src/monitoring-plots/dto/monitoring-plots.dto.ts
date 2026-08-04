@@ -23,6 +23,53 @@ export enum PlotShape {
 }
 
 /**
+ * One photo that has already been pushed to R2 through a presigned url. Only the
+ * stored filename travels in the payload, the same way the intervention sync
+ * sends tree photos (see MobileService.updateInterventionImage).
+ *
+ * A plot can carry many of these (the device plot gallery); a plant carries one
+ * at creation and one more per remeasurement.
+ */
+export class PlotImageDto {
+  @ApiPropertyOptional({ description: 'Stable device id (Realm ImageData.image_id), used to skip a photo already stored' })
+  @IsOptional()
+  @IsString()
+  clientId?: string;
+
+  @ApiProperty({ description: 'Filename returned by the presigned-url call' })
+  @IsString()
+  @MaxLength(255)
+  filename: string;
+
+  @ApiPropertyOptional({ example: 'image/jpeg' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  mimeType?: string;
+
+  @ApiPropertyOptional({ description: 'Kind of photo. Unknown words fall back to overview.', example: 'overview' })
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @ApiPropertyOptional({ description: 'Cover photo for the plot or plant', default: false })
+  @IsOptional()
+  @IsBoolean()
+  isPrimary?: boolean;
+
+  @ApiPropertyOptional({ description: 'Free text note captured with the photo' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  notes?: string;
+
+  @ApiPropertyOptional({ description: 'When the photo was taken on the device', example: '2026-01-15T09:00:00Z' })
+  @IsOptional()
+  @IsDateString()
+  capturedAt?: string;
+}
+
+/**
  * One measurement of a plot plant over time. Maps to a `tree_record` row
  * (recordType = 'measurement'). Mirrors the mobile Realm `PlantTimeline`.
  */
@@ -275,10 +322,17 @@ export class CreateMonitoringPlotDto {
   @IsObject()
   metadata?: any;
 
-  @ApiPropertyOptional({ description: 'CDN image url for the plot' })
+  @ApiPropertyOptional({ description: 'Cover photo filename. Defaults to the first entry of `images`.' })
   @IsOptional()
   @IsString()
   image?: string;
+
+  @ApiPropertyOptional({ type: [PlotImageDto], description: 'Every photo taken of the plot (the device plot gallery)' })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PlotImageDto)
+  images?: PlotImageDto[];
 
   @ApiPropertyOptional({ type: [PlotPlantDto] })
   @IsOptional()
@@ -426,6 +480,43 @@ export class AddPlotObservationsResultDto {
 }
 
 /**
+ * Add photos to a plot that was already uploaded. The device plot gallery keeps
+ * growing after a plot is synced, so these arrive on their own instead of with
+ * the plot. Each becomes an `image` row on the plot intervention. Idempotent per
+ * filename, so a retried sync does not duplicate a photo.
+ */
+export class AddPlotImagesDto {
+  @ApiProperty({ description: 'Server plot intervention uid (the upload response id) to add photos to' })
+  @IsString()
+  plotUid: string;
+
+  @ApiProperty({ type: [PlotImageDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PlotImageDto)
+  images: PlotImageDto[];
+}
+
+/** One photo's server identity, echoed back so the device can mark it synced. */
+export class AddedPlotImageDto {
+  @ApiProperty({ description: 'Device image id (Realm ImageData.image_id) echoed back' })
+  clientId: string;
+
+  @ApiProperty({ description: 'Stored filename' })
+  filename: string;
+
+  @ApiProperty({ description: 'Server image uid. Empty when the photo was already stored.' })
+  uid: string;
+}
+
+export class AddPlotImagesResultDto {
+  plotUid: string;
+  inserted: number;
+  skipped: number;
+  images: AddedPlotImageDto[];
+}
+
+/**
  * Edit a plot's metadata from the web dashboard. All fields optional; only the
  * provided ones are changed. `name` maps to intervention.description, the rest
  * to the monitoring_plot companion row.
@@ -452,28 +543,47 @@ export class UpdateMonitoringPlotDto {
   @IsString()
   complexity?: string;
 
-  @ApiPropertyOptional({ description: 'Radius in metres (circular plots)' })
+  /**
+   * The dimensions below are kept only when the plot's shape uses them: a radius
+   * for a circle, a length and a width for a rectangle. Anything else is stored
+   * as null, so a plot never carries two contradictory sizes. Send null to clear
+   * one outright.
+   */
+  @ApiPropertyOptional({ description: 'Radius in metres (circular plots)', nullable: true })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  radius?: number;
+  radius?: number | null;
 
-  @ApiPropertyOptional({ description: 'Length in metres (rectangular plots)' })
+  @ApiPropertyOptional({ description: 'Length in metres (rectangular plots)', nullable: true })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  length?: number;
+  length?: number | null;
 
-  @ApiPropertyOptional({ description: 'Width in metres (rectangular plots)' })
+  @ApiPropertyOptional({ description: 'Width in metres (rectangular plots)', nullable: true })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  width?: number;
+  width?: number | null;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsBoolean()
   isComplete?: boolean;
+
+  /**
+   * Group to put the plot in. A plot belongs to at most one group, so a uid here
+   * moves it out of any group it was in. Send null to take it out of its group.
+   * Omit the field to leave membership untouched.
+   */
+  @ApiPropertyOptional({
+    description: 'Plot group uid, or null to remove the plot from its group',
+    nullable: true,
+  })
+  @IsOptional()
+  @IsString()
+  groupUid?: string | null;
 }
 
 /**

@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { ExtendedUser, User } from './entities/user.entity';
 import { CreatePresignedUrlDto } from './dto/signed-url.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
@@ -69,9 +70,9 @@ export class UsersController {
   @Patch('me')
   async updateProfile(
     @CurrentUser() user: User,
-    @Body() updateUserDto: any,
+    @Body() updateProfileDto: UpdateProfileDto,
   ) {
-    return await this.usersService.update(user.id, updateUserDto);
+    return await this.usersService.update(user.id, updateProfileDto);
   }
 
   @Post('invalidate/cache')

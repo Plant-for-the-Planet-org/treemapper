@@ -68,9 +68,10 @@ export class ApprovalBoardController {
   async startReview(
     @Param('interventionUid') interventionUid: string,
     @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
   ): Promise<InterventionReviewSummary> {
     const adminId = user.id || user.sub;
-    return this.approvalBoardService.startReview(interventionUid, adminId);
+    return this.approvalBoardService.startReview(interventionUid, adminId, membership.projectId);
   }
 
   // ================== Unified Review Action ==================
@@ -87,15 +88,16 @@ export class ApprovalBoardController {
     @Param('interventionUid') interventionUid: string,
     @Body() dto: ReviewDecisionDto,
     @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
   ): Promise<InterventionReviewSummary> {
     const adminId = user.id || user.sub;
     if (dto.decision === 'in_review') {
-      return this.approvalBoardService.startReview(interventionUid, adminId);
+      return this.approvalBoardService.startReview(interventionUid, adminId, membership.projectId);
     }
     return this.approvalBoardService.makeDecision(interventionUid, adminId, {
       decision: dto.decision as 'approved' | 'rejected',
       note: dto.note,
-    });
+    }, membership.projectId);
   }
 
   // ================== Make Decision (in_review → approved | rejected) ==================
@@ -111,9 +113,10 @@ export class ApprovalBoardController {
     @Param('interventionUid') interventionUid: string,
     @Body() dto: MakeDecisionDto,
     @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
   ): Promise<InterventionReviewSummary> {
     const adminId = user.id || user.sub;
-    return this.approvalBoardService.makeDecision(interventionUid, adminId, dto);
+    return this.approvalBoardService.makeDecision(interventionUid, adminId, dto, membership.projectId);
   }
 
   // ================== Comments (Admin) ==================
@@ -156,8 +159,10 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   async getCurrentThread(
     @Param('interventionUid') interventionUid: string,
+    @CurrentUser() user: any,
   ): Promise<ReviewThreadResponse | null> {
-    return this.approvalBoardService.getCurrentThread(interventionUid);
+    const userId = user.id || user.sub;
+    return this.approvalBoardService.getCurrentThread(interventionUid, userId);
   }
 
   @Get('interventions/:interventionUid')
@@ -165,8 +170,10 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   async getInterventionDetails(
     @Param('interventionUid') interventionUid: string,
+    @CurrentUser() user: any,
   ) {
-    return this.approvalBoardService.getInterventionDetails(interventionUid);
+    const userId = user.id || user.sub;
+    return this.approvalBoardService.getInterventionDetails(interventionUid, userId);
   }
 
   // ================== Comments by Thread ==================
@@ -176,8 +183,10 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'threadUid', description: 'Thread UID' })
   async getThreadComments(
     @Param('threadUid') threadUid: string,
+    @CurrentUser() user: any,
   ): Promise<ReviewCommentResponse[]> {
-    return this.approvalBoardService.getCommentsByThreadUid(threadUid);
+    const userId = user.id || user.sub;
+    return this.approvalBoardService.getCommentsByThreadUid(threadUid, userId);
   }
 
   @Post('projects/:id/threads/:threadUid/comments')
@@ -216,8 +225,10 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   async getComments(
     @Param('interventionUid') interventionUid: string,
+    @CurrentUser() user: any,
   ): Promise<ReviewCommentResponse[]> {
-    return this.approvalBoardService.getInterventionComments(interventionUid);
+    const userId = user.id || user.sub;
+    return this.approvalBoardService.getInterventionComments(interventionUid, userId);
   }
 
   // ================== Review Status ==================
@@ -227,8 +238,10 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   async getReviewStatus(
     @Param('interventionUid') interventionUid: string,
+    @CurrentUser() user: any,
   ): Promise<InterventionReviewSummary> {
-    return this.approvalBoardService.getInterventionReviewStatus(interventionUid);
+    const userId = user.id || user.sub;
+    return this.approvalBoardService.getInterventionReviewStatus(interventionUid, userId);
   }
 
   // ================== User Summary (Mobile) ==================
@@ -307,15 +320,16 @@ export class ApprovalBoardController {
     @Param('siteUid') siteUid: string,
     @Body() dto: ReviewDecisionDto,
     @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
   ): Promise<SiteReviewSummary> {
     const adminId = user.id || user.sub;
     if (dto.decision === 'in_review') {
-      return this.approvalBoardService.startSiteReview(siteUid, adminId);
+      return this.approvalBoardService.startSiteReview(siteUid, adminId, membership.projectId);
     }
     return this.approvalBoardService.makeSiteDecision(siteUid, adminId, {
       decision: dto.decision as 'approved' | 'rejected',
       note: dto.note,
-    });
+    }, membership.projectId);
   }
 
   // ================== Make Site Decision (in_review → approved | rejected) ==================
@@ -331,9 +345,10 @@ export class ApprovalBoardController {
     @Param('siteUid') siteUid: string,
     @Body() dto: MakeDecisionDto,
     @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
   ): Promise<SiteReviewSummary> {
     const adminId = user.id || user.sub;
-    return this.approvalBoardService.makeSiteDecision(siteUid, adminId, dto);
+    return this.approvalBoardService.makeSiteDecision(siteUid, adminId, dto, membership.projectId);
   }
 
   // ================== Site Comments (Admin) ==================
@@ -349,9 +364,10 @@ export class ApprovalBoardController {
     @Param('siteUid') siteUid: string,
     @Body() dto: AddCommentDto,
     @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
   ): Promise<ReviewCommentResponse> {
     const userId = user.id || user.sub;
-    return this.approvalBoardService.addSiteComment(siteUid, userId, 'admin', dto);
+    return this.approvalBoardService.addSiteComment(siteUid, userId, 'admin', dto, membership.projectId);
   }
 
   // ================== Site Comments (Contributor) ==================
@@ -375,8 +391,10 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'siteUid', description: 'Site UID' })
   async getCurrentSiteThread(
     @Param('siteUid') siteUid: string,
+    @CurrentUser() user: any,
   ): Promise<ReviewThreadResponse | null> {
-    return this.approvalBoardService.getCurrentSiteThread(siteUid);
+    const userId = user.id || user.sub;
+    return this.approvalBoardService.getCurrentSiteThread(siteUid, userId);
   }
 
   // ================== Site Review Status ==================
@@ -386,7 +404,9 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'siteUid', description: 'Site UID' })
   async getSiteReviewStatus(
     @Param('siteUid') siteUid: string,
+    @CurrentUser() user: any,
   ): Promise<SiteReviewSummary> {
-    return this.approvalBoardService.getSiteReviewStatus(siteUid);
+    const userId = user.id || user.sub;
+    return this.approvalBoardService.getSiteReviewStatus(siteUid, userId);
   }
 }

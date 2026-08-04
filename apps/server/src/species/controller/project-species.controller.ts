@@ -53,8 +53,12 @@ export class ProjectSpeciesController {
     return this.userSpeciesService.getProjectSpeciesAggregated(membership.projectId);
   }
 
+  // Contributors record the unknown species in the field, so they are allowed
+  // to identify them later. Everything else on this controller stays
+  // owner/admin: this route only resolves unknown records, it cannot rename or
+  // re-point a species that is already identified.
   @Post('/:id/assign-unknown')
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner', 'admin', 'contributor')
   @UseGuards(ProjectPermissionsGuard)
   async assignUnknown(
     @Membership() membership: ProjectGuardResponse,

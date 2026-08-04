@@ -37,6 +37,32 @@ export class TtcSyncService {
   }
 
   /**
+   * On-behalf ("impersonation") sync needs both the base host and an API key.
+   * Used when a workspace owner/admin syncs a member's sites: the caller's own
+   * bearer token would not authenticate as that member on TTC, so we send the
+   * shared API key plus the member's email instead.
+   */
+  isOnBehalfConfigured(): boolean {
+    return Boolean(this.baseUrl) && Boolean(process.env.API_KEY);
+  }
+
+  /**
+   * Headers for an on-behalf write: NO Authorization. TTC identifies the acting
+   * profile from `X-Profile-ID` (the member's email) and authorises the request
+   * with the shared `X-TOKEN-API` key. Mirrors the migrate flow's auth.
+   */
+  private onBehalfHeaders(profileEmail: string): Record<string, string> {
+    console.log('TTC on-behalf headers:', {
+      'X-Profile-ID': profileEmail,
+      'X-TOKEN-API': process.env.API_KEY || '',
+    }); 
+    return {
+      'X-Profile-ID': profileEmail,
+      'X-TOKEN-API': process.env.API_KEY || '',
+    };
+  }
+
+  /**
    * TreeMapper site statuses do not map 1:1 to TTC protection statuses.
    * Default everything to "not yet protected" (matches the TTC site default).
    */
@@ -133,6 +159,56 @@ export class TtcSyncService {
     await firstValueFrom(
       this.httpService.put(url, this.buildBody(payload), {
         headers: { Authorization: authorization },
+      }),
+    );
+  }
+
+  /**
+   * Create a site on TTC on behalf of `profileEmail`, authorised by the shared
+   * API key (no bearer token). Returns the remote id. Throws on failure.
+   */
+  async createSiteOnBehalf(
+    projectUid: string,
+    profileEmail: string,
+    payload: TtcSitePayload,
+  ): Promise<string> {
+    if (!this.isOnBehalfConfigured()) {
+      throw new Error('OLD_BACKEND_URL or API_KEY is not configured');
+    }
+
+    const url = `${this.baseUrl}/app/projects/${projectUid}/sites`;
+    const response = await firstValueFrom(
+      this.httpService.post(url, this.buildBody(payload), {
+        headers: this.onBehalfHeaders(profileEmail),
+      }),
+    );
+    console.log('TTC create site response:', JSON.stringify(response.data, null, 2));
+
+    const remoteId = response?.data?.id;
+    if (!remoteId) {
+      throw new Error('TTC site create returned no id');
+    }
+    return remoteId;
+  }
+
+  /**
+   * Update an existing site on TTC on behalf of `profileEmail`, authorised by
+   * the shared API key (no bearer token). Throws on failure.
+   */
+  async updateSiteOnBehalf(
+    projectUid: string,
+    remoteId: string,
+    profileEmail: string,
+    payload: TtcSitePayload,
+  ): Promise<void> {
+    if (!this.isOnBehalfConfigured()) {
+      throw new Error('OLD_BACKEND_URL or API_KEY is not configured');
+    }
+
+    const url = `${this.baseUrl}/app/projects/${projectUid}/sites/${remoteId}`;
+    await firstValueFrom(
+      this.httpService.put(url, this.buildBody(payload), {
+        headers: this.onBehalfHeaders(profileEmail),
       }),
     );
   }

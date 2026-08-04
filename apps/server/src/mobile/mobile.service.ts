@@ -1922,7 +1922,7 @@ export class MobileService {
         const siteData = await this.drizzleService.db
           .select({ id: site.id })
           .from(site)
-          .where(eq(site.uid, createInterventionDto.plantProjectSite))
+          .where(and(eq(site.uid, createInterventionDto.plantProjectSite), eq(site.projectId, membership.projectId)))
           .limit(1);
         if (siteData.length === 0) {
           throw new NotFoundException('Site not found');
@@ -1952,7 +1952,7 @@ export class MobileService {
         const existingParent = await this.drizzleService.db
           .select()
           .from(intervention)
-          .where(eq(intervention.uid, createInterventionDto.parent))
+          .where(and(eq(intervention.uid, createInterventionDto.parent), eq(intervention.projectId, membership.projectId)))
           .limit(1);
         if (existingParent.length === 0) {
           throw new Error('No Parent found');
@@ -1966,7 +1966,11 @@ export class MobileService {
           const interventionSpeciesData = await this.drizzleService.db
             .select()
             .from(interventionSpecies)
-            .where(eq(interventionSpecies.isUnknown, true))
+            .where(and(
+              eq(interventionSpecies.interventionId, existingParent[0].id),
+              eq(interventionSpecies.isUnknown, true),
+              isNull(interventionSpecies.deletedAt),
+            ))
             .limit(1);
           if (!interventionSpeciesData || interventionSpeciesData.length === 0) {
             throw ''
@@ -1979,7 +1983,11 @@ export class MobileService {
           const interventionSpeciesData = await this.drizzleService.db
             .select()
             .from(interventionSpecies)
-            .where(eq(interventionSpecies.scientificSpeciesId, tranformedSpecies[0].scientificSpeciesId))
+            .where(and(
+              eq(interventionSpecies.interventionId, existingParent[0].id),
+              eq(interventionSpecies.scientificSpeciesId, tranformedSpecies[0].scientificSpeciesId),
+              isNull(interventionSpecies.deletedAt),
+            ))
             .limit(1);
           if (!interventionSpeciesData || interventionSpeciesData.length === 0) {
             throw ''

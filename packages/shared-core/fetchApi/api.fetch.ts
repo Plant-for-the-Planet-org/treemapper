@@ -1152,6 +1152,14 @@ export const getProjectMonitoringPlots = async (token: string, projectUid: strin
   return result
 }
 
+// Create one plot with its trees and observations inline. Recorded as source
+// 'web' server-side, so the project's web approval rule applies.
+export const createMonitoringPlot = async (token: string, projectUid: string, params: any) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/plots`
+  const result = await fetchPostCall(uri, params, token)
+  return result
+}
+
 // Full detail of one plot: geometry, plants + timelines, observations, species.
 export const getMonitoringPlotDetail = async (token: string, projectUid: string, plotUid: string) => {
   const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/plots/${plotUid}`
@@ -1240,5 +1248,187 @@ export const updateProjectForm = async (token: string, projectUid: string, formU
 export const deleteProjectForm = async (token: string, projectUid: string, formUid: string) => {
   const uri = `${deleteUrlApi.projectForms}/${projectUid}/forms/${formUid}`
   const result = await fetchDeleteCall(uri, token)
+  return result
+}
+
+// ---------------------------------------------------------------------------
+// TreeMatch: plant locations + donations (donations proxied to the TTC backend)
+// ---------------------------------------------------------------------------
+
+const toQueryString = (queryParams: Record<string, any>) => {
+  const search = new URLSearchParams()
+  Object.entries(queryParams || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      search.set(key, String(value))
+    }
+  })
+  const qs = search.toString()
+  return qs ? `?${qs}` : ''
+}
+
+// Paginated matchable plant locations. Filters: page, limit, type (single|multi),
+// siteId, noSite, visibility (public|private), interventionStartDate(+To),
+// search, onlyAvailable.
+export const getTreematchInterventions = async (token: string, projectUid: string, queryParams: Record<string, any> = {}) => {
+  const uri = `${getUrlApi.treematch}/${projectUid}/interventions${toQueryString(queryParams)}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Paginated matchable donations, proxied live from the TTC backend, which owns
+// them. Filters: page, limit, profileType (individual|company), country
+// (ISO-2), sort (oldest|newest), ignored (true returns the ignored set only;
+// the two views are never mixed). Units are whole trees (converted
+// server-side).
+export const getTreematchContributions = async (token: string, projectUid: string, queryParams: Record<string, any> = {}) => {
+  const uri = `${getUrlApi.treematch}/${projectUid}/contributions${toQueryString(queryParams)}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Record a match. Pairs only: no absolute totals are sent, because the server
+// derives each contribution's new total by summing its own allocation rows, so
+// this client can never be stale. One transaction on the server, which writes
+// the derived totals to the TTC backend before committing; any TTC rejection
+// rolls the whole thing back.
+//
+// The locations may belong to other projects the caller administers. Returns
+// { applied: { [contributionId]: trees } }, TTC's accepted absolute totals.
+// A 409 means a plant location does not have that many trees free (the message
+// names the HID); a 422 comes from TTC (over-funded, or the contribution is
+// ignored). Max MAX_MATCH_PAIRS (2000) pairs per call.
+export const postTreematchMatches = async (
+  token: string,
+  projectUid: string,
+  matches: { contributionId: number; interventionUid: string; trees: number }[],
+) => {
+  const uri = `${postUrlApi.treematch}/${projectUid}/matches`
+  const result = await fetchPostCall(uri, { matches }, token)
+  return result
+}
+
+// --- Auto-match rules -------------------------------------------------------
+
+// Auto-match rules of the project, in priority order. Each item:
+// { uid, position, enabled, label, when: { sweep, country?, filters? },
+//   prefer: { type, siteUid?, siteName?, onlyApproved? }, orderBy, action }.
+export const getTreematchRules = async (token: string, projectUid: string) => {
+  const uri = `${getUrlApi.treematch}/${projectUid}/rules`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Replace the whole rule list; array order is priority. Rules get fresh uids on
+// every save, so the response should replace the local state rather than be
+// merged into it.
+export const putTreematchRules = async (
+  token: string,
+  projectUid: string,
+  rules: {
+    enabled: boolean
+    label: string
+    when: {
+      sweep: string
+      country?: string
+      filters?: { field: string; op: string; value: string | number | (string | number)[] }[]
+    }
+    prefer: { type: string; siteUid?: string; onlyApproved?: boolean }
+    orderBy: string
+    action: string
+  }[],
+) => {
+  const uri = `${putUrlApi.treematch}/${projectUid}/rules`
+  const result = await fetchPutCall(uri, { rules }, token)
+  return result
+}
+
+// --- Auto-match runs --------------------------------------------------------
+// A run plans first and stops: this returns 202 with a run whose status is
+// still 'planning'. Nothing reaches the donation backend until the plan is
+// applied. Poll getTreematchAutomatchRun until the status leaves 'planning'.
+
+export const postTreematchAutomatchRun = async (
+  token: string,
+  projectUid: string,
+  options: { maxTrees?: number } = {},
+) => {
+  const uri = `${postUrlApi.treematch}/${projectUid}/automatch/runs`
+  const result = await fetchPostCall(uri, options, token)
+  return result
+}
+
+// Returns { uid, status, plan, matchedTrees, contributionsMatched,
+// locationsFilled, error, startedAt, plannedAt, finishedAt, expiresAt }.
+export const getTreematchAutomatchRun = async (
+  token: string,
+  projectUid: string,
+  runUid: string,
+) => {
+  const uri = `${getUrlApi.treematch}/${projectUid}/automatch/runs/${runUid}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// The most recent run of the project, or null. Used on mount to pick up a plan
+// left open by an earlier visit.
+export const getTreematchLatestAutomatchRun = async (token: string, projectUid: string) => {
+  const uri = `${getUrlApi.treematch}/${projectUid}/automatch/runs/latest`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+// Stop a sweep that is still reading and plan with what it has. Takes effect
+// between pages, so the run stays 'planning' for up to one more page.
+export const postTreematchAutomatchStop = async (
+  token: string,
+  projectUid: string,
+  runUid: string,
+) => {
+  const uri = `${postUrlApi.treematch}/${projectUid}/automatch/runs/${runUid}/stop`
+  const result = await fetchPostCall(uri, {}, token)
+  return result
+}
+
+// Write the plan. Goes through the same match path as a manual match, so the
+// response is the same { applied } map of absolute totals in whole trees.
+//
+// `pairs` narrows the write to a subset of the stored plan, which is how the
+// review dialog drops links. The tree amounts always come from the plan the
+// server holds; this only says which pairs to keep. Omit it to apply all.
+export const postTreematchAutomatchApply = async (
+  token: string,
+  projectUid: string,
+  runUid: string,
+  pairs?: Array<{ contributionId: number; interventionUid: string }>,
+) => {
+  const uri = `${postUrlApi.treematch}/${projectUid}/automatch/runs/${runUid}/apply`
+  const result = await fetchPostCall(uri, pairs ? { pairs } : {}, token)
+  return result
+}
+
+// Throw a plan away without writing it. Also frees the project's run slot.
+export const deleteTreematchAutomatchRun = async (
+  token: string,
+  projectUid: string,
+  runUid: string,
+) => {
+  const uri = `${deleteUrlApi.treematch}/${projectUid}/automatch/runs/${runUid}`
+  const result = await fetchDeleteCall(uri, token)
+  return result
+}
+
+// Set or clear the ignore flag on a donation (TTC contribution id). The flag
+// lives in TTC; this is a proxy. Ignored donations move to their own list view
+// (`ignored=true`) and out of the default one. `reason` is only sent when
+// ignoring; TTC clears it on restore.
+export const patchTreematchContributionIgnore = async (
+  token: string,
+  projectUid: string,
+  contributionId: number,
+  ignored: boolean,
+  reason?: string,
+) => {
+  const uri = `${patchUrlApi.treematch}/${projectUid}/contributions/${contributionId}/ignore`
+  const result = await fetchPatchCall(uri, { ignored, ...(ignored && reason ? { reason } : {}) }, token)
   return result
 }

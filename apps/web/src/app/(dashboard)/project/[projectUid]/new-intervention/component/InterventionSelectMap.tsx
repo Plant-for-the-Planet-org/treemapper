@@ -524,7 +524,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
           <MapPin color={markerColor} size={24} style={markerStyle} />
         </Marker>
       );
-    } else if (firstFeature.geometry.type === 'Polygon') {
+    } else if (firstFeature.geometry.type === 'Polygon' || firstFeature.geometry.type === 'MultiPolygon') {
       return (
         <Source id="uploaded-polygon" type="geojson" data={firstFeature}>
           <Layer

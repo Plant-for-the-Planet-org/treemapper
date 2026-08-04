@@ -83,21 +83,12 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
         : ['polygon'];
   const allowsBothGeometry = geometryModes.includes('point') && geometryModes.includes('polygon');
 
-  // Geometry types accepted by the file upload (GeoJSON/KML). This is decoupled
-  // from the map modes on purpose: even when the map allows both point and
-  // polygon (e.g. multi-tree registration), an uploaded file must match the
-  // type the intervention stores. `geoJSONType` is that declared upload type,
-  // so multi-tree only accepts polygons and single-tree only accepts points.
-  const uploadGeometryTypes: Array<'Point' | 'Polygon' | 'MultiPolygon'> =
-    currentConfig?.geoJSONType === 'Polygon'
-      ? ['Polygon', 'MultiPolygon']
-      : currentConfig?.geoJSONType === 'Point'
-        ? ['Point']
-        : allowsBothGeometry
-          ? ['Point', 'Polygon', 'MultiPolygon']
-          : geometryModes[0] === 'point'
-            ? ['Point']
-            : ['Polygon', 'MultiPolygon'];
+  // Geometry types accepted by the file upload (GeoJSON/KML). Only single-tree
+  // registration is restricted to Point; every other intervention type can
+  // upload either a point or a polygon file.
+  const uploadGeometryTypes: Array<'Point' | 'Polygon' | 'MultiPolygon'> = isSingleTree
+    ? ['Point']
+    : ['Point', 'Polygon', 'MultiPolygon'];
 
   return (
     <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg p-8">

@@ -27,6 +27,7 @@ import { DrizzleService } from 'src/database/drizzle.service';
 import { generateUid } from 'src/util/uidGenerator';
 import { randomPastTimestamp } from 'src/util/randomTimeStamp';
 import { UsersService } from 'src/users/users.service';
+import { migrationPlaceholderAuth0Id } from 'src/users/entities/user.entity';
 import { ProjectsService } from 'src/projects/projects.service';
 import { createProjectTitle, removeDuplicatesByScientificSpeciesId } from 'src/common/utils/projectName.util';
 import booleanValid from '@turf/boolean-valid';
@@ -35,6 +36,19 @@ import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/dto/notification.dto';
 import { User } from 'src/users/entities/user.entity';
 import { UserCacheService } from 'src/cache/user-cache.service';
+
+// user.type values that may originate from the external (old) backend during
+// migration. 'superadmin' is deliberately excluded -- it is a privilege-bearing
+// value that must only ever be granted internally, never inferred from an
+// external profile response.
+const EXTERNAL_ASSIGNABLE_USER_TYPES = ['individual', 'tpo', 'organization', 'other', 'school'] as const;
+type ExternalAssignableUserType = (typeof EXTERNAL_ASSIGNABLE_USER_TYPES)[number];
+
+function sanitizeExternalUserType(value: unknown): ExternalAssignableUserType {
+    return (EXTERNAL_ASSIGNABLE_USER_TYPES as readonly string[]).includes(value as string)
+        ? (value as ExternalAssignableUserType)
+        : 'individual';
+}
 
 interface GeoJSONFeature {
     type: 'Feature';
@@ -131,9 +145,13 @@ export class MigrationService {
                 await this.usersetvice.invalidateMyCache(userData)
                 return { existingPlanetUser: false, country: response.data.country, uid: response.data.id, locale: response.data.locale };
             } else {
-                await this.drizzleService.db.update(user).set({ existingPlanetUser: true, type: response.data.type, country: response.data.country, uid: response.data.id, locale: response.data.locale }).where(eq(user.id, userData.id))
+                // Never trust the external `type` verbatim: it feeds `user.type`,
+                // which gates SuperAdminGuard. Coerce to a safe, non-privileged
+                // value and drop anything unknown (including 'superadmin').
+                const safeType = sanitizeExternalUserType(response.data.type);
+                await this.drizzleService.db.update(user).set({ existingPlanetUser: true, type: safeType, country: response.data.country, uid: response.data.id, locale: response.data.locale }).where(eq(user.id, userData.id))
                 await this.usersetvice.invalidateMyCache(userData)
-                return { existingPlanetUser: true, country: response.data.country, uid: response.data.id, locale: response.data.locale, type: response.data.type };
+                return { existingPlanetUser: true, country: response.data.country, uid: response.data.id, locale: response.data.locale, type: safeType };
             }
         } catch (error) {
             if (error.response) {
@@ -279,7 +297,9 @@ export class MigrationService {
             const slug = emailPrefix.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim().substring(0, 255) + '-' + randomPastTimestamp();
             const [newUser] = await this.drizzleService.db.insert(user).values({
                 uid: generateUid('usr'),
-                auth0Id: `email:${email}`,
+                // Placeholder: the real Auth0 sub is unknown until this user's
+                // first login, which claims the row via `linkAuth0IdByEmail`.
+                auth0Id: migrationPlaceholderAuth0Id(email),
                 email: email,
                 displayName: emailPrefix,
                 slug: slug,
@@ -763,7 +783,9 @@ export class MigrationService {
             updatedAt: new Date(),
             deletedAt: null,
             existingPlanetUser: true,
-            auth0Id: `email:${oldUserData.email}`,
+            // Placeholder: the real Auth0 sub is unknown until this user's first
+            // login, which claims the row via `linkAuth0IdByEmail`.
+            auth0Id: migrationPlaceholderAuth0Id(oldUserData.email),
         };
         return transformedUser;
     }
