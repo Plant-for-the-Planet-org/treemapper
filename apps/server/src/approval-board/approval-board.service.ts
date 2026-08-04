@@ -169,6 +169,7 @@ export class ApprovalBoardService {
   async startReview(
     interventionUid: string,
     adminId: number,
+    expectedProjectId: number,
   ): Promise<InterventionReviewSummary> {
     return this.drizzleService.db.transaction(async (tx) => {
       const [inv] = await tx
@@ -178,6 +179,10 @@ export class ApprovalBoardService {
         .limit(1);
 
       if (!inv) throw new NotFoundException('Intervention not found');
+
+      if (inv.projectId !== expectedProjectId) {
+        throw new ForbiddenException('Intervention does not belong to this project');
+      }
 
       if (inv.reviewStatus !== 'pending') {
         throw new BadRequestException(
@@ -217,6 +222,7 @@ export class ApprovalBoardService {
     interventionUid: string,
     adminId: number,
     dto: MakeDecisionDto,
+    expectedProjectId: number,
   ): Promise<InterventionReviewSummary> {
     const decisionProjectId = { value: 0 };
     const result = await this.drizzleService.db.transaction(async (tx) => {
@@ -227,6 +233,10 @@ export class ApprovalBoardService {
         .limit(1);
 
       if (!inv) throw new NotFoundException('Intervention not found');
+
+      if (inv.projectId !== expectedProjectId) {
+        throw new ForbiddenException('Intervention does not belong to this project');
+      }
 
       if (inv.reviewStatus !== 'in_review') {
         throw new BadRequestException(
@@ -1159,7 +1169,7 @@ export class ApprovalBoardService {
 
   // ================== Start Site Review (pending → in_review) ==================
 
-  async startSiteReview(siteUid: string, adminId: number): Promise<SiteReviewSummary> {
+  async startSiteReview(siteUid: string, adminId: number, expectedProjectId: number): Promise<SiteReviewSummary> {
     return this.drizzleService.db.transaction(async (tx) => {
       const [s] = await tx
         .select()
@@ -1168,6 +1178,10 @@ export class ApprovalBoardService {
         .limit(1);
 
       if (!s) throw new NotFoundException('Site not found');
+
+      if (s.projectId !== expectedProjectId) {
+        throw new ForbiddenException('Site does not belong to this project');
+      }
 
       if (s.reviewStatus !== 'pending') {
         throw new BadRequestException(
@@ -1191,7 +1205,7 @@ export class ApprovalBoardService {
         });
       }
 
-      return this.getSiteReviewStatus(siteUid, tx);
+      return this.getSiteReviewStatus(siteUid, undefined, tx);
     });
   }
 
@@ -1201,6 +1215,7 @@ export class ApprovalBoardService {
     siteUid: string,
     adminId: number,
     dto: MakeDecisionDto,
+    expectedProjectId: number,
   ): Promise<SiteReviewSummary> {
     return this.drizzleService.db.transaction(async (tx) => {
       const [s] = await tx
@@ -1210,6 +1225,10 @@ export class ApprovalBoardService {
         .limit(1);
 
       if (!s) throw new NotFoundException('Site not found');
+
+      if (s.projectId !== expectedProjectId) {
+        throw new ForbiddenException('Site does not belong to this project');
+      }
 
       if (s.reviewStatus !== 'in_review') {
         throw new BadRequestException(
@@ -1252,7 +1271,7 @@ export class ApprovalBoardService {
         }
       }
 
-      return this.getSiteReviewStatus(siteUid, tx);
+      return this.getSiteReviewStatus(siteUid, undefined, tx);
     });
   }
 
@@ -1263,14 +1282,26 @@ export class ApprovalBoardService {
     userId: number,
     role: 'admin' | 'contributor',
     dto: AddCommentDto,
+    expectedProjectId?: number,
   ): Promise<ReviewCommentResponse> {
     const [s] = await this.drizzleService.db
-      .select({ id: site.id, reviewStatus: site.reviewStatus })
+      .select({ id: site.id, projectId: site.projectId, reviewStatus: site.reviewStatus })
       .from(site)
       .where(and(eq(site.uid, siteUid), isNull(site.deletedAt)))
       .limit(1);
 
     if (!s) throw new NotFoundException('Site not found');
+
+    if (expectedProjectId !== undefined && s.projectId !== expectedProjectId) {
+      throw new ForbiddenException('Site does not belong to this project');
+    }
+
+    // The admin path arrives with expectedProjectId set and is already authorized
+    // by ApprovalDecisionGuard. Only the unguarded contributor path needs a
+    // direct project-membership check here.
+    if (expectedProjectId === undefined) {
+      await this.authzService.assertProjectMembership(userId, s.projectId);
+    }
 
     if (s.reviewStatus !== 'pending' && s.reviewStatus !== 'in_review') {
       throw new BadRequestException('Comments can only be added while the site is pending or in_review');
@@ -1316,14 +1347,16 @@ export class ApprovalBoardService {
 
   // ================== Current Site Thread ==================
 
-  async getCurrentSiteThread(siteUid: string): Promise<ReviewThreadResponse | null> {
+  async getCurrentSiteThread(siteUid: string, userId: number): Promise<ReviewThreadResponse | null> {
     const [s] = await this.drizzleService.db
-      .select({ id: site.id, reviewStatus: site.reviewStatus })
+      .select({ id: site.id, projectId: site.projectId, reviewStatus: site.reviewStatus })
       .from(site)
       .where(and(eq(site.uid, siteUid), isNull(site.deletedAt)))
       .limit(1);
 
     if (!s) throw new NotFoundException('Site not found');
+
+    await this.authzService.assertProjectAccess(userId, s.projectId);
 
     if (!s.reviewStatus) return null;
 
@@ -1401,7 +1434,7 @@ export class ApprovalBoardService {
 
   // ================== Site Review Status ==================
 
-  async getSiteReviewStatus(siteUid: string, tx?: any): Promise<SiteReviewSummary> {
+  async getSiteReviewStatus(siteUid: string, userId?: number, tx?: any): Promise<SiteReviewSummary> {
     const db = tx || this.drizzleService.db;
 
     const [s] = await db
@@ -1424,6 +1457,13 @@ export class ApprovalBoardService {
       .limit(1);
 
     if (!s) throw new NotFoundException('Site not found');
+
+    // userId is omitted only by already-authorized internal callers (post-decision
+    // flows guarded by ApprovalDecisionGuard). The public controller route always
+    // passes it so cross-tenant reads are blocked.
+    if (userId !== undefined) {
+      await this.authzService.assertProjectAccess(userId, s.projectId);
+    }
 
     return {
       siteId: s.siteId,

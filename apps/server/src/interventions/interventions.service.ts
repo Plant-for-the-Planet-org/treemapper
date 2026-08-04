@@ -3897,7 +3897,10 @@ async interventionEdit(
             const existingSpecies = await tx
               .select()
               .from(interventionSpecies)
-              .where(eq(interventionSpecies.uid, speciesChange.uid))
+              .where(and(
+                eq(interventionSpecies.uid, speciesChange.uid),
+                eq(interventionSpecies.interventionId, currentIntervention.id),
+              ))
               .limit(1);
 
             if (existingSpecies.length > 0) {
@@ -3915,7 +3918,7 @@ async interventionEdit(
                   commonName: speciesChange.commonName ?? existingSpecies[0].commonName,
                   updatedAt: new Date(),
                 })
-                .where(eq(interventionSpecies.uid, speciesChange.uid));
+                .where(eq(interventionSpecies.id, existingSpecies[0].id));
 
               newValues.species.push({
                 action: 'update',
@@ -3930,31 +3933,43 @@ async interventionEdit(
             const existingSpecies = await tx
               .select()
               .from(interventionSpecies)
-              .where(eq(interventionSpecies.uid, speciesChange.uid))
+              .where(and(
+                eq(interventionSpecies.uid, speciesChange.uid),
+                eq(interventionSpecies.interventionId, currentIntervention.id),
+              ))
               .limit(1);
 
             if (existingSpecies.length > 0) {
-              // If reassignment is specified, update trees first
+              // If reassignment is specified, update trees first. The target
+              // must belong to the same intervention, otherwise trees would be
+              // re-pointed onto a foreign (possibly other-project) species.
               if (speciesChange.reassignToSpeciesUid) {
                 const targetSpecies = await tx
                   .select({ id: interventionSpecies.id })
                   .from(interventionSpecies)
-                  .where(eq(interventionSpecies.uid, speciesChange.reassignToSpeciesUid))
+                  .where(and(
+                    eq(interventionSpecies.uid, speciesChange.reassignToSpeciesUid),
+                    eq(interventionSpecies.interventionId, currentIntervention.id),
+                  ))
                   .limit(1);
 
-                if (targetSpecies.length > 0) {
-                  await tx
-                    .update(tree)
-                    .set({ interventionSpeciesId: targetSpecies[0].id, updatedAt: new Date() })
-                    .where(eq(tree.interventionSpeciesId, existingSpecies[0].id));
+                if (targetSpecies.length === 0) {
+                  throw new BadRequestException(
+                    'Reassignment target species not found in this intervention',
+                  );
                 }
+
+                await tx
+                  .update(tree)
+                  .set({ interventionSpeciesId: targetSpecies[0].id, updatedAt: new Date() })
+                  .where(eq(tree.interventionSpeciesId, existingSpecies[0].id));
               }
 
               // Soft delete the species
               await tx
                 .update(interventionSpecies)
                 .set({ deletedAt: new Date() })
-                .where(eq(interventionSpecies.uid, speciesChange.uid));
+                .where(eq(interventionSpecies.id, existingSpecies[0].id));
 
               oldValues.species.push({
                 action: 'remove',

@@ -14,6 +14,9 @@ interface SidebarProps {
   onAssign: () => void
   onClear: () => void
   onSelectSpecies: (species: any) => void
+  // Owner, admin and contributor may identify unknown species. Everyone else
+  // sees the list read-only instead of a selection they cannot act on.
+  canAssign?: boolean
 }
 
 const Panel = ({
@@ -51,6 +54,7 @@ export const SpeciesSidebar = ({
   onAssign,
   onClear,
   onSelectSpecies,
+  canAssign = false,
 }: SidebarProps) => {
   const hasSelection = selectedUnknown.length > 0
 
@@ -67,22 +71,25 @@ export const SpeciesSidebar = ({
           <>
             <div className="max-h-72 overflow-y-auto px-2 py-2 space-y-0.5">
               {unknownSpecies.map((s) => {
-                  const checked = selectedUnknown.includes(s.uid)
+                  const checked = canAssign && selectedUnknown.includes(s.uid)
                   const count = s.totalCount || s.count || s.speciesCount || 0
                   return (
                     <div
                       key={s.uid}
                       className={cn(
-                        'flex items-center gap-2.5 rounded-md px-2 py-2 transition-colors cursor-pointer',
-                        checked ? 'bg-primary/5' : 'hover:bg-muted/60'
+                        'flex items-center gap-2.5 rounded-md px-2 py-2 transition-colors',
+                        canAssign && 'cursor-pointer',
+                        checked ? 'bg-primary/5' : canAssign && 'hover:bg-muted/60'
                       )}
-                      onClick={() => onToggleUnknown(s.uid)}
+                      onClick={canAssign ? () => onToggleUnknown(s.uid) : undefined}
                     >
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={() => onToggleUnknown(s.uid)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
+                      {canAssign && (
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={() => onToggleUnknown(s.uid)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      )}
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-medium text-foreground truncate">
                           {s.speciesName || s.scientificName || 'Unknown'}
@@ -100,26 +107,28 @@ export const SpeciesSidebar = ({
                   )
                 })}
             </div>
-            <div className="flex items-center gap-2 px-3 py-3 border-t border-border">
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-8 flex-1 text-xs bg-white shadow-sm"
-                disabled={!hasSelection}
-                onClick={onClear}
-              >
-                Clear
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-8 flex-1 text-xs bg-white shadow-sm text-foreground"
-                disabled={!hasSelection}
-                onClick={onAssign}
-              >
-                Assign{hasSelection ? ` (${selectedUnknown.length})` : ''}
-              </Button>
-            </div>
+            {canAssign && (
+              <div className="flex items-center gap-2 px-3 py-3 border-t border-border">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 flex-1 text-xs bg-white shadow-sm"
+                  disabled={!hasSelection}
+                  onClick={onClear}
+                >
+                  Clear
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 flex-1 text-xs bg-white shadow-sm text-foreground"
+                  disabled={!hasSelection}
+                  onClick={onAssign}
+                >
+                  Assign{hasSelection ? ` (${selectedUnknown.length})` : ''}
+                </Button>
+              </div>
+            )}
           </>
         )}
       </Panel>

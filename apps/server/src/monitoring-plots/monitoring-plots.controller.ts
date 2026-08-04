@@ -23,6 +23,7 @@ import {
   UploadRemeasurementsDto,
   AddPlotPlantsDto,
   AddPlotObservationsDto,
+  AddPlotImagesDto,
   UpdateMonitoringPlotDto,
   UpdatePlotGroupDto,
 } from './dto/monitoring-plots.dto';
@@ -44,6 +45,20 @@ export class MonitoringPlotsController {
     @Membership() membership: ProjectGuardResponse,
   ): Promise<MonitoringPlotUploadResponseDto> {
     return this.monitoringPlotsService.uploadMonitoringPlot(dto, membership);
+  }
+
+  @Post('projects/:projectId/plots')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  @ApiOperation({ summary: 'Create a monitoring plot from the web dashboard' })
+  @ApiResponse({ status: 201, description: 'Monitoring plot created', type: MonitoringPlotUploadResponseDto })
+  async createPlot(
+    @Body() dto: CreateMonitoringPlotDto,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<MonitoringPlotUploadResponseDto> {
+    // Same persistence as a device sync, but recorded as source 'web' so the
+    // project's web approval toggle applies and the audit trail is accurate.
+    return this.monitoringPlotsService.uploadMonitoringPlot(dto, membership, 'web');
   }
 
   @Post('projects/:projectId/upload/bulk')
@@ -92,6 +107,18 @@ export class MonitoringPlotsController {
     @Membership() membership: ProjectGuardResponse,
   ) {
     return this.monitoringPlotsService.addPlotObservations(dto, membership);
+  }
+
+  @Post('projects/:projectId/images')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  @ApiOperation({ summary: 'Add photos to an already-uploaded plot' })
+  @ApiResponse({ status: 201, description: 'Photos attached (stored filenames returned)' })
+  async addImages(
+    @Body() dto: AddPlotImagesDto,
+    @Membership() membership: ProjectGuardResponse,
+  ) {
+    return this.monitoringPlotsService.addPlotImages(dto, membership);
   }
 
   @Post('projects/:projectId/groups')

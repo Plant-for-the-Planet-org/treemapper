@@ -27,6 +27,7 @@ import { DrizzleService } from 'src/database/drizzle.service';
 import { generateUid } from 'src/util/uidGenerator';
 import { randomPastTimestamp } from 'src/util/randomTimeStamp';
 import { UsersService } from 'src/users/users.service';
+import { migrationPlaceholderAuth0Id } from 'src/users/entities/user.entity';
 import { ProjectsService } from 'src/projects/projects.service';
 import { createProjectTitle, removeDuplicatesByScientificSpeciesId } from 'src/common/utils/projectName.util';
 import booleanValid from '@turf/boolean-valid';
@@ -296,7 +297,9 @@ export class MigrationService {
             const slug = emailPrefix.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim().substring(0, 255) + '-' + randomPastTimestamp();
             const [newUser] = await this.drizzleService.db.insert(user).values({
                 uid: generateUid('usr'),
-                auth0Id: `email:${email}`,
+                // Placeholder: the real Auth0 sub is unknown until this user's
+                // first login, which claims the row via `linkAuth0IdByEmail`.
+                auth0Id: migrationPlaceholderAuth0Id(email),
                 email: email,
                 displayName: emailPrefix,
                 slug: slug,
@@ -780,7 +783,9 @@ export class MigrationService {
             updatedAt: new Date(),
             deletedAt: null,
             existingPlanetUser: true,
-            auth0Id: `email:${oldUserData.email}`,
+            // Placeholder: the real Auth0 sub is unknown until this user's first
+            // login, which claims the row via `linkAuth0IdByEmail`.
+            auth0Id: migrationPlaceholderAuth0Id(oldUserData.email),
         };
         return transformedUser;
     }
