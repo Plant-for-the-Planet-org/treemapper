@@ -1152,6 +1152,14 @@ export const getProjectMonitoringPlots = async (token: string, projectUid: strin
   return result
 }
 
+// Create one plot with its trees and observations inline. Recorded as source
+// 'web' server-side, so the project's web approval rule applies.
+export const createMonitoringPlot = async (token: string, projectUid: string, params: any) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/plots`
+  const result = await fetchPostCall(uri, params, token)
+  return result
+}
+
 // Full detail of one plot: geometry, plants + timelines, observations, species.
 export const getMonitoringPlotDetail = async (token: string, projectUid: string, plotUid: string) => {
   const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/plots/${plotUid}`

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useToken } from '@/context/useTokenContext';
 import {
@@ -18,12 +19,16 @@ import DeletePlotModal from './component/DeletePlotModal';
 import GroupsManager from './component/GroupsManager';
 
 const MonitoringPlotsPage = () => {
+  const router = useRouter();
   const selectedProject = useProjectStore((s) => s.selectedProject);
   const { accessToken } = useToken();
   const token = accessToken || '';
   const projectUid = selectedProject?.uid as string | undefined;
   const userRole = selectedProject?.userRole;
   const canManage = ['owner', 'admin'].includes(userRole || '');
+  // Creating a plot matches the server's rule for the create endpoint, which
+  // allows contributors as well as owners and admins.
+  const canCreate = ['owner', 'admin', 'contributor'].includes(userRole || '');
 
   const [plots, setPlots] = useState<PlotListItem[]>([]);
   const [groups, setGroups] = useState<PlotGroup[]>([]);
@@ -114,6 +119,9 @@ const MonitoringPlotsPage = () => {
           ? { ...p, name: res.data.name, shape: res.data.shape, isComplete: res.data.isComplete }
           : p,
       ));
+      // The edit can move the plot between groups, so the group counts on the
+      // list view need a re-read.
+      if ('groupUid' in payload) fetchGroups();
       setShowEdit(false);
       toast.success('Plot updated');
     } catch {
@@ -165,7 +173,9 @@ const MonitoringPlotsPage = () => {
             loading={loading}
             onSelect={handleSelect}
             canManage={canManage}
+            canCreate={canCreate}
             onManageGroups={() => setShowGroups(true)}
+            onCreatePlot={() => router.push(`/project/${projectUid}/monitoring-plots/create`)}
           />
         )}
       </div>
@@ -173,6 +183,7 @@ const MonitoringPlotsPage = () => {
       <EditPlotModal
         open={showEdit}
         plot={detail}
+        groups={groups}
         saving={saving}
         onClose={() => setShowEdit(false)}
         onSave={handleSaveEdit}
