@@ -21,6 +21,8 @@ import { ProjectFormData } from 'src/types/interface/projectForm.interface'
 import { RootState } from 'src/store'
 import useFormsData from 'src/hooks/realm/useFormsData'
 import { getProjectForms } from 'src/api/api.fetch'
+import { AnalyticsEvents, trackEvent } from 'src/utils/analytics'
+import useScreenLoadTiming from 'src/hooks/analytics/useScreenLoadTiming'
 
 // Lists the published forms for the current project. Forms are cached in Realm
 // so the list works offline; a fresh fetch runs on mount when online.
@@ -30,6 +32,7 @@ const FormsView = () => {
   const projectId = currentProject?.projectId || ''
   const { upsertProjectForms } = useFormsData()
   const [loading, setLoading] = useState(false)
+  const { loadStarted, loadFinished } = useScreenLoadTiming('Forms')
 
   const forms = useQuery<ProjectFormData>(
     RealmSchema.ProjectForm,
@@ -42,6 +45,7 @@ const FormsView = () => {
     const netInfo = await NetInfo.fetch()
     if (!netInfo.isConnected) return
     setLoading(true)
+    loadStarted()
     try {
       const { response, success } = await getProjectForms(projectId)
       const data = Array.isArray(response) ? response : response?.data
@@ -51,6 +55,9 @@ const FormsView = () => {
     } catch (error) {
       // offline / failed fetch -> keep cached forms
     } finally {
+      // Only reports if it took longer than the threshold, so this is quiet
+      // on a normal connection and loud on the ones that hurt.
+      loadFinished({ form_count: forms.length })
       setLoading(false)
     }
   }
@@ -60,6 +67,12 @@ const FormsView = () => {
   }, [projectId])
 
   const openForm = (form: ProjectFormData) => {
+    // Custom form adoption: how many people actually open a project form,
+    // as opposed to how many projects happen to have one.
+    trackEvent(AnalyticsEvents.CUSTOM_FORM_OPENED, {
+      form_id: form.id,
+      project_id: projectId,
+    })
     navigation.navigate('FormDetail', { formId: form.id, mode: 'prefill' })
   }
 

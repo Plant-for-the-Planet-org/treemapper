@@ -41,6 +41,11 @@ import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
 import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { convertMeasurements, getConvertedDiameter, getConvertedHeight } from 'src/utils/constants/measurements'
 import { updateFilePath } from 'src/utils/helpers/fileSystemHelper'
+import {
+    AnalyticsEvents,
+    incrementSessionCounter,
+    trackEvent,
+} from 'src/utils/analytics'
 
 
 type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'species' | 'date'
@@ -266,6 +271,13 @@ const ReviewTreeDetails = () => {
         }
         if (!hasError) {
             await updateSampleTreeDetails(finalDetails)
+            // Which measurement people correct after the fact. A field that
+            // is edited often was probably hard to get right the first time.
+            trackEvent(AnalyticsEvents.TREE_EDITED, {
+                field: openEditModal.type,
+                is_synced: treeDetails.status === 'SYNCED',
+            })
+            incrementSessionCounter('trees_edited')
             setTreeDetails({ ...finalDetails })
         }
         setOpenEditModal((prev) => ({ ...prev, open: false }));
@@ -282,6 +294,11 @@ const ReviewTreeDetails = () => {
         setShowDatePicker(false)
         finalDetails.plantation_date = convertDateToTimestamp(date)
         await updateSampleTreeDetails(finalDetails)
+        trackEvent(AnalyticsEvents.TREE_EDITED, {
+            field: 'plantation_date',
+            is_synced: treeDetails.status === 'SYNCED',
+        })
+        incrementSessionCounter('trees_edited')
         setTreeDetails({ ...finalDetails })
     }
 
@@ -353,6 +370,12 @@ const ReviewTreeDetails = () => {
     }
 
     const deleteTreeData = async () => {
+        // Data thrown away after being recorded. Read against tree_saved,
+        // this is how much field effort is not reaching the server.
+        trackEvent(AnalyticsEvents.TREE_DELETED, {
+            is_synced: treeDetails.status === 'SYNCED',
+            tree_type: treeDetails.tree_type,
+        })
         await deleteSampleTreeIntervention(treeDetails.tree_id, interventionId)
         navigation.goBack()
     }

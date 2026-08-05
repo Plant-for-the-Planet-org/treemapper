@@ -17,7 +17,13 @@ import { Colors } from 'src/utils/constants'
 import { AvoidSoftInput, AvoidSoftInputView } from "react-native-avoid-softinput";
 import getUserLocation from 'src/utils/helpers/getUserLocation'
 import { usePostHog } from 'posthog-react-native'
-import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
+import {
+  captureAnalyticsEvent,
+  AnalyticsEvents,
+  incrementSessionCounter,
+  trackFirstTimeEvent,
+} from 'src/utils/analytics'
+import useFormAnalytics from 'src/hooks/analytics/useFormAnalytics'
 import i18next from 'i18next'
 import AlertModal from 'src/components/common/AlertModal'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
@@ -53,6 +59,11 @@ const AddMeasurement = () => {
   const toast = useToast()
   const posthog = usePostHog()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  // The measurement form is the last step before a tree exists, so its
+  // abandonment rate is the closest thing to "how many trees do we lose".
+  const formAnalytics = useFormAnalytics('tree_measurement', {
+    intervention_key: Intervention?.intervention_key,
+  })
 
   useEffect(() => {
     setCountry();
@@ -67,6 +78,7 @@ const AddMeasurement = () => {
   };
 
   const handleHeightChange = (text: string) => {
+    formAnalytics.fieldChanged('height')
     setHeightErrorMessage('');
     const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
     const finalText = text.replace(/,/g, '.');
@@ -86,6 +98,7 @@ const AddMeasurement = () => {
   };
 
   const handleDiameterChange = (text: string) => {
+    formAnalytics.fieldChanged('diameter')
     setWidthErrorMessage('');
     const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
     const finalText = text.replace(/,/g, '.');
@@ -126,11 +139,31 @@ const AddMeasurement = () => {
       isTagIdValid = true;
     }
 
+    // Section 5: which fields people get wrong, and how often. Recorded per
+    // attempt, so a field someone fights with three times reads differently
+    // from one they fix immediately.
+    if (heightErrorMessage) {
+      formAnalytics.validationFailed('height', 'invalid_height')
+    }
+    if (diameterErrorMessage) {
+      formAnalytics.validationFailed('diameter', 'invalid_diameter')
+    }
+    if (!isTagIdValid) {
+      formAnalytics.validationFailed(
+        'tag_id',
+        tagId.length === 0 ? 'required' : 'invalid_format',
+      )
+    }
+
     // if all fields are valid then updates the specie data in DB
     if (!diameterErrorMessage && !heightErrorMessage && isTagIdValid) {
       if (isRatioCorrect) {
         submitDetails();
       } else {
+        // Measurements outside the expected height-to-diameter ratio. Not an
+        // error, but the app is questioning what the user typed, so it is a
+        // friction point worth counting.
+        formAnalytics.validationFailed('height_diameter_ratio', 'outside_optimal_range')
         setShowOptimalAlert(true);
       }
     }
@@ -213,7 +246,24 @@ const AddMeasurement = () => {
         tree_type: treeDetails.tree_type,
         species_name: treeDetails.specie_name,
       })
+      // The tree is now in Realm. Separate from TREE_RECORDED so the journey
+      // in section 2 can show "created" and "saved" as distinct steps, and a
+      // gap between them points straight at the local write.
+      captureAnalyticsEvent(posthog, AnalyticsEvents.TREE_SAVED, {
+        intervention_id: Intervention?.intervention_id,
+        tree_type: treeDetails.tree_type,
+        has_tag: Boolean(treeDetails.tag_id),
+        has_image: Boolean(treeDetails.image_url),
+        location_accuracy: treeDetails.location_accuracy,
+      })
+      incrementSessionCounter('trees_created')
+      // Section 10: activation. Fires once per install, ever.
+      trackFirstTimeEvent(AnalyticsEvents.FIRST_TREE_CREATED, {
+        intervention_key: Intervention?.intervention_key,
+      })
+      formAnalytics.complete({ tree_type: treeDetails.tree_type })
     } else {
+      formAnalytics.validationFailed('submit', 'realm_write_failed')
       errorHaptic()
       toast.show("Error occurred while registering sample tree.")
     }
@@ -239,6 +289,10 @@ const AddMeasurement = () => {
             autoFocus
             keyboardType={'decimal-pad'}
             trailingText={isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}
+            analyticsField="height"
+            analyticsForm="tree_measurement"
+            onFieldFocus={() => formAnalytics.fieldFocused('height')}
+            onFieldBlur={() => formAnalytics.fieldBlurred('height', height.length > 0)}
             errMsg={heightErrorMessage} />
           <OutlinedTextInput
             placeholder={diameterLabel}
@@ -246,6 +300,10 @@ const AddMeasurement = () => {
             keyboardType={'decimal-pad'}
             trailingText={isNonISUCountry ? i18next.t('label.select_species_inches') : 'cm'}
             errMsg={widthErrorMessage}
+            analyticsField="diameter"
+            analyticsForm="tree_measurement"
+            onFieldFocus={() => formAnalytics.fieldFocused('diameter')}
+            onFieldBlur={() => formAnalytics.fieldBlurred('diameter', width.length > 0)}
             info={i18next.t('label.measurement_diameter_info', {
               height: isNonISUCountry
                 ? Math.round(DBHInMeter * meterToFoot * 1000) / 1000

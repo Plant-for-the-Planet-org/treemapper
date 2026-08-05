@@ -13,6 +13,7 @@ import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import { resetProjectState } from 'src/store/slice/projectStateSlice'
 import { SCALE_16 } from 'src/utils/constants/spacing'
+import { AnalyticsEvents, trackEvent } from 'src/utils/analytics'
 
 interface Props {
   item: SideDrawerItem
@@ -29,6 +30,13 @@ const SideBarCard = (props: Props) => {
     if (disable) {
       return
     }
+    // Every menu tap goes through here, so this one call covers "menu usage"
+    // for the whole drawer. The stable `key` is sent rather than `label`,
+    // which is translated and would split the breakdown by language.
+    trackEvent(AnalyticsEvents.MENU_ITEM_CLICKED, {
+      item_key: key,
+      target_screen: screen,
+    })
     let params = {}
     if (key === 'logout') {
       handleLogout()

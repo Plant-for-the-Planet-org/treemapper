@@ -18,6 +18,7 @@ import { FONT_FAMILY_ITALIC, FONT_FAMILY_REGULAR } from 'src/utils/constants/typ
 import { useDispatch } from 'react-redux'
 import { updateSelectedSpeciesId, updateSpeciesUpdatedAt } from 'src/store/slice/tempStateSlice'
 import { updateSpeciesDownloaded } from 'src/store/slice/appStateSlice'
+import { AnalyticsEvents, trackEvent } from 'src/utils/analytics'
 
 const SpeciesSearchView = () => {
   const [specieList, setSpecieList] = useState<IScientificSpecies[]>([])
@@ -44,6 +45,12 @@ const SpeciesSearchView = () => {
           : species,
       )
     })
+    // Species adoption (section 3). The guid is the public species id from
+    // the shared list, not anything about the user.
+    trackEvent(
+      status ? AnalyticsEvents.SPECIES_ADDED : AnalyticsEvents.SPECIES_REMOVED,
+      { species_guid: item.guid, source: 'species_search' },
+    )
     updateUserFavSpecies(item.guid, status)
     toast.hideAll();
     if (status) {
@@ -66,6 +73,9 @@ const SpeciesSearchView = () => {
   }
 
   const handleSpeciesSyncPress = async () => {
+    // Users only re-download the species list when they could not find what
+    // they needed, so this doubles as a signal the list is out of date.
+    trackEvent(AnalyticsEvents.SPECIES_LIST_SYNCED, { source: 'species_search' })
     setShowSpeciesSyncAlert(false)
     dispatch(updateSpeciesDownloaded(''))
     dispatch(updateSpeciesUpdatedAt())

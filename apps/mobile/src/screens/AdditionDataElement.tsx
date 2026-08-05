@@ -31,6 +31,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { useToast } from 'react-native-toast-notifications'
 import { FORM_TYPE } from 'src/types/type/app.type'
 import i18next from 'src/locales/index'
+import { AnalyticsEvents, trackEvent } from 'src/utils/analytics'
 
 const fieldType: Array<{
   label: string
@@ -230,6 +231,13 @@ const AdditionDataElement = () => {
       dropDownData: JSON.stringify(dropDownElement),
     }
     await addNewElementInForm(details, form_id)
+    // Which element types get used tells us which parts of the form builder
+    // earn their place.
+    trackEvent(AnalyticsEvents.CUSTOM_FORM_FIELD_ADDED, {
+      element_type: elementType,
+      is_required: isRequired,
+      visibility: isPublic ? 'public' : 'private',
+    })
     navigation.goBack()
   }
 

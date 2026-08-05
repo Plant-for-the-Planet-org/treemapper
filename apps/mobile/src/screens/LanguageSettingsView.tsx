@@ -13,6 +13,10 @@ import Header from 'src/components/common/Header'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
 import i18next, { SUPPORTED_LANGUAGES, setAppLanguage } from 'src/locales'
+import {
+  registerAnalyticsSuperProperties,
+  setAnalyticsContext,
+} from 'src/utils/analytics'
 
 const LanguageSettingsView = () => {
   const { i18n } = useTranslation()
@@ -24,6 +28,13 @@ const LanguageSettingsView = () => {
     setSaving(code)
     try {
       await setAppLanguage(code)
+      // Language is a segment for every later event, not an event of its
+      // own. Registered as a super property so a PM can split any funnel by
+      // the language the app was actually being read in, which for the
+      // terminology research in section 9 is the whole point: a word only
+      // confuses people in the language they see it in.
+      registerAnalyticsSuperProperties({ app_language: code })
+      setAnalyticsContext({ app_language: code })
     } finally {
       setSaving(null)
     }

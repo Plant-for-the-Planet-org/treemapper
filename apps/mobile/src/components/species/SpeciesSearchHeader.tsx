@@ -8,6 +8,7 @@ import SyncIcon from 'assets/images/svg/SyncIcon.svg'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
+import { useSearchAnalytics } from 'src/hooks/analytics/useAnalytics'
 
 interface Props {
   backPress: () => void
@@ -21,6 +22,8 @@ const SpeciesSearchHeader = (props: Props) => {
   const { backPress, toggleSyncModal, setSpicesList } = props
 
   const inputRef = useRef<TextInput>(null)
+  // Debounced, so one search is one event rather than one per keystroke.
+  const trackSearch = useSearchAnalytics('species')
 
   const handleSearchChange = (text: string) => {
     setSearchText(text)
@@ -64,7 +67,12 @@ const SpeciesSearchHeader = (props: Props) => {
       )
     }
 
-    setSpicesList([...startsWithMatches, ...containsMatches])
+    const results = [...startsWithMatches, ...containsMatches]
+    // Reported with the result count, because a species search that finds
+    // nothing is the interesting one: it means the list is missing something
+    // people are looking for.
+    trackSearch(searchText, results.length)
+    setSpicesList(results)
   }
 
   return (

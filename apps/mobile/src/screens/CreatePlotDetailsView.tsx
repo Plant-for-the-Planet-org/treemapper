@@ -17,7 +17,12 @@ import { MonitoringPlot, PlotGroups } from 'src/types/interface/slice.interface'
 import { useToast } from 'react-native-toast-notifications'
 import useMonitoringPlotManagement, { PlotDetailsParams } from 'src/hooks/realm/useMonitoringPlotManagement'
 import { usePostHog } from 'posthog-react-native'
-import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
+import {
+    captureAnalyticsEvent,
+    AnalyticsEvents,
+    incrementSessionCounter,
+} from 'src/utils/analytics'
+import useFormAnalytics from 'src/hooks/analytics/useFormAnalytics'
 import AddPlotImage from 'src/components/monitoringPlot/AddPlotImage'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
@@ -51,6 +56,9 @@ const CreatePlotDetailsView = () => {
     const [dropDownList, setDropDownList] = useState<DropdownData[]>([])
     const toast = useToast()
     const posthog = usePostHog()
+    // plot_name and plot_shape are both in FIELD_TERMS, so skips and repeated
+    // edits here feed the "monitoring plot" terminology question for free.
+    const formAnalytics = useFormAnalytics('monitoring_plot_details')
 
     useEffect(() => {
         getPlotDetails()
@@ -100,11 +108,15 @@ const CreatePlotDetailsView = () => {
 
     const submitHandler = async () => {
         if (!isPlotNameValid(plotName)) {
+            formAnalytics.validationFailed('plot_name', 'required')
             toast.show("Please add valid Plot Name");
             return;
         }
 
-        if (!validatePlotDimensions(plotShape)) return;
+        if (!validatePlotDimensions(plotShape)) {
+            formAnalytics.validationFailed('plot_dimensions', `invalid_${plotShape}`)
+            return;
+        }
 
         // if (!isPlotImageValid(plotImage)) {
         //     toast.show("Please add Plot Image");
@@ -124,10 +136,15 @@ const CreatePlotDetailsView = () => {
             captureAnalyticsEvent(posthog, AnalyticsEvents.MONITORING_PLOT_CREATED, {
                 plot_id: plotID,
                 plot_shape: plotShape,
+                added_to_group: Boolean(type.value),
+                has_image: Boolean(plotImage),
             })
+            incrementSessionCounter('plots_created')
+            formAnalytics.complete({ plot_shape: plotShape })
             await handlePostUpdate();
             navigation.replace('CreatePlotMap', { id: plotID });
         } else {
+            formAnalytics.validationFailed('submit', 'update_failed')
             toast.show("Error occurred while adding data");
         }
     };
@@ -168,6 +185,8 @@ const CreatePlotDetailsView = () => {
     };
 
     const openInfo = () => {
+        // MonitoringInfoView records the term event itself, so every route in
+        // is counted once and only once.
         navigation.navigate('MonitoringInfo')
     }
 

@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import NetInfo from '@react-native-community/netinfo'
 import { useNavigation } from '@react-navigation/native'
+import { AnalyticsEvents, trackEvent } from 'src/utils/analytics'
 
 const DOCS_URL = 'https://docs.treemapper.app/en/docs/introduction'
 
@@ -13,6 +14,13 @@ const GuideView = () => {
   const [loading, setLoading] = useState(true)
   const webViewRef = useRef<WebView>(null)
   const navigation = useNavigation()
+
+  // Opening the docs is the general "I am stuck" signal. Which term sent
+  // them here is not knowable from this screen, so no term is attached; the
+  // per-term signals come from tooltips and the monitoring plot help page.
+  useEffect(() => {
+    trackEvent(AnalyticsEvents.TERM_HELP_OPENED, { help_surface: 'guide_docs' })
+  }, [])
 
   useEffect(() => {
     // Check network status and reload when coming back online to update cache

@@ -21,6 +21,7 @@ import { getMobileUserDetails } from '../../api/api.fetch'
 import EmailVerificationModal from '../common/EmailVerifcationModal'
 import AlertModal from '../common/AlertModal'
 import { UserInterface } from 'src/types/interface/slice.interface'
+import { AnalyticsEvents, trackEvent } from 'src/utils/analytics'
 
 const LoginButton = () => {
   const webAuthLoading = useSelector(
@@ -50,6 +51,14 @@ const LoginButton = () => {
 
   useEffect(() => {
     if (error) {
+      trackEvent(AnalyticsEvents.LOGIN_FAILED, {
+        stage: 'auth0_callback',
+        error_code: error.code ?? 'unknown',
+        // The most common real-world failure: the account exists but the
+        // email was never confirmed. Worth splitting out of the rate.
+        needs_email_confirmation:
+          error.code === 'unauthorized' || error.code === 'access_denied',
+      })
       if (error.code === "unauthorized" || error.code === 'access_denied') {
         setTimeout(() => {
           toast.show("Please confirm your email \nusing the link sent to your inbox.", {
@@ -92,6 +101,12 @@ const LoginButton = () => {
     if (response && response.data) {
       loginAndUpdateDetails({ ...response.data, image: response.data.image || user.picture || user.profile || '' })
     } else {
+      // Auth0 said yes but the profile fetch failed, so the user is stuck on
+      // a retry modal. Counted apart from LOGIN_FAILED because the fix is on
+      // our side, not theirs.
+      trackEvent(AnalyticsEvents.PROFILE_FETCH_FAILED, {
+        status_code: status ?? null,
+      })
       Bugsnag.notify(new Error("Failed to fetch user details"))
       addNewLog({
         logType: 'USER',
@@ -108,6 +123,10 @@ const LoginButton = () => {
 
   const handleLogin = async () => {
     try {
+      // Start of the login funnel. Success rate is
+      // login_succeeded / login_started, so this has to fire before the
+      // browser hands off to Auth0.
+      trackEvent(AnalyticsEvents.LOGIN_STARTED)
       dispatch(updateWebAuthLoading(true))
       const result = await authorizeUser()
       if (!result.success) {
@@ -128,6 +147,7 @@ const LoginButton = () => {
       }
     } catch (err) {
       dispatch(updateWebAuthLoading(false))
+      trackEvent(AnalyticsEvents.LOGIN_FAILED, { stage: 'unexpected_error' })
       addNewLog({
         logType: 'USER',
         message: "Log in failed",
@@ -154,7 +174,16 @@ const LoginButton = () => {
 
   const loginAndUpdateDetails = async (data: UserInterface) => {
     const finalDetails = { ...data }
+    // End of the login funnel: credentials accepted AND the profile loaded,
+    // which is the point the user can actually do something.
+    trackEvent(AnalyticsEvents.LOGIN_SUCCEEDED, {
+      country: finalDetails.country || null,
+      user_type: finalDetails.type || null,
+    })
     dispatch(updateUserDetails(finalDetails))
+    // identify() runs from AnalyticsProvider once this lands in Redux, so the
+    // person profile is built from one place regardless of how the user got
+    // logged in (fresh login, restored session, deep link).
     dispatch(updateUserLogin(true))
     dispatch(updateWebAuthLoading(false))
   }

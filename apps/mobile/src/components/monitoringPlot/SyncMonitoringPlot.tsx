@@ -18,6 +18,7 @@ import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManage
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { getMobileHealth, getPersonalProject, uploadMonitoringPlot, uploadPlotRemeasurement, addPlotPlants, addPlotObservations, addPlotImages } from 'src/api/api.fetch'
 import { convertPlotToUploadBody, buildPlotRemeasurementBody, buildPlotNewPlantsBody, buildPlotObservationsBody, buildPlotImagesBody, PlotImageRecord } from 'src/utils/helpers/monitoringPlotHelper/monitoringPlotSyncHelper'
+import { AnalyticsEvents, incrementSessionCounter, trackEvent } from 'src/utils/analytics'
 
 interface Props {
     isLoggedIn: boolean
@@ -394,6 +395,17 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
         isStartingRef.current = true
         setIsSyncing(true)
 
+        // Plot sync is a separate funnel from intervention sync: different
+        // queue, different endpoints, different failure modes. The
+        // `sync_kind` property keeps the two apart in one dashboard.
+        const plotSyncStartedAt = Date.now()
+        incrementSessionCounter('syncs_started')
+        trackEvent(AnalyticsEvents.SYNC_STARTED, {
+            sync_kind: 'monitoring_plot',
+            queued_plots: plotData.length,
+            trigger: 'manual',
+        })
+
         let uploaded = 0
         let failed = 0
         let rejected = 0
@@ -401,11 +413,20 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
             // Don't start a sync we can't finish. Offline is the user's connection;
             // a failed /health is the server. In both cases plots stay queued.
             if (!isConnected) {
+                trackEvent(AnalyticsEvents.SYNC_BLOCKED, {
+                    sync_kind: 'monitoring_plot',
+                    reason: 'offline',
+                })
                 toast.show('Network call failed \nPlease check your internet connection', { textStyle: { textAlign: 'center' } })
                 return
             }
             const health = await getMobileHealth()
             if (!health.success) {
+                trackEvent(AnalyticsEvents.SYNC_BLOCKED, {
+                    sync_kind: 'monitoring_plot',
+                    reason: 'server_unhealthy',
+                    status_code: health.status ?? null,
+                })
                 addNewLog({ logType: 'DATA_SYNC', message: 'Plot sync skipped: server health check failed', logLevel: 'error', statusCode: `${health.status}` })
                 Alert.alert(
                     'Server under maintenance',
@@ -480,6 +501,18 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
             const remainingImages = plotIdsWithPendingImages().length
             const remaining = remainingUploads + remainingNewPlants + remainingNewObservations + remainingRemeasure + remainingImages
 
+            trackEvent(AnalyticsEvents.SYNC_COMPLETED, {
+                sync_kind: 'monitoring_plot',
+                uploaded,
+                failed,
+                rejected,
+                queue_size: queue.length,
+                remaining_after: remaining,
+                is_fully_synced: remaining === 0,
+                duration_ms: Date.now() - plotSyncStartedAt,
+            })
+            incrementSessionCounter('syncs_completed')
+
             if (remaining === 0) {
                 setShowFullSync(true)
                 toast.show('All plots are synced')
@@ -489,6 +522,12 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                 toast.show(`${uploaded} uploaded, ${failed} failed. Please try again.`)
             }
         } catch (error) {
+            trackEvent(AnalyticsEvents.SYNC_FAILED, {
+                sync_kind: 'monitoring_plot',
+                reason: 'connection_lost',
+                uploaded_before_failure: uploaded,
+                duration_ms: Date.now() - plotSyncStartedAt,
+            })
             addNewLog({ logType: 'DATA_SYNC', message: 'Plot sync aborted (network)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
             toast.show('Network call failed \nPlease check your internet connection', { textStyle: { textAlign: 'center' } })
         } finally {

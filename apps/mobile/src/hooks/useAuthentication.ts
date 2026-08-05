@@ -1,6 +1,6 @@
 import { Credentials, useAuth0 } from 'react-native-auth0'
 import { usePostHog } from 'posthog-react-native'
-import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
+import { captureAnalyticsEvent, AnalyticsEvents, resetAnalyticsUser } from 'src/utils/analytics'
 import useInterventionManagement from './realm/useInterventionManagement'
 import useProjectManagement from './realm/useProjectManagement'
 import useManageScientificSpecies from './realm/useManageScientificSpecies'
@@ -35,6 +35,10 @@ const useAuthentication = () => {
           await deleteAllSyncedIntervention()
           await deleteAllProjects()
           await deleteAllUserSpecies()
+          captureAnalyticsEvent(posthog, AnalyticsEvents.LOGGED_OUT)
+          // Phones get handed between field workers. Cutting the person link
+          // here stops the next user's events landing on this profile.
+          resetAnalyticsUser()
           addNewLog({
             logType: 'USER',
             message: 'User logout successfully.',
@@ -81,6 +85,12 @@ const useAuthentication = () => {
         success: true,
       }
     } catch (error) {
+      // The denominator of "login success rate". Auth0 error codes are safe
+      // to send: they say why it failed, not who failed.
+      captureAnalyticsEvent(posthog, AnalyticsEvents.LOGIN_FAILED, {
+        stage: 'authorize',
+        error_code: (error as { code?: string })?.code ?? 'unknown',
+      })
       addNewLog({
         logType: 'USER',
         message: 'Error occurred generating login token.',

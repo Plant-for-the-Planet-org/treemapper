@@ -19,7 +19,13 @@ import { AvoidSoftInput, AvoidSoftInputView } from "react-native-avoid-softinput
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { usePostHog } from 'posthog-react-native'
-import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
+import {
+  captureAnalyticsEvent,
+  AnalyticsEvents,
+  incrementSessionCounter,
+  trackFirstTimeEvent,
+} from 'src/utils/analytics'
+import useFormAnalytics from 'src/hooks/analytics/useFormAnalytics'
 import { v4 as uuid } from 'uuid'
 import { RootState } from 'src/store'
 import { useRealm } from '@realm/react'
@@ -73,6 +79,10 @@ const InterventionFormView = () => {
 
   const isTpoUser = true
   const paramId = route.params ? route.params.id : ''
+  // The entry point to every non-tree intervention, and the screen where the
+  // word "intervention" first appears. Its abandonment rate is the headline
+  // number for section 9.
+  const formAnalytics = useFormAnalytics('intervention_form')
 
   useEffect(() => {
     setUpRegisterFlow()
@@ -239,6 +249,7 @@ const InterventionFormView = () => {
   }
 
   const handleSiteSelect = (item: DropdownData) => {
+    formAnalytics.fieldChanged('site_id')
     if (item.value) {
       setRegisterForm({
         ...registerForm, site_name: item.label, site_id: item.value
@@ -247,6 +258,10 @@ const InterventionFormView = () => {
   }
 
   const handleInterventionType = (item: any) => {
+    // Changing the intervention type repeatedly is the clearest sign someone
+    // is unsure what the word covers. The form hook turns three of these
+    // into a terminology signal by itself (see FIELD_TERMS).
+    formAnalytics.fieldChanged('intervention_type')
     const InterventionJSON = setUpIntervention(item.value)
     InterventionJSON.form_id = uuid()
     InterventionJSON.intervention_date = new Date().getTime()
@@ -265,6 +280,7 @@ const InterventionFormView = () => {
       setShowDatePicker(false)
       return
     }
+    formAnalytics.fieldChanged('intervention_date')
     setRegisterForm(prevState => ({ ...prevState, intervention_date: n }))
     setShowDatePicker(false)
   }
@@ -310,15 +326,41 @@ const InterventionFormView = () => {
       })
       const result = await initializeIntervention(registerForm);
       if (result) {
+        // Read once, through a cast: the runtime object carries
+        // intervention_key but RegisterFormSliceInitialState does not declare
+        // it. Reused below so the analytics calls do not each repeat the cast.
+        const interventionKey = (registerForm as any)?.intervention_key
         captureAnalyticsEvent(posthog, AnalyticsEvents.INTERVENTION_CREATED, {
           intervention_key: registerForm.intervention_key,
           project_id: registerForm.project_id,
+          site_id: registerForm?.site_id || null,
+          is_entire_site: Boolean(registerForm?.entire_site_selected),
+          location_type: registerForm?.location_type,
+          has_location_name: Boolean(locationName),
+          has_further_info: Boolean(furtherInfo),
+        })
+        incrementSessionCounter('interventions_created')
+        // "Notes" in the feature list is this free-text field. Length only,
+        // never the text: it is the user's own field observation.
+        if (furtherInfo) {
+          captureAnalyticsEvent(posthog, AnalyticsEvents.NOTE_ADDED, {
+            context: 'intervention_form',
+            note_length: furtherInfo.length,
+          })
+        }
+        trackFirstTimeEvent(AnalyticsEvents.FIRST_INTERVENTION_CREATED, {
+          intervention_key: interventionKey,
+        })
+        formAnalytics.complete({
+          intervention_key: interventionKey,
         })
         await handleSuccessfulInterventionInitialization();
       } else {
+        formAnalytics.validationFailed('submit', 'initialize_failed')
         handleInterventionInitializationError();
       }
     } catch (error) {
+      formAnalytics.validationFailed('submit', 'unexpected_error')
       logInitializationError(error);
     }
   };
@@ -530,12 +572,18 @@ const InterventionFormView = () => {
               />
               <CustomTextInput
                 label={i18next.t('label.location_optional')}
-                onChangeHandler={setLocationName}
+                onChangeHandler={(text: string) => {
+                  formAnalytics.fieldChanged('location_name')
+                  setLocationName(text)
+                }}
                 value={locationName}
               />
               <CustomTextInput
                 label={i18next.t('label.further_info')}
-                onChangeHandler={setFurtherInfo}
+                onChangeHandler={(text: string) => {
+                  formAnalytics.fieldChanged('further_info')
+                  setFurtherInfo(text)
+                }}
                 value={furtherInfo}
               />
             </View>

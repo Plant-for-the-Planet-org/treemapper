@@ -27,6 +27,7 @@ import PolygonTracker from './PolygonTracker'
 import bbox from '@turf/bbox'
 import MapZoomScale from './MapZoomScale'
 import SiteMapSource from './SiteMapSource'
+import useMappingAnalytics from 'src/hooks/analytics/useMappingAnalytics'
 
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -64,6 +65,10 @@ const PolygonMarkerMap = (props: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updateInterventionLocation } = useInterventionManagement()
   const toast = useToast();
+  const mappingAnalytics = useMappingAnalytics('polygon', {
+    intervention_key,
+    has_site: Boolean(siteId),
+  })
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
 
   const cameraRef = useRef<CameraRef>(null)
@@ -170,9 +175,11 @@ const PolygonMarkerMap = (props: Props) => {
       const checkValidDistance = await checkIsValidMarker(centerCoordinates, [...coordinates])
       setLineError(false)
       if (!checkValidDistance) {
+        mappingAnalytics.pointPlaced(false)
         errorHaptic()
         return
       }
+      mappingAnalytics.pointPlaced(true)
       setCoordinates([...coordinates, centerCoordinates])
       setCurrentCoordinate(prevState => ({
         id: String.fromCharCode(prevState.id.charCodeAt(0) + 1),
@@ -216,6 +223,7 @@ const PolygonMarkerMap = (props: Props) => {
       toast.show('Error occurred while updating location')
       return
     }
+    mappingAnalytics.completed({ capture_method: 'tap_points' })
     if (species_required) {
       navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
     } else {
@@ -232,6 +240,13 @@ const PolygonMarkerMap = (props: Props) => {
       toast.show('Error occurred while updating location')
       return
     }
+    // Walk-the-boundary tracking rather than tapping points. Split out
+    // because it is a different amount of effort for the user, so its
+    // completion rate should be read on its own.
+    mappingAnalytics.completed({
+      capture_method: 'gps_tracking',
+      tracked_point_count: trackingGeoJSON[0]?.length ?? 0,
+    })
     if (species_required) {
       navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
     } else {
@@ -439,6 +454,9 @@ const PolygonMarkerMap = (props: Props) => {
         secondaryBtnText={"Cancel"}
         onPressPrimaryBtn={() => {
           setTrackerModal(false)
+          // GPS tracking places no markers by hand, so this is where the
+          // mapping session begins for that path.
+          mappingAnalytics.pointPlaced(true)
           setTrackingState('start')
         }}
         onPressSecondaryBtn={() => {

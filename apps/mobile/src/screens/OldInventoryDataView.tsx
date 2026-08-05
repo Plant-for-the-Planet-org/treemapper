@@ -11,6 +11,7 @@ import InfoIcon from 'assets/images/svg/InfoIcon.svg'
 
 import { convertData, onlyExportJSON } from 'src/utils/helpers/exportOldInventory'
 import Header from 'src/components/common/Header'
+import { AnalyticsEvents, trackEvent } from 'src/utils/analytics'
 
 
 const OldInventoryDataView = () => {
@@ -29,6 +30,14 @@ const OldInventoryDataView = () => {
   const exportData = async (el: Inventory) => {
     setLoading(true)
     await convertData(el)
+    // Anyone reaching this screen has data stranded from an older version of
+    // the app. How often it happens is a migration health signal, not just a
+    // feature-usage one.
+    trackEvent(AnalyticsEvents.DATA_EXPORTED, {
+      export_type: 'old_inventory',
+      format: 'geojson',
+      inventory_status: el.status,
+    })
     setLoading(false)
   }
 
@@ -42,7 +51,14 @@ const OldInventoryDataView = () => {
         <Pressable style={styles.rightCorner} onPress={() => { exportData(i) }}>
           <WrapperIcon />
         </Pressable>
-        <Pressable style={styles.rightCorner} onPress={() => { onlyExportJSON(i) }}>
+        <Pressable style={styles.rightCorner} onPress={() => {
+          trackEvent(AnalyticsEvents.DATA_EXPORTED, {
+            export_type: 'old_inventory',
+            format: 'json',
+            inventory_status: i.status,
+          })
+          onlyExportJSON(i)
+        }}>
           <InfoIcon />
         </Pressable>
       </View>

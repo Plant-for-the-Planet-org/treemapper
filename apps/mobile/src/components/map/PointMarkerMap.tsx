@@ -31,6 +31,7 @@ import MapZoomScale from './MapZoomScale'
 import SiteMapSource from './SiteMapSource'
 import MapPin from 'assets/images/svg/MapPin.svg'
 import { Colors } from 'src/utils/constants'
+import useMappingAnalytics from 'src/hooks/analytics/useMappingAnalytics'
 
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -67,6 +68,11 @@ const PointMarkerMap = (props: Props) => {
   const mapRef = useRef<MapRef>(null)
 
   const { species_required, is_multi_species, has_sample_trees } = setUpIntervention(interventionKey)
+  const mappingAnalytics = useMappingAnalytics('point', {
+    intervention_key: interventionKey,
+    has_site: Boolean(siteId),
+    is_sample_tree: has_sample_trees,
+  })
   const [mapRender, setMapRender] = useState(false)
 
 
@@ -170,6 +176,7 @@ const PointMarkerMap = (props: Props) => {
         return;
       }
     }
+    mappingAnalytics.completed({ capture_method: 'pin_drop' })
     if (species_required) {
       if (is_multi_species) {
         navigation.navigate('TotalTrees', { isSelectSpecies: true, interventionId: form_id })
@@ -238,11 +245,17 @@ const PointMarkerMap = (props: Props) => {
       }
       if (!validSampleTree || !validMarker) {
         errorHaptic()
+        // Pin dropped outside the site, or on top of an existing sample
+        // tree. Counted as a rejected point so the completion rate can be
+        // read against how much trouble people had placing it.
+        mappingAnalytics.pointPlaced(false)
         setOutOfBoundary(true)
       } else {
+        mappingAnalytics.pointPlaced(true)
         setOutOfBoundary(false)
       }
     } else {
+      mappingAnalytics.pointPlaced(true)
       setOutOfBoundary(false)
     }
   }
