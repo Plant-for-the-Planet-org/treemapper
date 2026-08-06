@@ -10,6 +10,8 @@ import {
   getMonitoringPlotGroups,
   updateMonitoringPlot,
   deleteMonitoringPlot,
+  addMonitoringPlotPlants,
+  addMonitoringPlotObservations,
 } from '@shared-core/fetchApi/api.fetch';
 import { toast } from 'react-toastify';
 import PlotsOverview, { PlotListItem, PlotGroup } from './component/PlotsOverview';
@@ -17,6 +19,49 @@ import PlotDetails, { PlotDetail } from './component/PlotDetails';
 import EditPlotModal from './component/EditPlotModal';
 import DeletePlotModal from './component/DeletePlotModal';
 import GroupsManager from './component/GroupsManager';
+import TreeEditDialog from './create/components/TreeEditDialog';
+import ObservationEditDialog from './create/components/ObservationEditDialog';
+import { treeToPlantDto, observationToDto } from './create/utils/buildPayload';
+import { DraftObservation, DraftTree } from './create/types';
+
+let addSeq = 0;
+
+const blankTree = (): DraftTree => ({
+  id: `add_plant_${Date.now()}_${(addSeq += 1)}`,
+  rows: [],
+  tag: '',
+  speciesName: '',
+  scientificSpeciesUid: null,
+  speciesMatch: 'pending',
+  latitude: null,
+  longitude: null,
+  plantingDate: null,
+  origin: 'planted',
+  measurements: [],
+  errors: [],
+  warnings: [],
+});
+
+const blankObservation = (): DraftObservation => ({
+  id: `add_obs_${Date.now()}_${(addSeq += 1)}`,
+  row: 0,
+  type: '',
+  observedAt: new Date().toISOString(),
+  value: null,
+  unit: '',
+  errors: [],
+});
+
+/** PlotDetail.geometry may be a bare Geometry or a Feature wrapping one; the
+ * tree editor only wants a bare Polygon (for the "outside boundary" warning). */
+const extractPolygon = (geometry: PlotDetail['geometry']): GeoJSON.Polygon | null => {
+  if (!geometry) return null;
+  if (geometry.type === 'Polygon') return geometry as GeoJSON.Polygon;
+  if (geometry.type === 'Feature' && geometry.geometry?.type === 'Polygon') {
+    return geometry.geometry as GeoJSON.Polygon;
+  }
+  return null;
+};
 
 const MonitoringPlotsPage = () => {
   const router = useRouter();
@@ -43,6 +88,14 @@ const MonitoringPlotsPage = () => {
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showGroups, setShowGroups] = useState(false);
+
+  const [showAddPlant, setShowAddPlant] = useState(false);
+  const [newTree, setNewTree] = useState<DraftTree | null>(null);
+  const [addingPlant, setAddingPlant] = useState(false);
+
+  const [showAddObservation, setShowAddObservation] = useState(false);
+  const [newObservation, setNewObservation] = useState<DraftObservation | null>(null);
+  const [addingObservation, setAddingObservation] = useState(false);
 
   const fetchPlots = async () => {
     if (!projectUid) return;
@@ -152,6 +205,51 @@ const MonitoringPlotsPage = () => {
     }
   };
 
+  const handleAddPlant = async (tree: DraftTree): Promise<boolean | void> => {
+    if (!projectUid || !selectedUid) return false;
+    setAddingPlant(true);
+    try {
+      const res = await addMonitoringPlotPlants(token, projectUid, {
+        plotUid: selectedUid,
+        plants: [treeToPlantDto(tree)],
+      });
+      if (!res?.data) {
+        toast.error('Could not add plant');
+        return false;
+      }
+      toast.success('Plant added');
+      fetchDetail(selectedUid);
+      fetchPlots();
+    } catch {
+      toast.error('Could not add plant');
+      return false;
+    } finally {
+      setAddingPlant(false);
+    }
+  };
+
+  const handleAddObservation = async (observation: DraftObservation): Promise<boolean | void> => {
+    if (!projectUid || !selectedUid) return false;
+    setAddingObservation(true);
+    try {
+      const res = await addMonitoringPlotObservations(token, projectUid, {
+        plotUid: selectedUid,
+        observations: [observationToDto(observation)],
+      });
+      if (!res?.data) {
+        toast.error('Could not add observation');
+        return false;
+      }
+      toast.success('Observation added');
+      fetchDetail(selectedUid);
+    } catch {
+      toast.error('Could not add observation');
+      return false;
+    } finally {
+      setAddingObservation(false);
+    }
+  };
+
   return (
     <div className="w-full flex-1 min-h-0 overflow-y-auto bg-muted/30">
       <div className="p-4 sm:p-6">
@@ -164,6 +262,9 @@ const MonitoringPlotsPage = () => {
               onEdit={() => setShowEdit(true)}
               onDelete={() => setShowDelete(true)}
               canManage={canManage}
+              canCreate={canCreate}
+              onAddPlant={() => { setNewTree(blankTree()); setShowAddPlant(true); }}
+              onAddObservation={() => { setNewObservation(blankObservation()); setShowAddObservation(true); }}
             />
           </div>
         ) : (
@@ -203,6 +304,24 @@ const MonitoringPlotsPage = () => {
         plots={plots}
         groups={groups}
         onChanged={fetchGroups}
+      />
+      <TreeEditDialog
+        open={showAddPlant}
+        tree={newTree}
+        token={token}
+        boundary={extractPolygon(detail?.geometry ?? null)}
+        title="Add plant"
+        saving={addingPlant}
+        onClose={() => setShowAddPlant(false)}
+        onSave={handleAddPlant}
+      />
+      <ObservationEditDialog
+        open={showAddObservation}
+        observation={newObservation}
+        title="Add observation"
+        saving={addingObservation}
+        onClose={() => setShowAddObservation(false)}
+        onSave={handleAddObservation}
       />
     </div>
   );

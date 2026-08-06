@@ -2,7 +2,7 @@
 
 import { Fragment, useMemo, useState } from 'react';
 import {
-  ArrowLeft, Pencil, Trash2, MapPin, Layers, ChevronDown, ChevronRight, Download, TreePine,
+  ArrowLeft, Pencil, Trash2, MapPin, Layers, ChevronDown, ChevronRight, Download, TreePine, Plus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -52,7 +52,7 @@ const reviewBadge = (status?: string | null) => {
 };
 
 const PlotDetails = ({
-  plot, loading, onBack, onEdit, onDelete, canManage,
+  plot, loading, onBack, onEdit, onDelete, canManage, canCreate, onAddPlant, onAddObservation,
 }: {
   plot: PlotDetail | null;
   loading: boolean;
@@ -60,12 +60,15 @@ const PlotDetails = ({
   onEdit: () => void;
   onDelete: () => void;
   canManage: boolean;
+  canCreate: boolean;
+  onAddPlant: () => void;
+  onAddObservation: () => void;
 }) => {
   const m = useMemo(() => (plot ? plotMetrics(plot) : null), [plot]);
   const growth = useMemo(() => (plot ? cohortGrowth(plot) : []), [plot]);
   const layout = useMemo(() => (plot ? stemLayout(plot) : { stems: [], extent: 10 }), [plot]);
   const obsSeries = useMemo(() => (plot ? observationSeries(plot) : []), [plot]);
-  const [view, setView] = useState<'schematic' | 'satellite'>('schematic');
+  const [view, setView] = useState<'schematic' | 'satellite'>('satellite');
 
   if (loading) {
     return (
@@ -254,11 +257,19 @@ const PlotDetails = ({
 
         {/* ---------------- Trees ---------------- */}
         <TabsContent value="trees" className="mt-4">
-          <TreesTable plants={plot.plants} />
+          <TreesTable plants={plot.plants} canCreate={canCreate} onAddPlant={onAddPlant} />
         </TabsContent>
 
         {/* ---------------- Observations ---------------- */}
         <TabsContent value="observations" className="mt-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-[14px] font-semibold">Observations</h3>
+            {canCreate && (
+              <Button size="sm" onClick={onAddObservation}>
+                <Plus className="w-3.5 h-3.5 mr-1" /> Add observation
+              </Button>
+            )}
+          </div>
           {obsSeries.length === 0 ? (
             <p className="text-sm text-muted-foreground py-10 text-center">No observations recorded for this plot.</p>
           ) : (
@@ -372,7 +383,13 @@ const IndexRow = ({ label, value, note, last }: { label: string; value: string; 
 
 /* ----------------------------------------------------- Trees table */
 
-const TreesTable = ({ plants }: { plants: PlotPlant[] }) => {
+const TreesTable = ({
+  plants, canCreate, onAddPlant,
+}: {
+  plants: PlotPlant[];
+  canCreate: boolean;
+  onAddPlant: () => void;
+}) => {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [sortKey, setSortKey] = useState<'tag' | 'height' | 'width'>('tag');
 
@@ -392,11 +409,29 @@ const TreesTable = ({ plants }: { plants: PlotPlant[] }) => {
     return next;
   });
 
-  if (plants.length === 0) return <p className="text-sm text-muted-foreground py-10 text-center">No trees recorded in this plot.</p>;
+  const addBtn = canCreate && (
+    <Button size="sm" onClick={onAddPlant}>
+      <Plus className="w-3.5 h-3.5 mr-1" /> Add plant
+    </Button>
+  );
+
+  if (plants.length === 0) {
+    return (
+      <div className="border rounded-[3px] bg-card py-10 text-center space-y-3">
+        <p className="text-sm text-muted-foreground">No trees recorded in this plot.</p>
+        {addBtn}
+      </div>
+    );
+  }
 
   return (
     <div className="border rounded-[3px] bg-card overflow-hidden">
-      <SectionTitle right={<span className="text-[11px] text-muted-foreground/70">click a row for growth history</span>}>
+      <SectionTitle right={(
+        <div className="flex items-center gap-3">
+          {addBtn}
+          <span className="text-[11px] text-muted-foreground/70">click a row for growth history</span>
+        </div>
+      )}>
         Tagged trees · {plants.length}
       </SectionTitle>
       <Table>

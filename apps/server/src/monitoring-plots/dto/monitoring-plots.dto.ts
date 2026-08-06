@@ -174,17 +174,19 @@ export class PlotPlantDto {
   @IsString()
   type?: string;
 
-  @ApiProperty({ example: 52.52 })
+  @ApiPropertyOptional({ description: 'Omitted when the plant\'s exact position was not recorded', example: 52.52 })
+  @IsOptional()
   @IsNumber()
   @Min(-90)
   @Max(90)
-  latitude: number;
+  latitude?: number;
 
-  @ApiProperty({ example: 13.405 })
+  @ApiPropertyOptional({ description: 'Omitted when the plant\'s exact position was not recorded', example: 13.405 })
+  @IsOptional()
   @IsNumber()
   @Min(-180)
   @Max(180)
-  longitude: number;
+  longitude?: number;
 
   @ApiPropertyOptional({ type: [PlotTimelineEntryDto] })
   @IsOptional()

@@ -1752,8 +1752,10 @@ export class MonitoringPlotsService {
     /** Photos to attach once the plot transaction commits. */
     images: PendingImages[];
   }> {
-    const pointGeo = { type: 'Point', coordinates: [plant.longitude, plant.latitude] };
-    const pointSQL = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(pointGeo)}), 4326)`;
+    // Position is optional: a plant can be registered without its exact location.
+    const hasLocation = plant.latitude != null && plant.longitude != null;
+    const pointGeo = hasLocation ? { type: 'Point', coordinates: [plant.longitude, plant.latitude] } : null;
+    const pointSQL = pointGeo ? sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(pointGeo)}), 4326)` : null;
     const latest = this.latestTimeline(plant);
     const plantingDate = plant.plantingDate ? new Date(plant.plantingDate) : startDate;
     const treeUid = generateUid('tree');
@@ -1774,8 +1776,8 @@ export class MonitoringPlotsService {
         treeType: 'plot',
         location: pointSQL,
         originalGeometry: pointGeo,
-        latitude: plant.latitude,
-        longitude: plant.longitude,
+        latitude: plant.latitude ?? null,
+        longitude: plant.longitude ?? null,
         height: latest?.length ?? null,
         width: latest?.width ?? null,
         // The plant's own photo, so the dashboard tree row shows one without

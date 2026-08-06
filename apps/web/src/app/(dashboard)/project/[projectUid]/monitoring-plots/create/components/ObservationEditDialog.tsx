@@ -27,13 +27,20 @@ const fromDateInput = (v: string) => (v ? new Date(`${v}T00:00:00.000Z`).toISOSt
 const ObservationEditDialog = ({
   open,
   observation,
+  title,
+  saving,
   onClose,
   onSave,
 }: {
   open: boolean;
   observation: DraftObservation | null;
+  /** Defaults to "Edit observation". */
+  title?: string;
+  /** Disables Save and swaps its label while an async onSave is in flight. */
+  saving?: boolean;
   onClose: () => void;
-  onSave: (observation: DraftObservation) => void;
+  /** Returning `false` keeps the dialog open, e.g. after a failed API call. */
+  onSave: (observation: DraftObservation) => void | Promise<boolean | void>;
 }) => {
   const [draft, setDraft] = useState<DraftObservation | null>(observation);
 
@@ -47,12 +54,19 @@ const ObservationEditDialog = ({
   const patch = (p: Partial<DraftObservation>) => setDraft((d) => (d ? { ...d, ...p } : d));
   const checked = recomputeObservation(draft);
 
+  const handleSave = async () => {
+    const result = await onSave(checked);
+    if (result !== false) onClose();
+  };
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit observation</DialogTitle>
-          <DialogDescription>From CSV row {draft.row}.</DialogDescription>
+          <DialogTitle>{title ?? 'Edit observation'}</DialogTitle>
+          <DialogDescription>
+            {draft.row > 0 ? `From CSV row ${draft.row}.` : 'Added by hand.'}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 py-1">
@@ -121,14 +135,9 @@ const ObservationEditDialog = ({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button
-            onClick={() => {
-              onSave(checked);
-              onClose();
-            }}
-          >
-            Save observation
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving…' : 'Save observation'}
           </Button>
         </DialogFooter>
       </DialogContent>

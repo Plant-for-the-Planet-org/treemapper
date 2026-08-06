@@ -14,17 +14,28 @@ import { isInsideBoundary } from './plotGeometry';
 
 const isFuture = (iso: string) => new Date(iso).getTime() > Date.now();
 
+/**
+ * Position is optional: a plant can be saved without its exact location. Only
+ * a half-given pair (one coordinate but not the other) is rejected, since that
+ * can only be a mistake.
+ */
 export function validateTreeValues(tree: Pick<DraftTree, 'latitude' | 'longitude'>): string[] {
   const errors: string[] = [];
   const { latitude, longitude } = tree;
 
-  if (latitude == null) errors.push('Latitude is missing');
-  else if (!Number.isFinite(latitude)) errors.push('Latitude is not a number');
-  else if (latitude < -90 || latitude > 90) errors.push('Latitude must be between -90 and 90');
+  if (latitude != null) {
+    if (!Number.isFinite(latitude)) errors.push('Latitude is not a number');
+    else if (latitude < -90 || latitude > 90) errors.push('Latitude must be between -90 and 90');
+  }
 
-  if (longitude == null) errors.push('Longitude is missing');
-  else if (!Number.isFinite(longitude)) errors.push('Longitude is not a number');
-  else if (longitude < -180 || longitude > 180) errors.push('Longitude must be between -180 and 180');
+  if (longitude != null) {
+    if (!Number.isFinite(longitude)) errors.push('Longitude is not a number');
+    else if (longitude < -180 || longitude > 180) errors.push('Longitude must be between -180 and 180');
+  }
+
+  if ((latitude == null) !== (longitude == null)) {
+    errors.push('Latitude and longitude must both be set, or both left blank');
+  }
 
   return errors;
 }

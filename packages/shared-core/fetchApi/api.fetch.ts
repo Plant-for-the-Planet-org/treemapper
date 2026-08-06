@@ -1222,6 +1222,20 @@ export const deleteMonitoringPlotGroup = async (token: string, projectUid: strin
   return result
 }
 
+// Add newly-registered plants to a plot that already exists.
+export const addMonitoringPlotPlants = async (token: string, projectUid: string, params: any) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/plants`
+  const result = await fetchPostCall(uri, params, token)
+  return result
+}
+
+// Add new readings to a plot that already exists.
+export const addMonitoringPlotObservations = async (token: string, projectUid: string, params: any) => {
+  const uri = `${getUrlApi.monitoringPlots}/projects/${projectUid}/observations`
+  const result = await fetchPostCall(uri, params, token)
+  return result
+}
+
 
 // ---------------------------------------------------------------------------
 // Forms (custom data-collection forms, project-scoped)
