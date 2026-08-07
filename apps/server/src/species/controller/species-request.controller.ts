@@ -12,7 +12,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { SpeciesRequestService } from '../services/species-request.service';
 import { CreateSpeciesRequestDto, SpeciesRequestFilterDto, ReviewSpeciesRequestDto } from '../dto/species-request.dto';
 import { ProjectPermissionsGuard } from '../../projects/guards/project-permissions.guard';
-import { ApprovalDecisionGuard } from '../../approval-board/approval-decision.guard';
+import { WorkspaceSpeciesApprovalGuard } from '../guards/workspace-species-approval.guard';
 import { WorkspacePermissionsGuard } from '../../workspace/workspace-permissions.guard';
 import { ProjectRoles } from '../../projects/decorators/project-roles.decorator';
 import { ProjectPermissions } from '../../projects/decorators/project-permissions.decorator';
@@ -43,9 +43,7 @@ export class SpeciesRequestController {
   @Get('projects/:id/queue')
   @ApiOperation({ summary: 'Get species requests (pending + history) for a project' })
   @ApiParam({ name: 'id', description: 'Project UID' })
-  @ProjectRoles('owner', 'admin')
-  @ProjectPermissions('approve_species')
-  @UseGuards(ProjectPermissionsGuard)
+  @UseGuards(WorkspaceSpeciesApprovalGuard)
   async getProjectQueue(
     @Membership() membership: ProjectGuardResponse,
     @Query() filterDto: SpeciesRequestFilterDto,
@@ -65,12 +63,10 @@ export class SpeciesRequestController {
   }
 
   @Post('projects/:id/:requestUid/review')
-  @ApiOperation({ summary: 'Approve or reject a species request (workspace/project admin)' })
+  @ApiOperation({ summary: 'Approve or reject a species request (workspace admin only)' })
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'requestUid', description: 'Species request UID' })
-  @ProjectRoles('owner', 'admin')
-  @ProjectPermissions('approve_species')
-  @UseGuards(ApprovalDecisionGuard)
+  @UseGuards(WorkspaceSpeciesApprovalGuard)
   async reviewRequest(
     @Param('requestUid') requestUid: string,
     @Body() dto: ReviewSpeciesRequestDto,

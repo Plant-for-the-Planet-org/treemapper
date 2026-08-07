@@ -8,7 +8,7 @@ import { DatabaseModule } from '../database/database.module';
 import { ProjectsModule } from '../projects/projects.module'; // Add this import
 import { AuthModule } from '../auth/auth.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
-import { ApprovalDecisionGuard } from '../approval-board/approval-decision.guard';
+import { WorkspaceSpeciesApprovalGuard } from './guards/workspace-species-approval.guard';
 
 // Controllers
 import { SpeciesRequestController } from './controller/species-request.controller';
@@ -31,7 +31,7 @@ import { ProjectSpeciesController } from './controller/project-species.controlle
     SpeciesRequestService,
     ScientificSpeciesService,
     ProjectSpeciesService,
-    ApprovalDecisionGuard,
+    WorkspaceSpeciesApprovalGuard,
   ],
   exports: [
     SpeciesRequestService,
