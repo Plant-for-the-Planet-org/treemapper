@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { DrizzleService } from '../../database/drizzle.service'; // Adjust import path
 import { speciesRequest, scientificSpecies, user, project } from '../../database/schema/index'; // Adjust import path
-import { CreateSpeciesRequestDto, SpeciesRequestFilterDto } from './../dto/species-request.dto';
+import { CreateSpeciesRequestDto, SpeciesRequestFilterDto, ReviewSpeciesRequestDto } from './../dto/species-request.dto';
 import { eq, and, ilike, or, desc, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -54,11 +54,60 @@ export class SpeciesRequestService {
     return newRequest[0];
   }
 
-  async getRequests(filterDto: SpeciesRequestFilterDto) {
+  private buildRequestSelect() {
+    return {
+      id: speciesRequest.id,
+      uid: speciesRequest.uid,
+      scientificName: speciesRequest.scientificName,
+      commonName: speciesRequest.commonName,
+      description: speciesRequest.description,
+      requestReason: speciesRequest.requestReason,
+      family: speciesRequest.family,
+      habitat: speciesRequest.habitat,
+      nativeRegion: speciesRequest.nativeRegion,
+      conservationStatus: speciesRequest.conservationStatus,
+      gbifId: speciesRequest.gbifId,
+      wikipediaUrl: speciesRequest.wikipediaUrl,
+      sourceUrl: speciesRequest.sourceUrl,
+      urgency: speciesRequest.urgency,
+      status: speciesRequest.status,
+      adminNotes: speciesRequest.adminNotes,
+      rejectionReason: speciesRequest.rejectionReason,
+      createdSpeciesId: speciesRequest.createdSpeciesId,
+      reviewedAt: speciesRequest.reviewedAt,
+      createdAt: speciesRequest.createdAt,
+      requestedBy: {
+        id: user.id,
+        name: user.displayName,
+        email: user.email,
+      },
+      project: {
+        id: project.id,
+        uid: project.uid,
+        projectName: project.name,
+      },
+    };
+  }
+
+  async getProjectRequests(projectId: number, filterDto: SpeciesRequestFilterDto) {
+    return this.listRequests(
+      [eq(speciesRequest.projectId, projectId)],
+      filterDto,
+    );
+  }
+
+  async getWorkspaceRequests(workspaceId: number, filterDto: SpeciesRequestFilterDto) {
+    return this.listRequests(
+      [eq(project.workspaceId, workspaceId)],
+      filterDto,
+    );
+  }
+
+  private async listRequests(baseConditions: any[], filterDto: SpeciesRequestFilterDto) {
     const { page = 1, limit = 10, search, status } = filterDto;
     const offset = (page - 1) * limit;
 
-    let whereConditions: any[] = [];
+    const whereConditions: any[] = [...baseConditions];
 
     if (status) {
       whereConditions.push(eq(speciesRequest.status, status));
@@ -73,35 +122,14 @@ export class SpeciesRequestService {
       );
     }
 
-    const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+    const whereClause = and(...whereConditions);
 
     const [data, totalResult] = await Promise.all([
       this.drizzle.db
-        .select({
-          id: speciesRequest.id,
-          uid: speciesRequest.uid,
-          scientificName: speciesRequest.scientificName,
-          commonName: speciesRequest.commonName,
-          description: speciesRequest.description,
-          requestReason: speciesRequest.requestReason,
-          gbifId: speciesRequest.gbifId,
-          status: speciesRequest.status,
-          adminNotes: speciesRequest.adminNotes,
-          reviewedAt: speciesRequest.reviewedAt,
-          createdAt: speciesRequest.createdAt,
-          requestedBy: {
-            id: user.id,
-            name: user.displayName,
-            email: user.email,
-          },
-          project: {
-            id: project.id,
-            projectName: project.name,
-          },
-        })
+        .select(this.buildRequestSelect())
         .from(speciesRequest)
+        .innerJoin(project, eq(speciesRequest.projectId, project.id))
         .leftJoin(user, eq(speciesRequest.requestedById, user.id))
-        .leftJoin(project, eq(speciesRequest.projectId, project.id))
         .where(whereClause)
         .orderBy(desc(speciesRequest.createdAt))
         .limit(limit)
@@ -110,10 +138,11 @@ export class SpeciesRequestService {
       this.drizzle.db
         .select({ count: sql<number>`count(*)` })
         .from(speciesRequest)
+        .innerJoin(project, eq(speciesRequest.projectId, project.id))
         .where(whereClause),
     ]);
 
-    const total = totalResult[0]?.count || 0;
+    const total = Number(totalResult[0]?.count || 0);
 
     return {
       data,
@@ -124,40 +153,97 @@ export class SpeciesRequestService {
     };
   }
 
-  // async getRequestById(id: number) {
-  //   const request = await this.drizzle.db
-  //     .select({
-  //       id: speciesRequest.id,
-  //       uid: speciesRequest.uid,
-  //       scientificName: speciesRequest.scientificName,
-  //       commonName: speciesRequest.commonName,
-  //       description: speciesRequest.description,
-  //       requestReason: speciesRequest.requestReason,
-  //       gbifId: speciesRequest.gbifId,
-  //       status: speciesRequest.status,
-  //       adminNotes: speciesRequest.adminNotes,
-  //       reviewedAt: speciesRequest.reviewedAt,
-  //       createdAt: speciesRequest.createdAt,
-  //       requestedBy: {
-  //         id: user.id,
-  //         name: user.displayName,
-  //         email: user.email,
-  //       },
-  //       project: {
-  //         id: project.id,
-  //         projectName: project.projectName,
-  //       },
-  //     })
-  //     .from(speciesRequest)
-  //     .leftJoin(user, eq(speciesRequest.requestedById, user.id))
-  //     .leftJoin(project, eq(speciesRequest.projectId, project.id))
-  //     .where(eq(speciesRequest.id, id))
-  //     .limit(1);
+  async reviewRequest(
+    requestUid: string,
+    adminId: number,
+    projectId: number,
+    dto: ReviewSpeciesRequestDto,
+  ) {
+    return this.drizzle.db.transaction(async (tx) => {
+      const [existing] = await tx
+        .select()
+        .from(speciesRequest)
+        .where(eq(speciesRequest.uid, requestUid))
+        .limit(1);
 
-  //   if (!request.length) {
-  //     throw new NotFoundException('Species request not found');
-  //   }
+      if (!existing) {
+        throw new NotFoundException('Species request not found');
+      }
+      if (existing.projectId !== projectId) {
+        throw new ForbiddenException('Species request does not belong to this project');
+      }
+      if (existing.status !== 'pending') {
+        throw new BadRequestException(
+          `Cannot review request: it is already '${existing.status}'`,
+        );
+      }
 
-  //   return request[0];
-  // }
+      const now = new Date();
+
+      if (dto.decision === 'rejected') {
+        if (!dto.rejectionReason?.trim()) {
+          throw new BadRequestException('rejectionReason is required when rejecting a request');
+        }
+
+        const [updated] = await tx
+          .update(speciesRequest)
+          .set({
+            status: 'rejected',
+            rejectionReason: dto.rejectionReason,
+            adminNotes: dto.adminNotes,
+            reviewedById: adminId,
+            reviewedAt: now,
+          })
+          .where(eq(speciesRequest.id, existing.id))
+          .returning();
+
+        return updated;
+      }
+
+      const scientificName = dto.scientificName?.trim() || existing.scientificName;
+      const commonName = dto.commonName?.trim() || existing.commonName;
+      const description = dto.description?.trim() || existing.description;
+      const gbifId = dto.gbifId?.trim() || existing.gbifId;
+
+      const [duplicate] = await tx
+        .select({ id: scientificSpecies.id })
+        .from(scientificSpecies)
+        .where(eq(scientificSpecies.scientificName, scientificName))
+        .limit(1);
+
+      if (duplicate) {
+        throw new ConflictException('Species already exists in the database');
+      }
+
+      const [newSpecies] = await tx
+        .insert(scientificSpecies)
+        .values({
+          uid: uuidv4(),
+          scientificName,
+          commonName,
+          description,
+          gbifId,
+          dataSource: 'species_request',
+        })
+        .returning();
+
+      const [updated] = await tx
+        .update(speciesRequest)
+        .set({
+          status: 'approved',
+          scientificName,
+          commonName,
+          description,
+          gbifId,
+          adminNotes: dto.adminNotes,
+          reviewedById: adminId,
+          reviewedAt: now,
+          createdSpeciesId: newSpecies.id,
+        })
+        .where(eq(speciesRequest.id, existing.id))
+        .returning();
+
+      return updated;
+    });
+  }
 }

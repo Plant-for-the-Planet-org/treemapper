@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { PaginationDto } from './common.dto';
 
 export class CreateSpeciesRequestDto {
@@ -37,5 +37,44 @@ export class SpeciesRequestFilterDto extends PaginationDto {
   @IsOptional()
   @IsString()
   status?: 'pending' | 'approved' | 'rejected';
+}
+
+export class ReviewSpeciesRequestDto {
+  @ApiProperty({ enum: ['approved', 'rejected'] })
+  @IsEnum(['approved', 'rejected'])
+  decision: 'approved' | 'rejected';
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  scientificName?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  @MaxLength(400)
+  commonName?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  gbifId?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  adminNotes?: string;
+
+  @ApiProperty({ required: false, description: 'Required when decision is "rejected"' })
+  @IsOptional()
+  @IsString()
+  rejectionReason?: string;
 }
 

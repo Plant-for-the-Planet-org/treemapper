@@ -28,6 +28,7 @@ export const postUrlApi = {
   createProjectSpecies: `${baseUrl}/project-species`,
   assignUnknownSpecies: `${baseUrl}/project-species`,
   requestNewSpecies: `${baseUrl}/species-requests`,
+  reviewSpeciesRequest: `${baseUrl}/species-requests/projects`,
   createPersonalProject: `${baseUrl}/projects/personal`,
   startMigration: `${baseUrl}/migration/start`,
   createNewDashboardSite: `${baseUrl}/projects`,
@@ -122,6 +123,9 @@ export const getUrlApi = {
   getTreeRecords: `${baseUrl}/interventions/trees`,
   // Workspace-level approval queues
   getWorkspaceReviewQueue: `${baseUrl}/approval-board/workspaces`,
+  // Species requests
+  getProjectSpeciesRequests: `${baseUrl}/species-requests/projects`,
+  getWorkspaceSpeciesRequests: `${baseUrl}/species-requests/workspaces`,
   getWorkspaceSiteReviewQueue: `${baseUrl}/approval-board/workspaces`,
   projectApiKey: `${baseUrl}/projects`,
   // Monitoring plots (shared base for all verbs)
