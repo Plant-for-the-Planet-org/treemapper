@@ -20,8 +20,6 @@ export const SpeciesRequestModal = ({
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
     if (!requestForm.scientificName?.trim()) newErrors.scientificName = 'Scientific name is required'
-    if (!requestForm.commonName?.trim()) newErrors.commonName = 'Common name is required'
-    if (!requestForm.description?.trim()) newErrors.description = 'Description is required'
     if (!requestForm.requestReason?.trim()) newErrors.requestReason = 'Request reason is required'
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -58,7 +56,7 @@ export const SpeciesRequestModal = ({
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs font-medium">Common Name *</Label>
+          <Label className="text-xs font-medium">Common Name</Label>
           <Input
             value={requestForm.commonName || ''}
             onChange={(e) => handleInputChange('commonName', e.target.value)}
@@ -69,7 +67,7 @@ export const SpeciesRequestModal = ({
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs font-medium">Description *</Label>
+          <Label className="text-xs font-medium">Description</Label>
           <Textarea
             value={requestForm.description || ''}
             onChange={(e) => handleInputChange('description', e.target.value)}

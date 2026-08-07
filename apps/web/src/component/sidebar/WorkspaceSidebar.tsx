@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter, useParams } from 'next/navigation'
 import {
-  Activity, ArrowLeft, Check, CheckSquare, ChevronDown, FolderOpen, Settings, Users,
+  Activity, ArrowLeft, Check, CheckSquare, ChevronDown, FolderOpen, Leaf, Settings, Users,
 } from 'lucide-react'
 import { useToken } from '@/context/useTokenContext'
 import { useUserStore } from '@shared-core/store/useUserStore'
@@ -16,6 +16,7 @@ const SECTIONS = [
   { id: 'members', label: 'Member Management', icon: Users },
   { id: 'projects', label: 'Project Management', icon: FolderOpen },
   { id: 'approvals', label: 'Approvals', icon: CheckSquare },
+  { id: 'species', label: 'Species', icon: Leaf },
   { id: 'activity', label: 'Activity & Audit', icon: Activity },
 ]
 

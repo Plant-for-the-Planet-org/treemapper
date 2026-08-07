@@ -221,3 +221,38 @@ export interface ImpersonationRecord {
   endedAt?: string;
   duration?: string;
 }
+
+export type SpeciesRequestStatus = 'pending' | 'approved' | 'rejected';
+
+export interface SpeciesRequest {
+  id: number;
+  uid: string;
+  scientificName: string;
+  commonName: string | null;
+  description: string | null;
+  requestReason: string;
+  family: string | null;
+  habitat: string | null;
+  nativeRegion: string | null;
+  conservationStatus: string | null;
+  gbifId: string | null;
+  wikipediaUrl: string | null;
+  sourceUrl: string | null;
+  urgency: string | null;
+  status: SpeciesRequestStatus;
+  adminNotes: string | null;
+  rejectionReason: string | null;
+  createdSpeciesId: number | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  requestedBy: { id: number; name: string | null; email: string | null } | null;
+  project: { id: number; uid: string; projectName: string } | null;
+}
+
+export interface SpeciesRequestsResponse {
+  data: SpeciesRequest[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}

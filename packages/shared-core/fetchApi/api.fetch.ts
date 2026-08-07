@@ -226,6 +226,59 @@ export const assignUnknownSpecies = async (token: string, params: any, prjId: st
   return result;
 };
 
+export const getProjectSpeciesRequests = async (
+  token: string,
+  projectUid: string,
+  query?: { limit?: number; page?: number; status?: string; search?: string }
+) => {
+  const queryParams = new URLSearchParams();
+  if (query?.limit) queryParams.append('limit', query.limit.toString());
+  if (query?.page) queryParams.append('page', query.page.toString());
+  if (query?.status) queryParams.append('status', query.status);
+  if (query?.search) queryParams.append('search', query.search);
+  const queryString = queryParams.toString();
+  const uri = queryString
+    ? `${getUrlApi.getProjectSpeciesRequests}/${projectUid}/queue?${queryString}`
+    : `${getUrlApi.getProjectSpeciesRequests}/${projectUid}/queue`;
+  return fetchGetCall(uri, token);
+};
+
+export const getWorkspaceSpeciesRequests = async (
+  token: string,
+  workspaceUid: string,
+  query?: { limit?: number; page?: number; status?: string; search?: string }
+) => {
+  const queryParams = new URLSearchParams();
+  if (query?.limit) queryParams.append('limit', query.limit.toString());
+  if (query?.page) queryParams.append('page', query.page.toString());
+  if (query?.status) queryParams.append('status', query.status);
+  if (query?.search) queryParams.append('search', query.search);
+  const queryString = queryParams.toString();
+  const uri = queryString
+    ? `${getUrlApi.getWorkspaceSpeciesRequests}/${workspaceUid}/queue?${queryString}`
+    : `${getUrlApi.getWorkspaceSpeciesRequests}/${workspaceUid}/queue`;
+  return fetchGetCall(uri, token);
+};
+
+export const reviewSpeciesRequest = async (
+  token: string,
+  projectUid: string,
+  requestUid: string,
+  dto: {
+    decision: 'approved' | 'rejected';
+    scientificName?: string;
+    commonName?: string;
+    description?: string;
+    gbifId?: string;
+    adminNotes?: string;
+    rejectionReason?: string;
+  }
+) => {
+  const uri = `${postUrlApi.reviewSpeciesRequest}/${projectUid}/${requestUid}/review`;
+  const result = await fetchPostCall(uri, dto, token);
+  return result;
+};
+
 
 
 //sites

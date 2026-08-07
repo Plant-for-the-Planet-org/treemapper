@@ -178,6 +178,7 @@ export const PROJECT_PERMISSIONS = [
   'approve_site',
   'add_site',
   'request_species',
+  'approve_species',
   'manage_form',
 ] as const;
 export type ProjectPermission = (typeof PROJECT_PERMISSIONS)[number];
