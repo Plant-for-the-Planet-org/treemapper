@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import Papa from 'papaparse';
 
 export const downloadTreeMapperTemplate = () => {
   // Define the corrected column headers
@@ -106,53 +106,24 @@ export const downloadTreeMapperTemplate = () => {
     }
   ];
 
-  // Create a new workbook
-  const workbook = XLSX.utils.book_new();
-
-  // Convert sample data to worksheet
-  const worksheet = XLSX.utils.json_to_sheet(sampleData);
-
-  // Set column widths for better readability
-  const columnWidths = [
-    { wch: 10 }, // TYPE
-    { wch: 18 }, // PLANTATION START DATE
-    { wch: 18 }, // PLANTATION END DATE
-    { wch: 12 }, // LATITUDE
-    { wch: 12 }, // LONGITUDE
-    { wch: 10 }, // ELEVATION
-    { wch: 18 }, // AVERAGE PLANT HEIGHT
-    { wch: 20 }, // AVERAGE PLANT DIAMETER
-    { wch: 15 }, // TREES PLANTED
-    { wch: 20 }, // NUMBER OF PEOPLE INVOLVED
-    { wch: 35 }, // SPECIES
-    { wch: 15 }, // TAG
-    { wch: 25 }, // LOCATION NAME
-    { wch: 18 }, // PERSON NAME
-    { wch: 10 }, // ID
-    { wch: 20 }, // DESIGNATION
-    { wch: 40 }  // COMMENT
-  ];
-  
-  worksheet['!cols'] = columnWidths;
-
-  // Add the worksheet to the workbook
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'TreeMapper Template');
-
-  // Generate the Excel file and trigger download
-  const excelBuffer = XLSX.write(workbook, { 
-    bookType: 'xlsx', 
-    type: 'array',
-    compression: true 
+  // Build the CSV. `fields` pins the column order so it does not depend on
+  // object key order. Values containing commas (for example multi species
+  // rows) are quoted by papaparse.
+  const csv = Papa.unparse({
+    fields: headers,
+    data: sampleData,
   });
-  
-  const data = new Blob([excelBuffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
+  // Lead with a BOM so Excel reads the file as UTF-8 and does not mangle
+  // accented species or place names.
+  const data = new Blob(['\ufeff', csv], {
+    type: 'text/csv;charset=utf-8;'
   });
-  
+
   const url = window.URL.createObjectURL(data);
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'TreeMapper_Bulk_Upload_Template.xlsx';
+  link.download = 'TreeMapper_Bulk_Upload_Template.csv';
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

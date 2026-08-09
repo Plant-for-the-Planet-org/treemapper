@@ -93,7 +93,10 @@ export class UsersService {
             // /users/me repeatedly, so both can miss the lookup above and both
             // insert. Whoever loses gets 23505 -- re-read instead of failing the
             // login, since the row the winner wrote is the one we wanted.
-            if (error?.code === '23505') {
+            // drizzle-orm >=0.44 wraps driver errors in DrizzleQueryError, so the
+            // original pg error (with .code) may be under .cause instead of on
+            // the error itself -- check both.
+            if ((error?.cause?.code ?? error?.code) === '23505') {
                 const raced = await this.findInDbByAuth0Id(auth0Id);
                 if (raced) {
                     await this.cacheUserByAuth(raced, auth0Id);
@@ -111,7 +114,7 @@ export class UsersService {
                 return cached;
             }
         } catch (error) {
-            // Redis being unreachable must not lock everyone out -- fall through
+            // A failing cache must not lock everyone out -- fall through
             // to the database and serve the request uncached.
             this.logger.warn(`User cache read failed for ${auth0Id}: ${error?.message ?? error}`);
         }
@@ -349,11 +352,14 @@ export class UsersService {
             }
 
             // Handle database constraint violations
-            if (error.code === '23505') { // Unique constraint violation
+            // drizzle-orm >=0.44 wraps driver errors in DrizzleQueryError; the
+            // original pg error (with .code) may be under .cause -- check both.
+            const pgErrorCode = error?.cause?.code ?? error?.code;
+            if (pgErrorCode === '23505') { // Unique constraint violation
                 throw new ConflictException('User is already onboarded or data conflicts exist');
             }
 
-            if (error.code === '23503') { // Foreign key constraint violation
+            if (pgErrorCode === '23503') { // Foreign key constraint violation
                 throw new BadRequestException('Referenced data does not exist');
             }
 
@@ -647,7 +653,9 @@ export class UsersService {
         } catch (error) {
             this.logger.error(`Failed to register device for user ${userId}`, error);
 
-            if (error.code === '23505') {
+            // drizzle-orm >=0.44 wraps driver errors in DrizzleQueryError; the
+            // original pg error (with .code) may be under .cause -- check both.
+            if ((error?.cause?.code ?? error?.code) === '23505') {
                 throw new ConflictException('Device already registered');
             }
 

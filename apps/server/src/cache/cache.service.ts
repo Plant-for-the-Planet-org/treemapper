@@ -58,7 +58,8 @@ export class CacheService {
    */
   async deletePattern(pattern: string): Promise<void> {
     try {
-      // This works with Redis store
+      // Only works if the backing store exposes keys(pattern). The in-memory
+      // store does not, so this falls through to the warning below.
       const store = (this.cacheManager as any).store;
       if (typeof store.keys === 'function') {
         const keys = await store.keys(pattern);

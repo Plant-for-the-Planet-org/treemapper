@@ -45,7 +45,7 @@ packages/
 
 - **mobile**: Expo SDK, React Native 0.83.6, Maplibre, Auth0
 - **web**: Next.js 15, React 18, shadcn/ui, Tailwind, Mapbox, Auth0 (@auth0/nextjs-auth0 v3.8)
-- **server**: NestJS 11, Fastify, Drizzle ORM, Postgres (`pg`), Redis (ioredis), Bull, AWS S3 / R2
+- **server**: NestJS 11, Fastify, Drizzle ORM, Postgres (`pg`), in-memory cache (cache-manager), AWS S3 / R2
 - **shared-core**: TanStack Query, Zustand
 
 ## Common commands

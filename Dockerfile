@@ -17,6 +17,20 @@ COPY apps/web/package.json ./apps/web/
 COPY apps/server/package.json ./apps/server/
 COPY packages/shared-core/package.json ./packages/shared-core/
 
+# Guard scripts. Needed before install: the root `preinstall` runs only-yarn.js.
+COPY scripts ./scripts
+
+# Fail the build if a manifest drifted from yarn.lock.
+#
+# `yarn install --frozen-lockfile` below cannot catch this on its own: yarn 1
+# only validates the ROOT package.json against the lockfile, so an unpinned or
+# unlocked dependency in apps/* installs silently and exits 0. Verified.
+#
+# This checks the manifests present in this stage (root, web, server,
+# shared-core). apps/mobile is deliberately not copied here and is covered by
+# the pre-commit hook instead.
+RUN node scripts/check-pinned-deps.js
+
 # Install dependencies with optimizations
 RUN yarn install --frozen-lockfile --network-timeout 1000000
 

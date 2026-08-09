@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react'
 import { CheckCircle, XCircle, ArrowLeft, RefreshCw, FileText, Mail, ExternalLink } from 'lucide-react'
 import ForestBulkLoader from './ForestBulkLoader'
 import { createBulkIntervention } from '@shared-core/fetchApi/api.fetch'
-import * as crypto from 'crypto'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -12,7 +11,13 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
   const [uploadState, setUploadState] = useState<'uploading' | 'success' | 'error'>('uploading')
   const [errorMessage, setErrorMessage] = useState('')
 
-  const generateUid = (prefix: string) => `${prefix}_${crypto.randomBytes(16).toString('hex').substring(0, 24)}`
+  // 16 random bytes as hex, trimmed to 24 chars. Uses the Web Crypto API rather
+  // than Node's crypto module, since this runs in the browser.
+  const generateUid = (prefix: string) => {
+    const bytes = crypto.getRandomValues(new Uint8Array(16))
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+    return `${prefix}_${hex.substring(0, 24)}`
+  }
 
   // Parse a DD/MM/YYYY string into a Date. JS `new Date('DD/MM/YYYY')` reads
   // slashes as US (MM/DD), so build from explicit parts to keep day-first input.
