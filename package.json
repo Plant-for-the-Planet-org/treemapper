@@ -13,6 +13,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "test": "turbo test",
     "clean": "turbo clean && rm -rf node_modules",
+    "clean:cache": "rm -rf apps/web/.next apps/server/dist .turbo/cache && find . -name '*.tsbuildinfo' -not -path '*/node_modules/*' -delete",
     "clean:deep": "rm -rf node_modules && find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name '.next' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name '.turbo' -type d -prune -exec rm -rf '{}' + && find . -name 'build' -type d -prune -exec rm -rf '{}' +",
     "heroku-postbuild": "node scripts/check-pinned-deps.js && yarn install --frozen-lockfile && turbo build --filter=web && turbo build --filter=server",
     "start": "concurrently \"cd apps/web && PORT=$PORT yarn start\" \"cd apps/server && PORT=3001 yarn start:prod\"",
