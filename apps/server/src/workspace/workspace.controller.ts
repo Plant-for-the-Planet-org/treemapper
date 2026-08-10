@@ -1,0 +1,198 @@
+// src/organizations/organizations.controller.ts
+import {
+    Controller,
+    Get,
+    Post,
+    Patch,
+    Body,
+    UseGuards,
+    Req,
+    HttpStatus,
+    HttpCode,
+    ValidationPipe,
+    HttpException,
+    Param,
+    Put,
+} from '@nestjs/common';
+import {
+    ApiTags,
+    ApiOperation,
+    ApiResponse,
+    ApiBearerAuth,
+    ApiBody,
+} from '@nestjs/swagger';
+import { Request } from 'express';
+import { WorkspaceService } from './workspace.service';
+import { CreateNewWorkspaceDto } from './dto/create-organization.dto';
+import { UpdateWorkspaceSettingsDto } from './dto/workspace-settings.dto';
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
+import { OrganizationResponseDto, SelectOrganizationDto, SelectPrimaryWorkspaceDto, UserOrganizationResponseDto } from './dto/organization-response.dto';
+import { User } from 'src/users/entities/user.entity';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+import { UserCacheService } from 'src/cache/user-cache.service';
+import { SuperAdminGuard } from 'src/auth/super-admin.guard';
+import { ImpersonationGuard } from 'src/auth/impersonation.guard';
+import { WorkspacePermissionsGuard } from './workspace-permissions.guard';
+import { WorkspaceMemberGuard } from './workspace-member.guard';
+
+
+interface AuthenticatedRequest extends Request {
+    user: {
+        id: number;
+        uid: string;
+        email: string;
+        auth0Id: string
+    };
+}
+
+@Controller('workspace')
+export class WorkspaceController {
+    constructor(private readonly workspaceService: WorkspaceService,private readonly userCacheService: UserCacheService) { }
+    @Post()
+    @UseGuards(SuperAdminGuard)
+    async createNewWorkspace(
+        @Body() createOrganizationDto: CreateNewWorkspaceDto,
+        @Req() req: any,
+    ): Promise<Boolean> {
+        return this.workspaceService.createNewWorkspace(createOrganizationDto, req.user.id);
+    }
+
+
+
+    @Post('/primary')
+    async setPrimaryOrg(
+        @Body() createOrganizationDto: SelectOrganizationDto,
+        @CurrentUser() user: User,
+    ): Promise<any> {
+        return this.workspaceService.setPrimaryWorkspaceAndProject(createOrganizationDto, user);
+    }
+
+    @Post('/primary/select')
+    async setPrimaryWorkspace(
+        @Body() dto: SelectPrimaryWorkspaceDto,
+        @CurrentUser() user: User,
+    ): Promise<any> {
+        return this.workspaceService.setPrimaryWorkspace(dto.workspaceUid, user);
+    }
+
+
+
+
+
+    @Post('cache/clear')
+    @UseGuards(SuperAdminGuard)
+    async clearServerCache(@CurrentUser() user: User,) {
+        return await this.workspaceService.clearServerCache(user);
+    }
+
+    @Post('cache/refresh')
+    @UseGuards(SuperAdminGuard)
+    async refreshWorkspace(@CurrentUser() user: User,) {
+        return await this.workspaceService.cacheWorkspace();
+    }
+
+    @Post('cache/user/clear')
+    @UseGuards(SuperAdminGuard)
+    async clearUserCache(
+        @CurrentUser() user: User,
+        @Body() userDetails: any,
+    ) {
+        return await this.userCacheService.userCacheClearService(userDetails.authID);
+    }
+
+
+    @Get('/all')
+    async getAllWorkspaces() {
+        return await this.workspaceService.getAllWorkspaces();
+    }
+
+    @Get('/my')
+    async getMyWorkspaces(@CurrentUser() user: User): Promise<any[]> {
+        return await this.workspaceService.getMyAdminWorkspaces(user.id);
+    }
+
+    // Returns every user in the system (email + profile). Superadmin only --
+    // this is not a per-workspace member list (that is /:uid/members below).
+    @Get('/members')
+    @UseGuards(SuperAdminGuard)
+    async findUsers(): Promise<any[]> {
+        return await this.workspaceService.findUsers();
+    }
+
+    @Get('/:uid/members')
+    @UseGuards(WorkspaceMemberGuard)
+    async getWorkspaceMembers(@Param('uid') uid: string): Promise<any[]> {
+        return await this.workspaceService.getWorkspaceMembers(uid);
+    }
+
+    @Get('/:uid/projects')
+    @UseGuards(WorkspaceMemberGuard)
+    async getWorkspaceProjects(@Param('uid') uid: string): Promise<any[]> {
+        return await this.workspaceService.getWorkspaceProjects(uid);
+    }
+
+    @Patch('/:uid/projects/:projectUid/transfer')
+    @UseGuards(WorkspacePermissionsGuard)
+    async transferProject(
+        @Param('uid') uid: string,
+        @Param('projectUid') projectUid: string,
+        @Body() body: { targetWorkspaceUid: string },
+        @CurrentUser() user: User,
+    ) {
+        return await this.workspaceService.transferProject(uid, projectUid, body.targetWorkspaceUid, user.id);
+    }
+
+    @Patch('/:uid/projects/:projectUid/status')
+    @UseGuards(WorkspacePermissionsGuard)
+    async updateProjectStatus(
+        @Param('uid') uid: string,
+        @Param('projectUid') projectUid: string,
+        @Body() body: { status: 'active' | 'in_review' | 'suspended' | 'disabled' },
+        @CurrentUser() user: User,
+    ) {
+        return await this.workspaceService.updateProjectStatus(uid, projectUid, body.status, user.id);
+    }
+
+    @Get('/:uid/settings')
+    @UseGuards(WorkspaceMemberGuard)
+    async getWorkspaceSettings(@Param('uid') uid: string) {
+        return await this.workspaceService.getWorkspaceSettings(uid);
+    }
+
+    @Patch('/:uid/settings')
+    @UseGuards(WorkspacePermissionsGuard)
+    async updateWorkspaceSettings(
+        @Param('uid') uid: string,
+        @Body(new ValidationPipe({ whitelist: true })) body: UpdateWorkspaceSettingsDto,
+        @CurrentUser() user: User,
+    ) {
+        return await this.workspaceService.updateWorkspaceSettings(uid, body, user.id);
+    }
+
+    @Get('/:uid')
+    @UseGuards(WorkspaceMemberGuard)
+    async getWorkspace(@Param('uid') uid: string) {
+        return await this.workspaceService.findByUid(uid);
+    }
+
+    @Patch('/:uid')
+    @UseGuards(WorkspacePermissionsGuard)
+    async updateWorkspace(
+        @Param('uid') uid: string,
+        @Body(new ValidationPipe({ whitelist: true })) body: UpdateWorkspaceDto,
+        @CurrentUser() user: User,
+    ) {
+        return await this.workspaceService.updateWorkspace(uid, body, user.id);
+    }
+
+    @Put('/impersonate/exit')
+    async impersonateUserExit(@CurrentUser() user: User): Promise<boolean> {
+        return await this.workspaceService.impersonationexit(user);
+    }
+
+    @Put('/impersonate/:person')
+    @UseGuards(ImpersonationGuard)
+    async impersonateUser(@Param('person') person: string, @CurrentUser() user: User): Promise<boolean> {
+        return await this.workspaceService.startImpersonation(person, user);
+    }
+}

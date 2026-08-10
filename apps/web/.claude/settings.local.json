@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Read(//Users/plant-214/Documents/pftp/treemapper/**)",
+      "Bash(yarn install *)",
+      "Bash(yarn tsc *)",
+      "Bash(grep -rln \"map/all\\\\|'map'\\\\|\\\\\"map\\\\\"\\\\|map/tree\" apps/server/src/interventions/)",
+      "Bash(ls apps/server/src/sites/)",
+      "Bash(ls apps/server/src/site/)",
+      "Bash(grep -rln \"@Controller\\('sites'\\)\\\\|@Controller\\('site'\\)\\\\|class Site\" apps/server/src)",
+      "Bash(yarn type-check *)",
+      "Bash(yarn db:generate)",
+      "Bash(echo \"=== exit: $? \\(empty above = clean\\) ===\")",
+      "Bash(awk 'NR>=360 && NR<=420' /Users/plant-214/Documents/pftp/treemapper/apps/server/src/database/schema/index.ts)",
+      "mcp__ide__getDiagnostics",
+      "Bash(grep -n \"projectForms: \\\\`\\\\${baseUrl}/projects\\\\`,\\\\|generateProjectApiKey\\\\|getProjectAnalytics = async\" api.url.ts api.fetch.ts)",
+      "Bash(grep *)",
+      "Bash(npx skills *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(p.scripts.dev||'no dev'\\)\")",
+      "Read(//Applications/Google Chrome.app/**)",
+      "Bash(npx --no-install playwright --version)",
+      "Artifact",
+      "Bash(yarn workspace *)",
+      "Bash(npx eslint *)",
+      "mcp__claude_design__list_design_systems",
+      "mcp__claude_design__get_claude_design_prompt",
+      "mcp__claude_design__create_project",
+      "mcp__claude_design__finalize_plan",
+      "mcp__claude_design__write_files",
+      "mcp__claude_design__render_preview",
+      "Bash(tee /tmp/tsc.out)",
+      "Bash(npx next *)"
+    ]
+  }
+}

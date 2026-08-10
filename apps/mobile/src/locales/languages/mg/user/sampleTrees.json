@@ -1,0 +1,12 @@
+{
+  "sample_trees": "Hazo Maodely",
+  "tree": "Hazo",
+  "trees": "Hazo",
+  "next_step_to_measure_sample_trees_text": "Amin'ny dingana manaraka dia hangatahana anao handrefy ireo hazo maodely ho an'ny toeram-pambolena.",
+  "recommend_at_least_sample_trees": "Manoro hevitra anao izahay mba hisafidy kisendrasendra hazo santionany 10-12 farafahakeliny.",
+  "how_many_sample_trees_to_record": "Hazo firy no tianao hosoratana?",
+  "invalid_tree_count": "Isa hazo tsy mety",
+  "enter_valid_tree_count": "Tokony haka santionany farafahakeliny 5 ary farafahabetsany 999 ny hazo.",
+  "add_another": "Ampio iray hafa",
+  "add_sample_tree": "Ampio Hazo Santionany"
+}

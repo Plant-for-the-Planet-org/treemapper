@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(ts|js\\)$\")",
+      "Bash(npx drizzle-kit *)",
+      "Bash(npx tsc *)",
+      "Bash(git *)"
+    ]
+  }
+}

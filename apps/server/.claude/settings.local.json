@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Read(//Users/plant-214/Documents/pftp/treemapper/graphify-out/**)",
+      "Read(//Users/plant-214/Documents/pftp/treemapper/apps/web/src/**)",
+      "Read(//Users/plant-214/Downloads/**)"
+    ]
+  }
+}

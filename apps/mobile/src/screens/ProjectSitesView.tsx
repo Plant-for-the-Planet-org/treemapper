@@ -1,0 +1,382 @@
+import { Pressable, StyleProp, StyleSheet, Text, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { Colors, Typography } from 'src/utils/constants'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import Header from 'src/components/common/Header'
+import { useRealm } from '@realm/react'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { AvoidSoftInput } from 'react-native-avoid-softinput'
+import { useToast } from 'react-native-toast-notifications'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { DropdownData, ProjectInterface } from 'src/types/interface/app.interface'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from 'src/store'
+import i18next from 'i18next'
+import CustomDropDown from 'src/components/common/CustomDropDown'
+import CustomTextInput from 'src/components/common/CustomTextInput'
+import SiteCreationMap from 'src/components/map/SiteCreationMap'
+import { GeoJSONObject } from '@turf/helpers'
+import AddIcon from 'assets/images/svg/AddIcon.svg'
+import CustomButton from 'src/components/common/CustomButton'
+import { Map, Camera, CameraRef, GeoJSONSource, Layer, LineLayerStyle } from '@maplibre/maplibre-react-native'
+import PenIcon from 'assets/images/svg/EditPenIcon.svg'
+import bbox from '@turf/bbox'
+import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
+import { createNewSite } from 'src/api/api.fetch'
+import useProjectManagement from 'src/hooks/realm/useProjectManagement'
+import { updateLastProject } from 'src/store/slice/displayMapSlice'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
+
+const ProjectSitesView = () => {
+
+
+  const realm = useRealm()
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const toast = useToast()
+  const [allProjects, setAllProjects] = useState<DropdownData[]>([])
+  const [showMap, setShowMap] = useState(false)
+  const [geometry, setGeometry] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [projectBounds, setProjectBounds] = useState([])
+  const { addNewSite } = useProjectManagement()
+  const dispatch = useDispatch()
+  const [selectedProject, setSelectedProject] = useState<DropdownData>({
+    label: '',
+    value: '',
+    index: 0
+  })
+  const [selectedStatus, setSelectedStatus] = useState<DropdownData>({
+    label: 'Planting',
+    value: 'planting',
+    index: 0
+  })
+
+  const [siteName, setSiteName] = useState('')
+  const cameraRef = React.createRef<CameraRef>()
+
+  const { currentProject } = useSelector(
+    (state: RootState) => state.projectState,
+  )
+
+  const statusData: DropdownData[] = [
+    {
+      label: 'Planting',
+      value: 'planting',
+      index: 0
+    },
+    {
+      label: 'Planted',
+      value: 'planted',
+      index: 0
+    },
+    {
+      label: 'Barren',
+      value: 'barren',
+      index: 0
+    },
+    {
+      label: 'Reforestation',
+      value: 'reforestation',
+      index: 0
+    },
+  ]
+
+
+  const polyline: StyleProp<LineLayerStyle> = {
+    lineWidth: 2,
+    lineOpacity: 1,
+    lineJoin: 'bevel',
+  }
+
+  useEffect(() => {
+    setupProjectAndSiteDropDown()
+    AvoidSoftInput.setShouldMimicIOSBehavior(true);
+    return () => {
+      AvoidSoftInput.setShouldMimicIOSBehavior(false);
+    };
+  }, [])
+
+
+  const setupProjectAndSiteDropDown = () => {
+    const projectData = realm.objects<ProjectInterface>(RealmSchema.Projects)
+    const mappedData = projectData.map((el, i) => {
+      return {
+        label: el.name,
+        value: el.id,
+        index: i,
+      }
+    })
+    if (mappedData?.length) {
+      setAllProjects([...JSON.parse(JSON.stringify(mappedData))])
+      if (currentProject?.projectId) {
+        const projectFound = projectData.find(el => el.id === currentProject.projectId)
+        if (projectFound) {
+          setupProjectBound(projectFound.id)
+          handleProjectSelection({
+            value: projectFound.id,
+            label: projectFound.name,
+            index: 0
+          })
+        }
+      }
+    }
+  }
+
+
+
+  const setupProjectBound = (id: string) => {
+    const projectData = realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects, id)
+    // Projects without geometry are stored with an empty string, so guard
+    // before parsing and fall back to no bounds (map keeps its default view).
+    if (!projectData?.geometry) {
+      setProjectBounds([])
+      return
+    }
+    try {
+      const parsedGeometry = JSON.parse(projectData.geometry)
+      if (!parsedGeometry?.coordinates) {
+        setProjectBounds([])
+        return
+      }
+      const { geoJSON } = makeInterventionGeoJson("Point", [parsedGeometry.coordinates], "Intervention.form_id")
+      const bounds = bbox(geoJSON)
+      setProjectBounds(bounds)
+    } catch (error) {
+      setProjectBounds([])
+    }
+  }
+
+
+  const handleProjectSelection = (i: DropdownData) => {
+    setSelectedProject(i)
+    setupProjectBound(i.value)
+  }
+
+  const rightContainer = () => {
+    if (showMap) {
+      return null
+    }
+    return <View style={styles.rightHeader}>
+      <CustomDropDown
+        label={'Status'}
+        data={statusData}
+        onSelect={setSelectedStatus}
+        selectedValue={selectedStatus}
+        whiteBG
+      />
+    </View>
+  }
+
+  const handleGeometry = (e: GeoJSONObject) => {
+    setGeometry(() => e)
+    toggleSiteCreation()
+  }
+
+  useEffect(() => {
+    if (geometry && !showMap) {
+      handleGeometryBounds()
+    }
+  }, [geometry, showMap])
+
+
+
+  const handleGeometryBounds = () => {
+    if (!geometry) {
+      return
+    }
+    const { geoJSON } = makeInterventionGeoJson('Polygon', geometry.geometry.coordinates[0], 'sd')
+    const bounds = bbox(geoJSON)
+    if (cameraRef?.current) {
+      cameraRef.current.fitBounds(
+        [bounds[0], bounds[1], bounds[2], bounds[3]],
+        { padding: { top: 10, right: 10, bottom: 10, left: 10 }, duration: 1000 },
+      )
+    }
+  }
+
+  const toggleSiteCreation = async () => {
+    setShowMap(prev => !prev)
+  }
+
+
+  const submitHandler = async () => {
+    setLoading(true)
+    if (siteName === '') {
+      toast.show("Please provide site name")
+      setLoading(false)
+      return
+    }
+    if (selectedProject.value === '') {
+      toast.show("Please select project")
+      setLoading(false)
+      return
+    }
+
+    if (!geometry) {
+      toast.show("Please create site area")
+      setLoading(false)
+      return
+    }
+
+    // Same payload shape as the web sites API (CreateSiteDto):
+    // projectId travels in the URL, status replaces siteType, and the
+    // GeoJSON goes in `location`. geometry state is a Feature; send the
+    // inner Polygon geometry.
+    const finalData = {
+      "name": siteName,
+      "status": selectedStatus.value,
+      "location": (geometry as any).geometry,
+    }
+
+    const { response, success } = await createNewSite(selectedProject.value, finalData)
+    // The sites service reports failures (e.g. invalid GeoJSON) in the body
+    // with HTTP 200, so a created site is confirmed by `data.uid`.
+    const createdSite = response?.data
+    if (success && createdSite?.uid) {
+      await addNewSite(selectedProject.value, {
+        id: createdSite.uid,
+        name: createdSite.name,
+        status: createdSite.status,
+        geometry: JSON.stringify(createdSite.originalGeometry),
+      })
+      toast.show("Successfully created new site.")
+      navigation.goBack()
+      dispatch(updateLastProject(Date.now()))
+    } else {
+      setLoading(false)
+      toast.show(response?.message || "Error occurred while creating site")
+    }
+  }
+
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {!showMap && <Header label='Create Site' rightComponent={rightContainer()} />}
+      <View style={styles.wrapper}>
+        <CustomDropDown
+          label={i18next.t('label.project')}
+          data={allProjects}
+          onSelect={handleProjectSelection}
+          selectedValue={selectedProject}
+        />
+        <CustomTextInput
+          label={'Site name'}
+          onChangeHandler={setSiteName}
+          value={siteName}
+        />
+        <Text style={styles.siteArea}>{i18next.t("label.site_area")}</Text>
+        {!showMap && <Pressable style={styles.siteWrapper} onPress={toggleSiteCreation}>
+          {geometry && !showMap ? <Text style={styles.siteLabel}> Edit site map</Text> : <Text style={styles.siteLabel}> {i18next.t("label.create_new_site_")}</Text>}
+          {!geometry && !showMap ? <AddIcon height={14} width={14} fill={Colors.NEW_PRIMARY} /> : <PenIcon height={14} width={14} fill={Colors.NEW_PRIMARY} />}
+        </Pressable>}
+        {showMap && <View style={styles.mapWrapper}>
+          <SiteCreationMap setGeometry={handleGeometry} close={toggleSiteCreation} projectBounds={projectBounds} />
+        </View>}
+        {!showMap && geometry !== null ? <View style={styles.previewMap}>
+          <Map
+            style={styles.map}
+            logo={false}
+            attribution={false}
+            onDidFinishLoadingMap={handleGeometryBounds}
+            mapStyle={MapStyle}>
+            <Camera ref={cameraRef} />
+            <GeoJSONSource
+              id={'polygon-site-geometry'}
+              data={{
+                "type": "FeatureCollection",
+                "features": [geometry]
+              }}>
+              <Layer
+                id={'polyFill'}
+                type="fill"
+                style={{
+                  fillOpacity: 0.5,
+                  fillColor: Colors.NEW_PRIMARY + '1A'
+                }}
+              />
+              <Layer
+                id={'polyline-geometry'}
+                type="line"
+                style={{
+                  ...polyline, lineColor: Colors.NEW_PRIMARY
+                }}
+              />
+            </GeoJSONSource>
+          </Map>
+        </View> : null}
+        {!showMap && <CustomButton
+          loading={loading}
+          disable={loading}
+          label={`${i18next.t('label.create_site')}`} pressHandler={submitHandler} containerStyle={styles.buttonContainer} />}
+      </View>
+    </SafeAreaView>
+  )
+}
+
+export default ProjectSitesView
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.WHITE
+  },
+  wrapper: {
+    width: '100%',
+    flex: 1,
+    paddingTop: 5,
+    backgroundColor: Colors.BACKDROP_COLOR
+  },
+  rightHeader: {
+    width: '50%',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  mapWrapper: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    position: 'absolute'
+  },
+  siteArea: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    marginLeft: '6%',
+  },
+  siteWrapper: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: '5%',
+    marginTop: 10,
+  },
+  siteLabel: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    color: Colors.NEW_PRIMARY,
+    marginRight: 5
+  },
+  penIconWrapper: {
+    width: 40,
+    height: 40,
+    marginTop: 8
+  },
+  buttonContainer: {
+    width: '100%',
+    height: 70,
+    position: 'absolute',
+    bottom: 30
+  },
+  previewMap: {
+    width: '90%',
+    height: '30%',
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginLeft: '5%',
+    marginTop: 20
+  },
+  map: {
+    flex: 1,
+    alignSelf: 'stretch',
+  }
+})

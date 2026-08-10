@@ -1,0 +1,11 @@
+{
+  "updating_species":"Manavao ny karazana",
+  "running_migration": "Mampandeha famindrana",
+  "migration_description": "Vao haingana ianao no nanavao ny fampiharanao. Azafady, aza akatona ny fampiharana satria mampihatra fanovana izahay mba hiantohana ny fifanarahana.",
+  "species_data_status": "Mamaritra ny satan'ny angon-drakitra momba ny karazana.",
+  "downloading_archive": "Misintona ny arkiva momba ny karazana.",
+  "unzipping_archive": "Manala ny zip amin'ny arkiva momba ny karazana.",
+  "fetch_and_add_species_to_database": "Maka sy manampy karazana ao amin'ny tahiry angona.",
+  "species_data_loaded": "Efa tafiditra ny angon-drakitra momba ny karazana.",
+  "please_wait": "Miandrasa kely azafady ..."
+}

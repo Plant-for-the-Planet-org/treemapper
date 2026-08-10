@@ -1,0 +1,23 @@
+{
+  "//": "Dependencies are pinned to EXACT versions on purpose. Do not add ^ or ~, and do not run yarn upgrade without team review. A pre-commit guard (.githooks/pre-commit) warns on dependency changes.",
+  "name": "shared-core",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "./index.js",
+  "module": "./index.js",
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "require": "./index.js"
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "zustand": "5.0.14"
+  }
+}
