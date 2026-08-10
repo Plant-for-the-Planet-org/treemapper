@@ -32,8 +32,8 @@ export class ScientificSpeciesController {
 
 
   @Get('search')
-  getProjectInviteStatus(
+  searchSpecies(
     @Query() queryDto: SearchSpeciesQueryDto) {
-    return this.scientificSpeciesService.searchSpecies(queryDto.name);
+    return this.scientificSpeciesService.searchSpecies(queryDto.name, queryDto.limit);
   }
 }

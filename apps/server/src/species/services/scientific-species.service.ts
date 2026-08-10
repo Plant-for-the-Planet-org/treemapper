@@ -81,19 +81,18 @@ export class ScientificSpeciesService {
   }
 
   async searchSpecies(searchTerm: string, limit: number = 10) {
+    // Always an array, whatever the input. The old empty-term branch returned
+    // an object instead, so a caller doing `results.map(...)` crashed rather
+    // than seeing no matches.
+    const trimmedSearch = searchTerm?.trim();
+    if (!trimmedSearch) {
+      return [];
+    }
+
+    const prefix = `${trimmedSearch}%`;
+    const anywhere = `%${trimmedSearch}%`;
+
     try {
-      // Trim and validate search term
-      const trimmedSearch = searchTerm.trim();
-
-      if (!trimmedSearch) {
-        return {
-          success: false,
-          message: 'Search term cannot be empty',
-          data: [],
-          count: 0,
-        };
-      }
-
       const species = await this.drizzle.db
         .select({
           id: scientificSpecies.id,
@@ -103,9 +102,23 @@ export class ScientificSpeciesService {
           description: scientificSpecies.description,
         })
         .from(scientificSpecies)
-        .where(ilike(scientificSpecies.scientificName, `%${trimmedSearch}%`))
+        // Common names are searched too. People look up a tree by the name they
+        // know it by, and we return `commonName` in the result, so not matching
+        // on it left an obvious search coming back empty.
+        .where(
+          or(
+            ilike(scientificSpecies.scientificName, anywhere),
+            ilike(scientificSpecies.commonName, anywhere),
+          ),
+        )
+        // Names that start with the term rank above ones that merely contain it,
+        // scientific name first, so typing "Quer" leads with Quercus.
         .orderBy(
-          sql`CASE WHEN ${scientificSpecies.scientificName} ILIKE ${trimmedSearch + '%'} THEN 0 ELSE 1 END`,
+          sql`CASE
+            WHEN ${scientificSpecies.scientificName} ILIKE ${prefix} THEN 0
+            WHEN ${scientificSpecies.commonName} ILIKE ${prefix} THEN 1
+            ELSE 2
+          END`,
           asc(scientificSpecies.scientificName),
         )
         .limit(limit);
