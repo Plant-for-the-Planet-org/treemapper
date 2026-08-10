@@ -24,6 +24,9 @@ web-build/
 # Metro
 .metro-health-check*
 
+# turbo (task cache, written at the repo root and per workspace)
+.turbo/
+
 # debug
 npm-debug.*
 yarn-debug.*

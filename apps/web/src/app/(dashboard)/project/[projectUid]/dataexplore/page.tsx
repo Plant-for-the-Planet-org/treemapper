@@ -32,6 +32,11 @@ import { cn } from '@/lib/utils'
 
 // ---- helpers ----
 
+// Charts get a pixel height rather than height="100%". A percentage height is
+// only known once recharts' ResizeObserver has measured the container, so the
+// first render would warn that the chart height is -1.
+const CHART_HEIGHT = 210
+
 function getDaysBefore(days: number): string {
   const d = new Date()
   d.setDate(d.getDate() - days)
@@ -304,6 +309,10 @@ export default function DataExplorePage() {
     [species]
   )
 
+  // One row per species, so this chart grows with the data instead of using
+  // the shared CHART_HEIGHT.
+  const speciesChartHeight = Math.max(180, speciesChartData.length * 30)
+
   const teamByRole = useMemo(() => {
     const map: Record<string, number> = {}
     team.forEach(m => { map[m.role ?? 'member'] = (map[m.role ?? 'member'] || 0) + 1 })
@@ -504,8 +513,8 @@ export default function DataExplorePage() {
                   ) : byMonth.length === 0 ? (
                     <p className="text-muted-foreground text-sm text-center py-16">No data for selected range</p>
                   ) : (
-                    <div className="h-[210px] w-full">
-                      <ResponsiveContainer width="100%" height="100%">
+                    <div className="w-full">
+                      <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
                         <BarChart data={byMonth} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                           <XAxis dataKey="month" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
@@ -532,8 +541,8 @@ export default function DataExplorePage() {
                   ) : cumulativeData.length === 0 ? (
                     <p className="text-muted-foreground text-sm text-center py-16">No data for selected range</p>
                   ) : (
-                    <div className="h-[210px] w-full">
-                      <ResponsiveContainer width="100%" height="100%">
+                    <div className="w-full">
+                      <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
                         <AreaChart data={cumulativeData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                           <defs>
                             <linearGradient id="gradGreen" x1="0" y1="0" x2="0" y2="1">
@@ -604,8 +613,8 @@ export default function DataExplorePage() {
                 ) : speciesChartData.length === 0 ? (
                   <p className="text-muted-foreground text-sm text-center py-16">No species data</p>
                 ) : (
-                  <div className="w-full" style={{ height: Math.max(180, speciesChartData.length * 30) }}>
-                    <ResponsiveContainer width="100%" height="100%">
+                  <div className="w-full">
+                    <ResponsiveContainer width="100%" height={speciesChartHeight}>
                       <BarChart
                         data={speciesChartData}
                         layout="vertical"
@@ -669,8 +678,8 @@ export default function DataExplorePage() {
                   ) : teamByRole.length === 0 ? (
                     <p className="text-muted-foreground text-sm text-center py-16">No team data</p>
                   ) : (
-                    <div className="h-[210px] w-full">
-                      <ResponsiveContainer width="100%" height="100%">
+                    <div className="w-full">
+                      <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
                         <BarChart data={teamByRole} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                           <XAxis dataKey="role" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />

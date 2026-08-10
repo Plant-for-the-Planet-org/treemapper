@@ -131,6 +131,18 @@ const TreeMapperUI = () => {
     return first?.type ?? null;
   }, [interventions, selectedUids, isBulkMode]);
 
+  // Deduped by uid: overlapping offset pages can leave duplicate rows in the
+  // list, which would inflate the bulk modal count and payload past the
+  // number of actually selected interventions.
+  const bulkSelectedInterventions = useMemo(() => {
+    const seen = new Set<string>();
+    return interventions.filter(i => {
+      if (!selectedUids.has(i.uid) || seen.has(i.uid)) return false;
+      seen.add(i.uid);
+      return true;
+    });
+  }, [interventions, selectedUids]);
+
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const fetchInterventionData = async (page = 1, append = false, targetUid?: string) => {
@@ -168,7 +180,12 @@ const TreeMapperUI = () => {
         const newInterventions = response.data.intervention || [];
 
         if (append) {
-          setInterventions(prev => [...prev, ...newInterventions]);
+          // Dedupe by uid: offset pages can overlap when rows shift between
+          // requests, which rendered the same intervention twice in the list.
+          setInterventions(prev => {
+            const seen = new Set(prev.map((i: Intervention) => i.uid));
+            return [...prev, ...newInterventions.filter((i: Intervention) => !seen.has(i.uid))];
+          });
         } else {
           setInterventions(newInterventions);
 
@@ -423,7 +440,7 @@ const TreeMapperUI = () => {
       <BulkUpdateModal
         isOpen={showBulkUpdateModal}
         onClose={() => setShowBulkUpdateModal(false)}
-        selectedInterventions={interventions.filter(i => selectedUids.has(i.uid))}
+        selectedInterventions={bulkSelectedInterventions}
         accessToken={accessToken || ''}
         currentProjectUid={selectedProject?.uid || ''}
         onComplete={handleBulkUpdateComplete}
@@ -432,7 +449,7 @@ const TreeMapperUI = () => {
       <BulkSpeciesEditModal
         isOpen={showBulkSpeciesModal}
         onClose={() => setShowBulkSpeciesModal(false)}
-        selectedInterventions={interventions.filter(i => selectedUids.has(i.uid))}
+        selectedInterventions={bulkSelectedInterventions}
         accessToken={accessToken || ''}
         currentProjectUid={selectedProject?.uid || ''}
         onComplete={handleBulkUpdateComplete}
@@ -441,7 +458,7 @@ const TreeMapperUI = () => {
       <BulkStartDateEditModal
         isOpen={showBulkStartDateModal}
         onClose={() => setShowBulkStartDateModal(false)}
-        selectedInterventions={interventions.filter(i => selectedUids.has(i.uid))}
+        selectedInterventions={bulkSelectedInterventions}
         accessToken={accessToken || ''}
         currentProjectUid={selectedProject?.uid || ''}
         onComplete={handleBulkUpdateComplete}

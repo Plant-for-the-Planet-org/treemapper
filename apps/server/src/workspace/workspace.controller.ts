@@ -25,6 +25,7 @@ import { Request } from 'express';
 import { WorkspaceService } from './workspace.service';
 import { CreateNewWorkspaceDto } from './dto/create-organization.dto';
 import { UpdateWorkspaceSettingsDto } from './dto/workspace-settings.dto';
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { OrganizationResponseDto, SelectOrganizationDto, SelectPrimaryWorkspaceDto, UserOrganizationResponseDto } from './dto/organization-response.dto';
 import { User } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/auth/current-user.decorator';
@@ -32,6 +33,7 @@ import { UserCacheService } from 'src/cache/user-cache.service';
 import { SuperAdminGuard } from 'src/auth/super-admin.guard';
 import { ImpersonationGuard } from 'src/auth/impersonation.guard';
 import { WorkspacePermissionsGuard } from './workspace-permissions.guard';
+import { WorkspaceMemberGuard } from './workspace-member.guard';
 
 
 interface AuthenticatedRequest extends Request {
@@ -109,17 +111,22 @@ export class WorkspaceController {
         return await this.workspaceService.getMyAdminWorkspaces(user.id);
     }
 
+    // Returns every user in the system (email + profile). Superadmin only --
+    // this is not a per-workspace member list (that is /:uid/members below).
     @Get('/members')
+    @UseGuards(SuperAdminGuard)
     async findUsers(): Promise<any[]> {
         return await this.workspaceService.findUsers();
     }
 
     @Get('/:uid/members')
+    @UseGuards(WorkspaceMemberGuard)
     async getWorkspaceMembers(@Param('uid') uid: string): Promise<any[]> {
         return await this.workspaceService.getWorkspaceMembers(uid);
     }
 
     @Get('/:uid/projects')
+    @UseGuards(WorkspaceMemberGuard)
     async getWorkspaceProjects(@Param('uid') uid: string): Promise<any[]> {
         return await this.workspaceService.getWorkspaceProjects(uid);
     }
@@ -147,6 +154,7 @@ export class WorkspaceController {
     }
 
     @Get('/:uid/settings')
+    @UseGuards(WorkspaceMemberGuard)
     async getWorkspaceSettings(@Param('uid') uid: string) {
         return await this.workspaceService.getWorkspaceSettings(uid);
     }
@@ -162,13 +170,18 @@ export class WorkspaceController {
     }
 
     @Get('/:uid')
+    @UseGuards(WorkspaceMemberGuard)
     async getWorkspace(@Param('uid') uid: string) {
         return await this.workspaceService.findByUid(uid);
     }
 
     @Patch('/:uid')
     @UseGuards(WorkspacePermissionsGuard)
-    async updateWorkspace(@Param('uid') uid: string, @Body() body: any, @CurrentUser() user: User) {
+    async updateWorkspace(
+        @Param('uid') uid: string,
+        @Body(new ValidationPipe({ whitelist: true })) body: UpdateWorkspaceDto,
+        @CurrentUser() user: User,
+    ) {
         return await this.workspaceService.updateWorkspace(uid, body, user.id);
     }
 

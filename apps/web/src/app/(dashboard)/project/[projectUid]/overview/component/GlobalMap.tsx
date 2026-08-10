@@ -927,13 +927,16 @@ const StaticMapLayers: React.FC<{
                         'line-blur': 0.5,
                     }}
                 />
-                {/* Crisp green outline */}
+                {/* Crisp outline. On satellite the unselected edge is white so it
+                    reads clearly over the dark imagery (the muted gray looked
+                    near-black); selected stays green. On the light/dark vector
+                    basemaps the gray rest color reads fine. */}
                 <Layer
                     id="interventions-polygons-outline"
                     type="line"
                     minzoom={9}
                     paint={{
-                        'line-color': ['case', ['feature-state', 'selected'], SELECTED_COLOR, REST_COLOR],
+                        'line-color': ['case', ['feature-state', 'selected'], SELECTED_COLOR, basemap === 'satellite' ? BORDER_COLOR : REST_COLOR],
                         'line-width': [
                             'case',
                             ['feature-state', 'selected'], 3,

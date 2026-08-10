@@ -68,8 +68,11 @@ const StatCard = ({ title, value, icon: Icon, vf, sparkData, loading = false }: 
         <p className="text-xl font-bold text-gray-900 mb-2 tracking-tight">{value}</p>
 
         <div className="space-y-0.5">
-          <div className="w-full h-7">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="w-full">
+            {/* Height is passed as a number, not "100%": recharts only learns a
+                percentage height after its ResizeObserver fires, so the first
+                render would warn about a -1 height. */}
+            <ResponsiveContainer width="100%" height={28}>
               <LineChart data={sparkData}>
                 <Tooltip content={<SparkTooltip />} cursor={false} />
                 <Line

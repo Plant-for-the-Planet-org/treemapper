@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Delete, UseGuards, Req, HttpException, HttpStatus, Headers, Query } from '@nestjs/common';
 import { MigrationCheckResult, MigrationService } from './migrate.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { SuperAdminGuard } from 'src/auth/super-admin.guard';
 import { CurrentUser } from 'src/auth/current-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 
@@ -49,7 +50,10 @@ export class MigrationController {
         return await this.migrationService.getMigrationStatus(req.user.id);
     }
 
+    // Look up any user's migration status by email. This crosses user
+    // boundaries, so it is restricted to superadmin (no product caller today).
     @Get('status-by-email')
+    @UseGuards(SuperAdminGuard)
     async getMigrationStatusByEmail(@Query('email') email: string) {
         if (!email) {
             throw new HttpException('email query param required', HttpStatus.BAD_REQUEST);

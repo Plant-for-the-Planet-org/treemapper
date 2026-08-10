@@ -3,7 +3,8 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload, CheckCircle, XCircle, Loader2 } from "lucide-react";
-import * as tj from "@mapbox/togeojson";
+import * as tj from "@tmcw/togeojson";
+import * as turf from "@turf/turf";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -134,11 +135,28 @@ export default function InterventionFileUpload({
     return stripGeometry(geoJson);
   };
 
-  // Normalize to a FeatureCollection with a single feature.
+  // A Polygon/MultiPolygon feature with zero area (e.g. the same point repeated
+  // for every vertex) has nothing to draw on the map, even though it's
+  // structurally valid GeoJSON.
+  const isDegenerateFeature = (feature: any): boolean => {
+    const geometryType = feature?.geometry?.type;
+    if (geometryType !== "Polygon" && geometryType !== "MultiPolygon") return false;
+    try {
+      return turf.area(feature) === 0;
+    } catch {
+      return true;
+    }
+  };
+
+  // Normalize to a FeatureCollection with a single feature. When a file has
+  // multiple features, prefer the first one that actually has area over
+  // blindly taking features[0], which may be degenerate.
   const normalize = (geoJson: any): any | null => {
     if (geoJson?.type === "FeatureCollection") {
       if (!geoJson.features?.length) return null;
-      return { type: "FeatureCollection", features: [geoJson.features[0]] };
+      const feature =
+        geoJson.features.find((f: any) => !isDegenerateFeature(f)) ?? geoJson.features[0];
+      return { type: "FeatureCollection", features: [feature] };
     }
     if (geoJson?.type === "Feature") {
       return { type: "FeatureCollection", features: [geoJson] };

@@ -3,9 +3,10 @@ import { DrizzleService } from '../database/drizzle.service';
 import { image, intervention, project, projectMember, survey, user, userDevice, workspace, workspaceMember } from '../database/schema';
 import { AvatarDTO, CreateSurvey } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CreateDeviceDto } from './dto/create-device.dto';
-import { User } from './entities/user.entity';
-import { eq, and, isNull } from 'drizzle-orm';
+import { isMigrationPlaceholderAuth0Id, LinkAuth0Result, User } from './entities/user.entity';
+import { eq, and, isNull, sql } from 'drizzle-orm';
 import { generateUid } from 'src/util/uidGenerator';
 import { UserCacheService } from '../cache/user-cache.service';
 import { R2Service, ALLOWED_IMAGE_MIME_TYPES } from 'src/common/services/r2.service';
@@ -66,15 +67,12 @@ export class UsersService {
 
 
     async createFromAuth0(auth0Id: string, email: string, name: string): Promise<User> {
+        const existingUser = await this.findInDbByAuth0Id(auth0Id);
+        if (existingUser) {
+            await this.cacheUserByAuth(existingUser, auth0Id);
+            return existingUser;
+        }
         try {
-            const existingUser = await this.drizzleService.db
-                .select(this.FULL_USER_SELECT)
-                .from(user)
-                .where(and(eq(user.auth0Id, auth0Id), isNull(user.deletedAt)))
-                .limit(1);
-            if (existingUser.length > 0) {
-                return existingUser[0];
-            }
             const userData = await this.drizzleService.db
                 .insert(user)
                 .values({
@@ -88,38 +86,139 @@ export class UsersService {
             if (!userData[0]) {
                 throw new ConflictException(`User not created`);
             }
-            await this.userCacheService.setUserByAuth({ ...userData[0] }, auth0Id);
+            await this.cacheUserByAuth(userData[0], auth0Id);
             return userData[0]
         } catch (error) {
+            // Two concurrent first-time requests race here: the dashboard fires
+            // /users/me repeatedly, so both can miss the lookup above and both
+            // insert. Whoever loses gets 23505 -- re-read instead of failing the
+            // login, since the row the winner wrote is the one we wanted.
+            // drizzle-orm >=0.44 wraps driver errors in DrizzleQueryError, so the
+            // original pg error (with .code) may be under .cause instead of on
+            // the error itself -- check both.
+            if ((error?.cause?.code ?? error?.code) === '23505') {
+                const raced = await this.findInDbByAuth0Id(auth0Id);
+                if (raced) {
+                    await this.cacheUserByAuth(raced, auth0Id);
+                    return raced;
+                }
+            }
             throw error;
         }
     }
 
     async findByAuth0Id(auth0Id: string): Promise<User | null> {
         try {
-            return await this.userCacheService.getUserByAuth(auth0Id);
+            const cached = await this.userCacheService.getUserByAuth(auth0Id);
+            if (cached) {
+                return cached;
+            }
         } catch (error) {
-            return null
+            // A failing cache must not lock everyone out -- fall through
+            // to the database and serve the request uncached.
+            this.logger.warn(`User cache read failed for ${auth0Id}: ${error?.message ?? error}`);
         }
+        const userData = await this.findInDbByAuth0Id(auth0Id);
+        if (!userData) {
+            return null;
+        }
+        await this.cacheUserByAuth(userData, auth0Id);
+        return userData;
     }
 
-    async findByEmailAndUpdateAuth0Id(email: string, newAuth0Id: string): Promise<User | null> {
+    /**
+     * Attaches a real Auth0 sub to an existing row found by email.
+     *
+     * This is how migrated users get through their first login: the migration
+     * wrote `auth0_id = 'email:<email>'` because it ran before the user had ever
+     * authenticated, so no lookup by sub can ever find them. Only placeholder
+     * rows are claimable -- a row already owned by a different real sub is
+     * reported as a conflict, never re-pointed.
+     */
+    async linkAuth0IdByEmail(email: string, newAuth0Id: string): Promise<LinkAuth0Result> {
+        const existing = await this.findInDbByEmail(email);
+        if (!existing) {
+            return { status: 'not_found' };
+        }
+        if (existing.auth0Id === newAuth0Id) {
+            // Already linked (concurrent request won the race, or the cache was
+            // simply cold). Nothing to write.
+            await this.cacheUserByAuth(existing, newAuth0Id);
+            return { status: 'linked', user: existing };
+        }
+        if (!isMigrationPlaceholderAuth0Id(existing.auth0Id)) {
+            return { status: 'conflict', existingAuth0Id: existing.auth0Id };
+        }
+        const [updated] = await this.drizzleService.db
+            .update(user)
+            // Only the sub changes. `migratedAt` belongs to the data migration and
+            // `existingPlanetUser` still describes where this account came from.
+            .set({ auth0Id: newAuth0Id })
+            // Re-check the placeholder in the WHERE clause so two concurrent
+            // logins cannot both claim the row.
+            .where(and(
+                eq(user.id, existing.id),
+                eq(user.auth0Id, existing.auth0Id),
+            ))
+            .returning(this.FULL_USER_SELECT);
+
+        if (!updated) {
+            // Another request claimed it between the read and the write. Re-read
+            // and let the normal checks decide.
+            const reread = await this.findInDbByEmail(email);
+            if (reread?.auth0Id === newAuth0Id) {
+                await this.cacheUserByAuth(reread, newAuth0Id);
+                return { status: 'linked', user: reread };
+            }
+            return reread
+                ? { status: 'conflict', existingAuth0Id: reread.auth0Id }
+                : { status: 'not_found' };
+        }
+
+        this.logger.log(`Linked migrated user ${updated.uid} to auth0Id ${newAuth0Id}`);
+        await this.cacheUserByAuth(updated, newAuth0Id);
+        return { status: 'linked', user: updated };
+    }
+
+    private async findInDbByAuth0Id(auth0Id: string): Promise<User | null> {
         const result = await this.drizzleService.db
+            .select(this.FULL_USER_SELECT)
+            .from(user)
+            .where(and(eq(user.auth0Id, auth0Id), isNull(user.deletedAt)))
+            .limit(1);
+        return result[0] ?? null;
+    }
+
+    private async findInDbByEmail(email: string): Promise<User | null> {
+        // Exact match first so the `user_email_unique` index does the work.
+        const exact = await this.drizzleService.db
             .select(this.FULL_USER_SELECT)
             .from(user)
             .where(and(eq(user.email, email), isNull(user.deletedAt)))
             .limit(1);
+        if (exact[0]) {
+            return exact[0];
+        }
+        // Old-backend emails may differ in case from the Auth0 claim. This branch
+        // only runs for genuinely new signups and case mismatches.
+        const insensitive = await this.drizzleService.db
+            .select(this.FULL_USER_SELECT)
+            .from(user)
+            .where(and(
+                sql`lower(${user.email}) = lower(${email})`,
+                isNull(user.deletedAt),
+            ))
+            .limit(1);
+        return insensitive[0] ?? null;
+    }
 
-        if (!result[0]) return null;
-
-        const [updated] = await this.drizzleService.db
-            .update(user)
-            .set({ auth0Id: newAuth0Id })
-            .where(eq(user.id, result[0].id))
-            .returning(this.FULL_USER_SELECT);
-
-        await this.userCacheService.setUserByAuth(updated, newAuth0Id);
-        return updated;
+    private async cacheUserByAuth(userData: User, auth0Id: string): Promise<void> {
+        try {
+            await this.userCacheService.setUserByAuth({ ...userData }, auth0Id);
+        } catch (error) {
+            // A cache write failure costs a DB read next request, nothing more.
+            this.logger.warn(`User cache write failed for ${auth0Id}: ${error?.message ?? error}`);
+        }
     }
 
 
@@ -253,11 +352,14 @@ export class UsersService {
             }
 
             // Handle database constraint violations
-            if (error.code === '23505') { // Unique constraint violation
+            // drizzle-orm >=0.44 wraps driver errors in DrizzleQueryError; the
+            // original pg error (with .code) may be under .cause -- check both.
+            const pgErrorCode = error?.cause?.code ?? error?.code;
+            if (pgErrorCode === '23505') { // Unique constraint violation
                 throw new ConflictException('User is already onboarded or data conflicts exist');
             }
 
-            if (error.code === '23503') { // Foreign key constraint violation
+            if (pgErrorCode === '23503') { // Foreign key constraint violation
                 throw new BadRequestException('Referenced data does not exist');
             }
 
@@ -390,7 +492,7 @@ export class UsersService {
 
 
 
-    async update(id: number, updateUserDto: UpdateUserDto): Promise<any> {
+    async update(id: number, updateUserDto: UpdateProfileDto): Promise<any> {
         // Get current user data for audit log
         const currentUser = await this.drizzleService.db
             .select()
@@ -444,8 +546,11 @@ export class UsersService {
     }
 
     private prepareUpdateData(dto: any): Partial<typeof user.$inferInsert> {
+        // `type` is deliberately NOT here: it gates SuperAdminGuard, so a user
+        // must never be able to change it on their own account. Keep this list
+        // limited to non-privileged profile fields.
         const ALLOWED: (keyof typeof user.$inferInsert)[] = [
-            'firstName', 'lastName', 'displayName', 'bio', 'isPrivate', 'locale', 'country', 'type',
+            'firstName', 'lastName', 'displayName', 'bio', 'isPrivate', 'locale', 'country',
         ];
 
         const updateData: any = {};
@@ -548,7 +653,9 @@ export class UsersService {
         } catch (error) {
             this.logger.error(`Failed to register device for user ${userId}`, error);
 
-            if (error.code === '23505') {
+            // drizzle-orm >=0.44 wraps driver errors in DrizzleQueryError; the
+            // original pg error (with .code) may be under .cause -- check both.
+            if ((error?.cause?.code ?? error?.code) === '23505') {
                 throw new ConflictException('Device already registered');
             }
 

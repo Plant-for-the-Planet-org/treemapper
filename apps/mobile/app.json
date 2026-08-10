@@ -70,7 +70,6 @@
       ],
       "expo-localization",
       "expo-secure-store",
-      "expo-router",
       "expo-web-browser",
       "@react-native-community/datetimepicker",
       [

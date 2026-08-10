@@ -1,6 +1,4 @@
 import { Injectable, Inject, BadRequestException, NotFoundException } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
 import { DrizzleService } from '../database/drizzle.service';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../database/schema';
@@ -190,7 +188,6 @@ export class AnalyticsService {
 
   constructor(
     private readonly drizzleService: DrizzleService,
-    @InjectQueue('analytics') private analyticsQueue: Queue,
   ) {
   }
 

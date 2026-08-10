@@ -29,6 +29,17 @@ import { ProjectGuardResponse } from 'src/projects/projects.service';
 export class SiteController {
   constructor(private readonly siteService: SiteService) { }
 
+  /**
+   * When a workspace owner/admin is impersonating a member, the request's
+   * bearer token belongs to the admin and would not authenticate as that member
+   * on the TTC backend. In that case we return the impersonated member's email
+   * so the service syncs on their behalf via the shared API key instead.
+   * Returns undefined for normal (non-impersonated) calls.
+   */
+  private onBehalfEmail(req: any): string | undefined {
+    return req?.user?.impersonated === true ? req?.user?.email : undefined;
+  }
+
 @Post()
 @ProjectRoles('owner', 'admin')
 @ProjectPermissions('add_site')
@@ -42,6 +53,7 @@ async createSite(
     membership,
     createSiteDto,
     req?.headers?.authorization,
+    this.onBehalfEmail(req),
   );
   return site
 }
@@ -144,6 +156,7 @@ async updateSite(
     updateSiteDto,
     membership.userId,
     req?.headers?.authorization,
+    this.onBehalfEmail(req),
   );
 
   return {
@@ -167,6 +180,7 @@ async syncSiteToTtc(
     membership,
     siteUid,
     req?.headers?.authorization,
+    this.onBehalfEmail(req),
   );
 
   return {

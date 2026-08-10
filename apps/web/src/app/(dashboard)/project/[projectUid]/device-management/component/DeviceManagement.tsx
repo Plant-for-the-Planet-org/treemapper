@@ -230,8 +230,8 @@ const DeviceManagement = () => {
                 <Skeleton className="h-[140px] w-full" />
               ) : (
                 <>
-                  <div className="h-[140px] relative">
-                    <ResponsiveContainer width="100%" height="100%">
+                  <div className="relative">
+                    <ResponsiveContainer width="100%" height={140}>
                       <PieChart>
                         <Pie
                           data={platformData} dataKey="value" nameKey="name"

@@ -1,12 +1,16 @@
-import { Controller, Get, Query, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Query, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { AuditService, AuditLogQueryDto } from './audit.service';
 import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { WorkspacePermissionsGuard } from '../workspace/workspace-permissions.guard';
+import { SuperAdminGuard } from '../auth/super-admin.guard';
 
 @ApiTags('Audit')
 @Controller('audit')
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
+  // Requires workspace owner/admin (or superadmin) on the :uid workspace.
+  @UseGuards(WorkspacePermissionsGuard)
   @Get('workspace/:uid')
   @ApiOperation({ summary: 'Get audit logs for a workspace' })
   @ApiParam({ name: 'uid', type: 'string', description: 'Workspace UID' })
@@ -30,6 +34,10 @@ export class AuditController {
     };
   }
 
+  // Cross-cutting audit access (arbitrary project/entity/user). No product
+  // caller today; restricted to superadmin so it cannot be used to read other
+  // tenants' history. Narrow to a project-membership guard if a UI needs it.
+  @UseGuards(SuperAdminGuard)
   @Get('project/:projectId')
   @ApiOperation({ summary: 'Get audit logs for a project' })
   @ApiParam({ name: 'projectId', type: 'number' })
@@ -54,6 +62,7 @@ export class AuditController {
     };
   }
 
+  @UseGuards(SuperAdminGuard)
   @Get('entity/:entityType/:entityId')
   @ApiOperation({ summary: 'Get audit logs for a specific entity' })
   @ApiParam({ name: 'entityType', type: 'string' })
@@ -73,6 +82,7 @@ export class AuditController {
     };
   }
 
+  @UseGuards(SuperAdminGuard)
   @Get('user/:userId')
   @ApiOperation({ summary: 'Get audit logs for a user' })
   @ApiParam({ name: 'userId', type: 'number' })

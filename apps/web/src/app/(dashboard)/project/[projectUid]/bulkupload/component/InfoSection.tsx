@@ -11,8 +11,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 
 const STEPS = [
-  { label: 'Download the template', body: 'Download the template provided. It follows the format required for bulk data uploads.' },
-  { label: 'Prepare your data', body: 'We only support CSV format. After entering your data into Excel or Google Sheets using the template structure, export the file as a .csv.' },
+  { label: 'Download the template', body: 'Download the CSV template provided. It follows the format required for bulk data uploads.' },
+  { label: 'Prepare your data', body: 'Open the template in Excel or Google Sheets, replace the sample rows with your data, and save it as a .csv. Keep the column headers unchanged.' },
   { label: 'Import the CSV', body: 'Go to the dashboard and click "Import CSV" to upload your file.' },
   { label: 'Validate and edit', body: "We'll automatically validate the required fields. On the next screen, you'll have a chance to review and edit any data that needs correction." },
   { label: 'Species data', body: 'We only support species that exist in our database of over 60,000 entries. Please search using the scientific name. If you can\'t find a species, mark it as "Unknown". You can also request the addition of new species.' },

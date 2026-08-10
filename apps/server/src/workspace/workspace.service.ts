@@ -4,6 +4,7 @@ import { eq, and, or, desc, asc, isNull, inArray, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateNewWorkspaceDto } from './dto/create-organization.dto';
 import { OrganizationResponseDto, SelectOrganizationDto } from './dto/organization-response.dto';
+import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { project, projectMember, site, user, workspace, workspaceMember, DEFAULT_WORKSPACE_SETTINGS, WorkspaceSettings, ProjectApprovalSettings } from '../database/schema/index';
 import { DrizzleService } from 'src/database/drizzle.service';
 import { generateUid } from 'src/util/uidGenerator';
@@ -329,18 +330,7 @@ export class WorkspaceService {
     return result[0];
   }
 
-  async updateWorkspace(uid: string, data: Partial<{
-    name: string;
-    slug: string;
-    description: string;
-    email: string;
-    phone: string;
-    website: string;
-    address: string;
-    primaryColor: string;
-    secondaryColor: string;
-    type: 'platform' | 'private' | 'development' | 'premium';
-  }>, userId?: number) {
+  async updateWorkspace(uid: string, data: UpdateWorkspaceDto, userId?: number) {
     const result = await this.drizzle.db
       .update(workspace)
       .set(data)

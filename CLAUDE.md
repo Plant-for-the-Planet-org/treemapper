@@ -43,10 +43,21 @@ packages/
 
 ## Stack per app
 
-- **mobile**: Expo SDK, React Native 0.83.6, Maplibre, Auth0
-- **web**: Next.js 15, React 18, shadcn/ui, Tailwind, Mapbox, Auth0 (@auth0/nextjs-auth0 v3.8)
-- **server**: NestJS 11, Fastify, Drizzle ORM, Postgres (`pg`), Redis (ioredis), Bull, AWS S3 / R2
-- **shared-core**: TanStack Query, Zustand
+- **mobile**: Expo SDK 55, React Native 0.83.6, React 19, Maplibre
+  (`@maplibre/maplibre-react-native`), Auth0 (`react-native-auth0`), Realm for
+  local storage, Redux Toolkit for state
+- **web**: Next.js 16 (App Router), React 19, shadcn/ui on Radix, Tailwind 4,
+  Maplibre (`maplibre-gl` + `react-map-gl`), recharts, Zustand
+- **server**: NestJS 11, Fastify, Drizzle ORM, Postgres (`pg`), in-memory cache (cache-manager), AWS S3 / R2
+- **shared-core**: Zustand stores, fetch helpers (`fetchApi`), shared types and
+  utils. No data-fetching library: calls are plain `fetch` wrappers.
+
+Two things here are easy to assume wrong:
+
+- **Web auth is hand-rolled, not an SDK.** There is no `@auth0/nextjs-auth0`.
+  The browser runs the Auth0 PKCE flow itself (`src/lib/auth/`), and the access
+  token lives in a React context (`useTokenContext`), not in a server session.
+- **Both apps use Maplibre, not Mapbox.**
 
 ## Common commands
 
@@ -102,9 +113,32 @@ auto-upgrades anything.
 
 ## Gotchas
 
+- **Yarn workspaces do not hoist everything to the root `node_modules`.**
+  Packages that conflict with another workspace's version stay in
+  `apps/*/node_modules`, and yarn 1 sometimes nests one even with no conflict.
+  Today that includes the `next` and `nest` binaries plus `i18next` and
+  `react-i18next`. The Docker build must copy `apps/web/node_modules` and
+  `apps/server/node_modules` alongside the root tree, or the build fails with
+  `Module not found: Can't resolve 'i18next'`. This only shows up on Heroku,
+  never locally, because a local build context already has `node_modules` on
+  disk. Run `ls apps/*/node_modules` after an install to see what is nested;
+  the set changes whenever the lockfile is regenerated.
 - `yarn.lock` is large (~21k lines, ~1000 packages) mostly because the mobile workspace pulls Expo/RN + transitive deps.
 - The web app inlines `NEXT_PUBLIC_*` env vars at build time. Changing them requires a rebuild.
 - The server uses Fastify, not Express. Some Nest examples assume Express -- adapt accordingly.
+- **Recharts needs a pixel height.** Give `ResponsiveContainer` a number
+  (`height={210}`), never `height="100%"`. Recharts 3 starts at height `-1` and
+  only learns a percentage after its ResizeObserver fires, so `"100%"` logs a
+  "width(-1) and height(-1)" warning on every first render. Set the height on
+  the chart, not on a wrapper div, so it lives in one place.
+- **Head tags belong in `metadata`, not in `<head>`.** `src/app/layout.tsx`
+  exports a Next `Metadata` object; hand-written `<meta>` tags there duplicate
+  or contradict what Next emits. Next 16 maps `appleWebApp.capable` to the
+  standard `mobile-web-app-capable`, so writing the old
+  `apple-mobile-web-app-capable` by hand just brings back a Chrome deprecation
+  warning. The manifest (`src/app/manifest.ts`) and favicon
+  (`src/app/favicon.ico`) come from file conventions -- do not also list them
+  in `metadata`.
 
 ## Running the web app for preview
 
