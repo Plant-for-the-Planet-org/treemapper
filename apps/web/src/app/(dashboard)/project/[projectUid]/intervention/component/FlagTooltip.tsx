@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState } from 'react';
+import React from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { HoverCard } from 'radix-ui';
 import { Badge } from './ui';
 
 interface FlagReason {
@@ -16,22 +17,25 @@ interface FlagTooltipProps {
   children: React.ReactNode;
 }
 
+// The panel is rendered in a portal on purpose: the flag chip sits inside a
+// Card, and Card is `overflow-hidden`, so an absolutely positioned panel gets
+// clipped where it overlaps the map above it. A portal escapes that clip.
 export const FlagTooltip = ({ flagReasons, children }: FlagTooltipProps) => {
-  const [isVisible, setIsVisible] = useState(false);
-
   if (!flagReasons || flagReasons.length === 0) return <>{children}</>;
 
   return (
-    <div className="relative inline-block">
-      <div
-        onMouseEnter={() => setIsVisible(true)}
-        onMouseLeave={() => setIsVisible(false)}
-        className="cursor-help"
-      >
-        {children}
-      </div>
-      {isVisible && (
-        <div className="absolute z-50 bottom-full left-0 mb-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
+    <HoverCard.Root openDelay={100} closeDelay={100}>
+      <HoverCard.Trigger asChild>
+        <div className="inline-block cursor-help">{children}</div>
+      </HoverCard.Trigger>
+      <HoverCard.Portal>
+        <HoverCard.Content
+          side="top"
+          align="start"
+          sideOffset={8}
+          collisionPadding={12}
+          className="z-50 w-80 rounded-lg border border-gray-200 bg-white p-4 shadow-lg"
+        >
           <h4 className="font-medium text-red-700 mb-2 flex items-center">
             <AlertTriangle className="h-4 w-4 mr-2" />
             Data Issues Found
@@ -52,8 +56,8 @@ export const FlagTooltip = ({ flagReasons, children }: FlagTooltipProps) => {
               </div>
             ))}
           </div>
-        </div>
-      )}
-    </div>
+        </HoverCard.Content>
+      </HoverCard.Portal>
+    </HoverCard.Root>
   );
 };
