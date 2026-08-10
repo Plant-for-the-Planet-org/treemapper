@@ -113,6 +113,16 @@ auto-upgrades anything.
 
 ## Gotchas
 
+- **Yarn workspaces do not hoist everything to the root `node_modules`.**
+  Packages that conflict with another workspace's version stay in
+  `apps/*/node_modules`, and yarn 1 sometimes nests one even with no conflict.
+  Today that includes the `next` and `nest` binaries plus `i18next` and
+  `react-i18next`. The Docker build must copy `apps/web/node_modules` and
+  `apps/server/node_modules` alongside the root tree, or the build fails with
+  `Module not found: Can't resolve 'i18next'`. This only shows up on Heroku,
+  never locally, because a local build context already has `node_modules` on
+  disk. Run `ls apps/*/node_modules` after an install to see what is nested;
+  the set changes whenever the lockfile is regenerated.
 - `yarn.lock` is large (~21k lines, ~1000 packages) mostly because the mobile workspace pulls Expo/RN + transitive deps.
 - The web app inlines `NEXT_PUBLIC_*` env vars at build time. Changing them requires a rebuild.
 - The server uses Fastify, not Express. Some Nest examples assume Express -- adapt accordingly.

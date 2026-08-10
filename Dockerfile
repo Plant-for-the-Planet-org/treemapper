@@ -38,8 +38,19 @@ RUN yarn install --frozen-lockfile --network-timeout 1000000
 FROM base AS builder
 WORKDIR /app
 
-# Copy installed dependencies
+# Copy installed dependencies.
+#
+# Yarn 1 workspaces do NOT put everything in the root node_modules. Anything
+# that conflicts with another workspace's version stays in apps/*/node_modules,
+# and yarn sometimes nests a package there even with no conflict at all. The
+# `next` and `nest` binaries and i18next/react-i18next all live there today.
+#
+# Copying only the root tree loses them and the build dies with
+# "Module not found: Can't resolve 'i18next'". Copy the workspace trees too.
+# Run `ls apps/*/node_modules` after a local install to see what is nested.
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/apps/server/node_modules ./apps/server/node_modules
 
 # Copy source code (excluding mobile)
 COPY . .
@@ -90,6 +101,11 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next ./apps/web/.next
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/package.json ./apps/web/
+# Same hoisting reason as the builder stage. `next start` resolves i18next and
+# react-i18next at runtime and they are nested here, not in the root tree.
+# apps/server/node_modules is build-only (nest CLI, ts-node, jest) so it is not
+# carried into the runtime image.
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/node_modules ./apps/web/node_modules
 
 COPY --from=builder --chown=nextjs:nodejs /app/apps/server/dist ./apps/server/dist
 COPY --from=builder --chown=nextjs:nodejs /app/apps/server/package.json ./apps/server/
