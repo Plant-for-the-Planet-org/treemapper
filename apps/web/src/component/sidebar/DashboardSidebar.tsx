@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/sidebar'
 import { subpageFromPath, projectHref } from '@/lib/projectRoutes'
 import { logout } from '@/lib/logout'
+import { isProjectAdmin } from '@/lib/projectAccess'
 
 interface SidebarProps {
   createNewProject: () => void
@@ -76,7 +77,9 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
 
   const projectRole = selectedProject?.userRole
   const isContributor = projectRole === 'contributor'
-  const isAdminOrOwner = projectRole === 'admin' || projectRole === 'owner'
+  // Same helper the pages use, so a nav item can never appear for someone the
+  // page (and the API behind it) will refuse.
+  const isAdminOrOwner = isProjectAdmin(projectRole)
 
   // The Workspace settings area is for people who own or admin at least one
   // workspace -- regardless of which project is currently selected. We resolve

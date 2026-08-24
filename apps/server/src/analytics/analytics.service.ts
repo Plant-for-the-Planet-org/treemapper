@@ -20,6 +20,7 @@ import {
 } from './dto/analytics.dto';
 import { intervention, projectMember, project, tree, user, site, interventionSpecies, scientificSpecies, projectSpecies } from '../database/schema';
 import { publishedInterventionFilter, publishedSiteFilter } from '../approval-board/approval.util';
+import { endOfDay, startOfDay } from './date-range.util';
 import { console } from 'inspector';
 
 
@@ -933,9 +934,12 @@ export class AnalyticsService {
     dto: InterventionExportDto,
     projectId?: number,
   ): Promise<InterventionExportResponse> {
-    const { startDate, endDate, includeDeleted = false, interventionTypes } = dto;
-    const startDateTime = new Date(startDate);
-    const endDateTime = new Date(endDate);
+    const { startDate, endDate, includeDeleted = false, interventionTypes, excludeMonitoringPlots = true } = dto;
+    // Calendar dates, read in the server's timezone, with the end pushed to the
+    // last millisecond of its day. Without that, an intervention recorded at
+    // 14:00 on the final day of the range is missing from the export.
+    const startDateTime = startOfDay(startDate);
+    const endDateTime = endOfDay(endDate);
 
     // Validate date range
     if (startDateTime > endDateTime) {
@@ -956,6 +960,13 @@ export class AnalyticsService {
 
     if (projectId) {
       baseConditions.push(eq(intervention.projectId, projectId));
+    }
+
+    // Monitoring plots live in the same table (discriminator = 'plot'). The
+    // Data Explorer export is about interventions, so they are dropped unless
+    // the caller explicitly asks for them.
+    if (excludeMonitoringPlots) {
+      baseConditions.push(eq(intervention.discriminator, 'intervention'));
     }
 
     // Add intervention type filter if provided
@@ -1001,6 +1012,7 @@ export class AnalyticsService {
           updatedAt: intervention.updatedAt,
           flag: intervention.flag,
           flagReason: intervention.flagReason,
+          metadata: intervention.metadata,
           migratedIntervention: intervention.migratedIntervention,
         },
         // Project data
@@ -1013,6 +1025,7 @@ export class AnalyticsService {
         // Site data
         site: {
           id: site.id,
+          uid: site.uid,
           name: site.name,
           description: site.description,
         },
@@ -1184,9 +1197,14 @@ export class AnalyticsService {
         } : null,
         site: siteData ? {
           id: siteData.id,
+          uid: siteData.uid,
           name: siteData.name,
           description: siteData.description,
         } : null,
+
+        // Free-form key/value bag the mobile app writes. The old platform
+        // export shipped this as a JSON string, and integrations still read it.
+        metadata: interventionData.metadata ?? null,
 
         // Associated Trees
         trees: interventionTreesData.map(treeItem => ({

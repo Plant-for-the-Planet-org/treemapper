@@ -1,4 +1,4 @@
-import Papa from 'papaparse';
+import { readTable } from '@/utils/spreadsheet';
 import { Intervention, Species, ValidationResult } from '../types';
 
 export interface FieldMapping {
@@ -41,19 +41,14 @@ export function validateIntervention(plantDate: string, species: Species[]): Val
 
 // ─── CSV reading ──────────────────────────────────────────────────────────────
 
-export function getCsvSample(file: File): Promise<CsvSample> {
-    return new Promise((resolve, reject) => {
-        Papa.parse(file, {
-            header: true,
-            preview: 5,
-            dynamicTyping: false,
-            complete: (result) => resolve({
-                headers: result.meta.fields ?? [],
-                sampleRows: result.data as Record<string, string>[],
-            }),
-            error: reject,
-        });
-    });
+// `dayFirst` throughout this file: validateIntervention() requires DD/MM/YYYY,
+// so an Excel date cell has to render that way or every row would fail
+// validation with "Invalid or missing plantation date".
+const READ_OPTIONS = { dateFormat: 'dayFirst' as const };
+
+export async function getCsvSample(file: File): Promise<CsvSample> {
+    const { headers, rows } = await readTable(file, { ...READ_OPTIONS, preview: 5 });
+    return { headers, sampleRows: rows };
 }
 
 // ─── Auto-mapping intelligence ────────────────────────────────────────────────
@@ -170,41 +165,31 @@ export function autoMapFields(headers: string[], sampleRows: Record<string, stri
 
 // ─── Parsing ──────────────────────────────────────────────────────────────────
 
-export function parseCSVWithMapping(file: File, mapping: FieldMapping): Promise<Intervention[]> {
-    return new Promise((resolve, reject) => {
-        Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
-            dynamicTyping: false,
-            complete: (result) => {
-                const interventions: Intervention[] = (result.data as any[]).map((row, i) => {
-                    const beneficiary = row[mapping.geoJSONFileName]?.trim() ?? `Row ${i + 1}`;
-                    const plantDate = row[mapping.plantationDate]?.trim() ?? '';
+export async function parseCSVWithMapping(file: File, mapping: FieldMapping): Promise<Intervention[]> {
+    const { rows } = await readTable(file, READ_OPTIONS);
+    return rows.map((row, i) => {
+        const beneficiary = row[mapping.geoJSONFileName]?.trim() ?? `Row ${i + 1}`;
+        const plantDate = row[mapping.plantationDate]?.trim() ?? '';
 
-                    const species: Species[] = mapping.speciesColumns
-                        .filter(col => col)
-                        .map(col => ({
-                            name: col,
-                            count: parseInt(row[col] ?? '0', 10) || 0,
-                        }))
-                        .filter(s => s.count > 0);
+        const species: Species[] = mapping.speciesColumns
+            .filter(col => col)
+            .map(col => ({
+                name: col,
+                count: parseInt(row[col] ?? '0', 10) || 0,
+            }))
+            .filter(s => s.count > 0);
 
-                    const validation = validateIntervention(plantDate, species);
+        const validation = validateIntervention(plantDate, species);
 
-                    return {
-                        id: `inv_${i}_${Date.now()}`,
-                        beneficiary,
-                        plantDate,
-                        species,
-                        geojson: null,
-                        geojsonFileName: null,
-                        isEdited: false,
-                        validation,
-                    };
-                });
-                resolve(interventions);
-            },
-            error: reject,
-        });
+        return {
+            id: `inv_${i}_${Date.now()}`,
+            beneficiary,
+            plantDate,
+            species,
+            geojson: null,
+            geojsonFileName: null,
+            isEdited: false,
+            validation,
+        };
     });
 }

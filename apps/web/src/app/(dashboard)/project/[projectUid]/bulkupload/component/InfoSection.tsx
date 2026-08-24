@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react'
 import { Upload, Download, FileText, CheckCircle, AlertCircle, X, Layers, ArrowRight, ChevronRight } from 'lucide-react'
-import Papa from 'papaparse'
+import { readTable, isSpreadsheetFile, isLegacyExcelFile, SPREADSHEET_ACCEPT } from '@/utils/spreadsheet'
 import { downloadTreeMapperTemplate } from '@/utils/bulktemplate'
 import { useRouter, useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -11,9 +11,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 
 const STEPS = [
-  { label: 'Download the template', body: 'Download the CSV template provided. It follows the format required for bulk data uploads.' },
-  { label: 'Prepare your data', body: 'Open the template in Excel or Google Sheets, replace the sample rows with your data, and save it as a .csv. Keep the column headers unchanged.' },
-  { label: 'Import the CSV', body: 'Go to the dashboard and click "Import CSV" to upload your file.' },
+  { label: 'Download the template', body: 'Download the template provided. It follows the format required for bulk data uploads.' },
+  { label: 'Prepare your data', body: 'Open the template in Excel or Google Sheets and replace the sample rows with your data. Keep the column headers unchanged.' },
+  { label: 'Import the file', body: 'Upload the file as .xlsx or .csv. Both work, so there is no need to convert it first.' },
   { label: 'Validate and edit', body: "We'll automatically validate the required fields. On the next screen, you'll have a chance to review and edit any data that needs correction." },
   { label: 'Species data', body: 'We only support species that exist in our database of over 60,000 entries. Please search using the scientific name. If you can\'t find a species, mark it as "Unknown". You can also request the addition of new species.' },
   { label: 'Final upload', body: 'Once everything looks good, click "Upload Data" to complete the process.' },
@@ -40,8 +40,12 @@ const InfoSection = ({ setFileData, updateStep, selectedProject, selectedSite }:
 
   const validateFile = (file: File | undefined) => {
     if (!file) { setError('Please select a file'); return false }
-    if (file.type !== 'text/csv' && !file.name.toLowerCase().endsWith('.csv')) {
-      setError('Please upload a valid CSV file. Only .csv format is supported.')
+    if (isLegacyExcelFile(file)) {
+      setError('The old .xls format is not supported. Save the file as .xlsx or .csv and try again.')
+      return false
+    }
+    if (!isSpreadsheetFile(file)) {
+      setError('Please upload an Excel (.xlsx) or CSV file.')
       return false
     }
     if (file.size > 10 * 1024 * 1024) {
@@ -55,19 +59,16 @@ const InfoSection = ({ setFileData, updateStep, selectedProject, selectedSite }:
     try {
       if (!fileInputRef?.current?.files?.[0]) throw new Error('No file selected')
       const file = fileInputRef.current.files[0]
-      const text = await file.text()
-      const result = Papa.parse(text, {
-        header: true,
-        skipEmptyLines: true,
-        trimHeaders: true,
+      // dayFirst because the downloadable template and the validator on the
+      // next screen both use DD/MM/YYYY. Excel date cells are rendered to match,
+      // so a sheet and a CSV of the same data produce identical rows.
+      const { rows } = await readTable(file, {
+        dateFormat: 'dayFirst',
         transformHeader: (header) => header.trim(),
-        transform: (value, field) => {
-          if (field === 'TYPE' && typeof value === 'string') return value.toLowerCase()
-          return value
-        },
+        transformValue: (value, header) => (header === 'TYPE' ? value.toLowerCase() : value),
       })
-      if (result.errors.length > 0) console.warn('CSV parsing warnings:', result.errors)
-      setFileData(result.data)
+      if (rows.length === 0) throw new Error('That file has no data rows')
+      setFileData(rows)
       updateStep(2)
     } catch (err: any) {
       setError('Error occurred while transforming data: ' + err.message)
@@ -134,7 +135,7 @@ const InfoSection = ({ setFileData, updateStep, selectedProject, selectedSite }:
       <div className="space-y-4">
         <Card className="py-0 gap-0">
           <CardContent className="p-5">
-            <h3 className="text-base font-semibold text-foreground mb-4">Upload your CSV file</h3>
+            <h3 className="text-base font-semibold text-foreground mb-4">Upload your Excel or CSV file</h3>
 
             <div
               className={cn(
@@ -149,7 +150,7 @@ const InfoSection = ({ setFileData, updateStep, selectedProject, selectedSite }:
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".csv"
+                accept={SPREADSHEET_ACCEPT}
                 onChange={(e) => handleFileSelect(e.target.files?.[0])}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />

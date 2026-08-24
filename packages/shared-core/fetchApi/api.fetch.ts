@@ -1295,3 +1295,58 @@ export const deleteProjectForm = async (token: string, projectUid: string, formU
   const result = await fetchDeleteCall(uri, token)
   return result
 }
+
+
+// ---------------------------------------------------------------- Data Explorer
+//
+// All of these aggregate server-side and are scoped to one project plus a date
+// range. Pass dates as YYYY-MM-DD; the server pushes endDate to end of day.
+
+const dataExplorerUri = (projectUid: string, path: string, params?: Record<string, any>) => {
+  let uri = `${getUrlApi.dataExplorer}/${projectUid}/${path}`
+  if (params) {
+    const search = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') search.set(key, String(value))
+    })
+    const qs = search.toString()
+    if (qs) uri += `?${qs}`
+  }
+  return uri
+}
+
+export const getDataExplorerSummary = async (
+  token: string,
+  projectUid: string,
+  params: { startDate?: string; endDate?: string },
+) => fetchGetCall(dataExplorerUri(projectUid, 'summary', params), token)
+
+export const getDataExplorerTreesPlanted = async (
+  token: string,
+  projectUid: string,
+  params: { startDate?: string; endDate?: string; interval?: string },
+) => fetchGetCall(dataExplorerUri(projectUid, 'trees-planted', params), token)
+
+export const getDataExplorerSpeciesPlanted = async (
+  token: string,
+  projectUid: string,
+  params: { startDate?: string; endDate?: string; limit?: number },
+) => fetchGetCall(dataExplorerUri(projectUid, 'species-planted', params), token)
+
+export const getDataExplorerMapSpecies = async (token: string, projectUid: string) =>
+  fetchGetCall(dataExplorerUri(projectUid, 'map/species'), token)
+
+export const getDataExplorerMapSites = async (token: string, projectUid: string) =>
+  fetchGetCall(dataExplorerUri(projectUid, 'map/sites'), token)
+
+export const getDataExplorerMapInterventions = async (
+  token: string,
+  projectUid: string,
+  params: { startDate?: string; endDate?: string; species?: string; siteUid?: string; search?: string },
+) => fetchGetCall(dataExplorerUri(projectUid, 'map/interventions', params), token)
+
+export const getDataExplorerInterventionDetail = async (
+  token: string,
+  projectUid: string,
+  interventionUid: string,
+) => fetchGetCall(dataExplorerUri(projectUid, `map/interventions/${interventionUid}`), token)
