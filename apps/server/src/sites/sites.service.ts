@@ -459,7 +459,6 @@ export class SiteService {
           return false;
       }
     });
-    console.log('Members with access:', membersWithAccess);
     return {
       totalCount: membersWithAccess.length,
       avatars: membersWithAccess.map(member => ({

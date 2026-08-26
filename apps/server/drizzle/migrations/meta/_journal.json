@@ -43,6 +43,13 @@
       "when": 1782707502803,
       "tag": "0005_crazy_king_bedlam",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787627834046,
+      "tag": "0006_tidy_argent",
+      "breakpoints": true
     }
   ]
 }

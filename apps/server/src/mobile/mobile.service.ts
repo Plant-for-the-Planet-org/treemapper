@@ -1425,8 +1425,11 @@ export class MobileService {
         throw error; // Re-throw validation errors as-is
       }
 
-      if (error.code === '23505') { // PostgreSQL unique violation
-        if (error.detail?.includes('slug')) {
+      // drizzle-orm >=0.44 wraps driver errors in DrizzleQueryError; the
+      // original pg error (with .code/.detail) may be under .cause -- check both.
+      const pgError = error?.cause ?? error;
+      if (pgError?.code === '23505') { // PostgreSQL unique violation
+        if (pgError?.detail?.includes('slug')) {
           throw new Error('Project slug already exists');
         }
       }
@@ -1622,11 +1625,14 @@ export class MobileService {
       }
 
       // Handle database constraint violations
-      if (error.code === '23505') { // PostgreSQL unique violation
+      // drizzle-orm >=0.44 wraps driver errors in DrizzleQueryError; the
+      // original pg error (with .code) may be under .cause -- check both.
+      const pgErrorCode = error?.cause?.code ?? error?.code;
+      if (pgErrorCode === '23505') { // PostgreSQL unique violation
         throw new Error('Site with this name already exists in the project');
       }
 
-      if (error.code === '23514') { // PostgreSQL check constraint violation
+      if (pgErrorCode === '23514') { // PostgreSQL check constraint violation
         throw new Error('Site data violates database constraints');
       }
 

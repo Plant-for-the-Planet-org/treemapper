@@ -69,7 +69,6 @@ The NestJS server powers both the mobile and web apps. Key areas:
 - Approval board workflow
 - Notifications and audit logging
 - File storage via AWS S3 / Cloudflare R2
-- Background jobs via Bull + Redis
 - Public API for third-party access
 
 ---
@@ -82,7 +81,7 @@ The NestJS server powers both the mobile and web apps. Key areas:
 | Web | Next.js 15, React 18, shadcn/ui, Tailwind, Mapbox |
 | Server | NestJS 11, Fastify, Drizzle ORM, PostgreSQL |
 | Auth | Auth0 |
-| Cache / Queue | Redis, Bull |
+| Cache | In-memory (cache-manager) |
 | Storage | AWS S3, Cloudflare R2 |
 | Shared | TanStack Query, Zustand |
 | Language | TypeScript throughout |
@@ -96,7 +95,6 @@ The NestJS server powers both the mobile and web apps. Key areas:
 - Node.js >= 18
 - Yarn 1 (classic)
 - PostgreSQL
-- Redis
 
 ### Install
 

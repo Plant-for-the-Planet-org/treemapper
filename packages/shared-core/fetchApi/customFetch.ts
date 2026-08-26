@@ -31,7 +31,10 @@ const fetchCall = async (
         statusCode: response.status,
         error: errorData.error || 'HTTP Error',
         data: null,
-        code: 'http_error',
+        // Keep the server's own code when it sent one. Hardcoding 'http_error'
+        // threw away the only machine-readable reason the caller had, which left
+        // the UI matching on message text to tell one failure from another.
+        code: errorData.code || 'http_error',
       }
     }
 

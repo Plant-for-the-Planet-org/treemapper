@@ -30,13 +30,17 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'TreeMapper Dashboard',
   description: 'Manage and monitor your TreeMapper data',
-  manifest: '/manifest.json',
+  // The manifest link comes from src/app/manifest.ts, and the favicon from
+  // src/app/favicon.ico, so neither is listed here.
   icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon.svg', type: 'image/svg+xml' }
-    ],
-    apple: '/apple-touch-icon.png',
+    apple: '/apple.png',
+  },
+  // Next emits the standard `mobile-web-app-capable` for this. Do not add the
+  // apple-prefixed tag by hand: Chrome deprecated it, and iOS reads
+  // `display: standalone` from the manifest instead.
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
   },
   other: {
     'format-detection': 'telephone=no',
@@ -53,10 +57,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("font-sans", inter.variable)} suppressHydrationWarning>
       <head>
-        {/* Apple App Site Association meta tag */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        
         {/* Preconnect for performance */}
         <link rel="preconnect" href="https://apps.apple.com" />
         

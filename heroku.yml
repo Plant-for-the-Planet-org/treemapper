@@ -3,14 +3,22 @@ build:
     web: Dockerfile
   config:
     DOCKER_BUILDKIT: 1
-    # Next.js public environment variables must be available at build time
-    # These will be inlined into the client bundle during next build
-    # IMPORTANT: Set these to your actual values (same as your Heroku config vars)
-    # heroku.yml doesn't support variable substitution, so values must be hardcoded here
-    NEXT_PUBLIC_CDN: "https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/production"
-    NEXT_PUBLIC_SERVER_URL: "http://dash.treemapper.app/api/server"
+    # Next.js public env vars must be set at build time so `next build` can
+    # inline them into the client bundle. On the container stack Heroku config
+    # vars are NOT available during `docker build`, and heroku.yml has no
+    # variable substitution, so these values must be hardcoded here. Setting
+    # them with `heroku config:set` has no effect on the bundle.
+    #
+    # Only add a var here if code actually reads it. Each one below is live:
+    #   NEXT_PUBLIC_AUTH0_CLIENT_ID -> apps/web/src/lib/auth/auth0-config.ts
+    #   NEXT_PUBLIC_CDN_BASE        -> apps/web/src/lib/cdn.ts
+    #   NEXT_PUBLIC_MODE            -> apps/web/src/lib/cdn.ts
+    #
+    # The API base URL is deliberately absent. Web and server share one dyno,
+    # so the client calls the relative path /api/server/*, which next.config.ts
+    # rewrites to the local Nest server. Do not point it at an absolute origin.
     NEXT_PUBLIC_AUTH0_CLIENT_ID: "8EyITuZvf63r8J8mjuYoaJ5Z1GJVm3zc"
-    NEXT_PUBLIC_CDN_BASE: "https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev"
+    NEXT_PUBLIC_CDN_BASE: "https://cdn.treemapper.app"
     NEXT_PUBLIC_MODE: "production"
 run:
   web: yarn start 

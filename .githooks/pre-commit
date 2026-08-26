@@ -17,6 +17,28 @@ deps=$(printf '%s\n' "$staged" | grep -E '(^|/)package\.json$|(^|/)yarn\.lock$|(
 
 [ -z "$deps" ] && exit 0
 
+# Verify every workspace manifest is still exactly pinned and covered by
+# yarn.lock. This runs BEFORE the ALLOW_DEP_CHANGE gate on purpose: an
+# intentional dependency change is exactly when the pins need checking.
+#
+# `yarn install --frozen-lockfile` cannot do this. Yarn 1 only compares the
+# root package.json against yarn.lock, so a caret range or an unlocked version
+# added to apps/*/package.json installs silently and exits 0.
+#
+# Note: this checks the working tree, not the staged blobs. The STOP gate below
+# already forces a human to review the change, so that is good enough here.
+root=$(git rev-parse --show-toplevel)
+if command -v node >/dev/null 2>&1; then
+  if ! node "$root/scripts/check-pinned-deps.js" >&2; then
+    echo "  Commit blocked: fix the pins above, or run \`yarn install\` and" >&2
+    echo "  stage the updated yarn.lock." >&2
+    echo "" >&2
+    exit 1
+  fi
+else
+  echo "dep-guard: node not found, skipped the pin check." >&2
+fi
+
 if [ "$ALLOW_DEP_CHANGE" = "1" ]; then
   echo "dep-guard: ALLOW_DEP_CHANGE=1 set, allowing dependency change." >&2
   exit 0
