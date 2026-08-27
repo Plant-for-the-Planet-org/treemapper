@@ -150,6 +150,22 @@ auto-upgrades anything.
   (`src/app/favicon.ico`) come from file conventions -- do not also list them
   in `metadata`.
 
+- **A stale autolinking cache breaks the Android build after a package
+  rename.** If `:app:compileDebugJavaWithJavac` fails with `package
+  com.<something> does not exist` pointing at the generated
+  `ReactNativeApplicationEntryPoint.java`, the culprit is
+  `apps/mobile/android/build/generated/autolinking/autolinking.json`. RNGP's
+  `GenerateEntryPointTask` stamps `project.android.packageName` from that file
+  into `{{packageName}}.BuildConfig`, and the file can capture a package name
+  from mid-prebuild rather than the final `namespace` in
+  `android/app/build.gradle`. It then never refreshes:
+  `ReactSettingsExtension.autolinkLibrariesFromCommand` regenerates it only when
+  `yarn.lock`, `package-lock.json`, `package.json`, or `react-native.config.js`
+  change (their SHAs sit next to it), and the Android namespace is not an input.
+  `expo prebuild --clean` does not help, because the bad file is rewritten
+  during prebuild. Fix with `rm -rf android/build/generated/autolinking
+  android/app/build/generated/autolinking`, then rebuild.
+
 ## What NOT to do
 
 - Do not commit secrets or `.env` files.

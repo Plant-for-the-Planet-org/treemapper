@@ -16,10 +16,15 @@ import 'react-native-get-random-values'
 import { ToastProvider } from 'react-native-toast-notifications'
 import { StatusBar } from 'expo-status-bar'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
+import { useKeepAwake } from 'expo-keep-awake'
 
 
 
 export default function App() {
+  // Keeps the screen on for as long as the app is in the foreground, so a
+  // long field session (mapping, recording trees) is never cut short by
+  // auto-lock. The OS drops the lock on its own when the app backgrounds.
+  useKeepAwake()
   // useEffect(() => {
   //   applyStoredLanguage()
   // }, [])
