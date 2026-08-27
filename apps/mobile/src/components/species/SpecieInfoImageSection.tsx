@@ -9,13 +9,13 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
-import { v3CdnUrl } from 'src/utils/cdnUrl'
+import { legacyCdnUrl, v3CdnUrl } from 'src/utils/cdnUrl'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import { updateImageDetails } from 'src/store/slice/takePictureSlice'
 import { SCALE_36, SCALE_26 } from 'src/utils/constants/spacing'
 import { scaleSize } from 'src/utils/constants/mixins'
-import * as ExpoImage from 'expo-image';
+import FallbackImage from '../common/FallbackImage'
 
 interface Props {
   item: IScientificSpecies
@@ -28,7 +28,11 @@ const SpecieInfoImageSection = (props: Props) => {
   const { updateSpeciesDetails } = useManageScientificSpecies()
   const [imageId, setImageId] = useState('')
   const dispatch = useDispatch()
-  const { v3Approved } = useSelector((state: RootState) => state.userState)
+  // a filename means the image lives on the CDN, a path means it is local
+  const isCdnImage = !!image && !image.includes('/')
+  const imageUri = isCdnImage ? (v3CdnUrl('species', image) ?? '') : image
+  // species images uploaded before the v3 migration are only on the old CDN
+  const imageFallbackUri = isCdnImage ? legacyCdnUrl('species', image) : null
 
   useEffect(() => {
     if (imageId === imageDetails.id && imageId !== '') {
@@ -62,10 +66,9 @@ const SpecieInfoImageSection = (props: Props) => {
         </TouchableOpacity>
       ) : (
         <View style={styles.imageContainer}>
-          <ExpoImage.Image
-            source={{
-              uri: image.includes('/') ? `${image}` : v3Approved ? (v3CdnUrl('species', image) ?? '') : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/species/default/${image}`,
-            }}
+          <FallbackImage
+            uri={imageUri}
+            fallbackUri={imageFallbackUri}
             style={styles.imageView}
             contentFit="cover"
           />

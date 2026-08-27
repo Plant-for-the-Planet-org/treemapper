@@ -4,13 +4,13 @@ import { scaleSize } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
-import * as ExpoImage from 'expo-image';
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
-import { v3CdnUrl } from 'src/utils/cdnUrl'
+import { legacyCdnUrl, v3CdnUrl } from 'src/utils/cdnUrl'
+import FallbackImage from '../common/FallbackImage'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { updateImageDetails } from 'src/store/slice/takePictureSlice'
 
@@ -26,7 +26,6 @@ interface Props {
 
 const InterventionCoverImage = (props: Props) => {
   const { image, tag, interventionID, treeId, isCDN, showEdit, isLegacy } = props
-  const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const imageDetails = useSelector((state: RootState) => state.cameraState)
@@ -62,7 +61,9 @@ const InterventionCoverImage = (props: Props) => {
   }
 
 
-  const uri = isCDN ? v3Approved ? (v3CdnUrl('tree', image) ?? '') : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${image}` : image
+  const uri = isCDN ? (v3CdnUrl('tree', image) ?? '') : image
+  // trees uploaded before the v3 migration are only on the old CDN
+  const fallbackUri = isCDN ? legacyCdnUrl('tree', image) : null
   return (
     <View style={styles.container}>
       {uri.length > 0 && <View style={styles.wrapper}>
@@ -72,7 +73,7 @@ const InterventionCoverImage = (props: Props) => {
         {!treeId && <TouchableOpacity style={styles.editBinWrapper} onPress={clearImage}>
           <BinIcon width={15} height={15} fill={Colors.TEXT_COLOR} />
         </TouchableOpacity>}
-        <ExpoImage.Image cachePolicy='memory-disk' source={{ uri: uri }} style={styles.imageWrapper} />
+        <FallbackImage uri={uri} fallbackUri={fallbackUri} style={styles.imageWrapper} />
       </View>}
       {uri.length === 0 && <View style={styles.emptyContainer}>
         {!isCDN && <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>

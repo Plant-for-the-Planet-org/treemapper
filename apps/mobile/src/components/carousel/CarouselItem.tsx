@@ -1,5 +1,4 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import * as ExpoImage from 'expo-image';
 import React from 'react'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
@@ -9,9 +8,8 @@ import { SCALE_56 } from 'src/utils/constants/spacing'
 import InterventionIconSwitch from '../intervention/InterventionIconSwitch'
 import i18next from 'src/locales/index'
 import { updateFilePath } from 'src/utils/helpers/fileSystemHelper'
-import { v3CdnUrl } from 'src/utils/cdnUrl'
-import { useSelector } from 'react-redux';
-import { RootState } from 'src/store';
+import { legacyCdnUrl, v3CdnUrl } from 'src/utils/cdnUrl'
+import FallbackImage from '../common/FallbackImage'
 
 interface Props {
   data: any
@@ -22,16 +20,17 @@ interface Props {
 
 const CarouselItem = (props: Props) => {
   const { data, onPress, remeasure, isPlanned } = props
-  const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
 
   if (data?.tree_type) {
-    const uri = data.cdn_image_url ? v3Approved?(v3CdnUrl('tree', data.cdn_image_url) ?? ''):`https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${data.cdn_image_url}` : updateFilePath(data.image_url)
+    const uri = data.cdn_image_url ? (v3CdnUrl('tree', data.cdn_image_url) ?? '') : updateFilePath(data.image_url)
+    // trees uploaded before the v3 migration are only on the old CDN
+    const fallbackUri = data.cdn_image_url ? legacyCdnUrl('tree', data.cdn_image_url) : null
     const hasImage = uri.length > 0
     return <TouchableOpacity style={styles.container} onPress={() => {
       onPress(data.intervention_id, data.tree_id)
     }}>
       <View style={styles.imageWrapper}>
-        {hasImage ? <ExpoImage.Image cachePolicy='memory-disk' style={styles.imageContainer} source={{ uri: uri }} /> : <UploadSpecieIcon width={SCALE_56} height={SCALE_56} />
+        {hasImage ? <FallbackImage uri={uri} fallbackUri={fallbackUri} style={styles.imageContainer} /> : <UploadSpecieIcon width={SCALE_56} height={SCALE_56} />
         }
       </View>
       <View style={styles.sectionWrapper}>

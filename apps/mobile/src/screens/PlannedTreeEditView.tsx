@@ -4,13 +4,13 @@ import { useDispatch, useSelector } from 'react-redux'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import * as ExpoImage from 'expo-image'
 import * as Location from 'expo-location'
 import { useObject } from '@realm/react'
 import { Map, Camera, CameraRef, UserLocation, Marker, GeoJSONSource, Layer } from '@maplibre/maplibre-react-native'
 
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import { v3CdnUrl } from 'src/utils/cdnUrl'
+import { legacyCdnUrl, v3CdnUrl } from 'src/utils/cdnUrl'
+import FallbackImage from 'src/components/common/FallbackImage'
 import { InterventionData, SampleTree } from 'src/types/interface/slice.interface'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { RootState } from 'src/store'
@@ -52,7 +52,7 @@ const PlannedTreeEditView = () => {
   const Intervention = useObject<InterventionData>(RealmSchema.Intervention, interventionId)
   const tree: SampleTree | undefined = Intervention?.sample_trees?.[0]
 
-  const { country, v3Approved } = useSelector((state: RootState) => state.userState)
+  const { country } = useSelector((state: RootState) => state.userState)
   const userLocation = useSelector((state: RootState) => state.gpsState.user_location)
   const mainMapView = useSelector((state: RootState) => state.displayMapState.mainMapView)
   const imageDetails = useSelector((state: RootState) => state.cameraState)
@@ -158,12 +158,10 @@ const PlannedTreeEditView = () => {
     ?? (userLocation && userLocation[0] !== 0 ? [userLocation[0], userLocation[1]] : null)
   const distanceLabel = hasLocation && liveCoord ? formatDistance(getDistanceBetween(liveCoord, treeCoord)) : null
   const localImage = updateFilePath(tree.image_url)
-  const cdnUri = tree.cdn_image_url
-    ? (v3Approved
-      ? (v3CdnUrl('tree', tree.cdn_image_url) ?? '')
-      : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${tree.cdn_image_url}`)
-    : ''
+  const cdnUri = tree.cdn_image_url ? (v3CdnUrl('tree', tree.cdn_image_url) ?? '') : ''
   const imageUri = tree.image_url ? localImage : cdnUri
+  // trees uploaded before the v3 migration are only on the old CDN
+  const imageFallbackUri = tree.image_url ? null : legacyCdnUrl('tree', tree.cdn_image_url)
 
   const captureImage = () => {
     ctaHaptic()
@@ -298,7 +296,7 @@ const PlannedTreeEditView = () => {
               <TouchableOpacity style={styles.imageEditIcon} onPress={captureImage}>
                 <PenIcon width={30} height={30} />
               </TouchableOpacity>
-              <ExpoImage.Image cachePolicy="memory-disk" source={{ uri: imageUri }} style={styles.image} />
+              <FallbackImage uri={imageUri} fallbackUri={imageFallbackUri} style={styles.image} />
             </View>
           ) : (
             <TouchableOpacity style={styles.addImageWrapper} onPress={captureImage}>

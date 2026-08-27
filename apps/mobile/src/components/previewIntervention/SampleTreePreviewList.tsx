@@ -22,8 +22,8 @@ import { nonISUCountries } from 'src/utils/constants/appConstant'
 import { INTERVENTION_STATUS } from 'src/types/type/app.type'
 import { convertMeasurements } from 'src/utils/constants/measurements'
 import { updateFilePath } from 'src/utils/helpers/fileSystemHelper'
-import { v3CdnUrl } from 'src/utils/cdnUrl'
-import * as ExpoImage from 'expo-image';
+import { legacyCdnUrl, v3CdnUrl } from 'src/utils/cdnUrl'
+import FallbackImage from '../common/FallbackImage'
 
 interface Props {
   sampleTress: SampleTree[]
@@ -38,7 +38,7 @@ interface Props {
 const SampleTreePreviewList = (props: Props) => {
   const { sampleTress, interventionId, hasSampleTress, isSynced, status, selectedTree, passRefs } = props
   const [deleteData, setDeleteData] = useState(null)
-  const { country, type, v3Approved } = useSelector((state: RootState) => state.userState)
+  const { country, type } = useSelector((state: RootState) => state.userState)
   const Country = country
   const { deleteSampleTreeIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -73,10 +73,13 @@ const SampleTreePreviewList = (props: Props) => {
   const hasDetails = sampleTress && sampleTress.length > 0
   const renderCard = () => {
     return sampleTress.map((details, i) => {
-      let uri = details.cdn_image_url ? v3Approved?(v3CdnUrl('tree', details.cdn_image_url) ?? ''):`${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${details.cdn_image_url}` : updateFilePath(details.image_url)
+      let uri = details.cdn_image_url ? (v3CdnUrl('tree', details.cdn_image_url) ?? '') : updateFilePath(details.image_url)
       if (details.cdn_image_url === '' && details.image_url === '') {
         uri = ''
       }
+      console.log('uri', uri)
+      // trees uploaded before the v3 migration are only on the old CDN
+      const fallbackUri = details.cdn_image_url ? legacyCdnUrl('tree', details.cdn_image_url) : null
       return (
         <View
           ref={(ref) => passRefs(ref, i)}
@@ -111,7 +114,7 @@ const SampleTreePreviewList = (props: Props) => {
             </Text>
           </View>
           <View style={styles.imageSectionWrapper}>
-            {uri !== '' && <ExpoImage.Image cachePolicy='memory-disk' source={{ uri: uri }} style={styles.imageWrapper} />}
+            {uri !== '' && <FallbackImage uri={uri} fallbackUri={fallbackUri} style={styles.imageWrapper} />}
             <View style={styles.mainMetaWrapperContent}>
               {!!details.specie_name && <View style={styles.metaWrapperContent}>
                 <Text style={styles.title}>{i18next.t("label.species")}</Text>
