@@ -13,7 +13,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import DisplayCurrentPolygonMarker from './DisplayCurrentPolygonMarker'
 import { Colors, Typography } from 'src/utils/constants'
-import { checkIsValidPolygonMarker } from 'src/utils/helpers/turfHelpers'
+import distanceCalculator, { checkIsValidPolygonMarker } from 'src/utils/helpers/turfHelpers'
 import { useToast } from 'react-native-toast-notifications'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
@@ -36,6 +36,10 @@ const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 // Shortest gap between two saves of a route being walked, in ms.
 const TRACK_SAVE_INTERVAL = 5000
 
+// How close to corner A a new corner has to land before we read it as the
+// surveyor walking back to close the ring rather than marking a new corner.
+const CLOSE_LOOP_RADIUS = 5
+
 
 interface Props {
   species_required: boolean
@@ -52,6 +56,8 @@ const PolygonMarkerMap = (props: Props) => {
   })
   const [loading, setLoading] = useState(true)
   const [trackerModal, setTrackerModal] = useState(false)
+  const [closeLoopModal, setCloseLoopModal] = useState(false)
+  const [pendingCoordinate, setPendingCoordinate] = useState<[number, number] | null>(null)
   const [lineError, setLineError] = useState(false)
   const [coordinates, setCoordinates] = useState<[number, number][]>([])
   const [trackingState, setTrackingState] = useState('')
@@ -245,25 +251,47 @@ const PolygonMarkerMap = (props: Props) => {
       toast.show("Please click on location")
       return
     }
-    if (centerCoordinates.length !== 0) {
-      const checkValidDistance = await checkIsValidMarker(centerCoordinates, [...coordinates])
-      setLineError(false)
-      if (!checkValidDistance) {
-        errorHaptic()
-        return
-      }
-      const updatedCoordinates = [...coordinates, centerCoordinates]
-      setCoordinates(updatedCoordinates)
-      restoredCoordsRef.current = []
-      saveDraft('POLYGON', form_id, updatedCoordinates)
-      setCurrentCoordinate(prevState => ({
-        id: String.fromCharCode(prevState.id.charCodeAt(0) + 1),
-        index: prevState.index++,
-      }))
-      toast.show("Point marked, move to other location", { placement: 'top' })
-      if (coordinates.length >= 2) {
-        setPolygonComplete(true)
-      }
+    if (centerCoordinates.length === 0) {
+      return
+    }
+    // Walking back onto corner A is how a boundary ends, so a corner that lands
+    // on top of it is a question rather than a new corner. Below three corners
+    // there is no ring to close yet, and the 1 m rule handles the near miss.
+    if (coordinates.length >= 3 && isBackAtFirstCorner(centerCoordinates)) {
+      setPendingCoordinate(centerCoordinates as [number, number])
+      setCloseLoopModal(true)
+      return
+    }
+    await addCoordinate(centerCoordinates)
+  }
+
+  const isBackAtFirstCorner = (centerCoordinates: [number, number]) => {
+    const distanceToStart = distanceCalculator(
+      [centerCoordinates[1], centerCoordinates[0]],
+      [coordinates[0][1], coordinates[0][0]],
+      'meters',
+    )
+    return distanceToStart <= CLOSE_LOOP_RADIUS
+  }
+
+  const addCoordinate = async (centerCoordinates: [number, number]) => {
+    const checkValidDistance = await checkIsValidMarker(centerCoordinates, [...coordinates])
+    setLineError(false)
+    if (!checkValidDistance) {
+      errorHaptic()
+      return
+    }
+    const updatedCoordinates = [...coordinates, centerCoordinates]
+    setCoordinates(updatedCoordinates)
+    restoredCoordsRef.current = []
+    saveDraft('POLYGON', form_id, updatedCoordinates)
+    setCurrentCoordinate(prevState => ({
+      id: String.fromCharCode(prevState.id.charCodeAt(0) + 1),
+      index: prevState.index + 1,
+    }))
+    toast.show("Point marked, move to other location", { placement: 'top' })
+    if (coordinates.length >= 2) {
+      setPolygonComplete(true)
     }
   }
 
@@ -418,6 +446,7 @@ const PolygonMarkerMap = (props: Props) => {
         trackingPaused={trackingState === 'pause'}
 
       /> : null}
+      <View style={styles.mapWrapper}>
       <Map
         style={styles.map}
         ref={mapRef}
@@ -450,6 +479,13 @@ const PolygonMarkerMap = (props: Props) => {
           onPathChange={handleTrackPathChange}
           latestCoords={latestCoords} startCoord={coordinates.length > 0 ? coordinates[0] : null} isPaused={trackingState === 'pause'} />}
       </Map>
+      {/* The crosshair belongs to the map's own box, not the screen. The corner
+          banner above is in normal flow, so the map shrinks by its height the
+          moment the first corner lands -- the map centre moves down by half
+          that, and a crosshair anchored outside would stop matching the point
+          the map actually records from B onwards. */}
+      {!isTracking && <ActiveMarkerIcon />}
+      </View>
       <SatelliteIconWrapper bottom={isTracking ? 120 : 0} />
       <MapZoomScale mapRef={mapRef} position="top-left" padTop={coordinates.length > 0?70:20}/>
       {polygonComplete && (
@@ -534,9 +570,28 @@ const PolygonMarkerMap = (props: Props) => {
           hideFadeIn
         /> : null
       }
-      {!isTracking && <ActiveMarkerIcon />}
       {!isTracking && <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={true} />
       }
+      <AlertModal
+        visible={closeLoopModal}
+        heading={"Back at corner A"}
+        message={`This point is within ${CLOSE_LOOP_RADIUS} m of corner A. Close the area here, or add it as another corner.`}
+        primaryBtnText={"Complete"}
+        secondaryBtnText={"Add point"}
+        onPressPrimaryBtn={() => {
+          setCloseLoopModal(false)
+          setPendingCoordinate(null)
+          makeComplete()
+        }}
+        onPressSecondaryBtn={() => {
+          setCloseLoopModal(false)
+          if (pendingCoordinate) {
+            addCoordinate(pendingCoordinate)
+          }
+          setPendingCoordinate(null)
+        }}
+        showSecondaryButton={true}
+      />
       <AlertModal
         visible={trackerModal}
         heading={"Track your route"}
@@ -564,6 +619,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  mapWrapper: {
+    flex: 1,
+    alignSelf: 'stretch',
   },
   map: {
     flex: 1,
