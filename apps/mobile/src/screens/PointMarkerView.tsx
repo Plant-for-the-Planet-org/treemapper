@@ -1,5 +1,5 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import Header from 'src/components/common/Header'
 import PointMarkerMap from 'src/components/map/PointMarkerMap'
 import GpsAccuracyTile from 'src/components/map/GpsAccuracyTile'
@@ -9,7 +9,7 @@ import InfoModal from 'src/components/common/InfoModal'
 import LocationPermissionModal from 'src/components/map/LocationPermissionModal'
 import UserlocationMarker from 'src/components/map/UserlocationMarker'
 import { InterventionData } from 'src/types/interface/slice.interface'
-import { useRealm } from '@realm/react'
+import { useObject } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRoute, RouteProp } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -17,17 +17,18 @@ import { StatusBar } from 'expo-status-bar'
 
 const PointMarkerView = () => {
   const [showInfoModal, setShowInfoModal] = useState(false)
-  const [interventionData, setInterventionData] = useState<InterventionData | null>(null)
 
   const route = useRoute<RouteProp<RootStackParamList, 'PointMarker'>>()
-  const realm = useRealm()
 
   const interventionID = route.params?.id ?? '';
 
-  useEffect(() => {
-    const InterventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
-    setInterventionData(InterventionData)
-  }, [])
+  // A live query, not a one-off snapshot. This screen is reused for every
+  // sample tree in the loop, so it is not remounted between trees. The map
+  // draws existing tree markers from sample_trees and rejects a pin placed too
+  // close to one, and both need the current list, not the one from first mount.
+  const interventionData = useObject<InterventionData>(
+    RealmSchema.Intervention, interventionID
+  )
 
   if (!interventionData) {
     return (

@@ -1,6 +1,6 @@
 import { Linking, Platform, StyleSheet, Text, View, ActivityIndicator } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
-import { Camera, CameraRef, usePhotoOutput, useCameraDevice, useCameraPermission } from 'react-native-vision-camera'
+import { Camera, CameraRef, CommonResolutions, usePhotoOutput, useCameraDevice, useCameraPermission } from 'react-native-vision-camera'
 import CustomButton from './CustomButton'
 import { Colors, Typography } from 'src/utils/constants'
 import i18next from 'src/locales'
@@ -20,7 +20,14 @@ interface Props {
 const CameraMainView = (props: Props) => {
   const { hasPermission, requestPermission } = useCameraPermission()
   const device = useCameraDevice('back')
-  const photoOutput = usePhotoOutput({ quality: 0.8 })
+  // Pin the capture size. Without a targetResolution the library defaults to
+  // 12 MP, and CameraX then rounds up to the nearest size the sensor supports,
+  // so a phone with a big sensor can hand back a 50 MP photo. 1440x1920 is
+  // plenty to identify a tree, and keeps uploads small for field connections.
+  const photoOutput = usePhotoOutput({
+    targetResolution: CommonResolutions.FHD_4_3,
+    quality: 0.8,
+  })
   const { addNewLog } = useLogManagement()
   const [loading, setLoading] = useState(false)
   const [cameraReady, setCameraReady] = useState(false)

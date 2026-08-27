@@ -1,9 +1,9 @@
 import { StyleSheet, View } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import CustomButton from '../common/CustomButton'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { SampleTree } from 'src/types/interface/slice.interface'
@@ -90,6 +90,19 @@ const PointMarkerMap = (props: Props) => {
       placePin([currentUserLocation[0], currentUserLocation[1]])
     }
   }, [currentUserLocation])
+
+
+  // The sample tree loop pops back to this screen rather than mounting a fresh
+  // one, so local state survives between trees. Clear the pin on focus:
+  // onSelectLocation accepts whatever is in selectedCoordinate without asking
+  // for a fresh tap, so a leftover value would register the next tree at the
+  // previous tree's exact coordinate.
+  useFocusEffect(
+    useCallback(() => {
+      setSelectedCoordinate(null)
+      setOutOfBoundary(false)
+    }, [])
+  )
 
 
   const handleCameraViewChange = () => {

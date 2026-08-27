@@ -1,6 +1,5 @@
-import { Paths, File, Directory } from 'expo-file-system';
+import { Paths, File } from 'expo-file-system';
 import { basePath } from './fileManagementHelper';
-import * as ImageManipulator from 'expo-image-manipulator';
 import { Platform } from 'react-native';
 
 export const copyImageAndGetData = async (imagePath: string, interventionId: string, isSpecies: boolean): Promise<string> => {
@@ -29,13 +28,17 @@ async function handleImageCopy(imagePath: string, interventionId: string, isSpec
     // stores the destination path in which image should be stored
     const documentDir = Paths.document.uri.endsWith('/') ? Paths.document.uri.slice(0, -1) : Paths.document.uri;
     const outputPath = isSpecies ? `${documentDir}/${interventionId}-${Date.now()}.${fileExtension}` : `${basePath}/${interventionId}/${fileName}.${fileExtension}`;
-    // Use the original image path directly for compression
-    // Stripping file:// prefix if present since expo-file-system uses bare paths
-    const inputPath = imagePath.startsWith('file://') ? imagePath.slice(7) : imagePath;
-    const compFile = await compressImage(inputPath, 0.7)
+    // expo-file-system wants an absolute file:// URI, not a bare path. The
+    // camera hands us one already, but normalise so a bare path cannot reach
+    // the native side, where it fails with "URI is not absolute".
+    const sourceUri = imagePath.startsWith('file://') ? imagePath : `file://${imagePath}`;
 
-    // Copy file using Expo FileSystem
-    const sourceFile = new File(compFile);
+    // The camera already writes a compressed JPEG at the quality we ask it for,
+    // so the capture is copied as-is. Do not re-encode it here: re-encoding
+    // decodes the whole photo into a bitmap, and on a large-sensor phone that
+    // is hundreds of MB in one allocation, which killed the app on this step.
+    // Control the file size with the camera's targetResolution instead.
+    const sourceFile = new File(sourceUri);
     const destFile = new File(outputPath);
     // Planned interventions are synced from the web and never get a local
     // folder created on the phone, so the destination directory may be missing.
@@ -47,25 +50,30 @@ async function handleImageCopy(imagePath: string, interventionId: string, isSpec
     }
     sourceFile.copy(destFile);
 
+    deleteCameraTempFile(sourceFile, sourceUri);
+
     return Platform.OS === 'android' ? `file://${outputPath}` : outputPath;
   } catch (error) {
     throw new Error(`Image copy failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
-async function compressImage(uri: string, compressValue: number): Promise<string> {
+// Android writes every capture to a throwaway file in the app cache directory
+// and never cleans it up, so a long field session leaves one full-size copy per
+// tree behind. Now that the photo has been copied to its permanent home, drop
+// the original. The cache check keeps this from ever touching a real file, and
+// a failure here must not fail the capture the user just made.
+function deleteCameraTempFile(sourceFile: File, sourceUri: string): void {
+  // Both sides are compared as URIs so this holds whatever scheme
+  // `Paths.cache.uri` uses on the platform.
+  const cacheDir = Paths.cache.uri.replace(/\/$/, '');
+  if (!sourceUri.startsWith(`${cacheDir}/`)) {
+    return;
+  }
   try {
-    const manipulatedImage = await ImageManipulator.manipulateAsync(
-      uri,
-      [],
-      {
-        compress: compressValue, // Compression ratio from 0 to 1
-        format: ImageManipulator.SaveFormat.JPEG, // You can use JPEG or PNG format
-      }
-    );
-    return manipulatedImage.uri;
-  } catch (error) {
-    return '';
+    sourceFile.delete();
+  } catch {
+    // Best effort only.
   }
 }
 
