@@ -131,6 +131,16 @@ auto-upgrades anything.
   only learns a percentage after its ResizeObserver fires, so `"100%"` logs a
   "width(-1) and height(-1)" warning on every first render. Set the height on
   the chart, not on a wrapper div, so it lives in one place.
+- **Mobile sharing only works from the cache dir.** `react-native-share` 12.x
+  dropped the catch-all `<root-path>` from its FileProvider config
+  (`share_download_paths.xml`), leaving only `cache-path` as a usable root on
+  Android. A `data:` base64 url lands in the *external* cache dir, and the
+  document dir has no root at all, so in both cases `ShareFile.getURI()`
+  returns null and `ClipData.newUri` throws `Uri.getScheme() on a null object
+  reference`. iOS is unaffected, so this looks Android-only. Write the file to
+  `Paths.cache` and share `file.uri`. Use `shareJSONFile` in
+  `src/utils/helpers/fileManagementHelper.ts`. Never pass `'data:...'` to
+  `Share.open`.
 - **Head tags belong in `metadata`, not in `<head>`.** `src/app/layout.tsx`
   exports a Next `Metadata` object; hand-written `<meta>` tags there duplicate
   or contradict what Next emits. Next 16 maps `appleWebApp.capable` to the

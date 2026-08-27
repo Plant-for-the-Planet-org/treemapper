@@ -10,8 +10,7 @@ import Header from 'src/components/common/Header';
 import ImportIcon from 'assets/images/svg/ImportIcon.svg'
 import { useRealm } from '@realm/react';
 import { RealmSchema } from 'src/types/enum/db.enum';
-import { toBase64 } from 'src/utils/constants/base64';
-import Share from 'react-native-share';
+import { shareJSONFile } from 'src/utils/helpers/fileManagementHelper';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system'
 import { useToast } from 'react-native-toast-notifications';
@@ -47,25 +46,20 @@ const ImportFormView = () => {
   const handleExport = async () => {
     const formData = realm.objects(RealmSchema.AdditionalDetailsForm);
     const metaData = realm.objects(RealmSchema.Metadata);
-    const options = {
-      url: 'data:application/json;base64,' + toBase64(JSON.stringify({
-        formData,
-        metaData,
-        version: 1
-      })),
-      message: "Exporting Additional/MetaData",
-      title: "Export",
-      filename: `TreeMapper_FormData_v2.json`,
-      saveToFiles: true,
-    };
-    Share.open(options)
-      .then(() => {
-        //
-      })
-      .catch(() => {
-        // shows error if occurred and not canceled by the user
-
-      });
+    try {
+      await shareJSONFile(
+        'TreeMapper_FormData_v2.json',
+        { formData, metaData, version: 1 },
+        {
+          message: "Exporting Additional/MetaData",
+          title: "Export",
+          saveToFiles: true,
+        },
+      );
+    } catch (e) {
+      // shows error if occurred and not canceled by the user
+      console.log('Error while exporting form data', e);
+    }
   }
 
   const importJsonFile = async () => {

@@ -139,7 +139,7 @@ const zipAndShareFolder = async (id: string) => {
         // Keep the same Share logic
         const shareOptions = {
             title: `Intervention data-${id}`,
-            url: `file://${zipFile.uri}`,
+            url: zipFile.uri,
             type: 'application/zip',
         };
 
@@ -147,4 +147,39 @@ const zipAndShareFolder = async (id: string) => {
     } catch (error) {
         console.error('Error in zipAndShareFolder:', error);
     }
+};
+
+type ShareJSONOptions = {
+    message?: string;
+    title?: string;
+    /** iOS only. Opens the Files save dialog instead of the share sheet. */
+    saveToFiles?: boolean;
+};
+
+/**
+ * Writes JSON to the app cache and shares that file.
+ *
+ * Do not pass a `data:` base64 url to `Share.open`, and do not share a file
+ * from the document directory. react-native-share 12.x dropped the catch-all
+ * `root-path` from its FileProvider config, so on Android only the internal
+ * cache dir can be turned into a content:// URI. Anything else makes the
+ * native `getURI()` return null and the share crashes on `Uri.getScheme()`.
+ */
+export const shareJSONFile = async (
+    filename: string,
+    data: unknown,
+    options: ShareJSONOptions = {},
+) => {
+    const file = new File(Paths.cache, filename);
+    if (file.exists) {
+        file.delete();
+    }
+    file.create({ intermediates: true });
+    file.write(JSON.stringify(data));
+
+    return Share.open({
+        url: file.uri,
+        type: 'application/json',
+        ...options,
+    });
 };
