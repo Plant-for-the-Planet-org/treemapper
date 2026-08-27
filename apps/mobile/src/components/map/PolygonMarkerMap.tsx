@@ -27,10 +27,14 @@ import PolygonTracker from './PolygonTracker'
 import bbox from '@turf/bbox'
 import MapZoomScale from './MapZoomScale'
 import SiteMapSource from './SiteMapSource'
+import useMapDraft from 'src/hooks/realm/useMapDraft'
 
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
+
+// Shortest gap between two saves of a route being walked, in ms.
+const TRACK_SAVE_INTERVAL = 5000
 
 
 interface Props {
@@ -49,7 +53,7 @@ const PolygonMarkerMap = (props: Props) => {
   const [loading, setLoading] = useState(true)
   const [trackerModal, setTrackerModal] = useState(false)
   const [lineError, setLineError] = useState(false)
-  const [coordinates, setCoordinates] = useState([])
+  const [coordinates, setCoordinates] = useState<[number, number][]>([])
   const [trackingState, setTrackingState] = useState('')
   const [trackingGeoJSON, setTrackingGeoJSON] = useState<number[][]>([])
   const [latestCoords, setLatestCoords] = useState<GeolocationPosition>(null)
@@ -63,16 +67,59 @@ const PolygonMarkerMap = (props: Props) => {
   )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updateInterventionLocation } = useInterventionManagement()
+  const { saveDraft, readDraft, clearOwnerDrafts } = useMapDraft()
   const toast = useToast();
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
 
   const cameraRef = useRef<CameraRef>(null)
   const mapRef = useRef<MapRef>(null)
   const [mapRender, setMapRender] = useState(false)
+  // What the camera should frame after a recovery: the marked corners, or the
+  // walked route when there is one. A ref, not state, because the map's load
+  // callback fires with whatever closure the render it was attached to
+  // captured. Cleared on the first mark or undo, which hands the camera back.
+  const restoredCoordsRef = useRef<[number, number][]>([])
+  const [trackSeed, setTrackSeed] = useState<number[][]>([])
+  // Set once the boundary belongs to the intervention. The tracker saves its
+  // route again as it unmounts, which happens after we navigate away, and that
+  // late write would otherwise resurrect a draft we just cleared.
+  const committedRef = useRef(false)
+  // When the walked route was last written, so saves stay spaced out.
+  const lastTrackSaveRef = useRef(0)
   const mainMapView = useSelector(
     (state: RootState) => state.displayMapState.mainMapView
   )
 
+
+  // Bring back whatever the last session marked before it died. Marking a large
+  // area is an hour of walking, so losing it to a crash means walking it again.
+  useEffect(() => {
+    const savedPoints = readDraft('POLYGON', form_id)
+    if (savedPoints.length === 0) {
+      return
+    }
+    setCoordinates(savedPoints)
+    setCurrentCoordinate({
+      id: String.fromCharCode(65 + savedPoints.length),
+      index: savedPoints.length,
+    })
+    setPolygonComplete(savedPoints.length >= 3)
+    // A tracked route only exists alongside its starting corner, so it is read
+    // after the marked points and framed instead of them when present.
+    const savedTrack = readDraft('TRACK', form_id)
+    if (savedTrack.length > 1) {
+      // Come back paused, never recording: the phone may have sat in a pocket
+      // or moved far since the crash, and auto-resuming would draw a straight
+      // line across everything in between.
+      restoredCoordsRef.current = savedTrack
+      setTrackSeed(savedTrack)
+      setTrackingState('pause')
+      toast.show('Tracking restored, tap Resume to continue', { placement: 'top' })
+      return
+    }
+    restoredCoordsRef.current = savedPoints
+    toast.show(`Restored ${savedPoints.length} marked ${savedPoints.length === 1 ? 'point' : 'points'}`, { placement: 'top' })
+  }, [])
 
   useEffect(() => {
     if (!mapRender) {
@@ -85,7 +132,9 @@ const PolygonMarkerMap = (props: Props) => {
 
 
   useEffect(() => {
-    if (mapRender) {
+    // Recentring on the user would throw away the framing of a restored
+    // boundary, so hold the view until they mark or undo a point.
+    if (mapRender && restoredCoordsRef.current.length === 0) {
       handleCamera2()
     }
   }, [currentUserLocation])
@@ -100,7 +149,11 @@ const PolygonMarkerMap = (props: Props) => {
     if (cameraRef?.current) {
       const { bounds, key } = MapBounds
       const hasValidBounds = Array.isArray(bounds) && bounds.length === 4 && bounds.every(Number.isFinite)
-      if (key === 'POLYGON_MAP' && hasValidBounds) {
+      // A restored boundary wins over both the saved bounds and the user's
+      // current spot: the whole point is to show them what they already walked.
+      if (restoredCoordsRef.current.length > 0) {
+        frameRestoredPoints()
+      } else if (key === 'POLYGON_MAP' && hasValidBounds) {
         cameraRef.current.fitBounds(
           [bounds[0], bounds[1]],
           [bounds[2], bounds[3]],
@@ -111,6 +164,30 @@ const PolygonMarkerMap = (props: Props) => {
         handleCamera()
       }
       setMapRender(true)
+    }
+  }
+
+  const frameRestoredPoints = () => {
+    const points = restoredCoordsRef.current
+    if (!cameraRef?.current || points.length === 0) {
+      return
+    }
+    try {
+      if (points.length === 1) {
+        cameraRef.current.easeTo({ center: points[0], zoom: 17, duration: 1000 })
+        return
+      }
+      const bounds = bbox({
+        type: 'Feature',
+        properties: {},
+        geometry: { type: 'LineString', coordinates: points },
+      } as any)
+      cameraRef.current.fitBounds(
+        [bounds[0], bounds[1], bounds[2], bounds[3]],
+        { padding: { top: 60, right: 60, bottom: 60, left: 60 }, duration: 1000 },
+      )
+    } catch (error) {
+      handleCamera()
     }
   }
 
@@ -144,6 +221,8 @@ const PolygonMarkerMap = (props: Props) => {
     const updatedCoordinates = [...coordinates];
     updatedCoordinates.pop()
     setCoordinates(updatedCoordinates)
+    restoredCoordsRef.current = []
+    saveDraft('POLYGON', form_id, updatedCoordinates)
     setCurrentCoordinate(prevState => ({
       id: String.fromCharCode(prevState.id.charCodeAt(0) - 1),
       index: prevState.index - 1,
@@ -173,7 +252,10 @@ const PolygonMarkerMap = (props: Props) => {
         errorHaptic()
         return
       }
-      setCoordinates([...coordinates, centerCoordinates])
+      const updatedCoordinates = [...coordinates, centerCoordinates]
+      setCoordinates(updatedCoordinates)
+      restoredCoordsRef.current = []
+      saveDraft('POLYGON', form_id, updatedCoordinates)
       setCurrentCoordinate(prevState => ({
         id: String.fromCharCode(prevState.id.charCodeAt(0) + 1),
         index: prevState.index++,
@@ -216,6 +298,9 @@ const PolygonMarkerMap = (props: Props) => {
       toast.show('Error occurred while updating location')
       return
     }
+    // The intervention owns the boundary now, so the recovery copy can go.
+    committedRef.current = true
+    clearOwnerDrafts(form_id)
     if (species_required) {
       navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
     } else {
@@ -232,6 +317,8 @@ const PolygonMarkerMap = (props: Props) => {
       toast.show('Error occurred while updating location')
       return
     }
+    committedRef.current = true
+    clearOwnerDrafts(form_id)
     if (species_required) {
       navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
     } else {
@@ -275,6 +362,8 @@ const PolygonMarkerMap = (props: Props) => {
         toast.show('Error occurred while updating location')
         return
       }
+      committedRef.current = true
+      clearOwnerDrafts(form_id)
       if (species_required) {
         navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
       } else {
@@ -302,6 +391,21 @@ const PolygonMarkerMap = (props: Props) => {
 
   const handleInvalidArea = () => {
     setTrackingState('start')
+  }
+
+  // The tracker emits a new path every few GPS fixes. Saving all of them would
+  // rewrite a list that grows for the whole walk, so writes are spaced out;
+  // `force` covers pause and unmount, where the last points matter most.
+  const handleTrackPathChange = (path: number[][], force?: boolean) => {
+    if (committedRef.current || path.length < 2) {
+      return
+    }
+    const now = Date.now()
+    if (!force && now - lastTrackSaveRef.current < TRACK_SAVE_INTERVAL) {
+      return
+    }
+    lastTrackSaveRef.current = now
+    saveDraft('TRACK', form_id, path)
   }
 
   const isTracking = trackingState !== ''
@@ -342,6 +446,8 @@ const PolygonMarkerMap = (props: Props) => {
           isSatellite={mainMapView === 'SATELLITE'}
           handleInvalidArea={handleInvalidArea}
           handleCompletePress={trackingState === 'complete'}
+          initialCoordinates={trackSeed}
+          onPathChange={handleTrackPathChange}
           latestCoords={latestCoords} startCoord={coordinates.length > 0 ? coordinates[0] : null} isPaused={trackingState === 'pause'} />}
       </Map>
       <SatelliteIconWrapper bottom={isTracking ? 120 : 0} />

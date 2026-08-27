@@ -4,6 +4,7 @@ import { DropdownData, IScientificSpecies } from 'src/types/interface/app.interf
 import { History, InterventionData, Inventory, PlantedSpecies, RegisterFormSliceInitialState, SampleTree } from 'src/types/interface/slice.interface'
 import { createNewInterventionFolder } from 'src/utils/helpers/fileManagementHelper'
 import useLogManagement from './useLogManagement'
+import { deleteDraftsInWrite } from './useMapDraft'
 import { FormElement } from 'src/types/interface/form.interface'
 import { FIX_REQUIRED, INTERVENTION_STATUS, LAST_SCREEN } from 'src/types/type/app.type'
 import { isAllRemeasurementDone } from 'src/utils/helpers/remeasurementHelper'
@@ -430,6 +431,9 @@ const useInterventionManagement = () => {
         if (intervention) {
           realm.delete(intervention);
         }
+        // Its half-marked boundary has nothing left to belong to, and would
+        // otherwise sit in the drafts table for the life of the install.
+        deleteDraftsInWrite(realm, interventionID);
       });
       return true
     } catch (error) {

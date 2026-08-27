@@ -18,35 +18,87 @@ import UserlocationMarker from './UserlocationMarker'
 import Icon from '@expo/vector-icons/FontAwesome5';
 import CloseIcon from 'assets/images/svg/CloseIconFill.svg'
 import i18next from 'i18next'
+import useMapDraft from 'src/hooks/realm/useMapDraft'
+import bbox from '@turf/bbox'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
+
+// Draft owner for a site drawn before a project was picked.
+const UNASSIGNED_OWNER = 'unassigned-site'
 
 
 interface Props {
     setGeometry: (d: any) => void
     close: () => void
     projectBounds: any
+    // Owner of the draft boundary. A site is drawn per project, so the points
+    // are kept apart per project and survive leaving the screen or a crash.
+    projectId: string
 }
 
 const SiteCreationMap = (props: Props) => {
-    const { setGeometry, close, projectBounds } = props
+    const { setGeometry, close, projectBounds, projectId } = props
     const [loadingSite, setLoadingSite] = useState(true)
     const [lineError, setLineError] = useState(false)
-    const [coordinates, setCoordinates] = useState([])
+    const [coordinates, setCoordinates] = useState<[number, number][]>([])
     const [polygonComplete, setPolygonComplete] = useState(false)
     const currentUserLocation = useSelector(
         (state: RootState) => state.gpsState.user_location,
     )
     const toast = useToast();
+    const { saveDraft, readDraft, clearDraft } = useMapDraft()
 
     const cameraRef = useRef<CameraRef>(null)
     const mapRef = useRef<MapRef>(null)
+    const restoredCoordsRef = useRef<[number, number][]>([])
+    // Which project the points on screen are saved under. A site can be drawn
+    // before a project is picked, so the drawing starts life unassigned and
+    // moves to the project as soon as one is chosen.
+    const draftOwnerRef = useRef(projectId || UNASSIGNED_OWNER)
 
     const mainMapView = useSelector(
         (state: RootState) => state.displayMapState.mainMapView
     )
 
+
+    // Points from a previous visit or a killed session. Site areas are walked
+    // on foot like intervention boundaries, so the same recovery applies.
+    // Drafts belong to a project, so switching the project switches the drawing.
+    useEffect(() => {
+        const owner = projectId || UNASSIGNED_OWNER
+        if (owner === draftOwnerRef.current && coordinates.length > 0) {
+            return
+        }
+        // Picking a project for a drawing that had none keeps the points and
+        // just re-files them, rather than wiping work the user can see.
+        if (projectId && draftOwnerRef.current === UNASSIGNED_OWNER && coordinates.length > 0) {
+            draftOwnerRef.current = owner
+            saveDraft('SITE', owner, coordinates)
+            clearDraft('SITE', UNASSIGNED_OWNER)
+            return
+        }
+        draftOwnerRef.current = owner
+        let savedPoints = readDraft('SITE', owner)
+        // A drawing started before a project was picked is adopted by the first
+        // project that has none of its own, so closing the map and choosing a
+        // project afterwards does not strand it.
+        if (savedPoints.length === 0 && owner !== UNASSIGNED_OWNER) {
+            const orphaned = readDraft('SITE', UNASSIGNED_OWNER)
+            if (orphaned.length > 0) {
+                savedPoints = orphaned
+                saveDraft('SITE', owner, orphaned)
+                clearDraft('SITE', UNASSIGNED_OWNER)
+            }
+        }
+        restoredCoordsRef.current = savedPoints
+        setCoordinates(savedPoints)
+        setPolygonComplete(savedPoints.length >= 3)
+        if (savedPoints.length > 0) {
+            toast.show(`Restored ${savedPoints.length} marked ${savedPoints.length === 1 ? 'point' : 'points'}`, { placement: 'top' })
+            frameRestoredPoints()
+        }
+    }, [projectId])
 
     useEffect(() => {
         handleCameraViewChange()
@@ -58,6 +110,12 @@ const SiteCreationMap = (props: Props) => {
     }, [currentUserLocation])
 
     const handleCameraViewChange = () => {
+        // Restored points win over the project bounds: the user needs to see
+        // the corners they already walked, not the project as a whole.
+        if (restoredCoordsRef.current.length > 0) {
+            frameRestoredPoints()
+            return
+        }
         if (projectBounds.length === 0) {
             return
         }
@@ -69,7 +127,35 @@ const SiteCreationMap = (props: Props) => {
         }
     }
 
+    const frameRestoredPoints = () => {
+        if (!cameraRef?.current || restoredCoordsRef.current.length === 0) {
+            return
+        }
+        try {
+            if (restoredCoordsRef.current.length < 2) {
+                cameraRef.current.easeTo({ center: restoredCoordsRef.current[0], zoom: 17, duration: 1000 })
+                return
+            }
+            const bounds = bbox({
+                type: 'Feature',
+                properties: {},
+                geometry: { type: 'LineString', coordinates: restoredCoordsRef.current },
+            } as any)
+            cameraRef.current.fitBounds(
+                [bounds[0], bounds[1], bounds[2], bounds[3]],
+                { padding: { top: 60, right: 60, bottom: 60, left: 60 }, duration: 1000 },
+            )
+        } catch (error) {
+            handleCamera()
+        }
+    }
+
     const handleCamera = () => {
+        // Recentring would undo the framing of a restored boundary, so hold the
+        // view until the user marks or undoes a point.
+        if (restoredCoordsRef.current.length > 0) {
+            return
+        }
         if (cameraRef?.current) {
             cameraRef.current.easeTo({
                 center: [...currentUserLocation],
@@ -83,6 +169,8 @@ const SiteCreationMap = (props: Props) => {
         const updatedCoordinates = [...coordinates];
         updatedCoordinates.pop()
         setCoordinates(updatedCoordinates)
+        restoredCoordsRef.current = []
+        saveDraft('SITE', draftOwnerRef.current, updatedCoordinates)
         if (updatedCoordinates.length <= 2) {
             setPolygonComplete(false)
         }
@@ -97,7 +185,10 @@ const SiteCreationMap = (props: Props) => {
                 errorHaptic()
                 return
             }
-            setCoordinates([...coordinates, centerCoordinates])
+            const updatedCoordinates = [...coordinates, centerCoordinates]
+            setCoordinates(updatedCoordinates)
+            restoredCoordsRef.current = []
+            saveDraft('SITE', draftOwnerRef.current, updatedCoordinates)
             if (coordinates.length >= 2) {
                 setPolygonComplete(true)
             }
