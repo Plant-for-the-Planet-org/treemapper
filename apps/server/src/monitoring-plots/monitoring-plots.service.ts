@@ -158,11 +158,14 @@ export class MonitoringPlotsService {
       const plants = dto.plants ?? [];
       const observations = dto.observations ?? [];
       const plotPhotos = dto.images ?? [];
+<<<<<<< Updated upstream
       // A shape decides which dimensions mean anything. With no shape given there
       // is nothing to judge against, so whatever the client sent is kept.
       const shape = dto.shape as string | undefined;
       const shapeUsesRadius = !shape || shape === 'circle';
       const shapeUsesSides = !shape || shape === 'rectangle';
+=======
+>>>>>>> Stashed changes
       // The cover photo shown on plot cards. A device sends the whole gallery, so
       // fall back to the one it flagged primary, else the first taken.
       const coverPhoto =
@@ -1752,10 +1755,15 @@ export class MonitoringPlotsService {
     /** Photos to attach once the plot transaction commits. */
     images: PendingImages[];
   }> {
+<<<<<<< Updated upstream
     // Position is optional: a plant can be registered without its exact location.
     const hasLocation = plant.latitude != null && plant.longitude != null;
     const pointGeo = hasLocation ? { type: 'Point', coordinates: [plant.longitude, plant.latitude] } : null;
     const pointSQL = pointGeo ? sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(pointGeo)}), 4326)` : null;
+=======
+    const pointGeo = { type: 'Point', coordinates: [plant.longitude, plant.latitude] };
+    const pointSQL = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(pointGeo)}), 4326)`;
+>>>>>>> Stashed changes
     const latest = this.latestTimeline(plant);
     const plantingDate = plant.plantingDate ? new Date(plant.plantingDate) : startDate;
     const treeUid = generateUid('tree');

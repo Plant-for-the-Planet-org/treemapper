@@ -39,8 +39,11 @@ const TreeEditDialog = ({
   tree,
   token,
   boundary,
+<<<<<<< Updated upstream
   title,
   saving,
+=======
+>>>>>>> Stashed changes
   onClose,
   onSave,
 }: {
@@ -48,6 +51,7 @@ const TreeEditDialog = ({
   tree: DraftTree | null;
   token: string;
   boundary: GeoJSON.Polygon | null;
+<<<<<<< Updated upstream
   /** Defaults to "Edit tree {tag}". */
   title?: string;
   /** Disables Save and swaps its label while an async onSave is in flight. */
@@ -55,6 +59,10 @@ const TreeEditDialog = ({
   onClose: () => void;
   /** Returning `false` keeps the dialog open, e.g. after a failed API call. */
   onSave: (tree: DraftTree) => void | Promise<boolean | void>;
+=======
+  onClose: () => void;
+  onSave: (tree: DraftTree) => void;
+>>>>>>> Stashed changes
 }) => {
   const [draft, setDraft] = useState<DraftTree | null>(tree);
 
@@ -92,9 +100,15 @@ const TreeEditDialog = ({
     setDraft((d) => (d ? { ...d, measurements: d.measurements.filter((m) => m.id !== id) } : d));
   };
 
+<<<<<<< Updated upstream
   const handleSave = async () => {
     const result = await onSave(recomputeTree(draft, boundary, carriedWarnings(draft)));
     if (result !== false) onClose();
+=======
+  const handleSave = () => {
+    onSave(recomputeTree(draft, boundary, carriedWarnings(draft)));
+    onClose();
+>>>>>>> Stashed changes
   };
 
   // Live view of what saving would produce, so problems show before committing.
@@ -108,7 +122,11 @@ const TreeEditDialog = ({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-2xl max-h-[88vh] overflow-y-auto">
         <DialogHeader>
+<<<<<<< Updated upstream
           <DialogTitle>{title ?? `Edit tree ${draft.tag || '(no tag)'}`}</DialogTitle>
+=======
+          <DialogTitle>Edit tree {draft.tag || '(no tag)'}</DialogTitle>
+>>>>>>> Stashed changes
           <DialogDescription>
             {draft.rows.length > 0
               ? `From CSV row${draft.rows.length === 1 ? '' : 's'} ${draft.rows.join(', ')}.`
@@ -198,9 +216,12 @@ const TreeEditDialog = ({
               />
             </div>
           </div>
+<<<<<<< Updated upstream
           <p className="text-[10.5px] text-muted-foreground -mt-2">
             Leave latitude and longitude blank if the plant&apos;s exact position wasn&apos;t recorded.
           </p>
+=======
+>>>>>>> Stashed changes
 
           {/* Measurements */}
           <div className="border rounded-[3px]">
@@ -294,8 +315,13 @@ const TreeEditDialog = ({
         </div>
 
         <DialogFooter>
+<<<<<<< Updated upstream
           <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
           <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save tree'}</Button>
+=======
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSave}>Save tree</Button>
+>>>>>>> Stashed changes
         </DialogFooter>
       </DialogContent>
     </Dialog>

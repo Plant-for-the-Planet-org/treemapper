@@ -57,6 +57,7 @@ const latestMeasurementDate = (trees: DraftTree[]): string | null => {
   return dates.sort()[dates.length - 1];
 };
 
+<<<<<<< Updated upstream
 /** Maps one draft tree to the server's PlotPlantDto shape. */
 export function treeToPlantDto(t: DraftTree) {
   return {
@@ -95,6 +96,8 @@ export function observationToDto(o: DraftObservation) {
   };
 }
 
+=======
+>>>>>>> Stashed changes
 export function buildPayload(
   draftId: string,
   plot: PlotDraft,
@@ -138,8 +141,40 @@ export function buildPayload(
     interventionStartDate: start,
     interventionEndDate: end,
     metadata,
+<<<<<<< Updated upstream
     plants: savableTrees.map(treeToPlantDto),
     observations: savableObservations.map(observationToDto),
+=======
+    plants: savableTrees.map((t) => ({
+      clientId: t.id,
+      tag: t.tag || undefined,
+      scientificSpecies: t.scientificSpeciesUid || undefined,
+      speciesName: t.speciesName || undefined,
+      count: 1,
+      plantingDate: t.plantingDate || undefined,
+      isAlive: true,
+      type: ORIGIN_TO_SERVER[t.origin],
+      latitude: t.latitude as number,
+      longitude: t.longitude as number,
+      timeline: t.measurements.length
+        ? t.measurements.map((m) => ({
+          clientId: m.id,
+          length: m.height ?? undefined,
+          width: m.width ?? undefined,
+          date: m.date,
+          lengthUnit: 'm',
+          widthUnit: 'cm',
+        }))
+        : undefined,
+    })),
+    observations: savableObservations.map((o) => ({
+      clientId: o.id,
+      type: o.type,
+      observedAt: o.observedAt,
+      unit: o.unit || undefined,
+      value: o.value ?? undefined,
+    })),
+>>>>>>> Stashed changes
   };
 }
 
