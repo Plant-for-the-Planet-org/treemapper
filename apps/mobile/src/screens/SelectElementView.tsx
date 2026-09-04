@@ -18,6 +18,7 @@ import { RootStackParamList } from 'src/types/type/navigation.type';
 import { FORM_TYPE } from 'src/types/type/app.type';
 import { v4 as uuid } from 'uuid'
 import useAdditionalForm from 'src/hooks/realm/useAdditionalForm';
+import { AnalyticsEvents, trackEvent } from 'src/utils/analytics';
 
 
 const containerWidth = (Dimensions.get('window').width - 75) / 2;
@@ -78,6 +79,10 @@ const SelectElement = () => {
   const createNewForm = async () => {
     const id = uuid()
     await addNewForm(id, 0)
+    // Custom forms are a power-user feature. Knowing how many people ever
+    // build one, and which element types they reach for, says whether it is
+    // worth the surface area it takes up.
+    trackEvent(AnalyticsEvents.CUSTOM_FORM_CREATED, { source: 'select_element' })
     navigation.goBack()
   }
 

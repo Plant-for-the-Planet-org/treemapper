@@ -15,6 +15,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import SatelliteIconWrapper from '../map/SatelliteIconWrapper'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
+import { AnalyticsEvents, trackEvent } from 'src/utils/analytics'
 
 
 
@@ -52,6 +53,11 @@ const OfflineMapDisplay = () => {
   }
 
   const errorListener = async (offlineRegion, status) => {
+    // Offline maps are what makes the app usable with no signal, so a failed
+    // download quietly costs a field worker their whole day.
+    trackEvent(AnalyticsEvents.OFFLINE_MAP_DOWNLOAD_FAILED, {
+      reason: status?.message ?? 'unknown',
+    })
   }
 
   const alert = (message: string) => {
@@ -68,9 +74,18 @@ const OfflineMapDisplay = () => {
       }
       const result = await createNewOfflineMap(writeData)
       if (result) {
+        // Tile size is the useful number here: it says how much a usable
+        // offline area actually costs on a field worker's phone.
+        trackEvent(AnalyticsEvents.OFFLINE_MAP_DOWNLOADED, {
+          tile_size_bytes: status.completedTileSize,
+          tile_count: status.completedTileCount,
+        })
         alert(i18next.t('label.download_map_complete'));
         navigation.goBack()
       } else {
+        trackEvent(AnalyticsEvents.OFFLINE_MAP_DOWNLOAD_FAILED, {
+          reason: 'local_save_failed',
+        })
         alert(i18next.t('label.download_map_area_failed'));
       }
     }
@@ -78,6 +93,9 @@ const OfflineMapDisplay = () => {
 
   const onPressDownloadArea = async () => {
     setIsLoaderShow(true);
+    // Paired with the downloaded / failed events so the drop-off between
+    // "asked for an area" and "got one" is visible.
+    trackEvent(AnalyticsEvents.OFFLINE_MAP_DOWNLOAD_STARTED)
     try {
       const coords = await mapRef.current.getCenter();
       const { response } = await getAreaName(coords)

@@ -100,9 +100,34 @@ auto-upgrades anything.
   exact version), keep it pinned, review for breaking/vulnerable versions, and
   tell the team.
 
+## Mobile product analytics (PostHog)
+
+Lives in `apps/mobile/src/utils/analytics/`. Import from
+`src/utils/analytics` and nothing deeper -- the file split is an
+implementation detail, the barrel is the contract. See the README in that
+folder for the event catalogue and which brief section each event answers.
+
+- **Screen views are captured by hand**, from `NavigationContainer.onStateChange`
+  in `App.tsx`. PostHog's `captureScreens` autocapture only supports
+  `@react-navigation/native` v6 and below and this app is on v7, so leaving it
+  on would silently record nothing.
+- **One shared client**, built in `analytics/client.ts` and handed to
+  `PostHogProvider` via its `client` prop. Non-React code (customFetch, sync,
+  GPS) reaches the same instance through `getAnalyticsClient()`, so everything
+  shares one session id.
+- **Disabled in `__DEV__`** and when `EXPO_PUBLIC_POSTHOG_API_KEY` is unset.
+- **Never send field data**: no photos, coordinates, search terms, note text or
+  email. Send lengths, counts and booleans instead.
+- **Event names are immutable.** PostHog keys on the string; renaming one
+  splits the funnel and orphans the old data.
+- Session replay is opt-in per build via `EXPO_PUBLIC_POSTHOG_SESSION_REPLAY`.
+
 ## Gotchas
 
 - `yarn.lock` is large (~21k lines, ~1000 packages) mostly because the mobile workspace pulls Expo/RN + transitive deps.
+- `apps/mobile` has ~700 pre-existing `tsc` errors, so `yarn type-check` is not
+  a usable pass/fail gate there. Check that your own touched lines are clean
+  rather than the total count.
 - The web app inlines `NEXT_PUBLIC_*` env vars at build time. Changing them requires a rebuild.
 - The server uses Fastify, not Express. Some Nest examples assume Express -- adapt accordingly.
 

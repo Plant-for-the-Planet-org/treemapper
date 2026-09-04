@@ -9,6 +9,7 @@ import { scaleSize } from 'src/utils/constants/mixins'
 import i18next from 'src/locales/index'
 import AdditionalElement from './AdditionalElement'
 import DraggableFlatList from "react-native-draggable-flatlist";
+import { AnalyticsEvents, trackEvent } from 'src/utils/analytics'
 
 interface Props {
   data: IAdditionalDetailsForm
@@ -43,6 +44,12 @@ const AddDataElement = (props: Props) => {
   }
 
   const deleteFormHandler = () => {
+    // Read against CUSTOM_FORM_CREATED: forms built and then thrown away say
+    // the builder is being used to experiment rather than to work.
+    trackEvent(AnalyticsEvents.CUSTOM_FORM_DELETED, {
+      element_count: data.elements?.length ?? 0,
+      page_no: pageNo,
+    })
     deleteForm(data.form_id)
   }
 

@@ -33,6 +33,7 @@ import AddIcon from 'assets/images/svg/AddIcon.svg'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import { AnalyticsEvents, setAnalyticsContext, trackEvent } from 'src/utils/analytics'
 
 interface Props {
   isVisible: boolean
@@ -258,6 +259,17 @@ const ProjectModal = (props: Props) => {
   const handleProjectSelection = useCallback((selectedData: DropdownItem) => {
     setSelectedProject(selectedData)
 
+    // "Project opened" in the journey. The id is an internal uid, not
+    // personal data, and without it a funnel cannot tell whether people work
+    // in one project or many.
+    trackEvent(AnalyticsEvents.PROJECT_OPENED, {
+      project_id: selectedData.value,
+      source: 'project_modal',
+    })
+    // Rides along on every later event, so a drop-off can be traced to the
+    // project the user was working in.
+    setAnalyticsContext({ active_project_id: selectedData.value })
+
     dispatch(updateCurrentProject({
       name: selectedData.label,
       id: selectedData.value,
@@ -272,6 +284,14 @@ const ProjectModal = (props: Props) => {
 
   // Site selection handler
   const handleSiteSelection = useCallback((siteId: string, site: any) => {
+    trackEvent(AnalyticsEvents.SITE_OPENED, {
+      site_id: siteId,
+      project_id: currentProject.projectId,
+      has_geometry: Boolean(site.geometry),
+      source: 'project_modal',
+    })
+    setAnalyticsContext({ active_site_id: siteId })
+
     dispatch(updateProjectSite({
       name: site.name,
       id: siteId,
@@ -283,7 +303,7 @@ const ProjectModal = (props: Props) => {
     if (!toggleProjectModal && site.geometry) {
       updateMapBoundsForGeometry(site.geometry)
     }
-  }, [closeModal, toggleProjectModal, updateMapBoundsForGeometry, dispatch])
+  }, [closeModal, toggleProjectModal, updateMapBoundsForGeometry, dispatch, currentProject.projectId])
 
   // Backdrop component
   const backdropComponent = useCallback(

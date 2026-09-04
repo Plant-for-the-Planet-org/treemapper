@@ -4,6 +4,7 @@ import OfflineMapTile from 'assets/images/svg/MapTileIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
+import { AnalyticsEvents, trackEvent } from 'src/utils/analytics'
 
 interface Props {
   data: any,
@@ -12,6 +13,9 @@ interface Props {
 
 const OfflineMapCars = (props: Props) => {
   const handleDelete = () => {
+    // Deletions read against downloads tell us whether people are freeing
+    // space or simply did not need the area.
+    trackEvent(AnalyticsEvents.OFFLINE_MAP_DELETED)
     props.delete(props.data)
   }
   return (

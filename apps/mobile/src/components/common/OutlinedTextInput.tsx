@@ -4,6 +4,11 @@ import { InputOutline } from 'react-native-input-outline'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
 import InfoIcon from 'assets/images/svg/InfoIcon.svg'
+import {
+  AnalyticsEvents,
+  FIELD_TERMS,
+  trackTermEvent,
+} from 'src/utils/analytics'
 
 interface Props {
   placeholder: string
@@ -14,16 +19,39 @@ interface Props {
   autoFocus?: boolean
   defaultValue?: string
   info?: string
+  /**
+   * Opt in to field-level analytics. Pass the field's stable key (not its
+   * label, which is translated). When it maps to a word under study in
+   * FIELD_TERMS, opening the info tooltip is recorded as a terminology
+   * signal: people only tap "what does this mean" when the label did not
+   * tell them.
+   */
+  analyticsField?: string
+  analyticsForm?: string
+  onFieldFocus?: () => void
+  onFieldBlur?: () => void
 }
 
 const OutlinedTextInput = (props: Props) => {
-  const { placeholder, changeHandler, keyboardType, trailingText, errMsg, autoFocus, defaultValue, info } = props
+  const { placeholder, changeHandler, keyboardType, trailingText, errMsg, autoFocus, defaultValue, info, analyticsField, analyticsForm, onFieldFocus, onFieldBlur } = props
 
   const [showInfoData, setShowInfoData] = useState(false)
 
 
   const toggleInfoData = () => {
-    setShowInfoData(prev => !prev)
+    setShowInfoData(prev => {
+      const opening = !prev
+      const term = analyticsField ? FIELD_TERMS[analyticsField] : undefined
+      // Only the open counts. Tapping again to dismiss is not a second
+      // moment of confusion.
+      if (opening && term) {
+        trackTermEvent(AnalyticsEvents.TERM_TOOLTIP_OPENED, term, {
+          field: analyticsField,
+          form_name: analyticsForm,
+        })
+      }
+      return opening
+    })
   }
 
   const renderTrailingComma = () => {
@@ -57,6 +85,8 @@ const OutlinedTextInput = (props: Props) => {
         error={errMsg.length ? errMsg : undefined}
         autoFocus={autoFocus || false}
         value={defaultValue || ""}
+        onFocus={onFieldFocus}
+        onBlur={onFieldBlur}
         trailingIcon={renderTrailingComma}
       />
     </View>

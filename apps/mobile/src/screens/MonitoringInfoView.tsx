@@ -1,12 +1,23 @@
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Header from 'src/components/common/Header'
 import { Colors, Typography } from 'src/utils/constants'
 import YoutubePlayer from "react-native-youtube-iframe";
 import i18next from 'src/locales/index'
+import { AnalyticsEvents, AnalyticsTerms, trackTermEvent } from 'src/utils/analytics'
 
 const MonitoringInfoView = () => {
+    // This whole screen exists to explain what a monitoring plot is, so
+    // reaching it is the strongest "I did not understand the term" signal in
+    // the app. Tracked here rather than at the three call sites so every way
+    // in is counted, including any added later.
+    useEffect(() => {
+        trackTermEvent(AnalyticsEvents.TERM_HELP_OPENED, AnalyticsTerms.MONITORING_PLOT, {
+            help_surface: 'monitoring_info_screen',
+        })
+    }, [])
+
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={{ paddingTop: 20 }}>

@@ -10,6 +10,7 @@ import { useRoute, RouteProp } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import i18next from 'src/locales/index'
+import { AnalyticsEvents, trackEvent } from 'src/utils/analytics'
 
 const TakePicture = () => {
   const [imageMetaData, setImageMetaData] = useState<CapturedPicture>({
@@ -21,9 +22,23 @@ const TakePicture = () => {
   const plotImage = route.params?.plotImage ?? false
 
   const takePicture = (data: CapturedPicture) => {
+    // Photo adoption (section 3). Dimensions only, never the image or its
+    // path: the picture is field data and does not belong in analytics.
+    trackEvent(AnalyticsEvents.PHOTO_CAPTURED, {
+      subject: plotImage ? 'plot' : 'tree',
+      origin_screen: route.params?.screen,
+      width: data.width,
+      height: data.height,
+    })
     setImageMetaData(data)
   }
   const retakePicture = () => {
+    // A retake means the first photo was not good enough. Repeated retakes
+    // point at the camera guidance or at conditions in the field.
+    trackEvent(AnalyticsEvents.PHOTO_RETAKEN, {
+      subject: plotImage ? 'plot' : 'tree',
+      origin_screen: route.params?.screen,
+    })
     setImageMetaData({
       width: 0,
       height: 0,

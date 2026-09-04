@@ -20,6 +20,7 @@ import useAdditionalForm from 'src/hooks/realm/useAdditionalForm';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from 'src/types/type/navigation.type';
+import { AnalyticsEvents, trackEvent } from 'src/utils/analytics';
 
 
 const ImportFormView = () => {
@@ -60,7 +61,13 @@ const ImportFormView = () => {
     };
     Share.open(options)
       .then(() => {
-        //
+        // Data export (section 3). Counts and nothing else: the file itself
+        // is the user's field data.
+        trackEvent(AnalyticsEvents.DATA_EXPORTED, {
+          export_type: 'custom_forms',
+          form_count: formData.length,
+          metadata_count: metaData.length,
+        })
       })
       .catch(() => {
         // shows error if occurred and not canceled by the user
@@ -97,6 +104,10 @@ const ImportFormView = () => {
       const { formData, metaData } = parsedData
       await bulkMetaDataAddition(metaData)
       await bulkFormAddition(formData)
+      trackEvent(AnalyticsEvents.CUSTOM_FORM_IMPORTED, {
+        form_count: Array.isArray(formData) ? formData.length : 0,
+        metadata_count: Array.isArray(metaData) ? metaData.length : 0,
+      })
       toast.show("Form Data added successfully")
       navigation.goBack()
     } else {

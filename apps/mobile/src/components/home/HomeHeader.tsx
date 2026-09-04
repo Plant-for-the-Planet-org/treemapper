@@ -26,6 +26,7 @@ import { getMobileUserDetails } from '../../api/api.fetch'
 import { updateUserDetails } from '../../store/slice/userStateSlice'
 import ProjectInviteModal from './DeepLinkModal'
 import SyncMonitoringPlot from '../monitoringPlot/SyncMonitoringPlot'
+import { AnalyticsEvents, trackEvent } from 'src/utils/analytics'
 
 interface Props {
   toggleFilterModal: () => void
@@ -52,6 +53,9 @@ const HomeHeader = (props: Props) => {
   const dispatch = useDispatch()
 
   const openHomeDrawer = () => {
+    // Menu opens vs menu item clicks: a big gap means people go looking for
+    // something in there and do not find it.
+    trackEvent(AnalyticsEvents.MENU_OPENED, { source: 'home_header' })
     navigation.navigate('HomeSideDrawer')
   }
 

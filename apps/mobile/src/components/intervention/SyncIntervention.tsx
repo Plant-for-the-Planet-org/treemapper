@@ -25,6 +25,12 @@ import { FIX_REQUIRED } from 'src/types/type/app.type';
 import i18next from 'src/locales/index';
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper';
 import useLogManagement from 'src/hooks/realm/useLogManagement';
+import {
+    AnalyticsEvents,
+    incrementSessionCounter,
+    trackEvent,
+    trackFirstTimeEvent,
+} from 'src/utils/analytics';
 
 interface Props {
     isLoggedIn: boolean
@@ -183,6 +189,18 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         // after checkForProjectId resolved, so early taps felt like no-ops.
         dispatch(updateSyncDetails(true))
 
+        // Start of the sync funnel. The queue size is captured here, before
+        // anything uploads, so "sync completed" can be read against what the
+        // user was actually asking the app to send.
+        const queuedAtStart = interventionData.length
+        const startedAt = Date.now()
+        incrementSessionCounter('syncs_started')
+        trackEvent(AnalyticsEvents.SYNC_STARTED, {
+            queued_interventions: queuedAtStart,
+            quarantined_interventions: quarantinedData.length,
+            trigger: 'manual',
+        })
+
         let totalUploaded = 0
         let totalFailed = 0
         let totalQuarantined = 0
@@ -192,11 +210,23 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             // /health doesn't come back OK, the server is down/in maintenance. In
             // both cases the data stays queued in Realm and uploads on a later sync.
             if (!isConnected) {
+                // Not a failure: the user tapped sync with no signal. Kept
+                // separate so "sync failure rate" is not dominated by the
+                // normal condition of working in the field.
+                trackEvent(AnalyticsEvents.SYNC_BLOCKED, {
+                    reason: 'offline',
+                    queued_interventions: queuedAtStart,
+                })
                 toast.show("Network call failed \nPlease check your internet connection", { textStyle: { textAlign: 'center' } })
                 return
             }
             const health = await getMobileHealth()
             if (!health.success) {
+                trackEvent(AnalyticsEvents.SYNC_BLOCKED, {
+                    reason: 'server_unhealthy',
+                    status_code: health.status ?? null,
+                    queued_interventions: queuedAtStart,
+                })
                 addNewLog({ logType: 'DATA_SYNC', message: 'Sync skipped: server health check failed', logLevel: 'error', statusCode: `${health.status}` })
                 Alert.alert(
                     "Server under maintenance",
@@ -206,7 +236,13 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             }
 
             const projectPass = await checkForProjectId();
-            if (!projectPass) return;
+            if (!projectPass) {
+                trackEvent(AnalyticsEvents.SYNC_BLOCKED, {
+                    reason: 'missing_project_assignment',
+                    queued_interventions: queuedAtStart,
+                })
+                return;
+            }
 
             dispatch(updateLastSyncData(Date.now()))
 
@@ -226,7 +262,28 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             const needsFix = realm.objects(RealmSchema.Intervention)
                 .filtered('status != "SYNCED" AND is_complete == true AND fix_required != "NO"').length
 
+            // One row per sync attempt that actually ran. `is_fully_synced`
+            // is the number to watch: a sync can upload plenty and still
+            // leave the user with data on the device.
+            trackEvent(AnalyticsEvents.SYNC_COMPLETED, {
+                uploaded: totalUploaded,
+                failed: totalFailed,
+                quarantined: totalQuarantined,
+                queued_at_start: queuedAtStart,
+                remaining_after: remaining,
+                needs_fix_after: needsFix,
+                is_fully_synced: remaining === 0 && needsFix === 0,
+                duration_ms: Date.now() - startedAt,
+            })
+            incrementSessionCounter('syncs_completed')
+            incrementSessionCounter('trees_synced', totalUploaded)
+
             if (remaining === 0 && needsFix === 0) {
+                // Section 10: the point a new user's data first reaches the
+                // server, which is the real end of onboarding.
+                trackFirstTimeEvent(AnalyticsEvents.FIRST_SYNC_COMPLETED, {
+                    uploaded: totalUploaded,
+                })
                 setShowFullSync(true)
                 dispatch(updateNewIntervention())
                 toast.show("All data is synced")
@@ -238,6 +295,14 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
                 toast.show(`${remaining} intervention${remaining !== 1 ? 's' : ''} still need attention.`)
             }
         } catch (error) {
+            // The connection dropped mid-upload, which is the sync failure
+            // that actually hurts: some items are through and some are not.
+            trackEvent(AnalyticsEvents.SYNC_FAILED, {
+                reason: 'connection_lost',
+                uploaded_before_failure: totalUploaded,
+                queued_at_start: queuedAtStart,
+                duration_ms: Date.now() - startedAt,
+            })
             addNewLog({ logType: 'DATA_SYNC', message: 'Sync aborted (network)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
             toast.show("Network call failed \nPlease check your internet connection", { textStyle: { textAlign: 'center' } })
         } finally {
@@ -265,6 +330,16 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             if (outcome === 'success') uploaded++
             else if (outcome === 'quarantined') quarantined++
             else failed++
+            if (outcome !== 'success') {
+                // Which kind of upload goes wrong, and whether it can ever
+                // recover. "retryable" is a hiccup the next sync fixes;
+                // "quarantined" means the user has to go and edit the record,
+                // which is the one worth chasing.
+                trackEvent(AnalyticsEvents.SYNC_ITEM_FAILED, {
+                    item_type: queue[i].type,
+                    outcome,
+                })
+            }
             setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: outcome === 'success' ? 'done' : outcome === 'quarantined' ? 'quarantined' : 'error' } : s))
         }
         return { uploaded, failed, quarantined, remaining: queue.length }

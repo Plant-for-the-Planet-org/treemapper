@@ -5,6 +5,56 @@ import { v4 as uuid } from 'uuid'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Application from 'expo-application'
 import { Platform } from 'react-native';
+import { AnalyticsEvents, incrementSessionCounter, trackEvent } from 'src/utils/analytics';
+
+/**
+ * Turns a full URL into something you can group by in PostHog.
+ *
+ * Raw URLs are useless as a breakdown: every project id makes its own bucket,
+ * so "which endpoint fails most" becomes a list of one-offs. Ids are replaced
+ * with :id and the query string is dropped, which also keeps tokens and
+ * search terms out of the analytics payload.
+ */
+const toEndpointPattern = (uri: string): string => {
+  try {
+    const path = uri.split('?')[0].replace(/^https?:\/\/[^/]+/, '');
+    return path
+      .split('/')
+      .map(segment => {
+        if (!segment) return segment;
+        const looksLikeId =
+          segment.length >= 12 || (/\d/.test(segment) && /[a-zA-Z]/.test(segment));
+        return looksLikeId ? ':id' : segment;
+      })
+      .join('/');
+  } catch {
+    return 'unknown';
+  }
+};
+
+/**
+ * One place to record a failed call (section 8). The event carries the
+ * ambient is_offline flag automatically, so a dashboard can separate "our
+ * server is unhappy" from "the field worker is out of signal", which in this
+ * app is most of the time.
+ */
+const trackApiFailure = (
+  method: string,
+  uri: string,
+  status: number,
+  isRetry: boolean,
+) => {
+  incrementSessionCounter('api_failures');
+  trackEvent(AnalyticsEvents.API_REQUEST_FAILED, {
+    endpoint: toEndpointPattern(uri),
+    method,
+    status_code: status,
+    is_retry: isRetry,
+    // 500 is also what the catch below reports for a thrown fetch, so this
+    // tells a real server error apart from "the request never left".
+    failure_kind: status >= 500 ? 'server_or_network' : 'rejected',
+  });
+};
 
 const setAndGetSessionId = async () => {
   let sessionId: any = await AsyncStorage.getItem('session-id');
@@ -64,6 +114,7 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
       return { response: { signUpRequire: false }, success: true, status: response.status, extra: {} }
     }
     if (!response.ok) {
+      trackApiFailure(method, uri, response.status, isRetry)
       // Keep the parsed error body (message/code) so callers can show the
       // server's message to the user instead of a generic failure.
       return { response: responseJson, success: false, status: response.status, extra: {} }
@@ -71,6 +122,9 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
 
     return { response: responseJson, success: true, status: response.status, extra: {} }
   } catch (err) {
+    // The request never completed: no signal, DNS failure, or a body that
+    // would not parse. Callers see 500, so analytics reports the same.
+    trackApiFailure(method, uri, 500, isRetry)
     return { response: null, success: false, status: 500, extra: {} }
   }
 }
