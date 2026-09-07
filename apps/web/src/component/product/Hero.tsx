@@ -2,17 +2,23 @@
 
 import { ctaPrimary, ctaSecondary } from './primitives';
 
-/** Pins are dropped over the drawn map at hand-picked spots, as in the concept. */
+/**
+ * Pins are dropped over the drawn map at hand-picked spots, as in the concept.
+ *
+ * These are the teardrop markers the app itself drops on a map
+ * (`apps/mobile/assets/images/icons`). The square files in `public/pins` are the
+ * list chips, which is a different mark for a different job.
+ */
 const HERO_PINS = [
-  { src: '/pins/MultiTreePin.svg', left: '15%', top: '31%', size: 38 },
-  { src: '/pins/SingleTreePin.svg', left: '27%', top: '44%', size: 32 },
-  { src: '/pins/SingleTreePin.svg', left: '53%', top: '58%', size: 30 },
-  { src: '/pins/InvasiveSpeciesPin.svg', left: '80%', top: '57%', size: 28 },
-  { src: '/pins/SingleTreePin.svg', left: '21%', top: '68%', size: 26 },
-  { src: '/pins/SingleTreePin.svg', left: '33%', top: '69%', size: 26 },
-  { src: '/pins/MultiTreePin.svg', left: '45%', top: '77%', size: 28 },
-  { src: '/pins/MultiTreePin.svg', left: '75%', top: '72%', size: 28 },
-  { src: '/pins/SingleTreePin.svg', left: '84%', top: '76%', size: 26 },
+  { src: '/pins/map/MultiTreePin.png', left: '15%', top: '31%', size: 42 },
+  { src: '/pins/map/SingleTreePin.png', left: '27%', top: '44%', size: 36 },
+  { src: '/pins/map/SingleTreePin.png', left: '53%', top: '58%', size: 34 },
+  { src: '/pins/map/RemovalPin.png', left: '80%', top: '57%', size: 32 },
+  { src: '/pins/map/SingleTreePin.png', left: '21%', top: '68%', size: 30 },
+  { src: '/pins/map/SingleTreePin.png', left: '33%', top: '69%', size: 30 },
+  { src: '/pins/map/MultiTreePin.png', left: '45%', top: '77%', size: 32 },
+  { src: '/pins/map/MultiTreePin.png', left: '75%', top: '72%', size: 32 },
+  { src: '/pins/map/SingleTreePin.png', left: '84%', top: '76%', size: 30 },
 ];
 
 /** Ground-level scrub, drawn twice (shadow pass and lit pass). */

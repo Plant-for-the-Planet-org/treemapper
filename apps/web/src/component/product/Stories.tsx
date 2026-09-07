@@ -48,7 +48,7 @@ export function Stories() {
         {STORIES.map(story => (
           <div
             key={story.title}
-            className="overflow-hidden rounded-xl border border-tm-rule shadow-[0_2px_8px_rgba(0,0,0,.08)]"
+            className="overflow-hidden rounded-[12px] border border-tm-rule shadow-[0_2px_8px_rgba(0,0,0,.08)]"
           >
             <div className="aspect-[16/10]">
               <PhotoSlot label={story.photo} />

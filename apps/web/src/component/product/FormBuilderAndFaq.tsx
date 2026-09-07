@@ -55,7 +55,7 @@ function FormPreview() {
   ];
 
   return (
-    <div className="overflow-hidden rounded-xl border border-tm-rule bg-white shadow-[0_2px_8px_rgba(0,0,0,.06)]">
+    <div className="overflow-hidden rounded-[12px] border border-tm-rule bg-white shadow-[0_2px_8px_rgba(0,0,0,.06)]">
       <div className="flex items-center justify-between gap-3 border-b border-tm-line px-4 py-3.5">
         <span className="text-[13px] font-extrabold text-tm-ink">Additional Data · Seedling check</span>
         <span className="rounded-full bg-tm-edge px-2.5 py-[5px] text-[10px] font-extrabold whitespace-nowrap text-tm-green">
@@ -67,7 +67,7 @@ function FormPreview() {
           <div key={field.label}>
             <div className="mb-[5px] text-[11px] font-extrabold text-tm-muted">{field.kind}</div>
             <div
-              className={`flex justify-between rounded-lg px-3 py-[11px] text-[13px] font-semibold text-tm-body ${
+              className={`flex justify-between rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-tm-body ${
                 field.active ? 'border-[1.5px] border-tm-green' : 'border border-tm-rule'
               }`}
             >
@@ -76,7 +76,7 @@ function FormPreview() {
             </div>
           </div>
         ))}
-        <div className="rounded-lg border-[1.5px] border-dashed border-tm-edge px-3 py-[11px] text-center text-[13px] font-extrabold text-tm-green">
+        <div className="rounded-[8px] border-[1.5px] border-dashed border-tm-edge px-3 py-[11px] text-center text-[13px] font-extrabold text-tm-green">
           Add another field
         </div>
       </div>
@@ -126,7 +126,7 @@ export function FormBuilderAndFaq({ onOpenFormBuilder }: { onOpenFormBuilder: ()
         </SectionLead>
       </div>
 
-      <div className="grid gap-px overflow-hidden rounded-xl border border-tm-line bg-tm-line md:grid-cols-2">
+      <div className="grid gap-px overflow-hidden rounded-[12px] border border-tm-line bg-tm-line md:grid-cols-2">
         {FAQS.map(faq => (
           <div key={faq.q} className="bg-white p-[26px]">
             <h3 className="mb-2.5 text-[17px] font-extrabold text-tm-ink">{faq.q}</h3>

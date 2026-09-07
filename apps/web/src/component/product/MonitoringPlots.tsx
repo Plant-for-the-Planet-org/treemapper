@@ -96,7 +96,7 @@ export function MonitoringPlots() {
 
       <div className="grid items-start gap-11 lg:grid-cols-[1fr_1.05fr]">
         <div>
-          <div className="overflow-hidden rounded-xl border border-tm-rule bg-white shadow-[0_2px_8px_rgba(0,0,0,.08)]">
+          <div className="overflow-hidden rounded-[12px] border border-tm-rule bg-white shadow-[0_2px_8px_rgba(0,0,0,.08)]">
             <div className="flex items-center justify-between gap-3 border-b border-tm-line px-4 py-3.5">
               <span className="text-[13px] font-extrabold text-tm-ink">Monitoring Plot 14 · Circular, r = 5 m</span>
               <span className="rounded-full bg-tm-edge px-2.5 py-[5px] text-[10px] font-extrabold whitespace-nowrap text-tm-green">
@@ -146,7 +146,7 @@ export function MonitoringPlots() {
 
         <div>
           <h3 className="mb-[18px] text-xl font-extrabold text-tm-ink">What a plot lets you say about the forest</h3>
-          <div className="grid gap-px overflow-hidden rounded-xl border border-tm-rule bg-tm-rule">
+          <div className="grid gap-px overflow-hidden rounded-[12px] border border-tm-rule bg-tm-rule">
             {WHAT_A_PLOT_TELLS.map(({ icon: Icon, title, body }) => (
               <div key={title} className="bg-white p-5">
                 <IconTile className="mb-3 size-9">

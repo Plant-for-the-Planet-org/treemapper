@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
  */
 
 const ctaBase =
-  'inline-flex items-center justify-center gap-2 rounded-xl font-extrabold whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-60';
+  'inline-flex items-center justify-center gap-2 rounded-[12px] font-extrabold whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-60';
 
 export const ctaPrimary = (className?: string) =>
   cn(

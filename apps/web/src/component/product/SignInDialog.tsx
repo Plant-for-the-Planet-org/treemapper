@@ -1,6 +1,8 @@
 'use client';
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
+import { productFont } from './font';
 import { LoginForm } from '@/app/login/components/LoginForm';
 
 /**
@@ -21,7 +23,10 @@ export function SignInDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md border-0 bg-transparent p-0 shadow-none ring-0" showCloseButton={false}>
+      <DialogContent
+        className={cn(productFont.className, 'max-w-md border-0 bg-transparent p-0 shadow-none ring-0')}
+        showCloseButton={false}
+      >
         <DialogTitle className="sr-only">Sign in to TreeMapper</DialogTitle>
         <DialogDescription className="sr-only">
           Continue with email, Google, Facebook or Apple.

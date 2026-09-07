@@ -36,7 +36,7 @@ export function Testimonials() {
         {QUOTES.map(item => (
           <figure
             key={item.role}
-            className="flex flex-col rounded-xl border border-tm-rule bg-white p-[26px] shadow-[0_2px_8px_rgba(0,0,0,.08)]"
+            className="flex flex-col rounded-[12px] border border-tm-rule bg-white p-[26px] shadow-[0_2px_8px_rgba(0,0,0,.08)]"
           >
             <IconTile className="mb-4 size-[34px]">
               <Quote className="size-[17px] text-tm-ink" />

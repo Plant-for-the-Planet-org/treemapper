@@ -60,7 +60,7 @@ export function DataExport({ onOpenDataExplorer }: { onOpenDataExplorer: () => v
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl bg-tm-ink p-[22px] shadow-[0_4px_16px_rgba(0,0,0,.14)]">
+      <div className="overflow-hidden rounded-[12px] bg-tm-ink p-[22px] shadow-[0_4px_16px_rgba(0,0,0,.14)]">
         <div className="mb-3.5 flex items-center justify-between gap-3">
           <span className="text-[11px] font-extrabold tracking-[1px] uppercase text-tm-lime">
             GET /treemapper/plantLocations

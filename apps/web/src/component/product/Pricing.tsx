@@ -86,7 +86,7 @@ export function Pricing({ onStartFree }: { onStartFree: () => void }) {
         </SectionLead>
       </div>
 
-      <div className="mx-auto max-w-[1060px] overflow-x-auto rounded-2xl border border-tm-rule bg-white">
+      <div className="mx-auto max-w-[1060px] overflow-x-auto rounded-[14px] border border-tm-rule bg-white">
         <div className="min-w-[820px]">
           {/* Plan headers */}
           <div className="grid grid-cols-[1.7fr_1fr_1fr_1fr] border-b border-tm-rule">

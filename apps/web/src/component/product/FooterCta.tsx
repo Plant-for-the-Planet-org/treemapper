@@ -1,7 +1,20 @@
 'use client';
 
+import Image from 'next/image';
+
 const PLAY_STORE = 'https://play.google.com/store/apps/details?id=org.pftp.treemapper';
 const APP_STORE = 'https://apps.apple.com/in/app/treemapper/id1524353784';
+
+/**
+ * The two store marks live in `public/`. Both are drawn for the dark badge every
+ * store ships: Google's stays full colour, and Apple's is the light grey mark
+ * meant to sit on black. So the buttons are black rather than lime, with a hair
+ * of white edge to lift them off the near-black footer.
+ */
+const STORES = [
+  { label: 'Google Play', href: PLAY_STORE, src: '/playstore.png' },
+  { label: 'App Store', href: APP_STORE, src: '/apple.png' },
+];
 
 /** Kept from the old login footer so the legal links do not disappear. */
 const LEGAL = [
@@ -30,26 +43,28 @@ export function FooterCta({ onOpenDashboard }: { onOpenDashboard: () => void }) 
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <a
-            href={PLAY_STORE}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-xl bg-tm-lime px-[22px] py-[13px] text-sm font-extrabold text-[#2F3336] transition-opacity hover:opacity-90"
-          >
-            Google Play
-          </a>
-          <a
-            href={APP_STORE}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-xl bg-tm-lime px-[22px] py-[13px] text-sm font-extrabold text-[#2F3336] transition-opacity hover:opacity-90"
-          >
-            App Store
-          </a>
+          {STORES.map(store => (
+            <a
+              key={store.label}
+              href={store.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2.5 rounded-[12px] border border-white/20 bg-black px-[22px] py-3 text-sm font-extrabold text-white transition-colors hover:border-white/35 hover:bg-[#111]"
+            >
+              <Image
+                src={store.src}
+                alt=""
+                width={18}
+                height={18}
+                className="size-[18px] shrink-0"
+              />
+              {store.label}
+            </a>
+          ))}
           <button
             type="button"
             onClick={onOpenDashboard}
-            className="rounded-xl border-[1.5px] border-white/35 px-[22px] py-3 text-sm font-extrabold text-white transition-colors hover:bg-white/10"
+            className="rounded-[12px] border-[1.5px] border-white/35 px-[22px] py-3 text-sm font-extrabold text-white transition-colors hover:bg-white/10"
           >
             Open Dashboard
           </button>

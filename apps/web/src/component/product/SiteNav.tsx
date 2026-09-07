@@ -1,10 +1,29 @@
 'use client';
 
 import Image from 'next/image';
-import { Grid3x3, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import tmLogo from '@/assets/tmlogo.png';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
+import { productFont } from './font';
 import { ctaPrimarySm } from './primitives';
+
+/** Dot centres of the app switcher grid, straight from the design. */
+const SWITCHER_DOTS = [5, 12, 19];
+
+/**
+ * App switcher mark: a 3x3 grid of dots. Lucide's `Grid3x3` is a ruled grid,
+ * a different glyph, so the design's own circles are drawn here instead.
+ */
+function AppSwitcherIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
+      {SWITCHER_DOTS.flatMap(cy =>
+        SWITCHER_DOTS.map(cx => <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="2" />),
+      )}
+    </svg>
+  );
+}
 
 const NAV_LINKS = [
   { label: 'App', href: '#what-is' },
@@ -49,7 +68,7 @@ export function SiteNav({
           title="Switch app"
           className="hidden size-[38px] items-center justify-center rounded-[10px] border border-tm-rule bg-tm-cream text-tm-ink transition-colors hover:border-tm-edge hover:bg-tm-mist sm:flex"
         >
-          <Grid3x3 className="size-5" />
+          <AppSwitcherIcon className="size-5" />
           <span className="sr-only">Switch app</span>
         </a>
 
@@ -67,7 +86,7 @@ export function SiteNav({
         <button
           type="button"
           onClick={onOpenDashboard}
-          className={ctaPrimarySm('hidden px-[18px] py-[11px] text-[13px] sm:inline-flex')}
+          className={ctaPrimarySm('hidden rounded-[10px] px-[18px] py-[11px] text-[13px] sm:inline-flex')}
         >
           Open Dashboard
         </button>
@@ -77,16 +96,20 @@ export function SiteNav({
             <Menu className="size-5" />
             <span className="sr-only">Open menu</span>
           </SheetTrigger>
-          <SheetContent side="right" className="bg-white">
+          <SheetContent side="right" className={cn(productFont.className, 'bg-white')}>
             <SheetHeader>
-              <SheetTitle className="text-tm-ink">TreeMapper</SheetTitle>
+              {/* SheetTitle ships `font-heading`, which resolves to Inter. An inline
+                  style is the only override a utility class cannot lose to. */}
+              <SheetTitle className="text-tm-ink" style={productFont.style}>
+                TreeMapper
+              </SheetTitle>
             </SheetHeader>
             <div className="flex flex-col gap-1 px-4">
               {NAV_LINKS.map(link => (
                 <a
                   key={link.label}
                   href={link.href}
-                  className="rounded-lg px-3 py-3 text-[15px] font-bold text-tm-body hover:bg-tm-mist hover:text-tm-green"
+                  className="rounded-[8px] px-3 py-3 text-[15px] font-bold text-tm-body hover:bg-tm-mist hover:text-tm-green"
                 >
                   {link.label}
                 </a>
@@ -95,12 +118,12 @@ export function SiteNav({
                 <button
                   type="button"
                   onClick={onSignIn}
-                  className="mt-2 rounded-lg px-3 py-3 text-left text-[15px] font-bold text-tm-green hover:bg-tm-mist"
+                  className="mt-2 rounded-[8px] px-3 py-3 text-left text-[15px] font-bold text-tm-green hover:bg-tm-mist"
                 >
                   Sign In
                 </button>
               )}
-              <button type="button" onClick={onOpenDashboard} className={ctaPrimarySm('mt-2 sm:hidden')}>
+              <button type="button" onClick={onOpenDashboard} className={ctaPrimarySm('mt-2 rounded-[10px] sm:hidden')}>
                 Open Dashboard
               </button>
             </div>

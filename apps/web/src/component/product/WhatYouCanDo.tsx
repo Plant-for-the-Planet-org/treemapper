@@ -37,7 +37,7 @@ const CAPABILITIES = [
 function StepHeader({ n, title }: { n: number; title: string }) {
   return (
     <div className="mb-4 flex items-center gap-2.5">
-      <span className="flex size-7 items-center justify-center rounded-lg bg-tm-lime text-[13px] font-extrabold text-[#2F3336]">
+      <span className="flex size-7 items-center justify-center rounded-[8px] bg-tm-lime text-[13px] font-extrabold text-[#2F3336]">
         {n}
       </span>
       <h3 className="text-[17px] font-extrabold text-tm-ink">{title}</h3>
@@ -47,7 +47,7 @@ function StepHeader({ n, title }: { n: number; title: string }) {
 
 function FieldMapArt() {
   return (
-    <div className="relative mb-4 h-[170px] overflow-hidden rounded-lg bg-tm-canopy">
+    <div className="relative mb-4 h-[170px] overflow-hidden rounded-[8px] bg-tm-canopy">
       <svg viewBox="0 0 300 170" aria-hidden="true" className="absolute inset-0 h-full w-full">
         <rect width="300" height="170" fill="#EAF1E2" />
         <path d="M0 132 C60 122 110 142 170 138 C220 135 260 146 300 142 L300 170 L0 170 Z" fill="#CFE3EE" />
@@ -97,7 +97,7 @@ function SyncPanelArt() {
   ];
 
   return (
-    <div className="mb-4 flex h-[170px] flex-col gap-2.5 rounded-lg border border-tm-line bg-white p-3.5">
+    <div className="mb-4 flex h-[170px] flex-col gap-2.5 rounded-[8px] border border-tm-line bg-white p-3.5">
       {rows.map(row => (
         <div key={row.label} className="flex items-center gap-2.5">
           <span className="size-2 rounded-full" style={{ background: row.dot }} />
@@ -128,8 +128,8 @@ const EXPORT_SNIPPET = `{
 
 function ExportArt() {
   return (
-    <div className="mb-4 h-[170px] overflow-hidden rounded-lg bg-tm-ink p-3.5">
-      <div className="mb-2.5 font-mono text-[9px] leading-none font-bold tracking-[1px] text-tm-lime">
+    <div className="mb-4 h-[170px] overflow-hidden rounded-[8px] bg-tm-ink p-3.5">
+      <div className="mb-2.5 text-[9px] leading-none font-bold tracking-[1px] text-tm-lime">
         GET /treemapper/plantLocations
       </div>
       <pre className="font-mono text-[9.5px] leading-[1.72] whitespace-pre text-white/85">{EXPORT_SNIPPET}</pre>
@@ -145,7 +145,7 @@ export function WhatYouCanDo() {
         <SectionLead>Six things it does that a spreadsheet and a camera roll cannot.</SectionLead>
       </div>
 
-      <div className="mb-20 grid gap-px overflow-hidden rounded-xl border border-tm-rule bg-tm-rule sm:grid-cols-2 lg:grid-cols-3 lg:mb-28">
+      <div className="mb-20 grid gap-px overflow-hidden rounded-[12px] border border-tm-rule bg-tm-rule sm:grid-cols-2 lg:grid-cols-3 lg:mb-28">
         {CAPABILITIES.map(({ icon: Icon, title, body }) => (
           <div key={title} className="bg-white p-[26px]">
             <IconTile className="mb-3.5">
@@ -166,7 +166,7 @@ export function WhatYouCanDo() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-xl border border-tm-line bg-tm-cream p-[26px]">
+        <div className="rounded-[12px] border border-tm-line bg-tm-cream p-[26px]">
           <StepHeader n={1} title="Register trees in the field" />
           <FieldMapArt />
           <p className="text-sm leading-[1.65] text-tm-body">
@@ -176,7 +176,7 @@ export function WhatYouCanDo() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-tm-line bg-tm-cream p-[26px]">
+        <div className="rounded-[12px] border border-tm-line bg-tm-cream p-[26px]">
           <StepHeader n={2} title="Track survival over time" />
           <SyncPanelArt />
           <p className="text-sm leading-[1.65] text-tm-body">
@@ -185,7 +185,7 @@ export function WhatYouCanDo() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-tm-line bg-tm-cream p-[26px]">
+        <div className="rounded-[12px] border border-tm-line bg-tm-cream p-[26px]">
           <StepHeader n={3} title="Report and export the data" />
           <ExportArt />
           <p className="text-sm leading-[1.65] text-tm-body">

@@ -34,7 +34,7 @@ export function ForestCloud() {
             href={app.href}
             target={app.href.startsWith('#') ? undefined : '_blank'}
             rel={app.href.startsWith('#') ? undefined : 'noopener noreferrer'}
-            className={`rounded-xl border p-[18px] transition-colors ${
+            className={`rounded-[12px] border p-[18px] transition-colors ${
               app.current ? 'border-tm-edge bg-tm-mist' : 'border-tm-line hover:bg-tm-cream'
             }`}
           >

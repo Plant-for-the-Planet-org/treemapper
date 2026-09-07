@@ -33,7 +33,7 @@ export function SupportBlock() {
           </p>
         </div>
 
-        <div className="rounded-xl bg-white p-[26px] shadow-[0_4px_16px_rgba(0,0,0,.16)]">
+        <div className="rounded-[12px] bg-white p-[26px] shadow-[0_4px_16px_rgba(0,0,0,.16)]">
           <div className="mb-3.5 text-[11px] font-extrabold tracking-[1.2px] uppercase text-tm-muted">
             Support Forest Cloud development
           </div>
@@ -70,7 +70,7 @@ export function SupportBlock() {
           >
             <span
               className={cn(
-                'flex size-4 shrink-0 items-center justify-center rounded border',
+                'flex size-4 shrink-0 items-center justify-center rounded-[4px] border',
                 monthly ? 'border-tm-green bg-tm-edge' : 'border-tm-rule bg-white',
               )}
             >

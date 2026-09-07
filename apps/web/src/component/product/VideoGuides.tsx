@@ -42,7 +42,7 @@ export function VideoGuides() {
         {GUIDES.map(guide => (
           <div
             key={guide.title}
-            className="overflow-hidden rounded-xl border border-tm-rule bg-white shadow-[0_2px_8px_rgba(0,0,0,.08)]"
+            className="overflow-hidden rounded-[12px] border border-tm-rule bg-white shadow-[0_2px_8px_rgba(0,0,0,.08)]"
           >
             <div className="aspect-video bg-tm-ink">
               <iframe

@@ -53,8 +53,8 @@ export function Audiences() {
 
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {AUDIENCES.map(({ icon: Icon, title, body, cta }) => (
-          <div key={title} className="rounded-xl border border-tm-line p-6">
-            <div className="mb-4 flex size-[46px] items-center justify-center rounded-xl border border-tm-edge bg-tm-mist">
+          <div key={title} className="rounded-[12px] border border-tm-line p-6">
+            <div className="mb-4 flex size-[46px] items-center justify-center rounded-[12px] border border-tm-edge bg-tm-mist">
               <Icon className="size-6 text-tm-ink" />
             </div>
             <h3 className="mb-2 text-[17px] font-extrabold text-tm-ink">{title}</h3>

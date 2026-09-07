@@ -48,7 +48,7 @@ export function OpenSource() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-tm-rule bg-white">
+      <div className="overflow-hidden rounded-[12px] border border-tm-rule bg-white">
         <div className="flex items-center justify-between gap-3 border-b border-tm-line px-5 py-[15px]">
           <span className="text-sm font-extrabold text-tm-ink">What we are building</span>
           <span className="text-[11px] font-bold text-tm-muted">Public roadmap</span>

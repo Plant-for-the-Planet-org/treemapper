@@ -108,7 +108,7 @@ export function WhatIsTreeMapper({ onStartFree }: { onStartFree: () => void }) {
           rather than a report someone has to take on trust.
         </p>
 
-        <div className="mb-[22px] aspect-video overflow-hidden rounded-xl border border-tm-rule bg-tm-ink">
+        <div className="mb-[22px] aspect-video overflow-hidden rounded-[12px] border border-tm-rule bg-tm-ink">
           <iframe
             src="https://www.youtube-nocookie.com/embed/uci6w-nPAR4?rel=0"
             title="How TreeMapper works"

@@ -65,7 +65,7 @@ export function Interventions() {
 
       <div className="mb-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {GROUPS.map(group => (
-          <div key={group.title} className="flex overflow-hidden rounded-lg border border-tm-line bg-tm-cream">
+          <div key={group.title} className="flex overflow-hidden rounded-[8px] border border-tm-line bg-tm-cream">
             <div className="w-1.5 shrink-0" style={{ background: group.accent }} />
             <div className="px-[22px] py-5">
               <h3 className="mb-[7px] text-base font-extrabold text-tm-ink">{group.title}</h3>
@@ -76,7 +76,7 @@ export function Interventions() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-tm-rule bg-tm-cream p-6">
+      <div className="rounded-[12px] border border-tm-rule bg-tm-cream p-6">
         <div className="mb-4 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-baseline sm:gap-5">
           <div className="text-[13px] font-extrabold text-tm-ink">
             Every type, and the colour it keeps in the app, on the dashboard map and in your exports

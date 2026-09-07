@@ -27,7 +27,7 @@ const RECENT = [
 
 function SchematicMap() {
   return (
-    <div className="relative h-[250px] overflow-hidden rounded-lg border border-tm-line bg-tm-cream">
+    <div className="relative h-[250px] overflow-hidden rounded-[8px] border border-tm-line bg-tm-cream">
       <svg viewBox="0 0 560 250" preserveAspectRatio="none" aria-hidden="true" className="absolute inset-0 h-full w-full">
         <defs>
           <pattern id="tmGridSchem" width="28" height="28" patternUnits="userSpaceOnUse">
@@ -96,10 +96,10 @@ export function DashboardPreview({ onOpenDashboard }: { onOpenDashboard: () => v
         </button>
       </div>
 
-      <div className="grid overflow-hidden rounded-xl border border-tm-rule bg-white shadow-[0_4px_16px_rgba(0,0,0,.1)] lg:grid-cols-[200px_1fr]">
+      <div className="grid overflow-hidden rounded-[12px] border border-tm-rule bg-white shadow-[0_4px_16px_rgba(0,0,0,.1)] lg:grid-cols-[200px_1fr]">
         <div className="hidden border-r border-tm-line bg-tm-cream py-[18px] lg:block">
           <div className="flex items-center gap-2.5 px-[18px] pb-[18px]">
-            <Image src={tmLogo} alt="" width={22} height={22} className="rounded-md" />
+            <Image src={tmLogo} alt="" width={22} height={22} className="rounded-[6px]" />
             <span className="text-sm font-extrabold text-tm-ink">TreeMapper</span>
           </div>
           <div className="flex flex-col">
@@ -147,13 +147,13 @@ export function DashboardPreview({ onOpenDashboard }: { onOpenDashboard: () => v
           <div className="grid gap-4 px-5 py-[18px] lg:grid-cols-[1.35fr_1fr]">
             <div className="grid grid-cols-2 gap-3 lg:col-span-full lg:grid-cols-4">
               {STATS.map(stat => (
-                <div key={stat.label} className="rounded-lg border border-tm-line p-3.5">
+                <div key={stat.label} className="rounded-[8px] border border-tm-line p-3.5">
                   <div className="text-[10px] font-extrabold tracking-[.8px] uppercase text-tm-muted">{stat.label}</div>
                   <div className="mt-1.5 text-[23px] font-extrabold text-tm-ink">{stat.value}</div>
                   <div className="mt-0.5 text-[11px] font-extrabold text-tm-muted">{stat.note}</div>
                 </div>
               ))}
-              <div className="rounded-lg border border-tm-edge bg-tm-mist p-3.5">
+              <div className="rounded-[8px] border border-tm-edge bg-tm-mist p-3.5">
                 <div className="text-[10px] font-extrabold tracking-[.8px] uppercase text-tm-green">Survival rate</div>
                 <div className="mt-1.5 text-[23px] font-extrabold text-tm-green">%</div>
                 <div className="mt-0.5 text-[11px] font-extrabold text-tm-body">Calculated from your plots</div>
@@ -163,7 +163,7 @@ export function DashboardPreview({ onOpenDashboard }: { onOpenDashboard: () => v
             <SchematicMap />
 
             <div className="flex flex-col gap-4">
-              <div className="rounded-lg border border-tm-line p-3.5">
+              <div className="rounded-[8px] border border-tm-line p-3.5">
                 <div className="mb-3 text-xs font-extrabold text-tm-ink">Species mix</div>
                 <div className="flex flex-col gap-2.5">
                   {SPECIES_MIX.map(species => (
@@ -183,12 +183,12 @@ export function DashboardPreview({ onOpenDashboard }: { onOpenDashboard: () => v
                 </div>
               </div>
 
-              <div className="flex-1 rounded-lg border border-tm-line p-3.5">
+              <div className="flex-1 rounded-[8px] border border-tm-line p-3.5">
                 <div className="mb-3 text-xs font-extrabold text-tm-ink">Recent registrations</div>
                 <div className="flex flex-col gap-[11px]">
                   {RECENT.map(item => (
                     <div key={item.title} className="flex items-center gap-2.5">
-                      <span className="h-[26px] w-[3px] rounded-sm" style={{ background: item.accent }} />
+                      <span className="h-[26px] w-[3px] rounded-[2px]" style={{ background: item.accent }} />
                       <div className="flex-1">
                         <div className="text-[11px] font-extrabold text-tm-ink">{item.title}</div>
                         <div className="text-[10px] font-semibold text-tm-muted">{item.meta}</div>
