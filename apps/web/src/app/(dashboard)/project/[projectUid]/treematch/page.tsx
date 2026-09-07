@@ -8,6 +8,7 @@ import { useToken } from '@/context/useTokenContext';
 import { postTreematchMatches } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useTopBarActions } from '@/component/header/TopBarActions';
+import { isProjectAdmin } from '@/lib/projectAccess';
 
 import { StatsRibbon } from './component/StatsRibbon';
 import { LocationsPane } from './component/LocationsPane';
@@ -27,10 +28,17 @@ import {
   contribAvailable, fmtNum, fmtTrees,
 } from './component/types';
 
-// TreeMatch is owner-only. The sidebar hides the section for everyone else;
-// this repeats the check so a direct URL gets the same answer, and it wraps the
-// screen rather than sitting inside it so none of its hooks mount and none of
-// its requests fire for someone who may not make them.
+// TreeMatch is for the project's owner and admins. The sidebar hides the
+// section for everyone else; this repeats the check so a direct URL gets the
+// same answer, and it wraps the screen rather than sitting inside it so none of
+// its hooks mount and none of its requests fire for someone who may not make
+// them.
+//
+// This reads the role from the project list, which holds real project
+// memberships. The server is stricter in one way the client cannot see: a
+// workspace owner or admin with no membership of this project is refused there
+// even though the API may report a role for them. The page is a UX gate, the
+// API is the boundary.
 //
 // The project list is already in the store by the time this renders: the
 // dashboard layout holds its children behind a spinner until it has loaded, so
@@ -39,19 +47,19 @@ export default function TreeMatchPage() {
   const { projectUid } = useParams<{ projectUid: string }>();
   const myProjects = useProjectStore(s => s.projects);
   const project = myProjects.find(p => p.uid === projectUid);
-  const isOwner = project?.userRole === 'owner';
+  const canMatch = isProjectAdmin(project?.userRole);
 
-  if (!isOwner) {
+  if (!canMatch) {
     return (
       <div className="w-full flex-1 min-h-0 flex items-center justify-center bg-muted/30 p-6">
         <div className="max-w-sm rounded-xl border border-border bg-background px-6 py-8 text-center">
           <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-muted">
             <Lock size={18} className="text-muted-foreground" />
           </div>
-          <h2 className="text-[15px] font-semibold text-foreground">TreeMatch is owner-only</h2>
+          <h2 className="text-[15px] font-semibold text-foreground">You cannot open TreeMatch</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Matching donations to planted trees is limited to the project owner.
-            Ask them if you need something matched.
+            Matching donations to planted trees is limited to this project&apos;s
+            owner and admins. Ask the owner if you need something matched.
           </p>
         </div>
       </div>

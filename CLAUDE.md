@@ -219,10 +219,14 @@ shows an error banner; the plant-locations pane still works from the local DB.
 
 ## TreeMatch server architecture
 
-Rewritten 2026-07-30 (migrations 0008 + 0009) against the 2026-07-28 TTC
-contract. **Ownership is the whole design**: TTC owns contributions, their
-absolute `unitsAllocated` totals, and the `ignored` / `ignoreReason` flags.
-TreeMapper owns trees and interventions. Nothing from TTC is mirrored here.
+Rewritten 2026-07-30 against the 2026-07-28 TTC contract. All three TreeMatch
+tables land in one migration here, `0007_overrated_colleen_wing`. The 0006-0009
+numbers in the original write-up belong to `feature/treematch`, which kept its
+own migration folder and does not line up with this branch.
+
+**Ownership is the whole design**: TTC owns contributions, their absolute
+`unitsAllocated` totals, and the `ignored` / `ignoreReason` flags. TreeMapper
+owns trees and interventions. Nothing from TTC is mirrored here.
 
 One table, `treematch_allocation`: one row per (`ttc_contribution_id`,
 `intervention_id`) pair holding `units` in centi-units (100 = 1 tree, TTC's
@@ -232,20 +236,34 @@ on the contribution id -- there is nothing local to point at. No `project_id`
 allocation history and no audit trail by design. It exists for one reason, so
 TreeMapper knows how many of its own trees are already claimed.
 
-Four routes, all **project-owner only**: `GET .../interventions`,
+Four routes, all **owner or admin of the project** (see below): `GET .../interventions`,
 `GET .../contributions` (thin TTC proxy, passes `ignored` through),
 `POST .../matches`, `PATCH .../contributions/:contributionId/ignore` (proxy of
 the TTC endpoint).
 
-**Owner-only, not owner/admin (changed 2026-08-03).** Every route carries
-`@ProjectRoles('owner')`, `MATCHER_ROLES` is `['owner']`, and
-`assertCanMatchFrom` has no workspace-admin fallback. That is narrower than the
-rest of the app on purpose: matching claims a project's trees and writes totals
-to TTC on its behalf. It also excludes workspace owners and admins, because
-`ProjectPermissionsGuard` resolves them as project *admins* when they hold no
-membership of their own, and admins no longer pass. The web app hides the
-sidebar entry and the page for anyone who is not the owner, so an admin who used
-TreeMatch before now gets a 403 rather than a broken screen.
+**Owner or admin, but the membership has to be real (changed 2026-09-07).**
+Every route carries `@ProjectRoles('owner', 'admin')` and `MATCHER_ROLES` is
+`['owner', 'admin']`, so the role rule now matches the rest of the app. It was
+owner-only between 2026-08-03 and 2026-09-07.
+
+The part that stays narrower is *where the role comes from*.
+`ProjectPermissionsGuard` falls back to the workspace: someone who owns or
+admins the workspace but holds no `project_member` row gets a synthesized
+membership with `role: 'admin'`. Right for most of the app, wrong here, because
+matching claims trees and writes absolute totals to TTC and **there is no
+unmatch route**. So the guard now stamps `viaWorkspaceAdmin: true` on that
+synthesized membership (`ProjectGuardResponse`, an optional field nothing else
+reads), and `TreeMatchAccessGuard` -- listed after `ProjectPermissionsGuard` in
+every `@UseGuards` on the controller -- rejects it with a 403.
+
+The two halves must move together. `TreeMatchAccessGuard` covers the project in
+the path; `assertCanMatchFrom` covers the other projects a cross-project match
+reads trees from, and it excludes workspace roles for free, because neither
+`getUserProject` nor `getMemberRoleFromUid` reads `workspace_member`. Widening
+one without the other opens a hole.
+
+Guard order is load-bearing: `TreeMatchAccessGuard` reads `request.membership`,
+so it throws rather than passing if it ever runs first.
 
 `POST .../matches` takes pairs only -- `{ matches: [{ contributionId,
 interventionUid, trees }] }`. It never receives absolute totals: the server
@@ -261,11 +279,11 @@ rows and compensation logic.
 
 **Cross-project matching is allowed**: TTC only cares that a contribution's total
 is right, not which project holds the trees, so the locations in a `POST
-.../matches` body may live in any project. The route guard only proves
-ownership of the project in the path (the contributions side), so
+.../matches` body may live in any project. The route guards only clear the
+project in the path (the contributions side), so
 `TreeMatchService.authorizeSourceProjects` checks every other project the target
 locations belong to, using the same membership resolution the guard uses
-(`project_member`) and the same owner-only rule. It runs *before* the transaction on purpose:
+(`project_member`) and the same owner-or-admin rule. It runs *before* the transaction on purpose:
 those lookups need their own pool connection, and taking one while holding the
 row locks could starve the pool. The in-transaction filter then trusts only that
 pre-authorized set, so a soft-deleted project's locations read as not found.
@@ -288,8 +306,8 @@ proxy cannot verify the contribution belongs to the project in the path.
 
 ## TreeMatch auto-match (server)
 
-Rebuilt 2026-07-31 (migration 0007) on top of the write path above, not beside
-it. `apps/server/src/treematch/automatch/`. Backend only so far; the web editor
+Rebuilt 2026-07-31 on top of the write path above, not beside it (same
+migration, `0007_overrated_colleen_wing`). `apps/server/src/treematch/automatch/`. Backend only so far; the web editor
 (`RulesDialog.tsx`) is still parked and unimported.
 
 Two tables, both pure additions. `treematch_rule` is the ordered per-project
@@ -354,7 +372,7 @@ What replaced the short cap is visibility and control -- the run row carries a
 `progress` jsonb rewritten after every page (per-list page counts, donations
 read, usable count), and `stop_requested` lets the user cut the sweep short and
 plan with what it has. The flag is read between pages, so a stop lands within
-about one page. Both are pure additions (migration 0008). A full sweep is not an option: 172k contributions at ~700ms per
+about one page. Both are pure additions. A full sweep is not an option: 172k contributions at ~700ms per
 serialized page is ~20 minutes, and each distinct `when.sweep` stacks on top.
 Sweep direction defaults to `+paymentDate` (true FIFO); `scan: 'newest'` on the
 run body is the escape hatch for a project whose oldest pages are all matched
@@ -451,12 +469,21 @@ ForestCloud tab of `settings/page.tsx`. Plain `useState` + the shared fetchers,
 no TanStack Query on this screen.
 
 **Split into hooks and panes on 2026-08-03** (`page.tsx` was 1553 lines and 32
-`useState` calls). `page.tsx` is now the owner gate plus a composition root:
+`useState` calls). `page.tsx` is now the role gate plus a composition root:
 `component/hooks/useTreematchLocations` and `useTreematchDonations` own one pane
 of data each, `useMatchSelection` reads both and hands each pane back what is
 ticked and what may not be ticked, `useAutomatchRun` holds the rules and the run,
 and `useFeedback` holds the two page-level message lines. `StatsRibbon`,
 `LocationsPane`, `MatchConnector` and `DonationsPane` are the markup.
+
+**Owner or admin since 2026-09-07**, matching the server. Three places carry the
+gate and all three use `isProjectAdmin` from `@/lib/projectAccess`: the sidebar
+entry, the page's own check (so a direct URL gets the same answer), and the
+source-project picker in `useTreematchLocations`, which lists every project the
+user owns or admins rather than only the ones they own. All three are UX gates.
+The server is stricter in one way the client cannot see: a project reached only
+through a workspace role can still appear in the picker, and the write refuses
+it.
 
 Two seams are worth knowing before changing any of it:
 
@@ -503,8 +530,9 @@ Two seams are worth knowing before changing any of it:
   side has no per-location number in the response, so it is bumped optimistically
   and corrected by the next fetch. A 409 means a location no longer has that many
   trees free (refetch the left pane); anything else came from TTC (refetch the
-  right). `MAX_MATCH_PAIRS` (200) is enforced in the confirm dialog rather than
-  split across requests, which would give up the all-or-nothing guarantee.
+  right). `MAX_MATCH_PAIRS` (2000, mirrored in `component/types.ts`) is enforced in
+  the confirm dialog rather than split across requests, which would give up the
+  all-or-nothing guarantee.
 - **Auto-match is live again** (2026-07-31). An "Auto-match" button in the
   shared top bar opens `RulesDialog.tsx`; running it opens
   `AutomatchPlanDialog.tsx`, which is deliberately built like

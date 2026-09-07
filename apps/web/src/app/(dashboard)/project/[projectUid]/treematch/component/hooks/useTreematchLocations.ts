@@ -5,6 +5,7 @@ import type { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { getTreematchInterventions, getUserProjectSites } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore';
+import { isProjectAdmin } from '@/lib/projectAccess';
 import {
   EMPTY_PAGINATION, PAGE_SIZE, Site, TreeMatchIntervention, TreeMatchPagination,
 } from '../types';
@@ -18,15 +19,19 @@ import {
  * the donations side.
  */
 export function useTreematchLocations(pageProjectUid: string, accessToken: string) {
-  // Plant locations can come from any other project the user owns. The server
-  // authorizes every source project on the write, so a match can span projects;
-  // TTC does not care which project holds the trees. Donations always belong to
-  // the current project.
+  // Plant locations can come from any other project the user owns or admins.
+  // The server authorizes every source project on the write, so a match can
+  // span projects; TTC does not care which project holds the trees. Donations
+  // always belong to the current project.
   const myProjects = useProjectStore(s => s.projects);
   const [projectUid, setProjectUid] = useState<string>(pageProjectUid);
   useEffect(() => { setProjectUid(pageProjectUid); }, [pageProjectUid]);
+  // Same rule the server applies to a source project (`MATCHER_ROLES`), so the
+  // picker does not offer a project the write would refuse. It can still be a
+  // little wide: a project the user reaches only through a workspace role may
+  // report a role here, and the server rejects that on the write.
   const projects = useMemo(
-    () => myProjects.filter(p => p.userRole === 'owner'),
+    () => myProjects.filter(p => isProjectAdmin(p.userRole)),
     [myProjects],
   );
   const projectName = myProjects.find(p => p.uid === projectUid)?.name;

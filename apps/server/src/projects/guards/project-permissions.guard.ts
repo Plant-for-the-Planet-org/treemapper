@@ -67,6 +67,9 @@ export class ProjectPermissionsGuard implements CanActivate {
         siteAccess: 'all',
         restrictedSites: null,
         extraPermissions: [],
+        // Not a real project_member row. Most routes treat this as a normal
+        // admin; a route that needs membership of the project itself checks it.
+        viaWorkspaceAdmin: true,
       };
       source = 'workspaceAdmin';
     }

@@ -23,10 +23,11 @@ import {
 import { TtcContributionsClient } from './ttc-contributions.client';
 import { CENTI, aggregateMatches, exceedsCapacity, toTrees } from './match-math';
 
-// Roles that may claim a project's trees, same set the routes require. Owner
-// only: matching writes totals to TTC on the project's behalf, so it does not
-// follow the app's usual owner-or-admin rule.
-const MATCHER_ROLES = ['owner'];
+// Roles that may claim a project's trees, the same set the routes require.
+// Keep this in step with `@ProjectRoles(...)` on TreeMatchController: this is
+// the check for the *other* projects a cross-project match reads trees from,
+// and the two halves drifting apart is how a hole opens.
+const MATCHER_ROLES = ['owner', 'admin'];
 
 // A plant location with free trees, as auto-match planning needs it.
 export interface MatchableIntervention {
@@ -391,11 +392,13 @@ export class TreeMatchService {
     return allowed;
   }
 
-  // Same membership resolution the route guard uses, held to the same owner-only
-  // rule the routes are. There is deliberately no workspace-admin fallback here:
-  // the guard would resolve a workspace owner or admin as a project admin, and
-  // admins cannot match, so accepting one on this side would be a way into
-  // another project's trees that the front door does not offer.
+  // Same membership resolution the route guard uses, held to the same
+  // owner-or-admin rule the routes are. There is deliberately no
+  // workspace-admin fallback: neither of the two lookups below reads
+  // `workspace_member`, so a workspace owner or admin with no membership of
+  // this project gets nothing here. That mirrors `TreeMatchAccessGuard` on the
+  // path project, and it is what keeps an admin's reach to the projects they
+  // were actually added to.
   private async assertCanMatchFrom(
     projectUid: string,
     userId: number,
@@ -406,7 +409,7 @@ export class TreeMatchService {
     if (membership && MATCHER_ROLES.includes(membership.role)) return;
 
     throw new ForbiddenException(
-      'You need to be the owner of the project the plant locations belong to',
+      'You need to be an owner or admin of the project the plant locations belong to',
     );
   }
 
