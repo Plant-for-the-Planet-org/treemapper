@@ -1,10 +1,12 @@
 import { Suspense } from 'react';
-import ProductPage from '@/component/product/ProductPage';
+import LoginContent from './components/LoginContent';
+
 
 export default function LoginPage() {
   return (
+    // TODO: replace fallback={null} with a login skeleton
     <Suspense fallback={null}>
-      <ProductPage />
+      <LoginContent />
     </Suspense>
   );
 }

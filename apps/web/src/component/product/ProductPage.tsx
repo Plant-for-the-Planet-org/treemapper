@@ -31,22 +31,27 @@ import { WhatIsTreeMapper } from './WhatIsTreeMapper';
 import { WhatYouCanDo } from './WhatYouCanDo';
 
 /**
- * Public TreeMapper product page, served at /login.
+ * TreeMapper product page.
  *
- * It replaces the old split-screen login screen: anyone who is not signed in
- * lands here (the dashboard layout still bounces them to /login), and the sign
- * -in choices moved into a dialog behind the nav so the Auth0 flow is unchanged.
+ * Still a POC, so it is not public yet: /login keeps serving the old
+ * split-screen login screen, and this renders at /dashboard/productpage behind
+ * a Plant-for-the-Planet-only gate for team review. The sign-in choices live in
+ * a dialog behind the nav and run the same Auth0 flow, so the page is ready to
+ * take over /login once it is signed off.
  */
 export default function ProductPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, tokenLoading } = useAccessToken();
+  const { accessToken, tokenLoading } = useAccessToken();
 
   const returnTo = searchParams.get('returnTo') ?? searchParams.get('redirectTo');
   const [loading, setLoading] = useState<string | false>(false);
   const [signInOpen, setSignInOpen] = useState(false);
 
-  const isAuthenticated = !tokenLoading && !!user;
+  // Follow the token, not the profile store: useUserStore is only filled in by
+  // DashboardClientLayout, which does not wrap this page, so a signed-in
+  // visitor would otherwise still be offered the sign-in dialog.
+  const isAuthenticated = !tokenLoading && !!accessToken;
 
   // Someone bounced off a protected route still gets sent straight back once
   // they are signed in. Visiting /login deliberately just shows the page.
