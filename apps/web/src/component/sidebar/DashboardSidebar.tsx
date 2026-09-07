@@ -8,7 +8,8 @@ import {
   LayoutDashboard, MapPin, Leaf, Users, Activity, Upload,
   CheckSquare, FileText, BarChart2, Trophy, Settings, Building,
   ChevronDown, ChevronRight, Plus,
-  UserCog, SlidersHorizontal, UserCheck, LogOut, Grid2x2, Smartphone
+  UserCog, SlidersHorizontal, UserCheck, LogOut, Grid2x2, Smartphone,
+  Link2
 } from 'lucide-react'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -80,6 +81,10 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
   // Same helper the pages use, so a nav item can never appear for someone the
   // page (and the API behind it) will refuse.
   const isAdminOrOwner = isProjectAdmin(projectRole)
+  // TreeMatch is owner-only, narrower than the admin-or-owner rule everything
+  // else uses: matching writes claims against a project's trees and pushes
+  // totals to the donation backend, which is the owner's call alone.
+  const isOwner = projectRole === 'owner'
 
   // The Workspace settings area is for people who own or admin at least one
   // workspace -- regardless of which project is currently selected. We resolve
@@ -159,7 +164,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
 
   const canImpersonate = User?.type === 'superadmin'
   const isImpersonating = !!(User as { impersonated?: boolean } | null)?.impersonated
-
+  const isPlatformProjectWorkspace = selectedProject?.workspace?.slug?.toLowerCase() === 'platform-projects'
   const handleExitImpersonation = async () => {
     try {
       const resp = await exitImpersonationWork(accessToken || '')
@@ -224,6 +229,14 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         ...(isAdminOrOwner ? [{ icon: Smartphone, label: 'Devices', id: 'device-management' }] : []),
       ],
     },
+    ...((isPlatformProjectWorkspace && isOwner) ? [{
+      label: 'Matching',
+      items: [
+        // Owner-only. The page repeats the check, so a direct URL does not get
+        // past it either. A per-project matching-enabled flag is still to come.
+        { icon: Link2, label: 'TreeMatch', id: 'treematch' },
+      ],
+    }] : []),
     {
       label: 'Analyse',
       items: [

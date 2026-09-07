@@ -24,6 +24,7 @@ const ROUTE_LABELS: Record<string, string> = {
   dataexplore: 'Data Explorer',
   leaderboard: 'Leaderboard',
   settings: 'Settings',
+  treematch: 'TreeMatch',
 }
 
 export default function DashboardTopBar() {
@@ -143,6 +144,9 @@ export default function DashboardTopBar() {
         ) : (
           <div className="flex items-center gap-2">
             {registeredActions.map((a, i) => {
+              if (a.node) {
+                return <div key={i} className="flex items-center">{a.node}</div>
+              }
               const Icon = a.icon
               const isPrimary = a.variant === 'primary' || (!a.variant && i === registeredActions.length - 1)
               return (
