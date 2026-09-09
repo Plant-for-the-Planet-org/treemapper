@@ -3,9 +3,14 @@
  *
  * Each field lists the header names it recognises. `autoMapColumns` uses these to
  * load a file straight through when it matches the downloadable template (or
- * anything close to it), and the mapping dialog only appears when a required
- * field cannot be found. Aliases are compared with punctuation and case stripped,
- * so "Height (m)", "height_m" and "HEIGHT M" all land on the same field.
+ * anything close to it), and the mapping dialog only appears when
+ * `mappingNeedsAttention` says the match is unfinished. Aliases are compared with
+ * punctuation and case stripped, so "Height (m)", "height_m" and "HEIGHT M" all
+ * land on the same field.
+ *
+ * Every tree field is optional, coordinates included, so "a required field is
+ * missing" is no longer enough to decide whether the dialog should open. See
+ * `mappingNeedsAttention` for the rest of the rule.
  */
 
 export interface FieldSpec {
@@ -16,6 +21,12 @@ export interface FieldSpec {
   /** Header name written into the downloadable template. */
   templateHeader: string;
   required: boolean;
+  /**
+   * The other field this one cannot be used without. Optional on its own, but a
+   * latitude with no longitude places nothing, so the mapping counts as
+   * unfinished until both sides are set or both are cleared.
+   */
+  pairedWith?: string;
   hint?: string;
   /** Accepted header names, most specific first. */
   aliases: string[];
@@ -28,16 +39,18 @@ export const TREE_FIELDS: FieldSpec[] = [
     key: 'latitude',
     label: 'Latitude',
     templateHeader: 'latitude',
-    required: true,
-    hint: 'Decimal degrees, e.g. 52.5200',
+    required: false,
+    pairedWith: 'longitude',
+    hint: 'Optional. Decimal degrees, e.g. 52.5200. Leave out if positions were not recorded',
     aliases: ['latitude', 'lat', 'ycoordinate', 'y'],
   },
   {
     key: 'longitude',
     label: 'Longitude',
     templateHeader: 'longitude',
-    required: true,
-    hint: 'Decimal degrees, e.g. 13.4050',
+    required: false,
+    pairedWith: 'latitude',
+    hint: 'Optional, but needed whenever latitude is given',
     aliases: ['longitude', 'lng', 'lon', 'long', 'xcoordinate', 'x'],
   },
   {
@@ -136,8 +149,6 @@ export type ColumnMapping = Record<string, string>;
 
 export interface AutoMapResult {
   mapping: ColumnMapping;
-  /** Required field keys no header could be found for. */
-  missingRequired: string[];
 }
 
 /**
@@ -173,9 +184,28 @@ export function autoMapColumns(headers: string[], fields: FieldSpec[]): AutoMapR
     }
   }
 
-  const missingRequired = fields
-    .filter((f) => f.required && !mapping[f.key])
-    .map((f) => f.key);
+  return { mapping };
+}
 
-  return { mapping, missingRequired };
+/**
+ * Required fields with no column, plus the empty half of any half-mapped pair.
+ * Both read the same way to the user: the match is not finished yet.
+ */
+export function unfinishedFields(mapping: ColumnMapping, fields: FieldSpec[]): FieldSpec[] {
+  return fields.filter((f) => {
+    if (f.required) return !mapping[f.key];
+    return !!f.pairedWith && !mapping[f.key] && !!mapping[f.pairedWith];
+  });
+}
+
+/**
+ * Whether the file needs the mapping dialog rather than loading straight through.
+ *
+ * Three cases, and the third only matters because every tree field is optional:
+ * with nothing required, an unrecognised sheet would otherwise import as rows of
+ * blanks without ever asking. A file whose headers we matched, even partly, still
+ * loads in one click.
+ */
+export function mappingNeedsAttention(mapping: ColumnMapping, fields: FieldSpec[]): boolean {
+  return unfinishedFields(mapping, fields).length > 0 || Object.keys(mapping).length === 0;
 }

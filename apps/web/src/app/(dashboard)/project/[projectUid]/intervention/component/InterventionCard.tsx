@@ -54,6 +54,7 @@ interface Intervention {
   // capture completeness: 'complete' | 'partial' | 'incomplete'
   captureStatus: string;
   registrationDate: string;
+  interventionStartDate: string;
   flag?: boolean;
   flagReason?: FlagReason[];
   hasRecords?: boolean;
@@ -232,7 +233,7 @@ export const InterventionCard = ({
               <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3 w-3 text-muted-foreground/60" />
-                  <span>{formatDate(intervention.registrationDate)}</span>
+                  <span>{formatDate(intervention.interventionStartDate)}</span>
                 </span>
                 {!isTreeRegistration && (
                   <span className="flex items-center gap-1">

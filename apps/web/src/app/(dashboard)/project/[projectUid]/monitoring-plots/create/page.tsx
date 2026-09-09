@@ -344,7 +344,7 @@ const CreatePlotPage = () => {
         {step === 'trees' && (
           <CsvStep
             title="Trees"
-            description="One row per measurement. Repeat a tree's tag across rows to bring in its measurement history."
+            description="One row per measurement. Repeat a tree's tag across rows to bring in its measurement history. Latitude and longitude are optional."
             fields={TREE_FIELDS}
             onDownloadTemplate={downloadTreeTemplate}
             onParse={handleTreeCsv}

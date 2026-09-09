@@ -90,6 +90,9 @@ const ReviewStep = ({
     }));
 
   const totalMeasurements = trees.reduce((a, t) => a + t.measurements.length, 0);
+  // Position is optional, so a tree missing from the map is not a fault. Say how
+  // many, or the map silently looks short of trees.
+  const unlocated = trees.length - points.length;
 
   return (
     <div className="space-y-5">
@@ -158,6 +161,12 @@ const ReviewStep = ({
               <AlertTriangle className="w-3.5 h-3.5 mt-px flex-none" />
               {points.filter((p) => p.outside).length} tree(s) sit outside the boundary. They
               still save, but check the coordinates.
+            </p>
+          )}
+          {unlocated > 0 && (
+            <p className="text-[11.5px] text-muted-foreground mt-2">
+              {unlocated} tree{unlocated === 1 ? '' : 's'} without coordinates. They save with
+              the plot, they just do not show on the map.
             </p>
           )}
         </div>

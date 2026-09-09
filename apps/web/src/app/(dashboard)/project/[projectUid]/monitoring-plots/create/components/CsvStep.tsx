@@ -1,21 +1,35 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { AlertCircle, CheckCircle2, Download, FileText, Upload, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Columns3, Download, FileText, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { ColumnMapping, FieldSpec, autoMapColumns } from '../utils/csvFields';
+import {
+  ColumnMapping, FieldSpec, autoMapColumns, mappingNeedsAttention,
+} from '../utils/csvFields';
 import { readCsvSample } from '../utils/parseCsv';
 import ColumnMappingDialog from './ColumnMappingDialog';
+
+/** A file read for its headers, with the mapping last used or proposed for it. */
+interface CsvSource {
+  file: File;
+  headers: string[];
+  sampleRows: Record<string, string>[];
+  mapping: ColumnMapping;
+}
 
 /**
  * Shared upload step for the tree and observation sheets.
  *
  * The flow is: pick a file, auto-map its headers, and go straight to parsing when
- * every required field was found. The mapping dialog only opens when something is
- * missing, so a downloaded template loads in one click. Both CSV steps are
- * optional; a plot with no trees and no observations is still a valid plot.
+ * the match came out finished. The mapping dialog opens only when something is
+ * missing, so a downloaded template loads in one click, and "Change column
+ * matching" reopens it for a file already loaded. That button is the only way to
+ * fix a column we matched to the wrong field, or missed: with every tree field
+ * optional, a wrong guess no longer stops the load and would otherwise be stuck.
+ * Both CSV steps are optional; a plot with no trees and no observations is still
+ * a valid plot.
  */
 const CsvStep = ({
   title,
@@ -45,12 +59,8 @@ const CsvStep = ({
   const [dragging, setDragging] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [pending, setPending] = useState<{
-    file: File;
-    headers: string[];
-    sampleRows: Record<string, string>[];
-    mapping: ColumnMapping;
-  } | null>(null);
+  const [pending, setPending] = useState<CsvSource | null>(null);
+  const [source, setSource] = useState<CsvSource | null>(null);
 
   const handleFile = async (file: File) => {
     setError('');
@@ -70,9 +80,11 @@ const CsvStep = ({
         setError('That file has no rows.');
         return;
       }
-      const { mapping, missingRequired } = autoMapColumns(headers, fields);
-      if (missingRequired.length > 0) {
-        setPending({ file, headers, sampleRows, mapping });
+      const { mapping } = autoMapColumns(headers, fields);
+      const next = { file, headers, sampleRows, mapping };
+      setSource(next);
+      if (mappingNeedsAttention(mapping, fields)) {
+        setPending(next);
         return;
       }
       await onParse(file, mapping);
@@ -86,8 +98,10 @@ const CsvStep = ({
   const confirmMapping = async (mapping: ColumnMapping) => {
     if (!pending) return;
     const { file } = pending;
+    setSource({ ...pending, mapping });
     setPending(null);
     setBusy(true);
+    setError('');
     try {
       await onParse(file, mapping);
     } catch (err: any) {
@@ -192,15 +206,28 @@ const CsvStep = ({
         )}
 
         {loadedCount > 0 && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="mt-3 h-7 px-2 text-[11px] text-muted-foreground"
-            onClick={onClear}
-          >
-            <X className="w-3 h-3 mr-1" /> Remove these rows
-          </Button>
+          <div className="mt-3 flex flex-wrap items-center gap-1">
+            {source && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-[11px] text-muted-foreground"
+                onClick={() => setPending(source)}
+              >
+                <Columns3 className="w-3 h-3 mr-1" /> Change column matching
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-[11px] text-muted-foreground"
+              onClick={() => { setSource(null); onClear(); }}
+            >
+              <X className="w-3 h-3 mr-1" /> Remove these rows
+            </Button>
+          </div>
         )}
       </div>
 

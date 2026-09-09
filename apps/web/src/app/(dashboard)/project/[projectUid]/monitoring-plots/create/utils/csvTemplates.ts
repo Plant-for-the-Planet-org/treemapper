@@ -33,12 +33,15 @@ const download = (fileName: string, csv: string) => {
 export function downloadTreeTemplate() {
   const headers = TREE_FIELDS.map((f) => f.templateHeader);
   // Tag T-001 appears twice on purpose: it shows how measurement history works.
-  // T-003 is a recruit, to show the second option for that column.
+  // T-003 is a recruit, to show the second option for that column. T-004 has no
+  // coordinates, because position is optional and the template is where that is
+  // easiest to see. Leave both cells blank, never just one.
   const rows = [
     ['52.520100', '13.404900', 'T-001', 'Quercus robur', '2024-03-15', '1.20', '3.5', '2023-11-02', 'planted'],
     ['52.520100', '13.404900', 'T-001', 'Quercus robur', '2026-03-18', '2.05', '5.1', '2023-11-02', 'planted'],
     ['52.520140', '13.405020', 'T-002', 'Fagus sylvatica', '2026-03-18', '0.85', '2.2', '2023-11-02', 'planted'],
     ['52.520180', '13.405110', 'T-003', 'Betula pendula', '2026-03-18', '0.60', '1.4', '', 'recruit'],
+    ['', '', 'T-004', 'Quercus robur', '2026-03-18', '1.10', '2.9', '2023-11-02', 'planted'],
   ];
   download('plot-trees-template.csv', toCsv(headers, rows));
 }

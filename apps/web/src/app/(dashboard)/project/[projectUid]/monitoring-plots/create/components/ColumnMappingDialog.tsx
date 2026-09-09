@@ -10,14 +10,15 @@ import { Label } from '@/components/ui/label';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { ColumnMapping, FieldSpec } from '../utils/csvFields';
+import { ColumnMapping, FieldSpec, unfinishedFields } from '../utils/csvFields';
 
 const NONE = '__none__';
 
 /**
- * Shown only when a required column could not be found in the uploaded file. A
- * sheet saved from our template auto-maps and never reaches this dialog, so this
- * is the escape hatch for a user's own export rather than the normal path.
+ * Column matching, opened when the auto-match is unfinished and from the step's
+ * own "Change column matching" button. A sheet saved from our template matches
+ * fully and goes straight through, so this is the escape hatch for a user's own
+ * export rather than the normal path.
  */
 const ColumnMappingDialog = ({
   open,
@@ -38,7 +39,12 @@ const ColumnMappingDialog = ({
 }) => {
   const [mapping, setMapping] = useState<ColumnMapping>(initialMapping);
 
-  const missing = fields.filter((f) => f.required && !mapping[f.key]);
+  // Required fields with no column, plus a latitude without its longitude or the
+  // other way round: half a pair cannot place a tree, so it blocks the load the
+  // same way a missing required field does.
+  const missing = unfinishedFields(mapping, fields);
+  const missingKeys = new Set(missing.map((f) => f.key));
+  const nothingMapped = Object.keys(mapping).length === 0;
 
   const sampleFor = (header: string): string => {
     const values = sampleRows
@@ -54,8 +60,8 @@ const ColumnMappingDialog = ({
         <DialogHeader>
           <DialogTitle>Match your columns</DialogTitle>
           <DialogDescription>
-            We could not find every column we need. Point each field at the right
-            column in your file.
+            Point each field at the right column in your file. Anything your sheet
+            does not have can stay on &quot;Not in my file&quot;.
           </DialogDescription>
         </DialogHeader>
 
@@ -81,7 +87,7 @@ const ColumnMappingDialog = ({
                     return next;
                   })}
                 >
-                  <SelectTrigger className={!mapping[field.key] && field.required ? 'border-destructive' : ''}>
+                  <SelectTrigger className={missingKeys.has(field.key) ? 'border-destructive' : ''}>
                     <SelectValue placeholder="Not in my file" />
                   </SelectTrigger>
                   <SelectContent>
@@ -101,18 +107,23 @@ const ColumnMappingDialog = ({
           ))}
         </div>
 
-        {missing.length > 0 && (
+        {(missing.length > 0 || nothingMapped) && (
           <div className="flex items-start gap-2 text-[12px] text-destructive">
             <AlertCircle className="w-3.5 h-3.5 mt-px flex-none" />
             <span>
-              Still needed: {missing.map((f) => f.label).join(', ')}
+              {nothingMapped
+                ? 'Match at least one column to load this file.'
+                : `Still needed: ${missing.map((f) => f.label).join(', ')}`}
             </span>
           </div>
         )}
 
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button onClick={() => onConfirm(mapping)} disabled={missing.length > 0}>
+          <Button
+            onClick={() => onConfirm(mapping)}
+            disabled={missing.length > 0 || nothingMapped}
+          >
             Load data
           </Button>
         </DialogFooter>
