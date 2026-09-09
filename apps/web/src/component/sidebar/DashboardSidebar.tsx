@@ -226,7 +226,11 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         { icon: Upload, label: 'Bulk Upload', id: 'bulkupload' },
         ...(!isContributor ? [{ icon: CheckSquare, label: 'Approvals', id: 'approvals' }] : []),
         ...(!isContributor ? [{ icon: FileText, label: 'Forms', id: 'forms' }] : []),
-        ...(isAdminOrOwner ? [{ icon: Smartphone, label: 'Devices', id: 'device-management' }] : []),
+        // Hidden for now. The page needs the user_device telemetry columns that
+        // migration 0008 adds, and it 500s wherever that has not been applied.
+        // Restore this line (the Smartphone import is still above) once the
+        // migration is live everywhere.
+        // ...(isAdminOrOwner ? [{ icon: Smartphone, label: 'Devices', id: 'device-management' }] : []),
       ],
     },
     ...((showTreeMatch && isPlatformProjectWorkspace && isAdminOrOwner) ? [{
