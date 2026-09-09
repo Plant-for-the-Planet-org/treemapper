@@ -161,6 +161,10 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
   const canImpersonate = User?.type === 'superadmin'
   const isImpersonating = !!(User as { impersonated?: boolean } | null)?.impersonated
   const isPlatformProjectWorkspace = selectedProject?.workspace?.slug?.toLowerCase() === 'platform-projects'
+  // TreeMatch is hidden from the sidebar for now. The page and its API are still
+  // there and a direct URL still works, so this only takes the entry out of the
+  // nav. Flip to true to bring the "Matching" group back.
+  const showTreeMatch = false
   const handleExitImpersonation = async () => {
     try {
       const resp = await exitImpersonationWork(accessToken || '')
@@ -225,7 +229,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         ...(isAdminOrOwner ? [{ icon: Smartphone, label: 'Devices', id: 'device-management' }] : []),
       ],
     },
-    ...((isPlatformProjectWorkspace && isAdminOrOwner) ? [{
+    ...((showTreeMatch && isPlatformProjectWorkspace && isAdminOrOwner) ? [{
       label: 'Matching',
       items: [
         // Owner or admin. The page repeats the check, so a direct URL does not

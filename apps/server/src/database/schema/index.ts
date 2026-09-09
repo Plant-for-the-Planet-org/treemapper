@@ -640,7 +640,12 @@ export const userDevice = pgTable('user_device', {
   userId: integer('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   oneSignalId: text('one_signal_id'),
   // Stored lowercase ('ios' | 'android') so dashboard filters can match
-  // directly; the mobile app sends the platform-cased Device.osName.
+  // directly; the mobile app sends the platform-cased Device.osName and
+  // `normalizeDeviceOs` in users.service.ts folds it. Deliberately NOT a CHECK
+  // constraint: device registration runs on every app open, and the normalizer
+  // already maps an unknown OS to null rather than failing the write. A check
+  // here would turn a cosmetic field into a hard 23514 on that path the moment
+  // any deployment lagged the normalizer.
   deviceOs: text('device_os'),
   deviceName: text('device_name'),
   deviceModel: text('device_model'),
@@ -672,8 +677,6 @@ export const userDevice = pgTable('user_device', {
     .on(table.oneSignalId)
     .where(sql`one_signal_id IS NOT NULL`),
   lastActiveIdx: index('user_device_last_active_idx').on(table.lastActiveAt),
-  validDeviceOs: check('valid_device_os',
-    sql`device_os IS NULL OR device_os IN ('ios', 'android')`),
   validBatteryLevel: check('valid_battery_level',
     sql`battery_level IS NULL OR (battery_level >= 0 AND battery_level <= 100)`),
   validStorageUsedPct: check('valid_storage_used_pct',

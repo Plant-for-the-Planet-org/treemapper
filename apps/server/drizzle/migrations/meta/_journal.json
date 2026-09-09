@@ -57,6 +57,13 @@
       "when": 1788763850582,
       "tag": "0007_overrated_colleen_wing",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788941690070,
+      "tag": "0008_mushy_blue_blade",
+      "breakpoints": true
     }
   ]
 }
