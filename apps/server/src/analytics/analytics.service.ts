@@ -20,6 +20,7 @@ import {
 } from './dto/analytics.dto';
 import { intervention, projectMember, project, tree, user, site, interventionSpecies, scientificSpecies, projectSpecies } from '../database/schema';
 import { publishedInterventionFilter, publishedSiteFilter } from '../approval-board/approval.util';
+import { fieldInterventionsOnly } from '../database/intervention-filters';
 import { endOfDay, startOfDay } from './date-range.util';
 import { console } from 'inspector';
 
@@ -236,7 +237,8 @@ export class AnalyticsService {
           eq(intervention.projectId, projectId),
           gte(intervention.interventionStartDate, startDate),
           lte(intervention.interventionStartDate, endDate),
-          isNull(intervention.deletedAt)
+          isNull(intervention.deletedAt),
+          fieldInterventionsOnly()
         )
       )
       .groupBy(sql`DATE(${intervention.interventionStartDate})`)
@@ -263,7 +265,8 @@ export class AnalyticsService {
           eq(intervention.projectId, projectId),
           gte(intervention.interventionStartDate, startDate),
           lte(intervention.interventionStartDate, endDate),
-          isNull(intervention.deletedAt)
+          isNull(intervention.deletedAt),
+          fieldInterventionsOnly()
         )
       )
       .groupBy(sql`DATE_TRUNC('week', ${intervention.interventionStartDate})`)
@@ -288,7 +291,8 @@ export class AnalyticsService {
           eq(intervention.projectId, projectId),
           gte(intervention.interventionStartDate, startDate),
           lte(intervention.interventionStartDate, endDate),
-          isNull(intervention.deletedAt)
+          isNull(intervention.deletedAt),
+          fieldInterventionsOnly()
         )
       )
       .groupBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`)
@@ -411,6 +415,7 @@ export class AnalyticsService {
             gte(intervention.interventionStartDate, twelveMonthsAgo),
             isNull(intervention.deletedAt),
             publishedInterventionFilter(),
+            fieldInterventionsOnly(),
           ))
           .groupBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`)
           .orderBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`),
@@ -427,6 +432,7 @@ export class AnalyticsService {
             gte(intervention.interventionStartDate, twelveMonthsAgo),
             isNull(intervention.deletedAt),
             publishedInterventionFilter(),
+            fieldInterventionsOnly(),
           ))
           .groupBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`)
           .orderBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`),
@@ -442,6 +448,7 @@ export class AnalyticsService {
             gte(intervention.interventionStartDate, twelveMonthsAgo),
             isNull(intervention.deletedAt),
             publishedInterventionFilter(),
+            fieldInterventionsOnly(),
           ))
           .groupBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`)
           .orderBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`),
@@ -544,7 +551,8 @@ export class AnalyticsService {
             eq(intervention.projectId, projectId),
             lte(intervention.interventionStartDate, endDate),
             isNull(intervention.deletedAt),
-            publishedInterventionFilter()
+            publishedInterventionFilter(),
+            fieldInterventionsOnly()
           )
         ),
 
@@ -612,7 +620,8 @@ export class AnalyticsService {
           eq(intervention.projectId, projectId),
           lte(intervention.interventionStartDate, endDate),
           isNull(intervention.deletedAt),
-          publishedInterventionFilter()
+          publishedInterventionFilter(),
+          fieldInterventionsOnly()
         )
       );
 
@@ -626,7 +635,8 @@ export class AnalyticsService {
           eq(intervention.projectId, projectId),
           lte(intervention.interventionStartDate, endDate),
           isNull(intervention.deletedAt),
-          publishedInterventionFilter()
+          publishedInterventionFilter(),
+          fieldInterventionsOnly()
         )
       );
 
@@ -722,7 +732,8 @@ export class AnalyticsService {
           eq(intervention.projectId, projectId),
           gte(intervention.interventionStartDate, currentMonthStart),
           lte(intervention.interventionStartDate, currentMonthEnd),
-          isNull(intervention.deletedAt)
+          isNull(intervention.deletedAt),
+          fieldInterventionsOnly()
         )
       );
 
@@ -1309,6 +1320,7 @@ async getProjectLeaderboard(
         eq(intervention.userId, user.id),
         eq(intervention.projectId, projectId),
         isNull(intervention.deletedAt),
+        fieldInterventionsOnly(),
         dateFilter
       )
     )
@@ -1344,6 +1356,7 @@ async getProjectLeaderboard(
         eq(intervention.userId, user.id),
         eq(intervention.projectId, projectId),
         isNull(intervention.deletedAt),
+        fieldInterventionsOnly(),
         dateFilter
       )
     )

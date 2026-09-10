@@ -1,4 +1,6 @@
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsDateString,
@@ -23,6 +25,45 @@ export enum PlotShape {
 }
 
 /**
+ * Upper bounds on everything a client can send in bulk.
+ *
+ * These are not guesses at what field work produces, they are the point past
+ * which a request stops being a plot and starts being a denial of service. Every
+ * plant in a plot upload is its own insert inside one transaction, so an
+ * unbounded list holds a pool connection and its row locks for as long as the
+ * client cares to make it. The 10 MB body limit was the only ceiling before
+ * this, and 10 MB of JSON is a great many plants.
+ *
+ * They are deliberately generous: a real monitoring plot holds tens to a few
+ * hundred stems, so nothing here should ever be met by honest data. Raise one if
+ * a real project actually reaches it.
+ */
+export const PLOT_LIMITS = {
+  /** Plants in one plot upload, or one add-plants call. */
+  PLANTS: 2000,
+  /** Plot-level readings in one call. */
+  OBSERVATIONS: 500,
+  /** Photos in one call. */
+  IMAGES: 200,
+  /** Measurements on a single plant. Monthly for 16 years. */
+  TIMELINE: 200,
+  /** Plots in one bulk upload. */
+  BULK_PLOTS: 50,
+  /** Plots named in one group call. */
+  GROUP_PLOTS: 1000,
+  /** Metres. A plot larger than this is a unit mistake, not a plot. */
+  DIMENSION_M: 5000,
+  /** Height/width readings. Units vary by client, so this only stops nonsense. */
+  MEASUREMENT: 100000,
+  /** Stems recorded under one plant row. */
+  PLANT_COUNT: 100000,
+  /** Client-generated ids and server uids. */
+  ID: 128,
+  /** Short free text: a unit, a status word, a type. */
+  TERM: 64,
+} as const;
+
+/**
  * One photo that has already been pushed to R2 through a presigned url. Only the
  * stored filename travels in the payload, the same way the intervention sync
  * sends tree photos (see MobileService.updateInterventionImage).
@@ -34,6 +75,7 @@ export class PlotImageDto {
   @ApiPropertyOptional({ description: 'Stable device id (Realm ImageData.image_id), used to skip a photo already stored' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.ID)
   clientId?: string;
 
   @ApiProperty({ description: 'Filename returned by the presigned-url call' })
@@ -77,23 +119,27 @@ export class PlotTimelineEntryDto {
   @ApiPropertyOptional({ description: 'Stable mobile id (PlantTimeline.timeline_id)' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.ID)
   clientId?: string;
 
   @ApiPropertyOptional({ description: 'Plant status at the time of measurement', example: 'alive' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.TERM)
   status?: string;
 
   @ApiPropertyOptional({ description: 'Height/length value' })
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(PLOT_LIMITS.MEASUREMENT)
   length?: number;
 
   @ApiPropertyOptional({ description: 'Width/diameter value' })
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(PLOT_LIMITS.MEASUREMENT)
   width?: number;
 
   @ApiPropertyOptional({ example: '2026-01-15T09:00:00Z' })
@@ -104,16 +150,19 @@ export class PlotTimelineEntryDto {
   @ApiPropertyOptional({ example: 'm' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.TERM)
   lengthUnit?: string;
 
   @ApiPropertyOptional({ example: 'cm' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.TERM)
   widthUnit?: string;
 
   @ApiPropertyOptional({ description: 'CDN image url for this measurement' })
   @IsOptional()
   @IsString()
+  @MaxLength(255)
   image?: string;
 }
 
@@ -125,6 +174,7 @@ export class PlotPlantDto {
   @ApiPropertyOptional({ description: 'Stable mobile id (PlotPlantedSpecies.plot_plant_id)' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.ID)
   clientId?: string;
 
   @ApiPropertyOptional({ description: 'Tree tag' })
@@ -136,27 +186,32 @@ export class PlotPlantDto {
   @ApiPropertyOptional({ description: 'Scientific species uid (scientific_species.uid). Omit/unknown for unidentified.' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.ID)
   scientificSpecies?: string;
 
   @ApiPropertyOptional({ description: 'Species name as captured on device' })
   @IsOptional()
   @IsString()
+  @MaxLength(255)
   speciesName?: string;
 
   @ApiPropertyOptional({ description: 'Local/common name (Realm aliases)' })
   @IsOptional()
   @IsString()
+  @MaxLength(255)
   aliases?: string;
 
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()
   @IsNumber()
   @Min(1)
+  @Max(PLOT_LIMITS.PLANT_COUNT)
   count?: number;
 
   @ApiPropertyOptional({ description: 'CDN image url' })
   @IsOptional()
   @IsString()
+  @MaxLength(255)
   image?: string;
 
   @ApiPropertyOptional({ example: '2026-01-15T09:00:00Z' })
@@ -172,6 +227,7 @@ export class PlotPlantDto {
   @ApiPropertyOptional({ description: 'Origin of the plant', example: 'planted' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.TERM)
   type?: string;
 
   @ApiPropertyOptional({ description: 'Omitted when the plant\'s exact position was not recorded', example: 52.52 })
@@ -191,6 +247,7 @@ export class PlotPlantDto {
   @ApiPropertyOptional({ type: [PlotTimelineEntryDto] })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(PLOT_LIMITS.TIMELINE)
   @ValidateNested({ each: true })
   @Type(() => PlotTimelineEntryDto)
   timeline?: PlotTimelineEntryDto[];
@@ -204,10 +261,12 @@ export class PlotObservationDto {
   @ApiPropertyOptional({ description: 'Stable mobile id (PlotObservation.obs_id)' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.ID)
   clientId?: string;
 
   @ApiProperty({ description: 'Observation type', example: 'soil_moisture' })
   @IsString()
+  @MaxLength(PLOT_LIMITS.TERM)
   type: string;
 
   @ApiProperty({ example: '2026-01-15T09:00:00Z' })
@@ -217,6 +276,7 @@ export class PlotObservationDto {
   @ApiPropertyOptional({ example: '%' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.TERM)
   unit?: string;
 
   @ApiPropertyOptional({ example: 42.5 })
@@ -234,6 +294,7 @@ export class CreateMonitoringPlotDto {
   @ApiPropertyOptional({ description: 'Stable mobile id (MonitoringPlot.plot_id) used for idempotency' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.ID)
   clientId?: string;
 
   @ApiPropertyOptional({ description: 'Plot name' })
@@ -250,29 +311,34 @@ export class CreateMonitoringPlotDto {
   @ApiPropertyOptional({ description: 'Plot type (Realm MonitoringPlot.type)' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.TERM)
   plotType?: string;
 
   @ApiPropertyOptional({ description: 'Plot complexity (Realm MonitoringPlot.complexity)' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.TERM)
   complexity?: string;
 
   @ApiPropertyOptional({ description: 'Radius in metres (circular plots)' })
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(PLOT_LIMITS.DIMENSION_M)
   radius?: number;
 
   @ApiPropertyOptional({ description: 'Length in metres (rectangular plots)' })
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(PLOT_LIMITS.DIMENSION_M)
   length?: number;
 
   @ApiPropertyOptional({ description: 'Width in metres (rectangular plots)' })
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(PLOT_LIMITS.DIMENSION_M)
   width?: number;
 
   @ApiProperty({ description: 'Plot boundary as GeoJSON Polygon (or Point)' })
@@ -292,7 +358,20 @@ export class CreateMonitoringPlotDto {
   @ApiPropertyOptional({ description: 'Site uid the plot belongs to' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.ID)
   plantProjectSite?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Group uid this plot belongs to. A device can put a plot in a group before ' +
+      'the plot has ever been uploaded, so the membership travels with the plot. ' +
+      'A uid that no longer names a live group in this project is ignored rather ' +
+      'than rejected, so a group deleted mid-trip cannot block the plot.',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(PLOT_LIMITS.ID)
+  plotGroupUid?: string;
 
   @ApiPropertyOptional({ example: '2026-01-15T09:00:00Z' })
   @IsOptional()
@@ -312,6 +391,7 @@ export class CreateMonitoringPlotDto {
   @ApiPropertyOptional({ example: 'on-site' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.TERM)
   captureMode?: string;
 
   @ApiPropertyOptional({ description: 'Device/GPS metadata' })
@@ -327,11 +407,13 @@ export class CreateMonitoringPlotDto {
   @ApiPropertyOptional({ description: 'Cover photo filename. Defaults to the first entry of `images`.' })
   @IsOptional()
   @IsString()
+  @MaxLength(255)
   image?: string;
 
   @ApiPropertyOptional({ type: [PlotImageDto], description: 'Every photo taken of the plot (the device plot gallery)' })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(PLOT_LIMITS.IMAGES)
   @ValidateNested({ each: true })
   @Type(() => PlotImageDto)
   images?: PlotImageDto[];
@@ -339,6 +421,7 @@ export class CreateMonitoringPlotDto {
   @ApiPropertyOptional({ type: [PlotPlantDto] })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(PLOT_LIMITS.PLANTS)
   @ValidateNested({ each: true })
   @Type(() => PlotPlantDto)
   plants?: PlotPlantDto[];
@@ -346,6 +429,7 @@ export class CreateMonitoringPlotDto {
   @ApiPropertyOptional({ type: [PlotObservationDto] })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(PLOT_LIMITS.OBSERVATIONS)
   @ValidateNested({ each: true })
   @Type(() => PlotObservationDto)
   observations?: PlotObservationDto[];
@@ -359,6 +443,7 @@ export class CreatePlotGroupDto {
   @ApiPropertyOptional({ description: 'Stable mobile id (PlotGroups.group_id) used for idempotency' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.ID)
   clientId?: string;
 
   @ApiProperty({ description: 'Group name' })
@@ -369,7 +454,9 @@ export class CreatePlotGroupDto {
   @ApiPropertyOptional({ description: 'Intervention uids of plots to attach to this group', type: [String] })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(PLOT_LIMITS.GROUP_PLOTS)
   @IsString({ each: true })
+  @MaxLength(PLOT_LIMITS.ID, { each: true })
   plotUids?: string[];
 
   @ApiPropertyOptional()
@@ -408,10 +495,12 @@ export class MonitoringPlotUploadResponseDto {
 export class RemeasurePlantDto {
   @ApiProperty({ description: 'Server tree uid (from the plot upload response) to attach measurements to' })
   @IsString()
+  @MaxLength(PLOT_LIMITS.ID)
   treeUid: string;
 
   @ApiProperty({ type: [PlotTimelineEntryDto], description: 'New measurements, oldest first' })
   @IsArray()
+  @ArrayMaxSize(PLOT_LIMITS.TIMELINE)
   @ValidateNested({ each: true })
   @Type(() => PlotTimelineEntryDto)
   measurements: PlotTimelineEntryDto[];
@@ -420,6 +509,8 @@ export class RemeasurePlantDto {
 export class UploadRemeasurementsDto {
   @ApiProperty({ type: [RemeasurePlantDto] })
   @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(PLOT_LIMITS.PLANTS)
   @ValidateNested({ each: true })
   @Type(() => RemeasurePlantDto)
   plants: RemeasurePlantDto[];
@@ -440,10 +531,13 @@ export class RemeasurementResultDto {
 export class AddPlotPlantsDto {
   @ApiProperty({ description: 'Server plot intervention uid (the upload response id) to add plants to' })
   @IsString()
+  @MaxLength(PLOT_LIMITS.ID)
   plotUid: string;
 
   @ApiProperty({ type: [PlotPlantDto] })
   @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(PLOT_LIMITS.PLANTS)
   @ValidateNested({ each: true })
   @Type(() => PlotPlantDto)
   plants: PlotPlantDto[];
@@ -458,10 +552,13 @@ export class AddPlotPlantsDto {
 export class AddPlotObservationsDto {
   @ApiProperty({ description: 'Server plot intervention uid (the upload response id) to add observations to' })
   @IsString()
+  @MaxLength(PLOT_LIMITS.ID)
   plotUid: string;
 
   @ApiProperty({ type: [PlotObservationDto] })
   @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(PLOT_LIMITS.OBSERVATIONS)
   @ValidateNested({ each: true })
   @Type(() => PlotObservationDto)
   observations: PlotObservationDto[];
@@ -490,10 +587,13 @@ export class AddPlotObservationsResultDto {
 export class AddPlotImagesDto {
   @ApiProperty({ description: 'Server plot intervention uid (the upload response id) to add photos to' })
   @IsString()
+  @MaxLength(PLOT_LIMITS.ID)
   plotUid: string;
 
   @ApiProperty({ type: [PlotImageDto] })
   @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(PLOT_LIMITS.IMAGES)
   @ValidateNested({ each: true })
   @Type(() => PlotImageDto)
   images: PlotImageDto[];
@@ -538,11 +638,13 @@ export class UpdateMonitoringPlotDto {
   @ApiPropertyOptional({ description: 'Plot type' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.TERM)
   plotType?: string;
 
   @ApiPropertyOptional({ description: 'Plot complexity' })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.TERM)
   complexity?: string;
 
   /**
@@ -555,18 +657,21 @@ export class UpdateMonitoringPlotDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(PLOT_LIMITS.DIMENSION_M)
   radius?: number | null;
 
   @ApiPropertyOptional({ description: 'Length in metres (rectangular plots)', nullable: true })
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(PLOT_LIMITS.DIMENSION_M)
   length?: number | null;
 
   @ApiPropertyOptional({ description: 'Width in metres (rectangular plots)', nullable: true })
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(PLOT_LIMITS.DIMENSION_M)
   width?: number | null;
 
   @ApiPropertyOptional()
@@ -585,6 +690,7 @@ export class UpdateMonitoringPlotDto {
   })
   @IsOptional()
   @IsString()
+  @MaxLength(PLOT_LIMITS.ID)
   groupUid?: string | null;
 }
 
@@ -602,6 +708,8 @@ export class UpdatePlotGroupDto {
   @ApiPropertyOptional({ description: 'Exact set of plot intervention uids the group should contain', type: [String] })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(PLOT_LIMITS.GROUP_PLOTS)
   @IsString({ each: true })
+  @MaxLength(PLOT_LIMITS.ID, { each: true })
   plotUids?: string[];
 }

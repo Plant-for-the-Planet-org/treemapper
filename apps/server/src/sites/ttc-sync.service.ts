@@ -50,12 +50,11 @@ export class TtcSyncService {
    * Headers for an on-behalf write: NO Authorization. TTC identifies the acting
    * profile from `X-Profile-ID` (the member's email) and authorises the request
    * with the shared `X-TOKEN-API` key. Mirrors the migrate flow's auth.
+   *
+   * Never log the returned object, in whole or in part: it carries a
+   * credential and a member's email address, and this runs on every sync.
    */
   private onBehalfHeaders(profileEmail: string): Record<string, string> {
-    console.log('TTC on-behalf headers:', {
-      'X-Profile-ID': profileEmail,
-      'X-TOKEN-API': process.env.API_KEY || '',
-    }); 
     return {
       'X-Profile-ID': profileEmail,
       'X-TOKEN-API': process.env.API_KEY || '',

@@ -12,6 +12,7 @@ import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot } from 'src/types/interface/slice.interface'
+import { FIX_REQUIRED } from 'src/types/type/app.type'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import RotatingView from '../common/RotatingView'
 import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
@@ -41,12 +42,23 @@ interface PlotWithPendingImages {
 }
 
 // Outcome of one plot upload:
-// - success: server accepted it, the plot is marked SYNCED locally
+// - success:   server accepted it, the plot is marked SYNCED locally
 // - retryable: network/server hiccup, the plot stays queued for a later sync
-// - rejected: the data itself is the problem (no boundary, or a payload the
-//   server rejected with 4xx). Retrying the same bytes can't succeed, so we
-//   skip it for the rest of this sync and tell the user to fix it.
-type PlotUploadOutcome = 'success' | 'retryable' | 'rejected'
+// - rejected:  the server read the payload and refused it (4xx)
+// - unusable:  the payload could not be built at all (no boundary, no server id)
+//
+// The last two are permanent for this data: retrying the same bytes can never
+// succeed. Both quarantine the plot with fix_required, which takes it out of the
+// queue and shows it as "Fix required" in the plot list until the user edits it.
+// Before this, a rejection lasted only as long as the app session, so a broken
+// plot came back on every sync and failed forever with nothing marking it.
+type PlotUploadOutcome = 'success' | 'retryable' | 'rejected' | 'unusable'
+
+// Which quarantine reason a permanent failure maps to.
+const FIX_REASON: Record<'rejected' | 'unusable', FIX_REQUIRED> = {
+    rejected: 'SERVER_REJECTED',
+    unusable: 'UNKNOWN',
+}
 
 // A 4xx (except auth/timeout/rate-limit) means the server read the payload and
 // rejected it; the same data fails forever. 5xx and network errors (customFetch
@@ -68,13 +80,23 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const { isConnected } = useNetInfo()
-    const { markMonitoringPlotSynced, markRemeasurementsSynced, markPlotPlantsSynced, markPlotObservationsSynced, markPlotImagesSynced } = useMonitoringPlotManagement()
+    const { markMonitoringPlotSynced, markRemeasurementsSynced, markPlotPlantsSynced, markPlotObservationsSynced, markPlotImagesSynced, updateFixRequiredPlot } = useMonitoringPlotManagement()
     const { addNewLog } = useLogManagement()
 
-    // Only complete, not-yet-synced plots are uploadable.
+    // Only complete, not-yet-synced plots are uploadable. Quarantined plots
+    // (fix_required != "NO") are left out of every queue below: they cannot
+    // succeed as they are, so counting them as pending would promise a sync that
+    // can never happen.
     const plotData = useQuery<MonitoringPlot>(
         RealmSchema.MonitoringPlot,
-        data => data.filtered('status != "SYNCED" AND is_complete == true'),
+        data => data.filtered('status != "SYNCED" AND is_complete == true AND fix_required == "NO"'),
+    )
+
+    // Plots that failed permanently and need the user to change something.
+    // Surfaced in the upload details modal and as a badge in the plot list.
+    const quarantinedPlots = useQuery<MonitoringPlot>(
+        RealmSchema.MonitoringPlot,
+        data => data.filtered('fix_required != "NO"'),
     )
 
     // Already-synced plots that gained new plants (added after the plot was
@@ -82,7 +104,7 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
     // add-plants endpoint.
     const newPlantsData = useQuery<MonitoringPlot>(
         RealmSchema.MonitoringPlot,
-        data => data.filtered('status == "SYNCED" AND plot_plants.server_tree_id == ""'),
+        data => data.filtered('status == "SYNCED" AND plot_plants.server_tree_id == "" AND fix_required == "NO"'),
     )
 
     // Already-synced plots that gained new observations (added after the plot was
@@ -90,7 +112,7 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
     // endpoint.
     const newObservationsData = useQuery<MonitoringPlot>(
         RealmSchema.MonitoringPlot,
-        data => data.filtered('status == "SYNCED" AND observations.sync_status == "NOT_SYNCED"'),
+        data => data.filtered('status == "SYNCED" AND observations.sync_status == "NOT_SYNCED" AND fix_required == "NO"'),
     )
 
     // Already-synced plots that have a synced plant and a pending timeline entry.
@@ -100,7 +122,7 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
     // no-op remeasure.
     const remeasureData = useQuery<MonitoringPlot>(
         RealmSchema.MonitoringPlot,
-        data => data.filtered('status == "SYNCED" AND plot_plants.server_tree_id != "" AND plot_plants.timeline.sync_status == "NOT_SYNCED"'),
+        data => data.filtered('status == "SYNCED" AND plot_plants.server_tree_id != "" AND plot_plants.timeline.sync_status == "NOT_SYNCED" AND fix_required == "NO"'),
     )
 
     // Plot photos live in their own collection (ImageData) with no link to the
@@ -129,11 +151,14 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
         Array.from(new Set(realm.objects<{ parent_id: string }>(RealmSchema.ImageData)
             .filtered('type == "monitoring_plot" AND status != "SYNCED"')
             .map(r => r.parent_id)))
-            .filter(id => realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id)?.status === 'SYNCED')
+            .filter(id => {
+                const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id)
+                return plot?.status === 'SYNCED' && plot?.fix_required === 'NO'
+            })
 
     const newImagesData: PlotWithPendingImages[] = Array.from(new Set(pendingImageRows.map(r => r.parent_id)))
         .map(id => realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id))
-        .filter(plot => plot?.status === 'SYNCED')
+        .filter(plot => plot?.status === 'SYNCED' && plot?.fix_required === 'NO')
         .map(plot => ({
             plot_id: plot!.plot_id,
             name: plot!.name,
@@ -175,11 +200,16 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
             // Plain snapshot so live-Realm access doesn't break across the awaited
             // image uploads inside the convertor.
             const snapshot = JSON.parse(JSON.stringify(plot)) as MonitoringPlot
+            // The group link is a Realm backlink, so it is read here off the live
+            // object rather than the snapshot. A LOCAL_ONLY group was never
+            // uploaded and has no server row to join, so it is left out.
+            const group = plot.plot_group?.[0]
+            const groupUid = group && group.sync_status !== 'LOCAL_ONLY' ? group.group_id : ''
 
-            const { body, error, uploadedImages } = await convertPlotToUploadBody(snapshot, galleryFor(plotId))
+            const { body, error, uploadedImages } = await convertPlotToUploadBody(snapshot, galleryFor(plotId), groupUid)
             if (!body) {
                 addNewLog({ logType: 'DATA_SYNC', message: `Plot upload blocked: ${error}. Marked for user fix.`, logLevel: 'error', statusCode: '' })
-                return 'rejected'
+                return 'unusable'
             }
 
             const { response, success, status } = await uploadMonitoringPlot(projectUid, body)
@@ -263,7 +293,7 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                 // No new plants to send, or the plot has no server id to target.
                 if (error) {
                     addNewLog({ logType: 'DATA_SYNC', message: `New-plant upload blocked: ${error} (plot ${plotId})`, logLevel: 'error', statusCode: '' })
-                    return 'rejected'
+                    return 'unusable'
                 }
                 return 'success'
             }
@@ -304,7 +334,7 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                 // No new observations to send, or the plot has no server id to target.
                 if (error) {
                     addNewLog({ logType: 'DATA_SYNC', message: `Observation upload blocked: ${error} (plot ${plotId})`, logLevel: 'error', statusCode: '' })
-                    return 'rejected'
+                    return 'unusable'
                 }
                 return 'success'
             }
@@ -347,7 +377,7 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                 // No photo to send, or the plot has no server id to target.
                 if (error) {
                     addNewLog({ logType: 'DATA_SYNC', message: `Plot image upload blocked: ${error} (plot ${plotId})`, logLevel: 'error', statusCode: '' })
-                    return 'rejected'
+                    return 'unusable'
                 }
                 // Every photo upload failed: keep them queued for the next sync.
                 return 'retryable'
@@ -460,31 +490,38 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                 if (!isConnected) throw new Error('No network connection')
                 setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'syncing' } : s))
                 const outcome = await handlerByKind[queue[i].kind](queue[i].plotId, queue[i].projectUid)
+                const permanent = outcome === 'rejected' || outcome === 'unusable'
                 if (outcome === 'success') uploaded++
-                else if (outcome === 'rejected') rejected++
+                else if (permanent) {
+                    rejected++
+                    // Persist the quarantine so the plot stays out of the queue
+                    // after the app restarts, instead of silently failing forever.
+                    await updateFixRequiredPlot(queue[i].plotId, FIX_REASON[outcome])
+                }
                 else failed++
                 setSyncStatuses(prev => prev.map((s, idx) => idx === i
-                    ? { ...s, status: outcome === 'success' ? 'done' : outcome === 'rejected' ? 'rejected' : 'error' }
+                    ? { ...s, status: outcome === 'success' ? 'done' : permanent ? 'rejected' : 'error' }
                     : s))
             }
 
             const remainingUploads = realm.objects(RealmSchema.MonitoringPlot)
-                .filtered('status != "SYNCED" AND is_complete == true').length
+                .filtered('status != "SYNCED" AND is_complete == true AND fix_required == "NO"').length
             const remainingNewPlants = realm.objects(RealmSchema.MonitoringPlot)
-                .filtered('status == "SYNCED" AND plot_plants.server_tree_id == ""').length
+                .filtered('status == "SYNCED" AND plot_plants.server_tree_id == "" AND fix_required == "NO"').length
             const remainingNewObservations = realm.objects(RealmSchema.MonitoringPlot)
-                .filtered('status == "SYNCED" AND observations.sync_status == "NOT_SYNCED"').length
+                .filtered('status == "SYNCED" AND observations.sync_status == "NOT_SYNCED" AND fix_required == "NO"').length
             const remainingRemeasure = realm.objects<MonitoringPlot>(RealmSchema.MonitoringPlot)
-                .filtered('status == "SYNCED" AND plot_plants.server_tree_id != "" AND plot_plants.timeline.sync_status == "NOT_SYNCED"')
+                .filtered('status == "SYNCED" AND plot_plants.server_tree_id != "" AND plot_plants.timeline.sync_status == "NOT_SYNCED" AND fix_required == "NO"')
                 .filter(plotNeedsRemeasure).length
             const remainingImages = plotIdsWithPendingImages().length
             const remaining = remainingUploads + remainingNewPlants + remainingNewObservations + remainingRemeasure + remainingImages
+            const needsFix = realm.objects(RealmSchema.MonitoringPlot).filtered('fix_required != "NO"').length
 
-            if (remaining === 0) {
+            if (remaining === 0 && needsFix === 0) {
                 setShowFullSync(true)
                 toast.show('All plots are synced')
-            } else if (rejected > 0) {
-                toast.show(`${uploaded} uploaded, ${rejected} could not be accepted. Open them, fix and try again.`)
+            } else if (rejected > 0 || needsFix > 0) {
+                toast.show(`${needsFix} plot${needsFix === 1 ? '' : 's'} could not be uploaded. Open them from the plot list, edit and save to try again.`, { textStyle: { textAlign: 'center' } })
             } else {
                 toast.show(`${uploaded} uploaded, ${failed} failed. Please try again.`)
             }
@@ -554,7 +591,9 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                                 <Text style={styles.modalSubtitle}>
                                     {pendingCount > 0
                                         ? `${pendingCount} plot${pendingCount !== 1 ? 's' : ''} ready to sync`
-                                        : 'Nothing to upload'}
+                                        : quarantinedPlots.length > 0
+                                            ? `${quarantinedPlots.length} plot${quarantinedPlots.length !== 1 ? 's' : ''} need a fix`
+                                            : 'Nothing to upload'}
                                 </Text>
                                 <ScrollView style={styles.statusList} showsVerticalScrollIndicator={false}>
                                     {plotData.map((plot, idx) => (
@@ -587,8 +626,23 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                                             <Text style={styles.statusLabel}>{plot.name || 'Untitled plot'} (photos)</Text>
                                         </View>
                                     ))}
+                                    {/* Plots that can never upload as they are. Listed apart from
+                                        the queue so it is clear they are waiting on the user, not
+                                        on a connection. */}
+                                    {quarantinedPlots.map((plot, idx) => (
+                                        <View key={`q-${idx}`} style={styles.statusRow}>
+                                            <Text style={[styles.statusDot, styles.dotError]}>!</Text>
+                                            <Text style={[styles.statusLabel, { color: Colors.ALERT }]}>{plot.name || 'Untitled plot'}</Text>
+                                            <Text style={styles.needsFixTag}>needs fix</Text>
+                                        </View>
+                                    ))}
                                 </ScrollView>
                                 {pendingCount > 0 && <Text style={styles.hintText}>Tap the sync button to start uploading</Text>}
+                                {quarantinedPlots.length > 0 && (
+                                    <Text style={styles.hintText}>
+                                        Open a plot marked &quot;needs fix&quot;, change what is wrong and save. That puts it back in the queue.
+                                    </Text>
+                                )}
                             </>
                         )}
                     </Pressable>
@@ -628,9 +682,26 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
         </View>
     )
 
+    const renderNeedsFixView = () => (
+        <View style={styles.container}>
+            <Pressable style={styles.syncPressable} onPress={() => setShowSyncModal(true)}>
+                <UnSyncIcon width={20} height={20} />
+                <Text style={styles.label}>
+                    {quarantinedPlots.length} plot{quarantinedPlots.length !== 1 ? 's' : ''} need a fix
+                </Text>
+            </Pressable>
+            <TouchableOpacity style={styles.infoIconWrapper} onPress={() => setShowSyncModal(true)}>
+                <InfoIcon width={18} height={18} />
+            </TouchableOpacity>
+        </View>
+    )
+
     const renderTile = () => {
         if (isSyncing) return renderSyncView()
         if (pendingCount > 0) return renderUnSyncView()
+        // Nothing left to upload, but something is stuck. Keep a way in, or the
+        // quarantined plots would be invisible from here.
+        if (quarantinedPlots.length > 0) return renderNeedsFixView()
         if (showFullSync) return renderFullySyncView()
         return null
     }

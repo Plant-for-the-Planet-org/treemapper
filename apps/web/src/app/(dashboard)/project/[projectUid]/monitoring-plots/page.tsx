@@ -292,6 +292,8 @@ const MonitoringPlotsPage = () => {
       <DeletePlotModal
         open={showDelete}
         plotName={detail?.name || ''}
+        treeCount={detail?.plants?.length ?? 0}
+        observationCount={detail?.observations?.length ?? 0}
         deleting={deleting}
         onClose={() => setShowDelete(false)}
         onConfirm={handleConfirmDelete}

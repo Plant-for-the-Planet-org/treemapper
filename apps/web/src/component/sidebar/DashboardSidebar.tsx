@@ -222,7 +222,11 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
       label: 'Field Data',
       items: [
         { icon: Activity, label: 'Interventions', id: 'intervention' },
-        { icon: Grid2x2, label: 'Plots', id: 'monitoring-plots' },
+        // Owner and admin only for now. Plots are a monitoring tool rather than
+        // a capture flow, and who should see them beyond the people running the
+        // project is still an open question. The page and its API stay open to
+        // contributors and observers, so this is a nav decision, not a guard.
+        ...(isAdminOrOwner ? [{ icon: Grid2x2, label: 'Plots', id: 'monitoring-plots' }] : []),
         { icon: Upload, label: 'Bulk Upload', id: 'bulkupload' },
         ...(!isContributor ? [{ icon: CheckSquare, label: 'Approvals', id: 'approvals' }] : []),
         ...(!isContributor ? [{ icon: FileText, label: 'Forms', id: 'forms' }] : []),

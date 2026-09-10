@@ -20,6 +20,15 @@ const PlotCards = (props: Props) => {
     const { handleSelection, item } = props;
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
+    // A plot the server refused, or one whose payload could not be built, stays
+    // out of the sync queue until it is edited. Say so on the card, otherwise the
+    // plot just sits there looking unsynced with no reason given.
+    const fixLabel = () => {
+        if (item.fix_required === 'SERVER_REJECTED') return i18next.t('label.plot_upload_rejected')
+        if (item.fix_required === 'UNKNOWN') return i18next.t('label.plot_incomplete_data')
+        return i18next.t('label.plot_fix_required')
+    }
+
     const renderLabel = () => {
         let l = ''
         if (item.complexity === 'SIMPLE') l += "Simple"
@@ -41,9 +50,13 @@ const PlotCards = (props: Props) => {
                 <View style={styles.sectionWrapper}>
                     <View style={styles.sectionHeader}>
                         <Text style={styles.idLabel}>{item.name}</Text>
-                        {item.lastScreen !== 'location' && <View style={styles.sectionHeader}>
-                            <Text style={styles.chipLabel}>{i18next.t("label.incomplete")}</Text>
-                        </View>}
+                        {item.fix_required !== 'NO'
+                            ? <View style={styles.sectionHeader}>
+                                <Text style={styles.fixChipLabel}>{fixLabel()}</Text>
+                            </View>
+                            : item.lastScreen !== 'location' && <View style={styles.sectionHeader}>
+                                <Text style={styles.chipLabel}>{i18next.t("label.incomplete")}</Text>
+                            </View>}
                     </View>
                     <View style={styles.sectionHeader}>
                         <Text style={styles.plantedLabel}>{renderLabel()}</Text>
@@ -113,6 +126,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 5,
         color: "#F39F53"
+    },
+    fixChipLabel: {
+        fontSize: 10,
+        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        letterSpacing: 0.2,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        color: Colors.ALERT
     },
     avatar: {
         width: 70,

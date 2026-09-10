@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/utils';
 import { fmt, fmtDate } from './plotAnalytics';
 import { Mono, Spark, Stat } from './PlotCharts';
+import { CoverThumb } from './PlotPhotos';
 
 export type PlotListItem = {
   uid: string;
@@ -18,8 +19,9 @@ export type PlotListItem = {
   name: string | null;
   shape: string | null;
   isComplete: boolean | null;
-  reviewStatus: string | null;
   createdAt: string | null;
+  /** Cover photo filename, rebuilt into a url with cdnUrl('tree', ...). */
+  image?: string | null;
   // present when the list was fetched with stats=true
   totalTrees?: number;
   aliveTrees?: number;
@@ -61,22 +63,6 @@ const ShapeGlyph = ({ shape }: { shape: string | null }) => {
   if (shape === 'rectangle') return <svg width="13" height="13" viewBox="0 0 14 14"><rect x="2" y="3" width="10" height="8" {...common} /></svg>;
   if (shape === 'polygon') return <svg width="13" height="13" viewBox="0 0 14 14"><path d="M7 2 L12 6 L10 12 L4 12 L2 6 Z" {...common} /></svg>;
   return <svg width="13" height="13" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" {...common} /></svg>;
-};
-
-const ReviewPill = ({ status }: { status: string | null }) => {
-  const s = (status || '').toLowerCase();
-  const map: Record<string, string> = {
-    approved: 'bg-green-50 text-green-700 border-green-200',
-    in_review: 'bg-blue-50 text-blue-700 border-blue-200',
-    rejected: 'bg-red-50 text-red-700 border-red-200',
-    pending: 'bg-amber-50 text-amber-700 border-amber-200',
-  };
-  if (!s) return <span className="text-muted-foreground/50 text-[11px]">—</span>;
-  return (
-    <span className={cn('inline-flex items-center h-[20px] px-2 text-[11px] font-medium capitalize border rounded-[2px]', map[s] || 'bg-muted text-muted-foreground border-border')}>
-      {s.replace('_', ' ')}
-    </span>
-  );
 };
 
 type SortKey = 'name' | 'survival' | 'stems';
@@ -235,7 +221,6 @@ const PlotsOverview = ({
                 <TableHead className="text-right">Spp</TableHead>
                 <TableHead className="text-center">Growth</TableHead>
                 <TableHead>Last measured</TableHead>
-                <TableHead className="text-right">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -245,8 +230,13 @@ const PlotsOverview = ({
                 return (
                   <TableRow key={p.uid} className="cursor-pointer" onClick={() => onSelect(p)}>
                     <TableCell>
-                      <div className="font-medium text-foreground">{p.name || 'Unnamed plot'}</div>
-                      <Mono className="text-[10.5px] text-muted-foreground/70">{p.hid}</Mono>
+                      <div className="flex items-center gap-2.5">
+                        <CoverThumb filename={p.image ?? null} alt={p.name || 'Plot'} />
+                        <div className="min-w-0">
+                          <div className="font-medium text-foreground truncate">{p.name || 'Unnamed plot'}</div>
+                          <Mono className="text-[10.5px] text-muted-foreground/70">{p.hid}</Mono>
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell className="text-foreground/80 text-[12.5px]">{groupByUid.get(p.uid) || <span className="text-muted-foreground/50">—</span>}</TableCell>
                     <TableCell>
@@ -272,7 +262,6 @@ const PlotsOverview = ({
                     <TableCell className="text-right"><Mono className="text-foreground/80">{p.speciesCount ?? '—'}</Mono></TableCell>
                     <TableCell><div className="flex justify-center"><Spark values={p.trend || []} /></div></TableCell>
                     <TableCell className="text-muted-foreground text-[12px]">{fmtDate(p.lastMeasured)}</TableCell>
-                    <TableCell><div className="flex justify-end"><ReviewPill status={p.reviewStatus} /></div></TableCell>
                   </TableRow>
                 );
               })}

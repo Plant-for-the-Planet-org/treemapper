@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { FlashList } from '@shopify/flash-list'
+import { useToast } from 'react-native-toast-notifications'
 import { StyleSheet } from 'react-native'
 import { Colors } from 'src/utils/constants'
 import { useNavigation } from '@react-navigation/native'
@@ -19,10 +20,11 @@ import i18next from 'src/locales/index'
 
 const GroupPlotList = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+    const toast = useToast()
     const handleSelection = (gid: string) => {
         navigation.navigate('AddPlotGroup', { isEdit: true, groupId: gid })
     }
-    const { deletePlotGroup } = useMonitoringPlotManagement()
+    const { deletePlotGroup, reconcilePlotGroups } = useMonitoringPlotManagement()
     const handleNav = () => {
         navigation.navigate('AddPlotGroup')
     }
@@ -34,8 +36,22 @@ const GroupPlotList = () => {
         },
     )
 
-    const deleteGroupData = (gid: string) => {
-        deletePlotGroup(gid)
+    // A plot added to or removed from a group while offline leaves the server
+    // holding a stale member list. Opening this screen is the natural moment to
+    // put that right, and it costs nothing when nothing has drifted.
+    useEffect(() => {
+        reconcilePlotGroups()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    const deleteGroupData = async (gid: string) => {
+        const result = await deletePlotGroup(gid)
+        if (result.ok) return
+        if (result.reason === 'offline') {
+            toast.show(i18next.t('label.group_delete_needs_internet'), { textStyle: { textAlign: 'center' } })
+            return
+        }
+        toast.show(i18next.t('label.group_delete_failed'))
     }
 
     return (

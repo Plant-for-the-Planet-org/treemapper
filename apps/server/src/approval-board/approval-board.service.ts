@@ -13,6 +13,7 @@ import {
 } from '../database/schema/index';
 import { eq, and, or, desc, asc, sql, isNull, inArray, ilike, isNotNull } from 'drizzle-orm';
 import { generateUid } from '../util/uidGenerator';
+import { fieldInterventionsOnly } from '../database/intervention-filters';
 import { CacheService } from '../cache/cache.service';
 import {
   ReviewQueueQueryDto,
@@ -70,6 +71,11 @@ export class ApprovalBoardService {
       eq(intervention.projectId, projectId),
       isNull(intervention.deletedAt),
       isNotNull(intervention.reviewStatus), // only interventions under approval workflow
+      // Monitoring plots are never reviewed: they claim no work done, so there is
+      // nothing for a reviewer to judge, and the board would render them with
+      // intervention fields a plot does not have. Rows gated before that rule
+      // were cleared by migration 0009; this keeps any survivor out.
+      fieldInterventionsOnly(),
     ];
 
     if (status) {
@@ -855,6 +861,7 @@ export class ApprovalBoardService {
           eq(intervention.userId, userId),
           isNull(intervention.deletedAt),
           isNotNull(intervention.reviewStatus),
+          fieldInterventionsOnly(),
         ),
       )
       .groupBy(intervention.reviewStatus);
@@ -880,6 +887,7 @@ export class ApprovalBoardService {
           eq(intervention.userId, userId),
           isNull(intervention.deletedAt),
           inArray(intervention.reviewStatus, ['pending', 'in_review']),
+          fieldInterventionsOnly(),
         ),
       )
       .orderBy(desc(intervention.submittedAt))
@@ -1003,6 +1011,7 @@ export class ApprovalBoardService {
       eq(project.workspaceId, workspaceId),
       isNull(intervention.deletedAt),
       isNotNull(intervention.reviewStatus),
+      fieldInterventionsOnly(),
     ];
 
     if (status) {

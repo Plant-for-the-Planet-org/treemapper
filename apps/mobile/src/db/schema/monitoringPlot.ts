@@ -24,6 +24,11 @@ export const MonitoringPlot: ObjectSchema = {
     additional_data: { type: 'string', default: '' },
     meta_data: { type: 'string', default: '{}' },
     status: { type: 'string', default: 'NOT_SYNCED' },
+    // Quarantine, matching the intervention flow. A plot the server refused with
+    // a 4xx, or one whose payload could not be built, can never upload as-is, so
+    // it leaves the sync queue and shows as "Fix required" until the user edits
+    // it. Any local edit clears it back to "NO" and re-queues the plot.
+    fix_required: { type: 'string', default: 'NO' },
     hid: { type: 'string', default: '' },
     lastScreen: { type: 'string', default: 'form' },
     plot_created_at: "double",

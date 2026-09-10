@@ -117,7 +117,10 @@ const CreatePlotPage = () => {
     return first ?? null;
   }, [plot.siteUid, siteGeometries]);
 
-  const blockingIssues = useMemo(() => validateDraft(plot, trees), [plot, trees]);
+  const blockingIssues = useMemo(
+    () => validateDraft(plot, trees, observations),
+    [plot, trees, observations],
+  );
   const detailsComplete = !!plot.geometry && !!plot.name.trim();
 
   // ─── step handlers ──────────────────────────────────────────────────────────

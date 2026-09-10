@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
+import { useSelector } from 'react-redux'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Header from 'src/components/common/Header'
@@ -16,6 +17,9 @@ import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/mon
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import GroupListPlot from 'src/components/monitoringPlot/GroupPlist'
+import CustomDropDownPicker from 'src/components/common/CustomDropDown'
+import { DropdownData, ProjectInterface } from 'src/types/interface/app.interface'
+import { RootState } from 'src/store'
 import i18next from 'src/locales/index'
 
 
@@ -28,9 +32,28 @@ const AddPlotGroup = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const [isEditable, setIsEditable] = useState(false)
     const [gID, setGID] = useState('')
+    const [saving, setSaving] = useState(false)
     const realm = useRealm()
     const { createNewPlotGroup, editGroupName } = useMonitoringPlotManagement()
     const toast = useToast()
+
+    // A group belongs to one project, because the server's group routes are
+    // project-scoped. Same picker and same exclusion as creating a plot.
+    const projectData = useMemo(() => {
+        const projects = realm.objects<ProjectInterface>(RealmSchema.Projects).filtered('purpose != "funds"')
+        return projects.map((project, index) => ({
+            label: project.name,
+            value: project.id,
+            index,
+        }))
+    }, [realm])
+
+    const { currentProject } = useSelector((state: RootState) => state.projectState)
+    const [selectedProject, setSelectedProject] = useState<DropdownData>(() => {
+        const match = projectData.find(p => p.value === currentProject.projectId)
+        return match || { label: '', value: '', index: 0 }
+    })
+
     useEffect(() => {
         if (isEdit) {
             setGID(groupId)
@@ -47,37 +70,63 @@ const AddPlotGroup = () => {
         }
     }
 
+    // One message per failure reason, so the user knows whether to find a signal
+    // or to try again.
+    const reportFailure = (reason?: 'offline' | 'server' | 'local') => {
+        if (reason === 'offline') {
+            toast.show(i18next.t('label.group_needs_internet'), { textStyle: { textAlign: 'center' } })
+            return
+        }
+        toast.show(i18next.t('label.group_save_failed'))
+    }
+
     const continuePress = async () => {
+        if (saving) return
         if (!isEditable) {
+            if (!selectedProject.value) {
+                toast.show(i18next.t('label.select_project'))
+                return
+            }
             const newGroupId = generateUniquePlotId()
             const groupDetails: PlotGroups = {
-                name: groupName,
+                name: groupName.trim(),
                 group_id: newGroupId,
                 date_created: Date.now(),
                 details_updated_at: Date.now(),
-                plots: []
+                plots: [],
+                project_id: selectedProject.value,
+                project_name: selectedProject.label,
+                sync_status: 'SYNCED',
             }
+            setSaving(true)
             const result = await createNewPlotGroup(groupDetails)
-            if (result) {
+            setSaving(false)
+            if (result.ok) {
                 setIsEditable(true)
                 setGID(newGroupId)
             } else {
-                toast.show("Something went wrong while creating Group")
+                reportFailure(result.reason)
             }
         } else {
-            addPlotPress()
+            await addPlotPress()
         }
     }
 
-    const addPlotPress = () => {
+    // The name is saved when the user moves on, not on every keystroke: a rename
+    // is a server call now, and one per character would be both slow and wrong.
+    const addPlotPress = async () => {
+        setSaving(true)
+        const result = await editGroupName(gID, groupName.trim())
+        setSaving(false)
+        if (!result.ok) {
+            reportFailure(result.reason)
+            return
+        }
         navigation.navigate('AddPlotsToGroup', { groupId: gID })
     }
 
     const handleGroupName = (t: string) => {
         setGroupName(t)
-        if (isEditable) {
-            editGroupName(gID, t)
-        }
     }
 
     return (
@@ -91,6 +140,14 @@ const AddPlotGroup = () => {
                     autoFocus
                     defaultValue={groupName}
                     trailingText={''} errMsg={''} />
+                {!isEditable && (
+                    <CustomDropDownPicker
+                        label={i18next.t('label.project')}
+                        data={projectData}
+                        onSelect={setSelectedProject}
+                        selectedValue={selectedProject}
+                    />
+                )}
             </View>
             {!!gID && <GroupListPlot gid={gID} />}
             {!isEditable && <View style={styles.emptyWrapper}>
@@ -102,7 +159,7 @@ const AddPlotGroup = () => {
                 label={isEditable ? i18next.t('label.add_plot') : i18next.t('label.create_group')}
                 containerStyle={styles.btnContainer}
                 pressHandler={continuePress}
-                disable={groupName.trim() === ''}
+                disable={groupName.trim() === '' || saving}
                 hideFadeIn
                 showAdd
             />

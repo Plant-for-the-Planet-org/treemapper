@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import AddIcon from 'assets/images/svg/MoreOptionIcon.svg'
+import RefreshIcon from 'assets/images/svg/RefreshIcon.svg'
 import { useQuery } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot } from 'src/types/interface/slice.interface'
@@ -18,10 +19,16 @@ import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import ComingSoon from 'assets/images/svg/ComingSoon.svg'
 import { RootState } from 'src/store'
 import { useSelector } from 'react-redux'
+import { useToast } from 'react-native-toast-notifications'
+import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
+import RotatingView from 'src/components/common/RotatingView'
 
 const PlotView = () => {
   const [popupVisible, setPopupVisible] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
   const showPlotFeature = useSelector((state: RootState) => state.userState.showPlotFeature)
+  const { refreshPlotsFromServer } = useMonitoringPlotManagement()
+  const toast = useToast()
 
   const plotData = useQuery<MonitoringPlot>(
     RealmSchema.MonitoringPlot,
@@ -42,10 +49,58 @@ const PlotView = () => {
     setPopupVisible(!popupVisible)
   }
 
+  /**
+   * Pull the server's plots into the device.
+   *
+   * On demand rather than on a timer or on open: it fetches every plot of every
+   * project in full, which is a real request, and it can delete local copies of
+   * plots that were removed on the dashboard. Both are things a user should ask
+   * for and see the result of.
+   */
+  const handleRefresh = async () => {
+    if (refreshing) return
+    ctaHaptic()
+    setRefreshing(true)
+    const result = await refreshPlotsFromServer()
+    setRefreshing(false)
+
+    if (!result.ok) {
+      toast.show(
+        result.reason === 'offline'
+          ? i18next.t('label.plot_refresh_needs_internet')
+          : i18next.t('label.plot_refresh_failed'),
+        { textStyle: { textAlign: 'center' } },
+      )
+      return
+    }
+
+    const changed = result.added + result.updated + result.removed
+    if (changed === 0) {
+      toast.show(i18next.t('label.plot_refresh_up_to_date'))
+      return
+    }
+    // Say what actually happened, because one of these silently removes plots.
+    const parts: string[] = []
+    if (result.added) parts.push(`${result.added} ${i18next.t('label.plot_refresh_added')}`)
+    if (result.updated) parts.push(`${result.updated} ${i18next.t('label.plot_refresh_updated')}`)
+    if (result.removed) parts.push(`${result.removed} ${i18next.t('label.plot_refresh_removed')}`)
+    toast.show(parts.join(' · '), { textStyle: { textAlign: 'center' } })
+  }
+
 
 
   const renderIcon = () => {
-    return <Popover
+    return <View style={styles.headerActions}>
+      <Pressable
+        onPress={handleRefresh}
+        style={styles.rightContainer}
+        accessibilityLabel={i18next.t('label.plot_refresh')}
+      >
+        {refreshing
+          ? <RotatingView isClockwise><RefreshIcon width={18} height={18} /></RotatingView>
+          : <RefreshIcon width={18} height={18} />}
+      </Pressable>
+      <Popover
       isVisible={popupVisible}
       backgroundStyle={{ opacity: 0 }}
       popoverStyle={{
@@ -60,9 +115,8 @@ const PlotView = () => {
         <Pressable onPress={addGroups}><Text style={styles.menuLabel}>{i18next.t('label.plot_group')}</Text></Pressable>
       </View>
 
-    </Popover>
-
-
+      </Popover>
+    </View>
   }
   return (
     <SafeAreaView style={styles.container}>
@@ -84,6 +138,10 @@ const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     backgroundColor: Colors.BACKDROP_COLOR,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   rightContainer: {
     width: 30,

@@ -174,6 +174,20 @@ const buildCoords = (coords?: { type: string; coordinates: number[] }): any => {
   return { type: 'Point', coordinates: [c[0], c[1]] }
 }
 
+// A plant's position, or undefined when it was never marked.
+//
+// Realm's PlotPlantedSpecies.latitude/longitude are plain doubles with no null,
+// so an unmarked plant reads back as 0/0. The app already treats that pair as
+// "no position" (PlotMarker hides those markers), but 0,0 is a real coordinate
+// in the Gulf of Guinea, so sending it stores every unmarked plant off the coast
+// of Africa. The server takes the position as optional, so leave it out instead.
+const buildPlantPosition = (lat: unknown, lng: unknown):
+  { latitude: number; longitude: number } | undefined => {
+  if (typeof lat !== 'number' || typeof lng !== 'number') return undefined
+  if (lat === 0 && lng === 0) return undefined
+  return { latitude: lat, longitude: lng }
+}
+
 // Convert one Realm plot plant into the server plant shape, uploading the plant
 // image and every timeline image on the way. Shared by the initial plot upload
 // and the add-plants flow so both serialize plants identically.
@@ -204,8 +218,7 @@ const convertPlotPlant = async (p: any): Promise<any> => {
     plantingDate: toISO(p.planting_date),
     isAlive: p.is_alive,
     type: p.type ? String(p.type).toLowerCase() : undefined,
-    latitude: typeof p.latitude === 'number' ? p.latitude : 0,
-    longitude: typeof p.longitude === 'number' ? p.longitude : 0,
+    ...buildPlantPosition(p.latitude, p.longitude),
     timeline: timeline.length ? timeline : undefined,
   }
 }
@@ -229,10 +242,17 @@ export interface PlotUploadConversion {
  *
  * `gallery` is the plot's ImageData rows. They live in their own Realm collection
  * with no link to the plot, so the caller has to read and pass them.
+ *
+ * `groupUid` is the plot's group, when it has one that exists on the server. A
+ * plot can be put in a group in the field before it has ever been uploaded, so
+ * the membership travels with the plot and the server attaches it on arrival.
+ * It is passed in rather than read off the snapshot because the group link is a
+ * Realm backlink and does not survive the JSON round trip.
  */
 export const convertPlotToUploadBody = async (
   plot: MonitoringPlot,
   gallery: PlotImageRecord[] = [],
+  groupUid = '',
 ): Promise<PlotUploadConversion> => {
   const geometry = buildGeometry(plot.location)
   if (!geometry) {
@@ -270,6 +290,7 @@ export const convertPlotToUploadBody = async (
 
   const body = {
     clientId: plot.plot_id,
+    plotGroupUid: groupUid || undefined,
     name: plot.name || undefined,
     shape: SHAPE_MAP[plot.shape] || undefined,
     plotType: plot.type ? String(plot.type).toLowerCase() : undefined,

@@ -7,6 +7,20 @@ import type { Feature, FeatureCollection, Geometry, Point } from 'geojson';
  * planar coordinates used to draw the stem-map schematic. No React here.
  */
 
+/**
+ * One stored photo. `filename` is the whole reference: plot and plant photos are
+ * presigned into the 'tree' folder by both the device and the dashboard, so the
+ * url is rebuilt with cdnUrl('tree', filename).
+ */
+export type PlotImage = {
+  uid: string;
+  filename: string;
+  type: string | null;
+  isPrimary: boolean | null;
+  notes: string | null;
+  createdAt: string | null;
+};
+
 export type TimelineEntry = {
   uid: string;
   recordType: string;
@@ -33,6 +47,10 @@ export type PlotPlant = {
   plantingDate: string | null;
   lastMeasurementDate: string | null;
   remeasured: boolean | null;
+  /** Cover photo for this plant. */
+  image: string | null;
+  /** Every photo of this plant: the one taken when it was tagged, plus one per visit. */
+  images: PlotImage[];
   timeline: TimelineEntry[];
 };
 
@@ -64,7 +82,6 @@ export type PlotDetail = {
   width: number | null;
   isComplete: boolean | null;
   captureMode: string | null;
-  reviewStatus: string | null;
   totalTreeCount: number | null;
   geometry: Feature | FeatureCollection | Geometry | null;
   center: Point | null;
@@ -74,6 +91,10 @@ export type PlotDetail = {
   registrationDate: string | null;
   site: { uid: string; name: string } | null;
   group: { uid: string; name: string } | null;
+  /** Cover photo for the plot. */
+  image: string | null;
+  /** The plot's whole photo gallery. */
+  images: PlotImage[];
   species: PlotSpecies[];
   observations: PlotObservation[];
   plants: PlotPlant[];

@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseArrayPipe,
   Patch,
   Post,
   Query,
@@ -67,7 +68,18 @@ export class MonitoringPlotsController {
   @ApiOperation({ summary: 'Bulk upload offline monitoring plots from mobile' })
   @ApiResponse({ status: 201, description: 'Batch processed (per-plot results returned)' })
   async bulkUploadPlots(
-    @Body() dtos: CreateMonitoringPlotDto[],
+    // The body is a top-level array, which the global ValidationPipe skips: it
+    // validates an object's properties and has nothing to hang the item type on.
+    // Without this pipe the whitelist and every bound in CreateMonitoringPlotDto
+    // were silently off for this one route, while the single-plot route beside it
+    // enforced them. ParseArrayPipe names the item type and re-applies the same
+    // options, and caps how many plots one request may carry.
+    @Body(new ParseArrayPipe({
+      items: CreateMonitoringPlotDto,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }))
+    dtos: CreateMonitoringPlotDto[],
     @Membership() membership: ProjectGuardResponse,
   ) {
     return this.monitoringPlotsService.bulkUploadMonitoringPlots(dtos, membership);
@@ -144,6 +156,21 @@ export class MonitoringPlotsController {
   ) {
     const includeStats = stats === 'true' || stats === '1';
     return this.monitoringPlotsService.listProjectPlots(membership.projectId, includeStats);
+  }
+
+  @Get('projects/:projectId/sync')
+  @ProjectRoles('owner', 'admin', 'contributor', 'observer')
+  @UseGuards(ProjectPermissionsGuard)
+  @ApiOperation({
+    summary: 'Every plot in the project, shaped for a device to rebuild its local copy',
+    description:
+      'The whole set, not a delta: the device reconciles against it, so a plot '
+      + 'missing from the list is one that was deleted. Pulled on demand when the '
+      + 'user taps refresh, never on a timer.',
+  })
+  @ApiResponse({ status: 200, description: 'Returns the project plots with plants, timelines, observations and photos' })
+  async syncPlotsToDevice(@Membership() membership: ProjectGuardResponse) {
+    return this.monitoringPlotsService.getProjectPlotsForDevice(membership.projectId);
   }
 
   @Get('projects/:projectId/plots/:plotUid')

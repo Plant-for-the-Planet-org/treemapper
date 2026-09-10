@@ -40,6 +40,9 @@ export const newPlotDetails = (shape: PLOT_SHAPE, type: PLOT_TYPE, complexity: P
         additional_data: "",
         meta_data: "",
         status: "NOT_SYNCED",
+        // A fresh plot has nothing wrong with it; only a permanently failed
+        // upload sets this to anything else.
+        fix_required: "NO",
         hid: "",
         lastScreen: "form",
         plot_plants: [],

@@ -84,3 +84,39 @@ export const validateMarkerForSampleTree = (
 export const isPointInPolygon = (activeCoords,polygonCoords) => {
   return booleanPointInPolygon(activeCoords, polygonCoords)
 }
+
+/**
+ * Centre of a polygon, as [lng, lat], or null when there is nothing to average.
+ *
+ * `rings` is GeoJSON Polygon coordinates: an array of rings, each an array of
+ * [lng, lat] pairs. Only the outer ring counts.
+ *
+ * The mean of the ring's vertices. That is exact for the shapes a monitoring
+ * plot can be, a generated circle or a rectangle, and close enough for a
+ * hand-drawn one. Doing it here avoids pulling the whole turf bundle into the
+ * app for one number.
+ */
+export const polygonCenter = (rings?: number[][][]): [number, number] | null => {
+  const ring = rings?.[0]
+  if (!Array.isArray(ring) || ring.length === 0) return null
+  // A closed ring repeats its first vertex. Counting it twice pulls the centre
+  // toward that corner.
+  const last = ring[ring.length - 1]
+  const closed = ring.length > 2
+    && Array.isArray(last)
+    && last[0] === ring[0][0]
+    && last[1] === ring[0][1]
+  const points = closed ? ring.slice(0, -1) : ring
+
+  let lng = 0
+  let lat = 0
+  let count = 0
+  for (const p of points) {
+    if (!Array.isArray(p) || typeof p[0] !== 'number' || typeof p[1] !== 'number') continue
+    lng += p[0]
+    lat += p[1]
+    count += 1
+  }
+  if (count === 0) return null
+  return [lng / count, lat / count]
+}

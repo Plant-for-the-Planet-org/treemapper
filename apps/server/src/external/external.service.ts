@@ -11,6 +11,7 @@ import {
 } from 'src/database/schema';
 import { CacheService } from 'src/cache/cache.service';
 import { publishedInterventionFilter } from '../approval-board/approval.util';
+import { fieldInterventionsOnly } from '../database/intervention-filters';
 
 const MULTI_TREE_TYPES = ['multi-tree-registration', 'enrichment-planting'];
 
@@ -98,6 +99,8 @@ export class ExternalService {
           isNull(intervention.deletedAt),
           // Only publish approved (or never-gated) interventions externally
           publishedInterventionFilter(),
+          // Monitoring plots are not interventions and must not be published here
+          fieldInterventionsOnly(),
         ),
       );
 

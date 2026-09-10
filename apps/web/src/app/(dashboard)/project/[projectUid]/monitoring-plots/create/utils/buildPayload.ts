@@ -10,9 +10,9 @@ import { polygonCenter } from './plotGeometry';
  *  - `registrationDate` is deliberately not sent. The upload service always
  *    stamps server-now for it (a DB check forbids a future value), so sending
  *    ours would just be ignored.
- *  - `coords` is the plot centre. The mobile app currently writes a malformed
- *    centre and the server ends up with none, so a plot created here is the only
- *    one whose monitoring_plot.center_location is populated.
+ *  - `coords` is the plot centre, sent as the mean of the boundary's vertices.
+ *    The device computes it the same way (polygonCenter in turfHelpers), so a
+ *    plot's centre means the same thing whichever side recorded it.
  *  - Trees are recorded as living. Like the mobile app, this flow captures what is
  *    standing in the plot today, planted or recruit; deaths are recorded later
  *    through a remeasurement, not at creation.
@@ -24,6 +24,16 @@ import { polygonCenter } from './plotGeometry';
  * leaving it null.
  */
 const PLOT_COMPLEXITY = 'standard';
+
+/**
+ * What one save may carry, mirroring PLOT_LIMITS on the server
+ * (apps/server/src/monitoring-plots/dto/monitoring-plots.dto.ts). A spreadsheet
+ * can hold any number of rows, so the wizard says this in the review step rather
+ * than letting the user reach Save and collect a 400.
+ */
+export const MAX_PLANTS_PER_PLOT = 2000;
+export const MAX_OBSERVATIONS_PER_PLOT = 500;
+export const MAX_MEASUREMENTS_PER_PLANT = 200;
 
 /** The words devices send, so plots from either source read the same. */
 const ORIGIN_TO_SERVER: Record<string, string> = {
@@ -144,7 +154,11 @@ export function buildPayload(
 }
 
 /** Blocking problems that must be cleared before the plot can be saved. */
-export function validateDraft(plot: PlotDraft, trees: DraftTree[]): string[] {
+export function validateDraft(
+  plot: PlotDraft,
+  trees: DraftTree[],
+  observations: DraftObservation[] = [],
+): string[] {
   const issues: string[] = [];
   if (!plot.name.trim()) issues.push('The plot needs a name.');
   if (!plot.geometry) issues.push('The plot needs a boundary.');
@@ -156,6 +170,29 @@ export function validateDraft(plot: PlotDraft, trees: DraftTree[]): string[] {
   }
   if (trees.length > 0 && trees.every((t) => !treeIsValid(t))) {
     issues.push('Every tree row has an error. Fix or remove them before saving.');
+  }
+
+  // Only the rows that would actually be sent count against the limits.
+  const savableTrees = trees.filter(treeIsValid);
+  if (savableTrees.length > MAX_PLANTS_PER_PLOT) {
+    issues.push(
+      `A plot can hold ${MAX_PLANTS_PER_PLOT} trees per save. This one has ${savableTrees.length}. `
+      + 'Split the spreadsheet across two plots.',
+    );
+  }
+  const overMeasured = savableTrees.filter((t) => t.measurements.length > MAX_MEASUREMENTS_PER_PLANT);
+  if (overMeasured.length > 0) {
+    issues.push(
+      `${overMeasured.length} tree${overMeasured.length === 1 ? ' has' : 's have'} more than `
+      + `${MAX_MEASUREMENTS_PER_PLANT} measurements, which is more than one save can carry.`,
+    );
+  }
+  const savableObservations = observations.filter(observationIsValid);
+  if (savableObservations.length > MAX_OBSERVATIONS_PER_PLOT) {
+    issues.push(
+      `A plot can hold ${MAX_OBSERVATIONS_PER_PLOT} observations per save. `
+      + `This one has ${savableObservations.length}.`,
+    );
   }
   return issues;
 }

@@ -45,6 +45,7 @@ import { interventionConfigurationSeedData } from 'src/database/schema/intervent
 import { error } from 'console';
 import { AuditService } from '../audit/audit.service';
 import { interventionRequiresApproval, publishedInterventionFilter, publishedSiteFilter } from '../approval-board/approval.util';
+import { fieldInterventionsOnly } from '../database/intervention-filters';
 
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 
@@ -1330,6 +1331,9 @@ export class InterventionsService {
     const whereConditions: any[] = [
       eq(intervention.projectId, projectId),
       isNull(intervention.deletedAt),
+      // Monitoring plots live in this table too (discriminator = 'plot') and have
+      // their own page, so they never belong in the intervention list.
+      fieldInterventionsOnly(),
     ];
 
     // Approval board visibility: non-admins only see approved + their own pending/in_review
@@ -2821,6 +2825,7 @@ async interventionEdit(
           eq(intervention.projectId, projectId),
           eq(intervention.siteId, siteRow.id),
           isNull(intervention.deletedAt),
+          fieldInterventionsOnly(),
           sql`${intervention.location} IS NOT NULL`,
           sql`ST_IsValid(${intervention.location}) = true`,
         ),
@@ -2890,6 +2895,8 @@ async interventionEdit(
               isNull(intervention.deletedAt),
               // Only show approved (or never-gated) interventions on the map
               publishedInterventionFilter(),
+              // Monitoring plots are drawn by the plots page, not this map
+              fieldInterventionsOnly(),
               // Enhanced location validation
               sql`${intervention.location} IS NOT NULL`,
               sql`ST_IsValid(${intervention.location}) = true`,

@@ -34,6 +34,7 @@ export const postUrlNewApi = {
   registerDevice: `${mobileBaseUrl}/users/devices`,
   submitFeedback: `${mobileBaseUrl}/mobile/feedback`,
   monitoringPlot: `${mobileBaseUrl}/monitoring-plots/projects`,
+  plotGroup: `${mobileBaseUrl}/monitoring-plots/projects`,
 };
 
 export const getUrlMobileApi = {

@@ -515,3 +515,38 @@ export const addPlotImages = async (projectUid: string, params: any) => {
   return result;
 };
 
+// Every plot in a project, shaped for the device to rebuild its local copy.
+// Pulled only when the user asks for it: it is the whole set, not a delta, so it
+// is the wrong thing to run on a timer or on every app open.
+export const fetchProjectPlots = async (projectUid: string) => {
+  const uri = `${postUrlNewApi.monitoringPlot}/${projectUid}/sync`;
+  const result = await fetchGetCall(uri, true);
+  return result;
+};
+
+// Plot groups are created, renamed and deleted online, in the moment, rather
+// than through the sync queue: a group is a small piece of organisation the user
+// expects to see take effect, and there is nothing to capture offline in the
+// field the way there is for a plot.
+export const createPlotGroupOnServer = async (projectUid: string, params: any) => {
+  const uri = `${postUrlNewApi.plotGroup}/${projectUid}/groups`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+// Rename a group and/or set its exact member plots. The membership list is
+// reconciled server-side, so sending the full set is what keeps the two in step.
+export const updatePlotGroupOnServer = async (projectUid: string, groupUid: string, params: any) => {
+  const uri = `${postUrlNewApi.plotGroup}/${projectUid}/groups/${groupUid}`;
+  const result = await fetchPatchCall(uri, params);
+  return result;
+};
+
+// Delete a group. The server unassigns every plot that was in it; the plots
+// themselves are untouched.
+export const deletePlotGroupOnServer = async (projectUid: string, groupUid: string) => {
+  const uri = `${postUrlNewApi.plotGroup}/${projectUid}/groups/${groupUid}`;
+  const result = await fetchDeleteCall(uri);
+  return result;
+};
+

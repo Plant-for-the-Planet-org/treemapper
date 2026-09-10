@@ -445,9 +445,16 @@ export interface PlotGroups {
   date_created: number
   details_updated_at: number
   plots: MonitoringPlot[]
+  /** Project the group lives under. Empty on groups created before v29. */
+  project_id: string
+  project_name: string
+  /** SYNCED | NOT_SYNCED (members drifted offline) | LOCAL_ONLY (pre-v29) */
+  sync_status: 'SYNCED' | 'NOT_SYNCED' | 'LOCAL_ONLY'
 }
 
 export interface MonitoringPlot {
+  /** "NO" when the plot can upload; anything else quarantines it until edited. */
+  fix_required: FIX_REQUIRED
   plot_id: string
   complexity: PLOT_COMPLEXITY
   shape: PLOT_SHAPE

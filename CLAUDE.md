@@ -11,10 +11,22 @@ deprecated path, a place where the obvious approach is wrong -- add or
 revise an entry below. Surface the suggested update to the user before
 committing.
 
+**This file is published with the repo.** Write it for a stranger reading it on
+GitHub, not for an internal wiki.
+
 Do **not** record:
 - Things obvious from reading the code
 - Temporary task state (use plans/tasks instead)
 - Secrets, env values, or credentials
+- The contents of a private `.env`, including a bare list of its key names --
+  that is a map of the credential surface. Point at `.env.example` or say "ask
+  a teammate" instead. `NEXT_PUBLIC_*` / `EXPO_PUBLIC_*` names are fine: they
+  ship in the client bundle already.
+- Security incident history: which secret was exposed, where it surfaced, or
+  for how long. Record the forward-looking rule ("never log these headers")
+  and leave the incident out.
+- Internal hostnames, dashboards, log drains, or account and app identifiers
+  that are not already in the committed code.
 
 ## Project overview
 
@@ -38,8 +50,15 @@ apps/
   web/       Next.js dashboard (uses shared-core, shadcn/ui)
   server/    NestJS + Fastify backend (Drizzle ORM + Postgres)
 packages/
-  shared-core/  Shared utilities consumed by web (and potentially mobile)
+  shared-core/  Shared utilities consumed by web only
 ```
+
+Inside `shared-core`, only `fetchApi/`, `store/`, `types/` and two files in
+`utils/` are live. The parallel `api/` layer (`client.ts`, `queries.ts`,
+`mutations.ts`, `endpoints.ts`) has **zero importers** and is dead; so are
+`utils/error-handler.ts`, `reportHelper.ts`, `sortProjects.ts` and `auth.ts`.
+`index.ts` is `export {}` -- everything is imported by subpath through the
+`@shared-core/*` alias.
 
 ## Stack per app
 
@@ -54,14 +73,117 @@ packages/
 
 Two things here are easy to assume wrong:
 
-- **Web auth is hand-rolled, not an SDK.** There is no `@auth0/nextjs-auth0`.
-  The browser runs the Auth0 PKCE flow itself (`src/lib/auth/`), and the access
-  token lives in a React context (`useTokenContext`), not in a server session.
+- **Web auth is hand-rolled, not an SDK.** There is no `@auth0/nextjs-auth0`
+  and no `middleware.ts`. The browser runs the Auth0 PKCE flow itself
+  (`src/lib/auth/`), and the token lives in a Zustand store
+  (`src/stores/auth-store.ts`) mirrored into `localStorage.access_token` --
+  not in a server session. `AuthInitializer` (root layout) restores it, tries
+  silent auth in a hidden iframe, or exchanges a `?code=`.
+  `src/context/useTokenContext.tsx` is still there and widely imported, but it
+  is only a provider fed from that store; `src/hooks/useAccessToken.ts` is a
+  compat shim over the same store.
 - **Both apps use Maplibre, not Mapbox.**
+
+## Domain model
+
+One Postgres schema file, `apps/server/src/database/schema/index.ts` (~2200
+lines, 35 tables, 36 enums), is the source of truth. Migrations live in
+`apps/server/drizzle/migrations` (currently 0000-0008; `0008_mushy_blue_blade`
+adds the `user_device` telemetry columns).
+
+The spine is **workspace -> project -> site -> intervention -> tree ->
+tree_record**:
+
+- **workspace** (`type`: platform / private / development / premium) holds
+  projects and a `settings` jsonb (approval defaults, visibility, notification
+  toggles). `workspace_member` roles are owner / admin / member.
+- **project** belongs to one workspace and can move between them, which is why
+  web URLs are `/project/:projectUid/...` and never nest the workspace.
+  `project_member` roles are owner / admin / contributor / observer, plus
+  `extraPermissions` (a granular array: `approve_intervention`,
+  `approve_site`, `add_site`, `request_species`, `manage_form`) and per-member
+  `siteAccess` / `restrictedSites`.
+- **intervention** is the central record: 21 `type` values, a `discriminator`
+  of `'intervention' | 'plot'` (monitoring plots are interventions with
+  `discriminator = 'plot'` plus a `monitoring_plot` row), `captureMode`,
+  `captureStatus`, a PostGIS `location`, and `totalTreeCount`. Species come
+  through `intervention_species`; individual trees hang off `tree`
+  (`treeType`: single / sample / plot) with measurement history in
+  `tree_record`.
+- **Approval board.** `project.approvalBoardEnabled` plus an
+  `approvalSettings` jsonb gates interventions per **source**
+  (`web` / `bulk` / `mobile`; `migration` is never gated) and sites by one
+  toggle. Anything gated gets a `reviewStatus`, and everything user-facing
+  filters on *published* = `reviewStatus IS NULL OR 'approved'`
+  (`publishedInterventionFilter` / `publishedSiteFilter` in
+  `approval-board/approval.util.ts`). `review_thread` / `review_comment` carry
+  the conversation.
+- **form** stores a whole builder tree in one `schema` jsonb, targeted by site
+  (`all` / `none` / `specific`) and intervention type. The types mirror
+  `apps/web/src/forms/types.ts` 1:1, and mobile renders them
+  (`components/projectForm/FormFieldRenderer.tsx`).
+- **Soft delete everywhere.** Almost every table has `deletedAt`; every read
+  must filter `deleted_at IS NULL` (`database/soft-delete.ts` has
+  `notDeleted()`). Uids are prefixed random ids from `util/uidGenerator.ts`;
+  `hid` is a short human id from `util/hidGenerator.ts`.
+- Capability rules per intervention type (allows species, requires tree
+  registration, expected GeoJSON type) live in **code**, not a table:
+  `database/schema/interventionConfig.ts`.
+
+## Server surface
+
+Global prefix `/api`. Every route is behind a global `JwtAuthGuard` unless
+marked `@Public()`. Responses are wrapped by `ResponseInterceptor` into
+`{ statusCode, message, error, data, code }` -- and **success is always
+`statusCode: 200` in the body**, whatever the HTTP code. Errors keep the real
+code and a stable `code` string (`HttpExceptionFilter`).
+
+Auth is Auth0 RS256 verified against JWKS (`auth/jwt.strategy.ts`). It reads a
+namespaced email claim, falls back to the standard one, accepts Apple's string
+`"true"` for `email_verified`, and links or creates the local user by verified
+email -- so the same person signing in through a different Auth0 connection
+claims the same row.
+
+Access checks, in the order you will meet them:
+
+- `ProjectPermissionsGuard` + `@ProjectRoles(...)` on almost every
+  project-scoped route. It resolves the project id from params, then body, then
+  query, and **falls back to the workspace**: a workspace owner/admin with no
+  `project_member` row is handed a synthesized `role: 'admin'` membership
+  stamped `viaWorkspaceAdmin: true`.
+- `TreeMatchAccessGuard` rejects exactly that synthesized case (see TreeMatch
+  below). Guard order in `@UseGuards` is load-bearing.
+- `WorkspaceMemberGuard` / `WorkspacePermissionsGuard`, `SuperAdminGuard`
+  (`user.type === 'superadmin'`), `ApprovalDecisionGuard`,
+  `WorkspaceSpeciesApprovalGuard`, `ImpersonationGuard`.
+- **Impersonation** is a cache entry keyed to the admin's auth0Id with a 30-min
+  TTL; `jwt.strategy.ts` swaps in the target's full identity. It is
+  full-access and deliberately not scoped to the initiator's workspace (see
+  the long NOTE in `auth/impersonation.guard.ts`). Web logout always exits it
+  first.
+
+Two separate public surfaces, easy to confuse:
+
+- `/api/external/*` -- **no auth at all**, `@Public()`, IP-rate-limited to
+  30/min, CORS `*`, and deliberately **not** wrapped in the response envelope.
+  Returns legacy-shaped intervention data for a project.
+- `/api/v1/public/*` -- per-project API key in `x-api-key`
+  (sha256-hashed in `project_api_key`, one live key per project), additionally
+  gated by `project.apiEnabled`. Envelope applies.
+
+Other integration points: **R2/S3** presigned uploads (`common/services/r2.service.ts`,
+raster mime types only, SVG deliberately excluded), **OneSignal** push targeted
+by the `onesignal_id` alias on `user_device`, **SMTP/nodemailer** for invites,
+and the **TTC** (old Plant-for-the-Planet backend) for site sync and TreeMatch
+contributions. Rate limiting and caching are **in-memory per dyno** -- put
+Cloudflare in front for a real ceiling.
 
 ## Common commands
 
-Run from repo root unless noted.
+Run from repo root unless noted. **Run `nvm use` first** (`.nvmrc` says 22):
+the root and `apps/server` manifests pin `engines.node` to 22.x, and yarn 1
+refuses *every* script under a newer Node with "The engine node is
+incompatible". See the engines gotcha below for the no-nvm workaround.
 
 ```bash
 yarn web:dev        # Next.js dev server
@@ -69,15 +191,24 @@ yarn server:dev     # NestJS watch mode
 yarn native:dev     # Expo dev server (mobile)
 yarn dev:fullstack  # Web + server concurrently
 
-yarn build          # Turbo build all
-yarn type-check     # Turbo type-check all
-yarn lint           # Turbo lint all
+yarn build          # Turbo build (web + server only; mobile and shared-core
+                    # define no build task)
+yarn lint           # Turbo lint all -- note apps/server's lint runs --fix
+yarn test           # Turbo test (only apps/server has tests)
+yarn check:pins     # Validate exact pins + lock coverage in every workspace
 
 # Server-specific (from apps/server)
-yarn db:generate    # Drizzle migration generation
-yarn db:migrate     # Apply migrations
+yarn db:generate    # Drizzle migration generation (drizzle-kit)
+yarn db:migrate     # Apply migrations (ts-node src/database/migrate.ts, not
+                    # drizzle-kit; reads the same DATABASE_URL)
 yarn db:studio      # Drizzle Studio
 ```
+
+`yarn type-check` exists in the root manifest but **runs nothing**: no
+workspace defines a `type-check` script, so turbo reports four
+`<NONEXISTENT>` tasks and exits 0. Use `npx tsc --noEmit` in the workspace you
+touched. `apps/web` also sets `typescript.ignoreBuildErrors: true`, so
+`next build` does not check types either.
 
 ## Conventions
 
@@ -165,10 +296,14 @@ auto-upgrades anything.
   `expo prebuild --clean` does not help, because the bad file is rewritten
   during prebuild. Fix with `rm -rf android/build/generated/autolinking
   android/app/build/generated/autolinking`, then rebuild.
-- `engines.node` is pinned to `22.x`. On a machine running a newer Node, every
-  `yarn <script>` in `apps/server` aborts with "The engine node is incompatible"
-  before the script runs. Call the tool directly instead (`npx jest`,
-  `npx tsc --noEmit`, `npx drizzle-kit generate|migrate`, `npx nest start`).
+- `engines.node` is pinned in **both** the root manifest (`22.x.x`) and
+  `apps/server` (`22.x`). On a machine running a newer Node, yarn 1 refuses
+  every script in either -- so `yarn build`, `yarn web:dev`, `yarn lint` and
+  `yarn check:pins` at the root fail too, not just the server ones. Best fix is
+  `nvm use` (`.nvmrc` says 22). Otherwise call the tool directly: `npx turbo
+  <task>`, `npx jest`, `npx tsc --noEmit`,
+  `npx drizzle-kit generate|migrate`, `npx nest start`. `npm run` works in
+  `apps/web` and `apps/mobile` because neither declares `engines`.
 - `drizzle.config.ts` reads `DATABASE_URL` (not the `DB_*` vars), and in this
   repo's `.env` it points at a **shared staging** database, not localhost. Check
   where it aims before running `drizzle-kit migrate`.
@@ -179,16 +314,121 @@ auto-upgrades anything.
   graph it dies with "Cannot find module 'src/util/uidGenerator'". Workaround
   without touching the config:
   `npx jest <path> --moduleNameMapper '{"^src/(.*)$":"<rootDir>/$1"}'`.
-- `npx eslint` reports hundreds of prettier errors on files nobody has touched
-  (78-line `match-math.ts` gives 26), so a large error count on a file you just
-  edited does not mean you introduced it. Compare against a neighbouring file
-  before reacting, and do not run `--fix` on a file you only partly changed: it
-  reformats the whole thing and buries the real diff.
+- **The server's prettier errors are a config mismatch, not your code.** Root
+  `.prettierrc.js` sets `semi: false`, `apps/server` has no prettier config of
+  its own, and its eslint config loads
+  `eslint-plugin-prettier/recommended` -- so every semicolon in the server is
+  an error (78-line `match-math.ts` gives 24, nearly all `Delete ';'`). A large
+  count on a file you just edited does not mean you introduced it: compare
+  against a neighbouring file first. Do **not** `--fix` a file you only partly
+  changed (it reformats the whole thing and buries the real diff), and note
+  that `apps/server`'s own `yarn lint` *is* `eslint --fix`. The root
+  `yarn format` would strip semicolons across server and web in one sweep.
+  `apps/web` eslint extends only the Next presets, no prettier plugin, so web
+  lint is clean.
 - `drizzle-kit generate` prompts interactively when a table keeps its name but
   its columns change (it cannot tell a rename from a drop-plus-add), and the
   prompt cannot be answered without a TTY. To replace a table cleanly, generate
   two migrations: remove it from the schema and generate the drop, then add the
   new definition and generate the create.
+- **`query-check.note` at the repo root is a named pipe, not a file.** `cat`,
+  `head` or `grep` on it blocks forever. It is untracked and absent from
+  `.gitignore`, and `git status` stays silent because git skips non-regular
+  files, so nothing warns you. `ls -la` or `file` an unfamiliar root file
+  before reading it.
+- **`--radius` is `0` in `apps/web`.** `globals.css` sets `:root { --radius: 0 }`
+  and the shadcn scale derives from it, so `rounded-lg` renders 0px,
+  `rounded-md`/`-sm` clamp to 0, and `rounded-xl` is only 4px. Every shadcn
+  component is square by default. Reach for `rounded-xl` or a literal
+  `rounded-[8px]` when a corner needs to show.
+- **Open Sans is declared but never applied.** `layout.tsx` builds the
+  `Open_Sans` font with `variable: '--font-open-sans'` but never puts
+  `openSans.variable` on `<html>` or `<body>` (only Inter and the two Geist
+  variables are attached). `@theme inline` then self-references
+  `--font-open-sans: var(--font-open-sans)`, so
+  `body { font-family: var(--font-open-sans), Arial, ... }` falls through to
+  Arial. The dashboard is not rendering Open Sans today.
+- **Two nav entries are switched off in `DashboardSidebar.tsx`.**
+  `const showTreeMatch = false` hides the whole "Matching" group, and the
+  Devices entry is commented out until migration `0008` is applied everywhere
+  (the page 500s without its `user_device` telemetry columns). Both pages and
+  their APIs still work by direct URL. Each is a one-line restore.
+- **The web dashboard is effectively English-only.** `src/lib/i18n.ts` inlines
+  a handful of login strings and nothing else, despite `i18next` /
+  `react-i18next` being installed. Only `apps/mobile` has real translations
+  (`src/locales/languages`: de, en, es, fr, it, mg, pt-BR).
+
+## Known issues, not yet fixed
+
+Found in a full-codebase review on 2026-09-10 and left deliberately, to be
+picked up later. Do not treat any of these as a surprise or "discover" them
+again; do not fix one as a drive-by inside unrelated work. Delete an entry when
+it is genuinely closed.
+
+**Correctness / behaviour**
+
+- **Cache TTL constants are 3-170x their own comments**
+  (`src/cache/cache-keys.ts`). `SHORT` is 20 min not 5, `MEDIUM` is 50 min not
+  15, `LONG` is ~7 days not 1 hour, `VERY_LONG` ~28 days, `FOREVER` ~7.6 years.
+  `MEDIUM` is the TTL on the cached `project_member` row that
+  `ProjectPermissionsGuard` reads, so **a role change or a removed membership
+  can stay live for ~50 minutes**. Explicit invalidation goes through
+  `ProjectCacheService` / `UserCacheService` or the superadmin
+  `POST /workspace/cache/clear`. Fixing the numbers changes real
+  behaviour, so decide the intended values rather than just correcting the
+  comments.
+- **`geometryWithGeoJSON` cannot serialise a geometry on its own**
+  (`schema/index.ts`). Its `toDriver` returns the *string*
+  `ST_GeomFromGeoJSON('...')`, which drizzle binds as a parameter, not as SQL.
+  Nothing is broken today because every write goes through an explicit `sql`
+  fragment in the services, but the custom type reads as if it works.
+- **`DatabaseConfig.ssl` is typed `boolean` but returns an object**
+  (`database/database.config.ts` over `database-url.parser.ts`, which yields
+  `{ rejectUnauthorized: false }`). Correct at runtime, a lie to TypeScript.
+
+**Hygiene**
+
+- **`apps/mobile/.env.sample` is missing `EXPO_PUBLIC_API_ENDPOINT_MOBILE`**,
+  the TreeMapper API base URL that nearly every mobile route is built from, so
+  a fresh clone silently posts to `undefined/mobile/project`. Also missing
+  `EXPO_PUBLIC_ONESIGNAL_APP_ID` and `EXPO_PUBLIC_V3_CDN_URL`. `apps/server`
+  has no `.env.example` at all; ask a teammate for the current set rather than
+  listing it here.
+- **Placeholder shipped in `<head>`**: `src/app/layout.tsx` sets
+  `'apple-itunes-app': 'app-id=YOUR_APP_ID, app-argument=.../dashboard'`. The
+  id is unfilled and the argument points at what is now a redirect stub.
+- **`src/sites/ttc-sync.service.ts:184`** logs the whole TTC create-site
+  response with `console.log` on every sync. Noisy, and response bodies are
+  exactly the kind of thing that quietly grows to hold something you did not
+  mean to publish. Prefer the injected `Logger` at debug level.
+- **No tests outside the server's two TreeMatch suites** (47 tests total).
+  `apps/web` and `apps/mobile` have none, and see the jest `moduleNameMapper`
+  gotcha before adding a server spec that touches the DI graph.
+
+**Dead code, ask before deleting**
+
+- `src/organization/` is unreferenced: `OrganizationModule` is imported
+  nowhere and its controller is fully commented out. `WorkspaceModule`
+  replaced it, and `src/workspace/` still carries near-identical copies of its
+  DTOs.
+- `ProjectRoles` exists in **six** copies (`projects/`, `workspace/`,
+  `organization/`, `mobile/`, `species/`, `sites/`). All set the same
+  `'projectRoles'` metadata key so they are interchangeable; four are typed
+  `ProjectRole`, three take bare `string[]`. New code should use the
+  `projects/` one.
+- `src/migrate/migrate.module.ts.ts` has a real double extension, and
+  `app.module.ts` imports `'./migrate/migrate.module.ts'` to match. Renaming
+  the file means fixing that import.
+- `src/database/schema/userSchema.ts` is 0 bytes; `src/bulk-migrate.js` is a
+  253-line loose script inside `src/` that nothing imports.
+- In `packages/shared-core`: the whole `api/` layer plus
+  `utils/error-handler.ts`, `reportHelper.ts`, `sortProjects.ts` and `auth.ts`
+  (see Structure).
+
+Already written up elsewhere in this file, listed here so the set is in one
+place: `yarn type-check` runs nothing, the prettier `semi: false` mismatch,
+the `query-check.note` FIFO, `--radius: 0`, Open Sans never applied, the two
+sidebar entries switched off, and the web app being English-only.
 
 ## Running the web app for preview
 
@@ -204,18 +444,128 @@ The web app talks to the hosted dev backend (`dev.treemapper.app`) when
 this is the rewrite target in `next.config.ts`. Without it, `/api/server/*`
 rewrites to a local server on `SERVER_PORT` (default 3001), and every API call
 500s if that server isn't running. Since it's a `NEXT_PUBLIC_*` var, changing it
-requires restarting the dev server, not just a reload.
+requires restarting the dev server, not just a reload. **The default is the
+local server**, so check whether your `.env` actually sets this before assuming
+a preview can reach data.
 
 The TreeMatch screens load real data through the local server
 (`/api/treematch/projects/:uid/...`), so previewing them needs `apps/server`
 running on :3001 (the `mobile` app is never needed). The donations pane proxies
-the TTC contributions API: the server reads `TREEMATCH_TTC_URL` +
-`TREEMATCH_TTC_API_KEY` (falling back to `OLD_BACKEND_URL` + `API_KEY`), and
-review-app TTC deploys (`*.startplanting.org`) may additionally need a
-Cloudflare Access service token in `TREEMATCH_TTC_CF_CLIENT_ID` /
-`TREEMATCH_TTC_CF_CLIENT_SECRET` -- when the edge is gated, it returns a 403
-HTML page before the API is ever reached. If the donation backend is unreachable the pane
+the TTC contributions API, which needs server-side credentials that are not in
+any example file -- ask a teammate for the current set. A TTC deploy sitting
+behind an access gate returns a 403 HTML page before the API is ever reached,
+which reads as a broken proxy; that case needs an extra service token. If the
+donation backend is unreachable the pane
 shows an error banner; the plant-locations pane still works from the local DB.
+
+## Web routing and layout
+
+`URL-ROUTING-MIGRATION.md` at the repo root is the full plan and is accurate;
+the migration has landed. Shape of `apps/web/src/app`:
+
+- **`(dashboard)/project/[projectUid]/*`** -- the real project pages (overview,
+  sites, species, team, intervention, new-intervention, monitoring-plots,
+  bulkupload, forms, approvals, dataexplore, leaderboard, settings, treematch,
+  device-management, newsite). The `[projectUid]/layout.tsx` reads
+  `useParams()` and hydrates `useProjectStore` from the URL -- **the URL is the
+  source of truth and the store is a derived cache**, which is what let the ~34
+  existing `selectedProject` readers stay unchanged. It renders a spinner until
+  the store matches the URL and a "Project not found" panel for an id the user
+  cannot access.
+- **`(workspace)/workspace/[workspaceUid]/*`** -- general, members, projects,
+  approvals, activity.
+- **`(standalone)/*`** -- the landing `/`, `/onboard`, `/create-project`,
+  `/profile`. All three route groups check `MAINTENANCE_MODE` in their layout.
+- **`app/dashboard/*` is two things at once.** Most files are 1-line permanent
+  redirect stubs, kept on purpose because real users have bookmarks and shared
+  links (bare `/dashboard` preserves the query string so invite params still
+  reach the modal). But the same folder still holds **live shared modules the
+  new routes import**: `DashboardClientLayout.tsx` and the whole
+  `dashboard/workspace/components/` set. Do not delete `app/dashboard`.
+  `app/dashboard/productpage` is the product-page POC, behind sign-in on
+  purpose; `/login` still serves the real login screen.
+- There is **no `middleware.ts`**. `localStorage('project')` is gone; landings
+  resolve through `selectedProject`, then `user.primaryProjectUid`.
+- Link with `projectHref(uid, subpage)` from `src/lib/projectRoutes.ts`, and
+  gate UI with `isProjectAdmin` / `canWriteToProject` from
+  `src/lib/projectAccess.ts` -- those constants are the client half of the
+  server's `@ProjectRoles(...)` and must be kept in step. They are UX gates
+  only.
+
+Two checklist items in the migration doc are still open, both needing a browser
+with real auth: confirming the 34 store readers against URL hydration, and the
+end-to-end runtime verify (deep links, invite join, not-found/no-access,
+impersonation exit).
+
+## Mobile app architecture
+
+`apps/mobile` is the largest workspace (~750 files) and shares nothing with
+web or server. Expo 55 / RN 0.83, bare workflow (checked-in `android/` and
+`ios/`), app version in `app.json` (3.0.6), bundle id `org.pftp.treemapper`.
+
+- **Realm is the primary store, not a cache.** `src/db/schema/` (~40 object
+  schemas) is the local model; `schemaVersion` is **28** in
+  `src/db/RealmProvider.tsx`, and `src/db/migrations.ts` holds the hand-written
+  migrations (v24, v27 both backfill a new `sync_status`). Bumping a schema
+  means bumping that version. `appRealm` is a module-level singleton so
+  non-React code (sync helpers, session manager) can write without a hook.
+- **Redux Toolkit holds session and UI state only** (`src/store/slice/*`:
+  app, user, project, gps, map bounds, sample tree, sync, take-picture, temp),
+  persisted with redux-persist. Field data lives in Realm.
+- **Sync is a derived priority queue, not a diff.**
+  `utils/helpers/syncHelper.ts` walks unsynced Realm interventions and emits
+  typed ops (`intervention`, `singleTree`, `sampleTree`, `treeImage`,
+  `remeasurementData`, `remeasurementStatus`, `skipRemeasurement`,
+  `plannedTree`) with a priority, and each record walks a status machine
+  (`PENDING_DATA_UPLOAD` -> `PENDING_SAMPLE_TREE` -> `PENDING_TREE_IMAGE` ->
+  `SYNCED`). `components/intervention/SyncIntervention.tsx` drives it;
+  monitoring plots have their own pair
+  (`SyncMonitoringPlot.tsx` + `monitoringPlotSyncHelper.ts`).
+- **Failures are triaged, and that distinction matters.** A 4xx other than
+  401/408/429 means the server read the payload and rejected it, so retrying
+  the same bytes can never work: the record is **quarantined** by setting
+  `fix_required`, dropped from the sync queue, and shown as "Fix Required"
+  until the user edits it (editing resets it to `"NO"`). 5xx and network
+  errors -- which `customFetch` reports as status 500 -- stay queued.
+- **Two backends.** `EXPO_PUBLIC_API_ENDPOINT_MOBILE` is the TreeMapper server
+  and serves nearly everything; `EXPO_PUBLIC_API_ENDPOINT` is the **old**
+  Plant-for-the-Planet backend and is used for only three things (species
+  read/write, delete account). `.env.sample` documents the second but not the
+  first, so a fresh clone silently posts to `undefined/...`.
+- Auth is `react-native-auth0` with the credentials kept in the native store.
+  `api/sessionManager.ts` owns one shared `refreshSession()` used by both the
+  proactive expiry check and the reactive 401 retry in `customFetch`, with an
+  in-flight promise so concurrent callers refresh once; a failed refresh force-
+  logs-out and wipes synced local data.
+- Navigation is one big `createNativeStackNavigator` (`src/navigation/
+  RootNavigator.tsx`, ~60 screens) over a bottom-tab home. Deep links come in
+  through `applinks:treemapper.app` / `dev.treemapper.app`.
+- 7 languages under `src/locales/languages` (de, en, es, fr, it, mg, pt-BR) --
+  unlike web, which is English-only.
+- Crash reporting is Bugsnag; analytics is PostHog; push is OneSignal.
+
+## Deployment
+
+Heroku, **container stack**, one dyno running **both** apps. `heroku.yml`
+builds `Dockerfile` and the release runs `yarn start`, which is `concurrently`
+starting `next start` on `$PORT` and the Nest server on `3001`. That is why the
+browser calls the relative `/api/server/*` and `next.config.ts` rewrites it to
+the local Nest process -- never point the client at an absolute API origin.
+
+- `NEXT_PUBLIC_*` vars are **hardcoded in `heroku.yml`**, not set with
+  `heroku config:set`. On the container stack Heroku config vars are not
+  available during `docker build`, and `heroku.yml` has no variable
+  substitution, so a `config:set` value never reaches the client bundle. Only
+  three are live: `NEXT_PUBLIC_AUTH0_CLIENT_ID`, `NEXT_PUBLIC_CDN_BASE`,
+  `NEXT_PUBLIC_MODE`.
+- `apps/mobile` is excluded from both the slug (`.slugignore`) and the image
+  (`.dockerignore`), and the Dockerfile `rm -rf`s it. Mobile ships through Expo,
+  not Heroku.
+- The deps stage runs `node scripts/check-pinned-deps.js` **before**
+  `yarn install --frozen-lockfile`, because yarn 1 only validates the root
+  manifest against the lockfile (see Dependency pinning).
+- Swagger is served at `/api/docs` in non-production only, and non-production
+  responses carry `X-Robots-Tag: noindex`.
 
 ## TreeMatch server architecture
 
@@ -468,6 +818,13 @@ Updated 2026-07-30 for the rewrite above. `apps/web/src/app/(dashboard)/project/
 ForestCloud tab of `settings/page.tsx`. Plain `useState` + the shared fetchers,
 no TanStack Query on this screen.
 
+> ⚠️ **Currently hidden from the nav.** `DashboardSidebar.tsx` has
+> `const showTreeMatch = false`, so the whole "Matching" group is gone from the
+> sidebar. Everything below still works and a direct URL still reaches the
+> page; flip that one line to bring the entry back. The other gate on the
+> entry, `isPlatformProjectWorkspace` (workspace slug `platform-projects`), is
+> unreachable while the flag is false.
+
 **Split into hooks and panes on 2026-08-03** (`page.tsx` was 1553 lines and 32
 `useState` calls). `page.tsx` is now the role gate plus a composition root:
 `component/hooks/useTreematchLocations` and `useTreematchDonations` own one pane
@@ -594,23 +951,22 @@ is the only thing that gates "logged in" -- `AuthInitializer` reads it via
 then sends `Authorization: Bearer <token>`
 (`packages/shared-core/fetchApi/customFetch.ts`). Seeding that one key = logged in.
 
-Workflow when previewing an authed page:
+The way to do it is the **`/dev-token` page**, not an env var:
 
 1. Check auth in the preview (is `localStorage.access_token` empty / is the page
-   on login?).
-2. If auth is empty **and** `BEARER_TOKEN` is set in `apps/web/.env`: tell the
-   user you are injecting the token, then in the preview run
-   `localStorage.setItem('access_token', '<token from .env>')` and reload.
-3. If auth is empty **and** `BEARER_TOKEN` is not in `apps/web/.env`: ask the user
-   to add a valid `BEARER_TOKEN` to `apps/web/.env` (do not invent one). This is
-   a Claude-preview-only convenience -- `BEARER_TOKEN` is not a normal dev
-   dependency and is intentionally left out of `apps/web/.env.example`.
-4. If auth is already present, do nothing.
+   on login?). If it is already present, do nothing.
+2. If it is empty, open `http://localhost:3000/dev-token`, paste a valid Auth0
+   access token, and press save. The page validates the JWT shape and its
+   expiry, writes `localStorage.access_token`, and redirects to `/`.
+3. Ask the user for a fresh token when you need one. Never invent one, and
+   never print one in chat.
 
-`BEARER_TOKEN` is a valid Auth0 access token for the backend -- never commit it,
-never print it in chat. No app or auth code changes; the token only lives in the
-browser session. Do **not** commit an in-app token seeder or a route that serves
-the token -- injection is a preview-time action only.
+`apps/web/src/app/dev-token/page.tsx` is deliberately **untracked** (listed in
+`.git/info/exclude`) and calls `notFound()` unless `NODE_ENV=development`, so it
+cannot ship. Do not commit it, and do not add a route that serves a token.
+
+An older `BEARER_TOKEN` env-var flow is gone: there is no such key in
+`apps/web/.env` and nothing reads it.
 
 ## What NOT to do
 

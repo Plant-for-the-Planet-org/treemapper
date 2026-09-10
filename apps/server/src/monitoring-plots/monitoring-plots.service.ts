@@ -8,7 +8,6 @@ import { and, eq, inArray, or, sql } from 'drizzle-orm';
 import { getType } from '@turf/invariant';
 import { DrizzleService } from '../database/drizzle.service';
 import { AuditService } from '../audit/audit.service';
-import { interventionRequiresApproval } from '../approval-board/approval.util';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
 import { generateUid } from 'src/util/uidGenerator';
 import { generateParentHID } from 'src/util/hidGenerator';
@@ -27,6 +26,7 @@ import {
   image,
 } from 'src/database/schema';
 import {
+  PLOT_LIMITS,
   CreateMonitoringPlotDto,
   CreatePlotGroupDto,
   MonitoringPlotUploadResponseDto,
@@ -141,18 +141,53 @@ export class MonitoringPlotsService {
         }
       }
 
-      // Resolve optional site uid -> internal id.
+      // Resolve optional site uid -> internal id. Scoped to this project: a site
+      // uid from another project would otherwise attach the plot to a site the
+      // caller cannot see, and every site-scoped read would then be wrong.
       let siteId: number | null = null;
       if (dto.plantProjectSite) {
         const siteData = await this.drizzleService.db
           .select({ id: site.id })
           .from(site)
-          .where(eq(site.uid, dto.plantProjectSite))
+          .where(
+            and(
+              eq(site.uid, dto.plantProjectSite),
+              eq(site.projectId, membership.projectId),
+              sql`${site.deletedAt} IS NULL`,
+            ),
+          )
           .limit(1);
         if (siteData.length === 0) {
           throw new NotFoundException('Site not found');
         }
         siteId = siteData[0].id;
+      }
+
+      // A device can drop a plot into a group before that plot has ever been
+      // uploaded, so the membership rides along with the plot. A uid that no
+      // longer names a live group in this project is dropped rather than
+      // rejected: a 4xx would quarantine the plot on the device over a grouping
+      // detail, and the plot itself is the thing worth keeping.
+      let plotGroupId: number | null = null;
+      if (dto.plotGroupUid) {
+        const [groupRow] = await this.drizzleService.db
+          .select({ id: plotGroup.id })
+          .from(plotGroup)
+          .where(
+            and(
+              eq(plotGroup.uid, dto.plotGroupUid),
+              eq(plotGroup.projectId, membership.projectId),
+              sql`${plotGroup.deletedAt} IS NULL`,
+            ),
+          )
+          .limit(1);
+        if (groupRow) {
+          plotGroupId = groupRow.id;
+        } else {
+          this.logger.warn(
+            `Plot group ${dto.plotGroupUid} not found in project ${membership.projectId}; plot uploaded ungrouped.`,
+          );
+        }
       }
 
       const plants = dto.plants ?? [];
@@ -183,17 +218,17 @@ export class MonitoringPlotsService {
       // Resolve the unique species used by the plot's plants.
       const speciesByKey = await this.resolvePlotSpecies(plants);
 
-      // Approval board gating, mirroring the intervention upload flow. A plot
-      // synced from a device follows the 'mobile' toggle; one created in the
-      // dashboard follows 'web'.
-      const [projectData] = await this.drizzleService.db
-        .select({
-          approvalBoardEnabled: project.approvalBoardEnabled,
-          approvalSettings: project.approvalSettings,
-        })
-        .from(project)
-        .where(eq(project.id, membership.projectId))
-        .limit(1);
+      // Plots do not go through the approval board.
+      //
+      // The board reviews claims about work done: an intervention says trees were
+      // planted, and that is worth a second pair of eyes before it counts. A plot
+      // claims nothing. It is a measured area someone walked, and its value is the
+      // measurements themselves, which the board has no way to judge. Gating them
+      // only meant a plot sat unreviewed in a queue of interventions, rendered
+      // with intervention fields that a plot does not have.
+      //
+      // So `reviewStatus` is never set here, the board's own queries skip
+      // plots, and migration 0009 cleared the ones that were already gated.
       const now = new Date();
 
       const startDate = dto.interventionStartDate
@@ -231,10 +266,6 @@ export class MonitoringPlotsService {
         totalTreeCount: plants.length,
         totalSampleTreeCount: 0,
         source,
-        ...(interventionRequiresApproval(projectData, source) && {
-          reviewStatus: 'pending',
-          submittedAt: now,
-        }),
       };
 
       const result = await this.drizzleService.db.transaction(async (tx) => {
@@ -279,6 +310,20 @@ export class MonitoringPlotsService {
             metadata: dto.metadata || null,
           })
           .returning({ uid: monitoringPlot.uid });
+
+        // Group membership, when the device sent one and it resolved above.
+        if (plotGroupId !== null) {
+          await tx
+            .insert(plotGroupMembership)
+            .values({
+              uid: generateUid('pgrpm'),
+              groupId: plotGroupId,
+              interventionId: plotIntervention.id,
+            })
+            .onConflictDoNothing({
+              target: [plotGroupMembership.groupId, plotGroupMembership.interventionId],
+            });
+        }
 
         // Insert the unique species, then map each species key -> id.
         const speciesKeyToId = new Map<string, number>();
@@ -409,6 +454,14 @@ export class MonitoringPlotsService {
     if (!Array.isArray(dtos) || dtos.length === 0) {
       throw new BadRequestException('Request body must be a non-empty array of plots');
     }
+    // Each plot in the batch is its own transaction with its own per-plant
+    // inserts, so an unbounded batch is an unbounded request. ParseArrayPipe
+    // validates the items but has no size option, so the cap lives here.
+    if (dtos.length > PLOT_LIMITS.BULK_PLOTS) {
+      throw new BadRequestException(
+        `A bulk upload may carry at most ${PLOT_LIMITS.BULK_PLOTS} plots (received ${dtos.length}). Split the batch.`,
+      );
+    }
     const results: any[] = [];
     let passed = 0;
     for (const dto of dtos) {
@@ -450,6 +503,8 @@ export class MonitoringPlotsService {
               eq(tree.uid, p.treeUid),
               eq(intervention.projectId, membership.projectId),
               eq(intervention.discriminator, 'plot'),
+              sql`${intervention.deletedAt} IS NULL`,
+              sql`${tree.deletedAt} IS NULL`,
             ),
           )
           .limit(1);
@@ -591,6 +646,10 @@ export class MonitoringPlotsService {
             eq(intervention.uid, dto.plotUid),
             eq(intervention.projectId, membership.projectId),
             eq(intervention.discriminator, 'plot'),
+            // A deleted plot is gone from every read, so it must not take writes
+            // either. Without this the device keeps pushing into a tombstone,
+            // gets a 200 back, and marks the data synced.
+            sql`${intervention.deletedAt} IS NULL`,
           ),
         )
         .limit(1);
@@ -747,6 +806,10 @@ export class MonitoringPlotsService {
             eq(intervention.uid, dto.plotUid),
             eq(intervention.projectId, membership.projectId),
             eq(intervention.discriminator, 'plot'),
+            // A deleted plot is gone from every read, so it must not take writes
+            // either. Without this the device keeps pushing into a tombstone,
+            // gets a 200 back, and marks the data synced.
+            sql`${intervention.deletedAt} IS NULL`,
           ),
         )
         .limit(1);
@@ -829,6 +892,7 @@ export class MonitoringPlotsService {
             eq(intervention.uid, dto.plotUid),
             eq(intervention.projectId, membership.projectId),
             eq(intervention.discriminator, 'plot'),
+            sql`${intervention.deletedAt} IS NULL`,
           ),
         )
         .limit(1);
@@ -939,6 +1003,7 @@ export class MonitoringPlotsService {
               inArray(intervention.uid, dto.plotUids),
               eq(intervention.projectId, membership.projectId),
               eq(intervention.discriminator, 'plot'),
+              sql`${intervention.deletedAt} IS NULL`,
             ),
           );
         if (plots.length > 0) {
@@ -981,8 +1046,10 @@ export class MonitoringPlotsService {
         uid: intervention.uid,
         hid: intervention.hid,
         name: intervention.description,
+        // Cover photo filename, so the list can show a thumbnail without a
+        // second read. The dashboard rebuilds the url from the filename alone.
+        image: intervention.image,
         totalTreeCount: intervention.totalTreeCount,
-        reviewStatus: intervention.reviewStatus,
         createdAt: intervention.createdAt,
         plotUid: monitoringPlot.uid,
         shape: monitoringPlot.shape,
@@ -1097,7 +1164,6 @@ export class MonitoringPlotsService {
         registrationDate: intervention.registrationDate,
         interventionStartDate: intervention.interventionStartDate,
         interventionEndDate: intervention.interventionEndDate,
-        reviewStatus: intervention.reviewStatus,
         totalTreeCount: intervention.totalTreeCount,
         geometry: intervention.originalGeometry,
         metadata: monitoringPlot.metadata,
@@ -1312,6 +1378,278 @@ export class MonitoringPlotsService {
   }
 
   /**
+   * Every plot in a project, shaped for a device to rebuild its local copy.
+   *
+   * This is the one read that goes server -> device. The app is otherwise
+   * write-only: it captures plots in the field and pushes them, and has never
+   * been able to see a plot made on the dashboard, a plot edited there, or a
+   * plot someone deleted. A field team could stand in a plot that no longer
+   * exists and go on remeasuring it.
+   *
+   * The response is the whole set rather than a delta, and that is deliberate:
+   * the device reconciles against it, so a plot missing from the list is a plot
+   * that was deleted. No tombstone feed to keep, and nothing to go stale if a
+   * device is offline for a month.
+   *
+   * `clientId` is the device's own id for a plot it uploaded (the intervention's
+   * idempotency key), which is what lets a device recognise its own plots
+   * instead of duplicating them. Plots made on the dashboard have none, so the
+   * device adopts the server uid as its local id.
+   *
+   * Six queries regardless of how many plots there are: the batching matters
+   * because a project can hold hundreds of plots with thousands of trees between
+   * them, and this runs when a user taps refresh and waits.
+   */
+  async getProjectPlotsForDevice(projectId: number): Promise<{ projectUid: string; plots: any[] }> {
+    const [projectRow] = await this.drizzleService.db
+      .select({ uid: project.uid })
+      .from(project)
+      .where(eq(project.id, projectId))
+      .limit(1);
+
+    const plots = await this.drizzleService.db
+      .select({
+        id: intervention.id,
+        uid: intervention.uid,
+        hid: intervention.hid,
+        clientId: intervention.idempotencyKey,
+        name: intervention.description,
+        image: intervention.image,
+        totalTreeCount: intervention.totalTreeCount,
+        registrationDate: intervention.registrationDate,
+        interventionStartDate: intervention.interventionStartDate,
+        interventionEndDate: intervention.interventionEndDate,
+        createdAt: intervention.createdAt,
+        updatedAt: intervention.updatedAt,
+        geometry: intervention.originalGeometry,
+        metadata: monitoringPlot.metadata,
+        plotUid: monitoringPlot.uid,
+        shape: monitoringPlot.shape,
+        plotType: monitoringPlot.plotType,
+        complexity: monitoringPlot.complexity,
+        radius: monitoringPlot.radius,
+        length: monitoringPlot.length,
+        width: monitoringPlot.width,
+        isComplete: monitoringPlot.isComplete,
+        center: sql<string | null>`ST_AsGeoJSON(${monitoringPlot.centerLocation})`,
+        siteUid: site.uid,
+        siteName: site.name,
+      })
+      .from(intervention)
+      .leftJoin(monitoringPlot, eq(monitoringPlot.interventionId, intervention.id))
+      .leftJoin(site, eq(site.id, intervention.siteId))
+      .where(
+        and(
+          eq(intervention.projectId, projectId),
+          eq(intervention.discriminator, 'plot'),
+          sql`${intervention.deletedAt} IS NULL`,
+        ),
+      )
+      .orderBy(sql`${intervention.createdAt} DESC`);
+
+    if (plots.length === 0) {
+      return { projectUid: projectRow?.uid ?? '', plots: [] };
+    }
+
+    const plotIds = plots.map((p) => p.id);
+
+    const [groups, species, observations, trees] = await Promise.all([
+      this.drizzleService.db
+        .select({
+          interventionId: plotGroupMembership.interventionId,
+          uid: plotGroup.uid,
+          name: plotGroup.name,
+        })
+        .from(plotGroupMembership)
+        .innerJoin(plotGroup, eq(plotGroup.id, plotGroupMembership.groupId))
+        .where(
+          and(
+            inArray(plotGroupMembership.interventionId, plotIds),
+            sql`${plotGroup.deletedAt} IS NULL`,
+          ),
+        ),
+      this.drizzleService.db
+        .select({
+          interventionId: interventionSpecies.interventionId,
+          uid: interventionSpecies.uid,
+          speciesName: interventionSpecies.speciesName,
+          commonName: interventionSpecies.commonName,
+          speciesCount: interventionSpecies.speciesCount,
+          isUnknown: interventionSpecies.isUnknown,
+          scientificSpeciesUid: scientificSpecies.uid,
+        })
+        .from(interventionSpecies)
+        .leftJoin(scientificSpecies, eq(scientificSpecies.id, interventionSpecies.scientificSpeciesId))
+        .where(
+          and(
+            inArray(interventionSpecies.interventionId, plotIds),
+            sql`${interventionSpecies.deletedAt} IS NULL`,
+          ),
+        ),
+      this.drizzleService.db
+        .select({
+          interventionId: plotObservation.interventionId,
+          uid: plotObservation.uid,
+          type: plotObservation.type,
+          observedAt: plotObservation.observedAt,
+          unit: plotObservation.unit,
+          value: plotObservation.value,
+        })
+        .from(plotObservation)
+        .where(
+          and(
+            inArray(plotObservation.interventionId, plotIds),
+            sql`${plotObservation.deletedAt} IS NULL`,
+          ),
+        )
+        .orderBy(plotObservation.observedAt),
+      this.drizzleService.db
+        .select({
+          id: tree.id,
+          interventionId: tree.interventionId,
+          uid: tree.uid,
+          hid: tree.hid,
+          tag: tree.tag,
+          speciesName: tree.speciesName,
+          commonName: tree.commonName,
+          isUnknown: tree.isUnknown,
+          status: tree.status,
+          latitude: tree.latitude,
+          longitude: tree.longitude,
+          height: tree.height,
+          width: tree.width,
+          plantingDate: tree.plantingDate,
+          lastMeasurementDate: tree.lastMeasurementDate,
+          image: tree.image,
+          scientificSpeciesUid: scientificSpecies.uid,
+        })
+        .from(tree)
+        .leftJoin(interventionSpecies, eq(interventionSpecies.id, tree.interventionSpeciesId))
+        .leftJoin(scientificSpecies, eq(scientificSpecies.id, interventionSpecies.scientificSpeciesId))
+        .where(
+          and(
+            inArray(tree.interventionId, plotIds),
+            eq(tree.treeType, 'plot'),
+            sql`${tree.deletedAt} IS NULL`,
+          ),
+        ),
+    ]);
+
+    const treeIds = trees.map((t) => t.id);
+
+    const [records, photos] = await Promise.all([
+      treeIds.length
+        ? this.drizzleService.db
+            .select({
+              treeId: treeRecord.treeId,
+              uid: treeRecord.uid,
+              recordType: treeRecord.recordType,
+              recordedAt: treeRecord.recordedAt,
+              height: treeRecord.height,
+              width: treeRecord.width,
+              newStatus: treeRecord.newStatus,
+              image: treeRecord.image,
+            })
+            .from(treeRecord)
+            .where(
+              and(
+                inArray(treeRecord.treeId, treeIds),
+                sql`${treeRecord.deletedAt} IS NULL`,
+              ),
+            )
+            .orderBy(treeRecord.recordedAt)
+        : Promise.resolve([] as any[]),
+      this.drizzleService.db
+        .select({
+          uid: image.uid,
+          entityType: image.entityType,
+          entityId: image.entityId,
+          filename: image.filename,
+          type: image.type,
+          isPrimary: image.isPrimary,
+          createdAt: image.createdAt,
+        })
+        .from(image)
+        .where(
+          and(
+            sql`${image.deletedAt} IS NULL`,
+            sql`${image.filename} IS NOT NULL`,
+            treeIds.length
+              ? or(
+                and(eq(image.entityType, 'intervention'), inArray(image.entityId, plotIds)),
+                and(eq(image.entityType, 'tree'), inArray(image.entityId, treeIds)),
+              )
+              : and(eq(image.entityType, 'intervention'), inArray(image.entityId, plotIds)),
+          ),
+        )
+        .orderBy(image.createdAt),
+    ]);
+
+    // Stitch in code. Every list above is keyed by an id the device never sees,
+    // so nothing internal leaks into the response.
+    const groupByPlot = new Map(groups.map((g) => [g.interventionId, { uid: g.uid, name: g.name }]));
+    const by = <T extends { interventionId: number }>(rows: T[]) => {
+      const map = new Map<number, Omit<T, 'interventionId'>[]>();
+      for (const row of rows) {
+        const { interventionId, ...rest } = row;
+        if (!map.has(interventionId)) map.set(interventionId, []);
+        map.get(interventionId)!.push(rest);
+      }
+      return map;
+    };
+    const speciesByPlot = by(species);
+    const observationsByPlot = by(observations);
+
+    const recordsByTree = new Map<number, any[]>();
+    for (const r of records) {
+      const { treeId, ...rest } = r;
+      if (!recordsByTree.has(treeId)) recordsByTree.set(treeId, []);
+      recordsByTree.get(treeId)!.push(rest);
+    }
+
+    const plotPhotos = new Map<number, any[]>();
+    const treePhotos = new Map<number, any[]>();
+    for (const row of photos) {
+      const { entityType, entityId, ...rest } = row;
+      const target = entityType === 'intervention' ? plotPhotos : treePhotos;
+      if (!target.has(entityId)) target.set(entityId, []);
+      target.get(entityId)!.push(rest);
+    }
+
+    const plantsByPlot = new Map<number, any[]>();
+    for (const t of trees) {
+      const { id, interventionId, ...rest } = t;
+      if (!plantsByPlot.has(interventionId)) plantsByPlot.set(interventionId, []);
+      plantsByPlot.get(interventionId)!.push({
+        ...rest,
+        timeline: recordsByTree.get(id) ?? [],
+        images: treePhotos.get(id) ?? [],
+      });
+    }
+
+    return {
+      projectUid: projectRow?.uid ?? '',
+      plots: plots.map((p) => {
+        const { id, center, siteUid, siteName, ...rest } = p;
+        let parsedCenter: any = null;
+        if (center) {
+          try { parsedCenter = JSON.parse(center as unknown as string); } catch { parsedCenter = null; }
+        }
+        return {
+          ...rest,
+          center: parsedCenter,
+          site: siteUid ? { uid: siteUid, name: siteName } : null,
+          group: groupByPlot.get(id) ?? null,
+          species: speciesByPlot.get(id) ?? [],
+          observations: observationsByPlot.get(id) ?? [],
+          images: plotPhotos.get(id) ?? [],
+          plants: plantsByPlot.get(id) ?? [],
+        };
+      }),
+    };
+  }
+
+  /**
    * Edit a plot's metadata from the web dashboard. `name` updates the
    * intervention description; the rest update the monitoring_plot row. Returns
    * the refreshed plot detail.
@@ -1445,15 +1783,29 @@ export class MonitoringPlotsService {
   }
 
   /**
-   * Soft-delete a monitoring plot (the intervention + its monitoring_plot row).
-   * The list/detail reads filter on deletedAt, so the plot disappears from the
-   * dashboard; the underlying trees/records are left intact.
+   * Delete a monitoring plot and everything recorded under it.
+   *
+   * Soft delete throughout: every row keeps its data and only gains a
+   * `deleted_at`, so nothing is destroyed and the record can still be recovered
+   * by hand. What goes is the whole plot: the intervention and its
+   * monitoring_plot row, its tagged trees and their full measurement history,
+   * its plot-level observations, its species rows, and the photos of the plot
+   * and of each tree.
+   *
+   * Taking the trees is the point. Leaving them behind meant a deleted plot's
+   * trees stayed live, still reachable by hid and still counted anywhere trees
+   * are totalled without joining back to the intervention, so the plot looked
+   * gone while its stems went on being real.
+   *
+   * The plot's group membership is left alone: every group read already skips
+   * deleted plots, and the link is what would let the plot come back into its
+   * group if a row is ever undeleted.
    */
   async deletePlot(
     projectId: number,
     plotUid: string,
     membership: ProjectGuardResponse,
-  ): Promise<{ uid: string; deleted: boolean }> {
+  ): Promise<{ uid: string; deleted: boolean; treesDeleted: number; observationsDeleted: number }> {
     const [plot] = await this.drizzleService.db
       .select({ id: intervention.id, uid: intervention.uid, hid: intervention.hid })
       .from(intervention)
@@ -1472,7 +1824,20 @@ export class MonitoringPlotsService {
     }
 
     const now = new Date();
-    await this.drizzleService.db.transaction(async (tx) => {
+    const counts = await this.drizzleService.db.transaction(async (tx) => {
+      // The plot's live trees, read first so their records and photos can be
+      // reached once the trees themselves are marked deleted.
+      const trees = await tx
+        .select({ id: tree.id })
+        .from(tree)
+        .where(
+          and(
+            eq(tree.interventionId, plot.id),
+            sql`${tree.deletedAt} IS NULL`,
+          ),
+        );
+      const treeIds = trees.map((t) => t.id);
+
       await tx
         .update(intervention)
         .set({ deletedAt: now })
@@ -1481,6 +1846,67 @@ export class MonitoringPlotsService {
         .update(monitoringPlot)
         .set({ deletedAt: now })
         .where(eq(monitoringPlot.interventionId, plot.id));
+
+      const observations = await tx
+        .update(plotObservation)
+        .set({ deletedAt: now })
+        .where(
+          and(
+            eq(plotObservation.interventionId, plot.id),
+            sql`${plotObservation.deletedAt} IS NULL`,
+          ),
+        )
+        .returning({ id: plotObservation.id });
+
+      await tx
+        .update(interventionSpecies)
+        .set({ deletedAt: now })
+        .where(
+          and(
+            eq(interventionSpecies.interventionId, plot.id),
+            sql`${interventionSpecies.deletedAt} IS NULL`,
+          ),
+        );
+
+      // Photos of the plot itself.
+      await tx
+        .update(image)
+        .set({ deletedAt: now })
+        .where(
+          and(
+            eq(image.entityType, 'intervention'),
+            eq(image.entityId, plot.id),
+            sql`${image.deletedAt} IS NULL`,
+          ),
+        );
+
+      if (treeIds.length > 0) {
+        await tx
+          .update(treeRecord)
+          .set({ deletedAt: now })
+          .where(
+            and(
+              inArray(treeRecord.treeId, treeIds),
+              sql`${treeRecord.deletedAt} IS NULL`,
+            ),
+          );
+        await tx
+          .update(image)
+          .set({ deletedAt: now })
+          .where(
+            and(
+              eq(image.entityType, 'tree'),
+              inArray(image.entityId, treeIds),
+              sql`${image.deletedAt} IS NULL`,
+            ),
+          );
+        await tx
+          .update(tree)
+          .set({ deletedAt: now })
+          .where(inArray(tree.id, treeIds));
+      }
+
+      return { treesDeleted: treeIds.length, observationsDeleted: observations.length };
     });
 
     this.auditService.log('intervention', {
@@ -1489,11 +1915,16 @@ export class MonitoringPlotsService {
       entityUid: plot.uid,
       userId: membership.userId,
       projectId: membership.projectId,
-      newValues: { discriminator: 'plot', hid: plot.hid },
+      newValues: {
+        discriminator: 'plot',
+        hid: plot.hid,
+        treesDeleted: counts.treesDeleted,
+        observationsDeleted: counts.observationsDeleted,
+      },
       source: 'web',
     });
 
-    return { uid: plot.uid, deleted: true };
+    return { uid: plot.uid, deleted: true, ...counts };
   }
 
   /**
@@ -1635,13 +2066,18 @@ export class MonitoringPlotsService {
   }
 
   /**
-   * Soft-delete a plot group. Member plots are unaffected (only the grouping
-   * is removed).
+   * Soft-delete a plot group and unassign every plot that was in it.
+   *
+   * The plots themselves are untouched: only the grouping goes away, and each
+   * one becomes ungrouped and free to join another group. The membership rows
+   * are hard-deleted, the same as everywhere else that edits membership, because
+   * a group<->plot link is a reversible pointer with no history to keep and a
+   * soft-delete flag would fight the (group, plot) unique constraint on re-add.
    */
   async deleteGroup(
     projectId: number,
     groupUid: string,
-  ): Promise<{ uid: string; deleted: boolean }> {
+  ): Promise<{ uid: string; deleted: boolean; unassigned: number }> {
     const [grp] = await this.drizzleService.db
       .select({ id: plotGroup.id, uid: plotGroup.uid })
       .from(plotGroup)
@@ -1658,12 +2094,19 @@ export class MonitoringPlotsService {
       throw new NotFoundException('Group not found');
     }
 
-    await this.drizzleService.db
-      .update(plotGroup)
-      .set({ deletedAt: new Date() })
-      .where(eq(plotGroup.id, grp.id));
+    const unassigned = await this.drizzleService.db.transaction(async (tx) => {
+      await tx
+        .update(plotGroup)
+        .set({ deletedAt: new Date() })
+        .where(eq(plotGroup.id, grp.id));
+      const removed = await tx
+        .delete(plotGroupMembership)
+        .where(eq(plotGroupMembership.groupId, grp.id))
+        .returning({ id: plotGroupMembership.id });
+      return removed.length;
+    });
 
-    return { uid: grp.uid, deleted: true };
+    return { uid: grp.uid, deleted: true, unassigned };
   }
 
   // -------------------------------------------------------------------------

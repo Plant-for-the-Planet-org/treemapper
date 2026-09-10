@@ -3,6 +3,7 @@
 import { Fragment, useMemo, useState } from 'react';
 import {
   ArrowLeft, Pencil, Trash2, MapPin, Layers, ChevronDown, ChevronRight, Download, TreePine, Plus,
+  Camera,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,9 @@ import {
   Donut, GrowthChart, Label, MiniGrowth, Mono, ObservationChart, PlotDiagram, Ring, SectionTitle,
   StackBar, Stat, StatusDot,
 } from './PlotCharts';
+import {
+  CoverThumb, NoPhotos, Photo, PhotoGrid, PhotoSection, photoUrl, toPhotos,
+} from './PlotPhotos';
 
 export type { PlotDetail, PlotPlant, TimelineEntry } from './plotAnalytics';
 
@@ -38,17 +42,6 @@ const statusPill = (status?: string | null) => {
       <StatusDot status={s} /> {s}
     </span>
   );
-};
-
-const reviewBadge = (status?: string | null) => {
-  if (!status) return null;
-  const s = status.toLowerCase();
-  const cls =
-    s === 'approved' ? 'bg-green-50 text-green-700 border-green-200'
-      : s === 'rejected' ? 'bg-red-50 text-red-700 border-red-200'
-        : s === 'in_review' ? 'bg-blue-50 text-blue-700 border-blue-200'
-          : 'bg-amber-50 text-amber-700 border-amber-200';
-  return <Badge variant="outline" className={cn('text-[10px] capitalize', cls)}>{s.replace('_', ' ')}</Badge>;
 };
 
 const PlotDetails = ({
@@ -69,6 +62,18 @@ const PlotDetails = ({
   const layout = useMemo(() => (plot ? stemLayout(plot) : { stems: [], extent: 10 }), [plot]);
   const obsSeries = useMemo(() => (plot ? observationSeries(plot) : []), [plot]);
   const [view, setView] = useState<'schematic' | 'satellite'>('satellite');
+
+  // The plot's own gallery, and each plant's photos kept under the plant they
+  // belong to so the gallery reads as a record rather than a pile of thumbnails.
+  const plotPhotos = useMemo(() => toPhotos(plot?.images, 'Plot'), [plot]);
+  const plantPhotoGroups = useMemo(() => (plot?.plants ?? [])
+    .map((pl) => ({
+      plant: pl,
+      photos: toPhotos(pl.images, pl.tag || pl.hid),
+    }))
+    .filter((g) => g.photos.length > 0), [plot]);
+  const photoCount = plotPhotos.length
+    + plantPhotoGroups.reduce((sum, g) => sum + g.photos.length, 0);
 
   if (loading) {
     return (
@@ -117,13 +122,14 @@ const PlotDetails = ({
           <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back to plots
         </button>
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
+          <div className="min-w-0 flex items-start gap-3">
+            <CoverThumb filename={plot.image} alt={plot.name || 'Plot'} />
+            <div className="min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-[22px] font-semibold tracking-tight leading-tight truncate">{plot.name || 'Unnamed plot'}</h1>
               {plot.isComplete
                 ? <Badge variant="secondary" className="text-[10px]">Complete</Badge>
                 : <Badge variant="outline" className="text-[10px]">Draft</Badge>}
-              {reviewBadge(plot.reviewStatus)}
             </div>
             <div className="flex items-center gap-2.5 mt-2 text-xs text-muted-foreground flex-wrap">
               <Mono className="text-foreground/70">{plot.hid}</Mono>
@@ -132,6 +138,7 @@ const PlotDetails = ({
               {plot.site && <><Sep /><span className="inline-flex items-center"><MapPin className="w-3 h-3 mr-1" />{plot.site.name}</span></>}
               {plot.group && <><Sep /><span className="inline-flex items-center"><Layers className="w-3 h-3 mr-1" />{plot.group.name}</span></>}
               <Sep /><span>Registered {fmtDate(plot.registrationDate)}</span>
+            </div>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -166,6 +173,7 @@ const PlotDetails = ({
           <TabsTrigger value="trees">Trees ({plot.plants.length})</TabsTrigger>
           <TabsTrigger value="observations">Observations ({plot.observations.length})</TabsTrigger>
           <TabsTrigger value="species">Species ({plot.species.length})</TabsTrigger>
+          <TabsTrigger value="photos">Photos ({photoCount})</TabsTrigger>
           <TabsTrigger value="info">Info</TabsTrigger>
         </TabsList>
 
@@ -318,6 +326,43 @@ const PlotDetails = ({
           </div>
         </TabsContent>
 
+        {/* ---------------- Photos ---------------- */}
+        <TabsContent value="photos" className="mt-4">
+          {photoCount === 0 ? (
+            <div className="border rounded-[3px] bg-card">
+              <NoPhotos label="No photos have been taken of this plot yet." />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {plotPhotos.length > 0 && (
+                <div className="border rounded-[3px] bg-card">
+                  <SectionTitle right={<Mono className="text-[11px] text-muted-foreground">{plotPhotos.length}</Mono>}>
+                    <span className="inline-flex items-center"><Camera className="w-3.5 h-3.5 mr-1.5" /> Plot gallery</span>
+                  </SectionTitle>
+                  <div className="p-3"><PhotoGrid photos={plotPhotos} /></div>
+                </div>
+              )}
+              {plantPhotoGroups.length > 0 && (
+                <div className="border rounded-[3px] bg-card">
+                  <SectionTitle right={<span className="text-[10.5px] text-muted-foreground/70">one photo when tagged, one per visit</span>}>
+                    Tree photos
+                  </SectionTitle>
+                  <div className="p-3 space-y-5">
+                    {plantPhotoGroups.map(({ plant, photos }) => (
+                      <PhotoSection
+                        key={plant.uid}
+                        title={plant.tag || plant.hid}
+                        note={plant.speciesName || undefined}
+                        photos={photos}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </TabsContent>
+
         {/* ---------------- Info ---------------- */}
         <TabsContent value="info" className="mt-4">
           <div className="border rounded-[3px] bg-card overflow-hidden">
@@ -335,7 +380,7 @@ const PlotDetails = ({
                 ['Registered', fmtDate(plot.registrationDate)],
                 ['Created', fmtDate(plot.createdAt)],
                 ['Last updated', fmtDate(plot.updatedAt)],
-                ['Review status', plot.reviewStatus ? plot.reviewStatus.replace('_', ' ') : '—'],
+
               ] as [string, string][]).map((f) => (
                 <div key={f[0]} className="px-4 py-3 border-b border-r">
                   <Label>{f[0]}</Label>
@@ -380,6 +425,35 @@ const IndexRow = ({ label, value, note, last }: { label: string; value: string; 
     <Mono className="text-[20px] font-semibold">{value}</Mono>
   </div>
 );
+
+/* ----------------------------------------------------- Tree photos */
+
+/** A plant's photos inside its expanded row: one lightbox across the whole set. */
+const PlantPhotos = ({ plant }: { plant: PlotPlant }) => {
+  const photos = useMemo(
+    () => toPhotos(plant.images, plant.tag || plant.hid),
+    [plant],
+  );
+  if (photos.length === 0) return null;
+  return (
+    <div className="col-span-12">
+      <Label className="mb-2 inline-flex items-center">
+        <Camera className="w-3.5 h-3.5 mr-1" /> Photos ({photos.length})
+      </Label>
+      <PhotoGrid photos={photos} size="sm" />
+    </div>
+  );
+};
+
+/** The photo taken at one visit, shown beside its measurement row. */
+const VisitPhoto = ({ filename, label }: { filename: string | null; label: string }) => {
+  const photos: Photo[] = useMemo(() => {
+    const url = photoUrl(filename);
+    return url ? [{ key: filename as string, url, caption: label, meta: null }] : [];
+  }, [filename, label]);
+  if (photos.length === 0) return <span className="text-muted-foreground/40 text-xs">—</span>;
+  return <PhotoGrid photos={photos} size="sm" />;
+};
 
 /* ----------------------------------------------------- Trees table */
 
@@ -438,6 +512,7 @@ const TreesTable = ({
         <TableHeader>
           <TableRow>
             <TableHead className="w-8" />
+            <TableHead className="w-12" />
             <TableHead>Tag</TableHead>
             <TableHead>Species</TableHead>
             <TableHead>Status</TableHead>
@@ -456,6 +531,9 @@ const TreesTable = ({
                     ? (expanded.has(pl.uid) ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />)
                     : null}
                 </TableCell>
+                <TableCell>
+                  <CoverThumb filename={pl.image} alt={pl.tag || pl.hid} />
+                </TableCell>
                 <TableCell><Mono className="font-medium">{pl.tag || '—'}</Mono></TableCell>
                 <TableCell>
                   <span className={cn('italic', pl.isUnknown && 'text-muted-foreground')}>{pl.speciesName || 'Unknown'}</span>
@@ -472,8 +550,9 @@ const TreesTable = ({
               </TableRow>
               {expanded.has(pl.uid) && pl.timeline.length > 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="bg-muted/40 p-0">
+                  <TableCell colSpan={9} className="bg-muted/40 p-0">
                     <div className="p-4 grid grid-cols-12 gap-5">
+                      <PlantPhotos plant={pl} />
                       <div className="col-span-12 md:col-span-5">
                         <Label className="mb-2 inline-flex items-center"><TreePine className="w-3.5 h-3.5 mr-1" /> Height trajectory</Label>
                         <div className="border rounded-[3px] bg-card p-2">
@@ -490,6 +569,7 @@ const TreesTable = ({
                               <TableHead className="text-right">Height</TableHead>
                               <TableHead className="text-right">Width</TableHead>
                               <TableHead>Status change</TableHead>
+                              <TableHead className="w-12">Photo</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -503,6 +583,9 @@ const TreesTable = ({
                                   {t.previousStatus && t.newStatus
                                     ? <span className="capitalize">{t.previousStatus} → {t.newStatus}</span>
                                     : '—'}
+                                </TableCell>
+                                <TableCell>
+                                  <VisitPhoto filename={t.image} label={`${pl.tag || pl.hid} · ${fmtDate(t.recordedAt)}`} />
                                 </TableCell>
                               </TableRow>
                             ))}
