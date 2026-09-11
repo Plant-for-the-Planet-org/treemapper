@@ -29,6 +29,11 @@ export const MonitoringPlot: ObjectSchema = {
     // it leaves the sync queue and shows as "Fix required" until the user edits
     // it. Any local edit clears it back to "NO" and re-queues the plot.
     fix_required: { type: 'string', default: 'NO' },
+    // What actually went wrong, in words, for the user to act on. "Fix required"
+    // on its own tells someone their plot is stuck without telling them what to
+    // change, which is no better than silence. Holds the server's rejection
+    // message, or our own reason when the payload could not be built at all.
+    fix_reason: { type: 'string', default: '' },
     hid: { type: 'string', default: '' },
     lastScreen: { type: 'string', default: 'form' },
     plot_created_at: "double",

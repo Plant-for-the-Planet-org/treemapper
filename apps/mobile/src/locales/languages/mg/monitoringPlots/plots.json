@@ -113,5 +113,10 @@
   "plot_refresh_up_to_date": "Efa vaovao ny plot",
   "plot_refresh_added": "nampiana",
   "plot_refresh_updated": "nohavaozina",
-  "plot_refresh_removed": "nesorina"
+  "plot_refresh_removed": "nesorina",
+  "plot_fix_action": "Andramo hamboarina",
+  "plot_fix_working": "Amboarina…",
+  "plot_fix_requeued": "Ao anaty filaharana ny plot. Tsindrio ny sync mba handefasana azy.",
+  "plot_fix_needs_you": "Mila fanovana izay ianao ihany no afaka manao. Jereo ny antsipiriany ao amin'ny plot.",
+  "plot_fix_nothing_found": "Tsy nisy hita diso. Ao anaty filaharana hanandrana indray."
 }

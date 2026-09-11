@@ -16,6 +16,25 @@ export function generateUniquePlotId() {
 }
 
 
+/**
+ * A plain copy of a live plot, safe to read across awaits and to serialise.
+ *
+ * Do not use JSON.parse(JSON.stringify(plot)) on a plot. Realm's toJSON keeps
+ * object identity: when it meets an object it has already converted it returns
+ * that same JS object rather than a fresh copy (realm/dist/Object.js, toJSON).
+ * A plot in a group links to the group through the `plot_group` backlink, and
+ * the group lists the plot again in `plots`, so the converted graph contains a
+ * real cycle and JSON.stringify throws. Every sync handler started with that
+ * call, so a grouped plot could not sync photos, new plants, observations or
+ * remeasurements, and the throw landed in a catch that printed nothing.
+ *
+ * Dropping `plot_group` breaks the only cycle: nothing else under a plot links
+ * back to it. Callers that need the group read it off the live object first.
+ */
+export const snapshotPlot = <T = MonitoringPlot>(plot: unknown): T =>
+    JSON.parse(JSON.stringify(plot, (key, value) => (key === 'plot_group' ? undefined : value)))
+
+
 export const newPlotDetails = (shape: PLOT_SHAPE, type: PLOT_TYPE, complexity: PLOT_COMPLEXITY, project: { id: string; name: string }) => {
     const details: MonitoringPlot = {
         plot_id: generateUniquePlotId(),
@@ -43,6 +62,7 @@ export const newPlotDetails = (shape: PLOT_SHAPE, type: PLOT_TYPE, complexity: P
         // A fresh plot has nothing wrong with it; only a permanently failed
         // upload sets this to anything else.
         fix_required: "NO",
+        fix_reason: "",
         hid: "",
         lastScreen: "form",
         plot_plants: [],

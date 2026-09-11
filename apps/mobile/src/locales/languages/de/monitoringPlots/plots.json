@@ -113,5 +113,10 @@
   "plot_refresh_up_to_date": "Plots sind aktuell",
   "plot_refresh_added": "hinzugefügt",
   "plot_refresh_updated": "aktualisiert",
-  "plot_refresh_removed": "entfernt"
+  "plot_refresh_removed": "entfernt",
+  "plot_fix_action": "Reparieren",
+  "plot_fix_working": "Wird repariert…",
+  "plot_fix_requeued": "Plot steht wieder zum Hochladen bereit. Zum Senden auf Sync tippen.",
+  "plot_fix_needs_you": "Hier ist eine Änderung nötig, die nur du machen kannst. Details stehen beim Plot.",
+  "plot_fix_nothing_found": "Hier war nichts zu finden. Der Upload wird erneut versucht."
 }

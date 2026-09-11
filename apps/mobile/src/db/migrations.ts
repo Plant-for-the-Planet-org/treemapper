@@ -86,6 +86,10 @@ export const runRealmMigrations = ({
         group.project_name = withProject?.project_name ?? '';
       }
     }
+    // v30: MonitoringPlot.fix_reason was added, so a stuck plot can say what is
+    // wrong instead of only that something is. Nothing to backfill: the reason is
+    // captured when an upload fails, and any plot already carrying fix_required
+    // picks one up on its next attempt.
   } catch (error) {
     Bugsnag.notify(error as Error)
   }

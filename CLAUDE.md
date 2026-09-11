@@ -262,6 +262,22 @@ auto-upgrades anything.
   only learns a percentage after its ResizeObserver fires, so `"100%"` logs a
   "width(-1) and height(-1)" warning on every first render. Set the height on
   the chart, not on a wrapper div, so it lives in one place.
+- **`react-native-popover-view` is broken under the New Architecture, and it
+  fails by freezing the app.** The popover measures its anchor with
+  `measureInWindow` before drawing anything; on Fabric that call returns an
+  empty rect (or never calls back at all, since RN's `measureInWindow` silently
+  skips the callback when the shadow node is missing). `AdaptivePopover` then
+  renders `null` while `RNModalPopover` has already put a transparent,
+  full-screen `<Modal>` on screen, and RN's Modal claims the responder for every
+  touch. On Android the hardware back button still reaches `onRequestClose`; on
+  iOS an `overFullScreen` modal never fires it, so nothing is drawn, nothing
+  responds, and the only way out is force-quitting. Upstream issue #184 is open
+  and unanswered, and the library's own devDependencies still target React 17 /
+  RN 0.65. Do not add a `<Popover>`. Anchor menus by hand in a plain `<Modal>`
+  instead -- `PlotView.tsx` does this for the plot tab's three-dot menu. The
+  package is still in `package.json` and still imported by the unrouted
+  `PlotViewArchieve.tsx`.
+
 - **Mobile sharing only works from the cache dir.** `react-native-share` 12.x
   dropped the catch-all `<root-path>` from its FileProvider config
   (`share_download_paths.xml`), leaving only `cache-path` as a usable root on

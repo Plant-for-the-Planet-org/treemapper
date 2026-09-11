@@ -54,33 +54,95 @@ const mimeTypeOf = (uri: string): string => {
  * is unreadable after an app update on iOS, where the container id in the saved
  * path changes, and nothing would ever upload.
  */
-export const uploadPlotImage = async (uri?: string): Promise<string | undefined> => {
-  if (!uri) return undefined
-  if (/^https?:\/\//i.test(uri)) return uri
+/** One photo's upload: the stored filename when it landed, the reason when not. */
+export type PhotoUploadAttempt = { filename?: string; reason?: string }
+
+// A step-by-step trace of photo uploads in the Metro console, dev builds only.
+// Photo sync has failed with nothing to go on more than once; one run with this
+// on names the exact step that breaks.
+// TEMPORARY: logs in every build, not only dev, while photo sync is being
+// diagnosed on device. Put the __DEV__ guard back once it is confirmed working.
+const trace = (message: string, extra?: unknown) => {
+  // eslint-disable-next-line no-console
+  console.log(`[PlotPhotoSync] ${message}`, extra ?? '')
+}
+const traceFail = (message: string, extra?: unknown) => {
+  // eslint-disable-next-line no-console
+  console.warn(`[PlotPhotoSync] ${message}`, extra ?? '')
+}
+
+/**
+ * Upload one photo and say what happened.
+ *
+ * This used to swallow every failure and return nothing, so a photo that never
+ * left the device showed up as a bare "failed" in the sync sheet with no way to
+ * tell a dead link from a refused upload from a missing file. Each exit now names
+ * the step it failed at.
+ */
+export const uploadPlotImageDetailed = async (uri?: string): Promise<PhotoUploadAttempt> => {
+  if (!uri) {
+    traceFail('no file uri on the photo row')
+    return { reason: 'The photo has no file on this device.' }
+  }
+  if (/^https?:\/\//i.test(uri)) return { filename: uri }
+  let step = 'preparing the file'
   try {
     const filePath = updateFilePath(uri)
     const mimeType = mimeTypeOf(filePath)
+    trace('start', { stored: uri, resolved: filePath, mimeType, name: fileNameOf(filePath) })
+    step = 'asking the server for an upload link'
     const presigned = await presingedUrl({
       // The extension decides the stored key's extension, so send the real name.
       fileName: fileNameOf(filePath),
       fileType: mimeType,
       folder: 'tree',
     })
-    if (presigned.success && presigned.response?.code === 'success') {
-      const signedUrl = presigned.response.data.data.uploadUrl
-      const fileName = presigned.response.data.data.fileName
-      const uploadResponse = await fetch(signedUrl, {
-        method: 'PUT',
-        body: { uri: filePath, type: mimeType, name: fileName || 'image.jpg' } as any,
-        headers: { 'Content-Type': mimeType },
-      })
-      if (uploadResponse.ok) return fileName
+    // Check the link itself, not the envelope. The signed-url route swallows its
+    // own errors and returns { success: false, data: null }, which the response
+    // interceptor still stamps code: 'success', so `code` cannot tell us anything.
+    const link = presigned.response?.data?.data
+    trace('upload link', {
+      httpOk: presigned.success,
+      status: presigned.status,
+      envelopeCode: presigned.response?.code,
+      innerSuccess: presigned.response?.data?.success,
+      hasLink: !!link?.uploadUrl,
+    })
+    if (!presigned.success || !link?.uploadUrl) {
+      traceFail('no upload link', presigned.response)
+      return {
+        reason: presigned.success
+          ? 'The server would not give an upload link for this photo.'
+          : `Could not reach the server for an upload link (error ${presigned.status ?? 'unknown'}).`,
+      }
     }
-  } catch (_) {
-    // swallow: image is optional, the plot still uploads without it
+    step = 'uploading the photo'
+    const uploadResponse = await fetch(link.uploadUrl, {
+      method: 'PUT',
+      body: { uri: filePath, type: mimeType, name: link.fileName || 'image.jpg' } as any,
+      headers: { 'Content-Type': mimeType },
+    })
+    trace('storage PUT', { status: uploadResponse.status, ok: uploadResponse.ok })
+    if (!uploadResponse.ok) {
+      let body = ''
+      try { body = (await uploadResponse.text()).slice(0, 300) } catch (_) { body = '' }
+      traceFail('storage refused the PUT', { status: uploadResponse.status, body })
+      return { reason: `Photo storage refused the upload (error ${uploadResponse.status}).` }
+    }
+    trace('stored', link.fileName)
+    return { filename: link.fileName }
+  } catch (error: any) {
+    traceFail(`threw while ${step}`, error?.message || error)
+    return { reason: `Failed while ${step}: ${error?.message || 'unknown error'}` }
   }
-  return undefined
 }
+
+/**
+ * The filename only, for callers that treat a photo as optional (the plot and
+ * plant uploads). A photo failing there must never block the plot.
+ */
+export const uploadPlotImage = async (uri?: string): Promise<string | undefined> =>
+  (await uploadPlotImageDetailed(uri)).filename
 
 /**
  * One row of the device image gallery (Realm ImageData). Plot photos live in
@@ -118,16 +180,22 @@ export interface UploadedPlotImage {
 const uploadPlotGallery = async (
   records: PlotImageRecord[],
   coverUri?: string,
-): Promise<{ images: PlotImagePayload[]; uploaded: UploadedPlotImage[] }> => {
+): Promise<{ images: PlotImagePayload[]; uploaded: UploadedPlotImage[]; failures: string[] }> => {
   const images: PlotImagePayload[] = []
   const uploaded: UploadedPlotImage[] = []
+  // Why each photo that did not upload failed, so the caller can say so.
+  const failures: string[] = []
   const coverName = coverUri ? fileNameOf(coverUri) : ''
 
   for (const record of records) {
     const source = record.cdn_url || record.local_uri
     if (!source) continue
-    const filename = await uploadPlotImage(source)
-    if (!filename) continue
+    const attempt = await uploadPlotImageDetailed(source)
+    if (!attempt.filename) {
+      if (attempt.reason) failures.push(attempt.reason)
+      continue
+    }
+    const filename = attempt.filename
     images.push({
       clientId: record.image_id,
       filename,
@@ -139,7 +207,7 @@ const uploadPlotGallery = async (
     })
     uploaded.push({ imageId: record.image_id, filename })
   }
-  return { images, uploaded }
+  return { images, uploaded, failures }
 }
 
 // Plot boundary is stored as { type:'Polygon', coordinates: JSON.stringify(coords) }.
@@ -237,8 +305,9 @@ export interface PlotUploadConversion {
  * Convert a Realm MonitoringPlot into the server upload payload, uploading every
  * referenced image (each plot photo, each plant, each timeline measurement) on
  * the way and replacing the local uri with the stored filename. Pass a plain JS
- * snapshot of the plot (JSON.parse(JSON.stringify(plot))) so live-Realm access
- * doesn't break across the awaited image uploads.
+ * snapshot from snapshotPlot() so live-Realm access doesn't break across the
+ * awaited image uploads. Not JSON.parse(JSON.stringify(plot)): a grouped plot
+ * serialises to a cycle and throws (see snapshotPlot in monitoringRealmHelper).
  *
  * `gallery` is the plot's ImageData rows. They live in their own Realm collection
  * with no link to the plot, so the caller has to read and pass them.
@@ -319,6 +388,8 @@ export interface PlotImagesConversion {
   body: { plotUid: string; images: PlotImagePayload[] } | null
   uploaded: UploadedPlotImage[]
   error: string | null
+  /** When photos were pending but none reached storage: why the first one did not. */
+  failure?: string
 }
 
 /**
@@ -340,10 +411,17 @@ export const buildPlotImagesBody = async (
     return { body: null, uploaded: [], error: 'Plot has no server id; cannot add images' }
   }
 
-  const { images, uploaded } = await uploadPlotGallery(pending, plot.cdn_image || plot.local_image)
+  const { images, uploaded, failures } = await uploadPlotGallery(pending, plot.cdn_image || plot.local_image)
   // Every upload failed (offline mid-sync, storage refused): nothing to send, and
-  // the rows stay pending for the next run.
-  if (images.length === 0) return { body: null, uploaded: [], error: null }
+  // the rows stay pending for the next run. Say why, so it is not a bare "failed".
+  if (images.length === 0) {
+    return {
+      body: null,
+      uploaded: [],
+      error: null,
+      failure: failures[0] ?? 'No photo could be uploaded.',
+    }
+  }
 
   return { body: { plotUid: serverUid, images }, uploaded, error: null }
 }

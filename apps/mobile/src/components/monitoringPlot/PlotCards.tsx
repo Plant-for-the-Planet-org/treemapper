@@ -58,11 +58,17 @@ const PlotCards = (props: Props) => {
                                 <Text style={styles.chipLabel}>{i18next.t("label.incomplete")}</Text>
                             </View>}
                     </View>
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.plantedLabel}>{renderLabel()}</Text>
-                        <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
-                        <Text style={styles.plantedLabel}>{item.observations.length} obs.</Text>
-                    </View>
+                    {item.fix_required !== 'NO' && !!item.fix_reason ? (
+                        // One line of the real reason. The full text and what to do
+                        // about it are on the plot itself, which this row opens.
+                        <Text style={styles.fixReasonLabel} numberOfLines={2}>{item.fix_reason}</Text>
+                    ) : (
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.plantedLabel}>{renderLabel()}</Text>
+                            <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
+                            <Text style={styles.plantedLabel}>{item.observations.length} obs.</Text>
+                        </View>
+                    )}
                     <Text style={styles.speciesLabel}>{formatRelativeTimeCustom(item.plot_created_at)}</Text>
                 </View>
                 {item.plot_group.length > 0 && <View style={styles.plotDetailsWrapper}>
@@ -126,6 +132,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 5,
         color: "#F39F53"
+    },
+    fixReasonLabel: {
+        fontSize: 11,
+        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        color: Colors.ALERT,
+        lineHeight: 15,
+        paddingRight: 40,
     },
     fixChipLabel: {
         fontSize: 10,

@@ -455,6 +455,8 @@ export interface PlotGroups {
 export interface MonitoringPlot {
   /** "NO" when the plot can upload; anything else quarantines it until edited. */
   fix_required: FIX_REQUIRED
+  /** Why it is stuck, in words the user can act on. Empty when nothing is wrong. */
+  fix_reason: string
   plot_id: string
   complexity: PLOT_COMPLEXITY
   shape: PLOT_SHAPE

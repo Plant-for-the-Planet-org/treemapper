@@ -113,5 +113,10 @@
   "plot_refresh_up_to_date": "Plots are up to date",
   "plot_refresh_added": "added",
   "plot_refresh_updated": "updated",
-  "plot_refresh_removed": "removed"
+  "plot_refresh_removed": "removed",
+  "plot_fix_action": "Try to fix",
+  "plot_fix_working": "Fixing…",
+  "plot_fix_requeued": "Plot queued for upload. Tap sync to send it.",
+  "plot_fix_needs_you": "This one needs a change only you can make. See the details on the plot.",
+  "plot_fix_nothing_found": "Nothing looked wrong here. Queued to try the upload again."
 }

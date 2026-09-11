@@ -13,11 +13,13 @@ import { Colors, Typography } from 'src/utils/constants'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot } from 'src/types/interface/slice.interface'
 import { FIX_REQUIRED } from 'src/types/type/app.type'
+import i18next from 'src/locales/index'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import RotatingView from '../common/RotatingView'
 import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { getMobileHealth, getPersonalProject, uploadMonitoringPlot, uploadPlotRemeasurement, addPlotPlants, addPlotObservations, addPlotImages } from 'src/api/api.fetch'
+import { snapshotPlot } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { convertPlotToUploadBody, buildPlotRemeasurementBody, buildPlotNewPlantsBody, buildPlotObservationsBody, buildPlotImagesBody, PlotImageRecord } from 'src/utils/helpers/monitoringPlotHelper/monitoringPlotSyncHelper'
 
 interface Props {
@@ -29,6 +31,8 @@ interface PlotSyncStatus {
     plotId: string
     name: string
     status: 'pending' | 'syncing' | 'done' | 'error' | 'rejected'
+    /** Why it will not upload. Shown under the row so the run explains itself. */
+    detail?: string
 }
 
 // Just what the queue and the modal need of a synced plot whose photos are still
@@ -53,6 +57,28 @@ interface PlotWithPendingImages {
 // Before this, a rejection lasted only as long as the app session, so a broken
 // plot came back on every sync and failed forever with nothing marking it.
 type PlotUploadOutcome = 'success' | 'retryable' | 'rejected' | 'unusable'
+
+// The outcome plus, when it failed for good, what was wrong in words. The reason
+// is written onto the plot so the user can read it later; before this it only
+// reached the debug log, and the plot list just said "Fix required".
+type PlotUploadResult = { outcome: PlotUploadOutcome; detail?: string }
+
+/**
+ * A sentence the user can act on, pulled out of the server's rejection.
+ *
+ * The envelope carries `message` (a string, or an array when class-validator
+ * rejected several fields) and sometimes `error`. Anything unreadable falls back
+ * to the status code, which at least tells support where to look.
+ */
+const rejectionDetail = (response: any, status?: number): string => {
+    const raw = response?.message ?? response?.error
+    if (Array.isArray(raw) && raw.length > 0) {
+        const shown = raw.filter(Boolean).slice(0, 3).join('. ')
+        return raw.length > 3 ? `${shown}. (+${raw.length - 3} more)` : shown
+    }
+    if (typeof raw === 'string' && raw.trim()) return raw.trim()
+    return status ? `The server refused this upload (error ${status}).` : 'The server refused this upload.'
+}
 
 // Which quarantine reason a permanent failure maps to.
 const FIX_REASON: Record<'rejected' | 'unusable', FIX_REQUIRED> = {
@@ -80,7 +106,9 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const { isConnected } = useNetInfo()
-    const { markMonitoringPlotSynced, markRemeasurementsSynced, markPlotPlantsSynced, markPlotObservationsSynced, markPlotImagesSynced, updateFixRequiredPlot } = useMonitoringPlotManagement()
+    const { markMonitoringPlotSynced, markRemeasurementsSynced, markPlotPlantsSynced, markPlotObservationsSynced, markPlotImagesSynced, updateFixRequiredPlot, repairPlot } = useMonitoringPlotManagement()
+    // Which stuck plot is being repaired, so only its own row shows a spinner.
+    const [fixingPlotId, setFixingPlotId] = useState('')
     const { addNewLog } = useLogManagement()
 
     // Only complete, not-yet-synced plots are uploadable. Quarantined plots
@@ -181,6 +209,23 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
         ...newImagesData.map(p => p.plot_id),
     ]).size
 
+    // Repair one stuck plot from the sync sheet. The plot's own reason line
+    // updates in place, because quarantinedPlots is a live Realm query.
+    const handleFixPlot = async (plotId: string) => {
+        if (fixingPlotId) return
+        setFixingPlotId(plotId)
+        const result = await repairPlot(plotId)
+        setFixingPlotId('')
+        toast.show(
+            !result.requeued
+                ? i18next.t('label.plot_fix_needs_you')
+                : result.repaired.length > 0
+                    ? i18next.t('label.plot_fix_requeued')
+                    : i18next.t('label.plot_fix_nothing_found'),
+            { textStyle: { textAlign: 'center' } },
+        )
+    }
+
     const showLogin = () => {
         if (!isLoggedIn) {
             navigation.navigate('HomeSideDrawer')
@@ -193,13 +238,13 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
     // Upload one plot: convert (uploading its images), POST, and on success mark
     // it SYNCED. All failures are caught and classified so a single bad plot
     // never aborts the run.
-    const handlePlot = async (plotId: string, projectUid: string): Promise<PlotUploadOutcome> => {
+    const handlePlot = async (plotId: string, projectUid: string): Promise<PlotUploadResult> => {
         try {
             const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotId)
-            if (!plot) return 'retryable'
+            if (!plot) return { outcome: 'retryable' }
             // Plain snapshot so live-Realm access doesn't break across the awaited
             // image uploads inside the convertor.
-            const snapshot = JSON.parse(JSON.stringify(plot)) as MonitoringPlot
+            const snapshot = snapshotPlot(plot)
             // The group link is a Realm backlink, so it is read here off the live
             // object rather than the snapshot. A LOCAL_ONLY group was never
             // uploaded and has no server row to join, so it is left out.
@@ -209,7 +254,7 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
             const { body, error, uploadedImages } = await convertPlotToUploadBody(snapshot, galleryFor(plotId), groupUid)
             if (!body) {
                 addNewLog({ logType: 'DATA_SYNC', message: `Plot upload blocked: ${error}. Marked for user fix.`, logLevel: 'error', statusCode: '' })
-                return 'unusable'
+                return { outcome: 'unusable', detail: error || 'This plot is missing something it needs before it can upload.' }
             }
 
             const { response, success, status } = await uploadMonitoringPlot(projectUid, body)
@@ -221,34 +266,34 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                 const persisted = await markMonitoringPlotSynced(plotId, result.hid || '', result.id, result.plants || [])
                 if (!persisted) {
                     addNewLog({ logType: 'DATA_SYNC', message: `Plot uploaded but local mark-synced failed (plot ${plotId})`, logLevel: 'error', statusCode: '' })
-                    return 'retryable'
+                    return { outcome: 'retryable' }
                 }
-                return 'success'
+                return { outcome: 'success' }
             }
             if (isRejectedByServer(status)) {
                 addNewLog({ logType: 'DATA_SYNC', message: `Server rejected monitoring plot payload (HTTP ${status})`, logLevel: 'error', statusCode: `${status}` })
-                return 'rejected'
+                return { outcome: 'rejected', detail: rejectionDetail(response, status) }
             }
             addNewLog({ logType: 'DATA_SYNC', message: 'Monitoring plot API response error', logLevel: 'error', statusCode: `${status ?? ''}` })
-            return 'retryable'
+            return { outcome: 'retryable' }
         } catch (error) {
             addNewLog({ logType: 'DATA_SYNC', message: 'Monitoring plot upload error (Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
-            return 'retryable'
+            return { outcome: 'retryable' }
         }
     }
 
     // Upload one plot's pending remeasurements (new timeline entries) to the
     // remeasure endpoint, then mark the accepted entries SYNCED. The plot itself
     // is already on the server, so this never re-uploads the plot.
-    const handleRemeasure = async (plotId: string, projectUid: string): Promise<PlotUploadOutcome> => {
+    const handleRemeasure = async (plotId: string, projectUid: string): Promise<PlotUploadResult> => {
         try {
             const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotId)
-            if (!plot) return 'retryable'
-            const snapshot = JSON.parse(JSON.stringify(plot)) as MonitoringPlot
+            if (!plot) return { outcome: 'retryable' }
+            const snapshot = snapshotPlot(plot)
 
             const { body, syncedRef } = await buildPlotRemeasurementBody(snapshot)
             // Nothing actually pending (e.g. entries without a server tree id) -> done.
-            if (!body) return 'success'
+            if (!body) return { outcome: 'success' }
 
             const { response, success, status } = await uploadPlotRemeasurement(projectUid, body)
             const result = response?.data
@@ -260,42 +305,47 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                     const persisted = await markRemeasurementsSynced(plotId, toMark)
                     if (!persisted) {
                         addNewLog({ logType: 'DATA_SYNC', message: `Remeasurement uploaded but local mark-synced failed (plot ${plotId})`, logLevel: 'error', statusCode: '' })
-                        return 'retryable'
+                        return { outcome: 'retryable' }
                     }
                 }
                 // A tree the server could not find will never resolve on retry.
                 const allOk = syncedRef.every(s => okTrees.has(s.treeUid))
-                return allOk ? 'success' : 'rejected'
+                if (allOk) return { outcome: 'success' }
+                const missing = syncedRef.filter(s => !okTrees.has(s.treeUid)).length
+                return {
+                    outcome: 'rejected',
+                    detail: `${missing} tree${missing === 1 ? '' : 's'} in this plot no longer exist on the server, so their measurements cannot be saved.`,
+                }
             }
             if (isRejectedByServer(status)) {
                 addNewLog({ logType: 'DATA_SYNC', message: `Server rejected remeasurement payload (HTTP ${status})`, logLevel: 'error', statusCode: `${status}` })
-                return 'rejected'
+                return { outcome: 'rejected', detail: rejectionDetail(response, status) }
             }
             addNewLog({ logType: 'DATA_SYNC', message: 'Remeasurement API response error', logLevel: 'error', statusCode: `${status ?? ''}` })
-            return 'retryable'
+            return { outcome: 'retryable' }
         } catch (error) {
             addNewLog({ logType: 'DATA_SYNC', message: 'Remeasurement upload error (Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
-            return 'retryable'
+            return { outcome: 'retryable' }
         }
     }
 
     // Upload plants added to an already-synced plot. Each becomes a new tree on
     // the existing plot; on success we store the server tree id and mark the
     // plant's timeline SYNCED so it can then be remeasured.
-    const handleNewPlants = async (plotId: string, projectUid: string): Promise<PlotUploadOutcome> => {
+    const handleNewPlants = async (plotId: string, projectUid: string): Promise<PlotUploadResult> => {
         try {
             const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotId)
-            if (!plot) return 'retryable'
-            const snapshot = JSON.parse(JSON.stringify(plot)) as MonitoringPlot
+            if (!plot) return { outcome: 'retryable' }
+            const snapshot = snapshotPlot(plot)
 
             const { body, error } = await buildPlotNewPlantsBody(snapshot)
             if (!body) {
                 // No new plants to send, or the plot has no server id to target.
                 if (error) {
                     addNewLog({ logType: 'DATA_SYNC', message: `New-plant upload blocked: ${error} (plot ${plotId})`, logLevel: 'error', statusCode: '' })
-                    return 'unusable'
+                    return { outcome: 'unusable', detail: `New plants could not be prepared: ${error}` }
                 }
-                return 'success'
+                return { outcome: 'success' }
             }
 
             const { response, success, status } = await addPlotPlants(projectUid, body)
@@ -304,39 +354,39 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                 const persisted = await markPlotPlantsSynced(plotId, result.plants)
                 if (!persisted) {
                     addNewLog({ logType: 'DATA_SYNC', message: `New plants uploaded but local mark-synced failed (plot ${plotId})`, logLevel: 'error', statusCode: '' })
-                    return 'retryable'
+                    return { outcome: 'retryable' }
                 }
-                return 'success'
+                return { outcome: 'success' }
             }
             if (isRejectedByServer(status)) {
                 addNewLog({ logType: 'DATA_SYNC', message: `Server rejected new-plant payload (HTTP ${status})`, logLevel: 'error', statusCode: `${status}` })
-                return 'rejected'
+                return { outcome: 'rejected', detail: rejectionDetail(response, status) }
             }
             addNewLog({ logType: 'DATA_SYNC', message: 'New-plant API response error', logLevel: 'error', statusCode: `${status ?? ''}` })
-            return 'retryable'
+            return { outcome: 'retryable' }
         } catch (error) {
             addNewLog({ logType: 'DATA_SYNC', message: 'New-plant upload error (Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
-            return 'retryable'
+            return { outcome: 'retryable' }
         }
     }
 
     // Upload observations added to an already-synced plot. The plot itself is
     // already on the server, so this never re-uploads the plot; on success we
     // mark the accepted observations SYNCED.
-    const handleObservations = async (plotId: string, projectUid: string): Promise<PlotUploadOutcome> => {
+    const handleObservations = async (plotId: string, projectUid: string): Promise<PlotUploadResult> => {
         try {
             const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotId)
-            if (!plot) return 'retryable'
-            const snapshot = JSON.parse(JSON.stringify(plot)) as MonitoringPlot
+            if (!plot) return { outcome: 'retryable' }
+            const snapshot = snapshotPlot(plot)
 
             const { body, syncedRef, error } = await buildPlotObservationsBody(snapshot)
             if (!body) {
                 // No new observations to send, or the plot has no server id to target.
                 if (error) {
                     addNewLog({ logType: 'DATA_SYNC', message: `Observation upload blocked: ${error} (plot ${plotId})`, logLevel: 'error', statusCode: '' })
-                    return 'unusable'
+                    return { outcome: 'unusable', detail: `Observations could not be prepared: ${error}` }
                 }
-                return 'success'
+                return { outcome: 'success' }
             }
 
             const { response, success, status } = await addPlotObservations(projectUid, body)
@@ -347,44 +397,73 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                 const persisted = await markPlotObservationsSynced(plotId, syncedIds.length ? syncedIds : syncedRef)
                 if (!persisted) {
                     addNewLog({ logType: 'DATA_SYNC', message: `Observations uploaded but local mark-synced failed (plot ${plotId})`, logLevel: 'error', statusCode: '' })
-                    return 'retryable'
+                    return { outcome: 'retryable' }
                 }
-                return 'success'
+                return { outcome: 'success' }
             }
             if (isRejectedByServer(status)) {
                 addNewLog({ logType: 'DATA_SYNC', message: `Server rejected observation payload (HTTP ${status})`, logLevel: 'error', statusCode: `${status}` })
-                return 'rejected'
+                return { outcome: 'rejected', detail: rejectionDetail(response, status) }
             }
             addNewLog({ logType: 'DATA_SYNC', message: 'Observation API response error', logLevel: 'error', statusCode: `${status ?? ''}` })
-            return 'retryable'
+            return { outcome: 'retryable' }
         } catch (error) {
             addNewLog({ logType: 'DATA_SYNC', message: 'Observation upload error (Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
-            return 'retryable'
+            return { outcome: 'retryable' }
         }
     }
 
     // Upload photos added to an already-synced plot. The plot itself is already on
     // the server, so this only attaches photos; on success we mark exactly the ones
     // that landed as synced.
-    const handleImages = async (plotId: string, projectUid: string): Promise<PlotUploadOutcome> => {
+    const handleImages = async (plotId: string, projectUid: string): Promise<PlotUploadResult> => {
+        // TEMPORARY: unconditional, see the note on `trace` in monitoringPlotSyncHelper.
+        // eslint-disable-next-line no-console
+        console.log('[PlotPhotoSync] handleImages entered', { plotId, projectUid })
         try {
             const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotId)
-            if (!plot) return 'retryable'
-            const snapshot = JSON.parse(JSON.stringify(plot)) as MonitoringPlot
+            if (!plot) {
+                // eslint-disable-next-line no-console
+                console.warn('[PlotPhotoSync] plot not found on device', plotId)
+                return { outcome: 'retryable', detail: 'This plot could not be found on the device.' }
+            }
+            const snapshot = snapshotPlot(plot)
+            // eslint-disable-next-line no-console
+            console.log('[PlotPhotoSync] snapshot ok', {
+                serverUid: (() => { try { return JSON.parse(snapshot.meta_data || '{}')?.serverUid } catch { return 'unparseable' } })(),
+                gallery: galleryFor(plotId).map(g => ({ id: g.image_id, status: g.status, hasLocal: !!g.local_uri, hasCdn: !!g.cdn_url })),
+            })
 
-            const { body, uploaded, error } = await buildPlotImagesBody(snapshot, galleryFor(plotId))
+            const { body, uploaded, error, failure } = await buildPlotImagesBody(snapshot, galleryFor(plotId))
             if (!body) {
                 // No photo to send, or the plot has no server id to target.
                 if (error) {
                     addNewLog({ logType: 'DATA_SYNC', message: `Plot image upload blocked: ${error} (plot ${plotId})`, logLevel: 'error', statusCode: '' })
-                    return 'unusable'
+                    return { outcome: 'unusable', detail: `Photos could not be prepared: ${error}` }
                 }
-                // Every photo upload failed: keep them queued for the next sync.
-                return 'retryable'
+                // Every photo upload failed: keep them queued for the next sync,
+                // and say which step broke. This exit used to be silent, which is
+                // why a stuck photo showed only "failed".
+                if (failure) {
+                    // eslint-disable-next-line no-console
+                    console.warn(`[PlotPhotoSync] no photo uploaded for plot ${plotId}: ${failure}`)
+                    addNewLog({ logType: 'DATA_SYNC', message: `Plot photos not uploaded: ${failure} (plot ${plotId})`, logLevel: 'error', statusCode: '' })
+                    return { outcome: 'retryable', detail: failure }
+                }
+                return { outcome: 'success' }
             }
 
             const { response, success, status } = await addPlotImages(projectUid, body)
             const result = response?.data
+            // eslint-disable-next-line no-console
+            console.log('[PlotPhotoSync] attach to plot', {
+                plotUid: body.plotUid,
+                sent: body.images.map((i: any) => i.filename),
+                status,
+                success,
+                confirmed: (result?.images || []).map((i: any) => i.filename),
+                message: response?.message,
+            })
             if (success && result) {
                 // Only the filenames the server confirmed are marked synced.
                 const stored = new Set<string>((result.images || []).map((i: any) => i.filename).filter(Boolean))
@@ -393,20 +472,27 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                     const persisted = await markPlotImagesSynced(toMark)
                     if (!persisted) {
                         addNewLog({ logType: 'DATA_SYNC', message: `Plot images uploaded but local mark-synced failed (plot ${plotId})`, logLevel: 'error', statusCode: '' })
-                        return 'retryable'
+                        return { outcome: 'retryable', detail: 'The photos reached the server but could not be marked as sent on this device.' }
                     }
                 }
-                return toMark.length === uploaded.length ? 'success' : 'retryable'
+                if (toMark.length === uploaded.length) return { outcome: 'success' }
+                // The server answered 200 but did not confirm every photo, which
+                // means it could not write the row. This exit used to be silent too.
+                const shortBy = `The server saved ${toMark.length} of ${uploaded.length} photo${uploaded.length === 1 ? '' : 's'}. The rest will be sent again on the next sync.`
+                addNewLog({ logType: 'DATA_SYNC', message: `${shortBy} (plot ${plotId})`, logLevel: 'error', statusCode: `${status ?? ''}` })
+                return { outcome: 'retryable', detail: shortBy }
             }
             if (isRejectedByServer(status)) {
                 addNewLog({ logType: 'DATA_SYNC', message: `Server rejected plot image payload (HTTP ${status})`, logLevel: 'error', statusCode: `${status}` })
-                return 'rejected'
+                return { outcome: 'rejected', detail: rejectionDetail(response, status) }
             }
             addNewLog({ logType: 'DATA_SYNC', message: 'Plot image API response error', logLevel: 'error', statusCode: `${status ?? ''}` })
-            return 'retryable'
-        } catch (error) {
+            return { outcome: 'retryable', detail: rejectionDetail(response, status) }
+        } catch (error: any) {
+            // eslint-disable-next-line no-console
+            console.warn('[PlotPhotoSync] handleImages threw', error?.message || error)
             addNewLog({ logType: 'DATA_SYNC', message: 'Plot image upload error (Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
-            return 'retryable'
+            return { outcome: 'retryable', detail: `Photo sync stopped: ${error?.message || 'unknown error'}` }
         }
     }
 
@@ -489,18 +575,24 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
             for (let i = 0; i < queue.length; i++) {
                 if (!isConnected) throw new Error('No network connection')
                 setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'syncing' } : s))
-                const outcome = await handlerByKind[queue[i].kind](queue[i].plotId, queue[i].projectUid)
+                const { outcome, detail } = await handlerByKind[queue[i].kind](queue[i].plotId, queue[i].projectUid)
                 const permanent = outcome === 'rejected' || outcome === 'unusable'
                 if (outcome === 'success') uploaded++
                 else if (permanent) {
                     rejected++
                     // Persist the quarantine so the plot stays out of the queue
                     // after the app restarts, instead of silently failing forever.
-                    await updateFixRequiredPlot(queue[i].plotId, FIX_REASON[outcome])
+                    // The detail rides along, so the plot can say what is wrong
+                    // rather than only that something is.
+                    await updateFixRequiredPlot(queue[i].plotId, FIX_REASON[outcome], detail ?? '')
                 }
                 else failed++
                 setSyncStatuses(prev => prev.map((s, idx) => idx === i
-                    ? { ...s, status: outcome === 'success' ? 'done' : permanent ? 'rejected' : 'error' }
+                    ? {
+                        ...s,
+                        status: outcome === 'success' ? 'done' : permanent ? 'rejected' : 'error',
+                        detail: outcome === 'success' ? undefined : detail,
+                    }
                     : s))
             }
 
@@ -534,6 +626,11 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
         }
     }
 
+    // Failures from the most recent run, kept on screen after it ends. Without this
+    // a fast failure showed its reason for a moment and then the sheet went back to
+    // the queue list, which is why "failed" looked like it had no reason at all.
+    const lastRunFailures = isSyncing ? [] : syncStatuses.filter(s => s.status === 'error' || s.status === 'rejected')
+
     const doneCount = syncStatuses.filter(s => s.status === 'done' || s.status === 'error' || s.status === 'rejected').length
     const errorCount = syncStatuses.filter(s => s.status === 'error').length
     const rejectedCount = syncStatuses.filter(s => s.status === 'rejected').length
@@ -564,7 +661,8 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                                 </View>
                                 <ScrollView style={styles.statusList} showsVerticalScrollIndicator={false}>
                                     {syncStatuses.map((item, idx) => (
-                                        <View key={idx} style={styles.statusRow}>
+                                        <View key={idx} style={styles.quarantinedRow}>
+                                        <View style={styles.statusRow}>
                                             <Text style={[
                                                 styles.statusDot,
                                                 item.status === 'done' && styles.dotDone,
@@ -583,11 +681,29 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                                             {item.status === 'syncing' && <Text style={styles.uploadingTag}>uploading...</Text>}
                                             {item.status === 'rejected' && <Text style={styles.needsFixTag}>needs fix</Text>}
                                         </View>
+                                        {!!item.detail && <Text style={styles.fixReasonText}>{item.detail}</Text>}
+                                        </View>
                                     ))}
                                 </ScrollView>
                             </>
                         ) : (
                             <>
+                                {lastRunFailures.length > 0 && (
+                                    <View style={styles.lastRunBlock}>
+                                        <Text style={styles.lastRunTitle}>Last sync</Text>
+                                        {lastRunFailures.map((item, idx) => (
+                                            <View key={`lr-${idx}`} style={styles.quarantinedRow}>
+                                                <View style={styles.statusRow}>
+                                                    <Text style={[styles.statusDot, styles.dotError]}>{item.status === 'rejected' ? '!' : '✗'}</Text>
+                                                    <Text style={[styles.statusLabel, { color: Colors.ALERT }]}>{item.name}</Text>
+                                                </View>
+                                                <Text style={styles.fixReasonText}>
+                                                    {item.detail || 'Failed with no reason given.'}
+                                                </Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                )}
                                 <Text style={styles.modalSubtitle}>
                                     {pendingCount > 0
                                         ? `${pendingCount} plot${pendingCount !== 1 ? 's' : ''} ready to sync`
@@ -630,10 +746,28 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                                         the queue so it is clear they are waiting on the user, not
                                         on a connection. */}
                                     {quarantinedPlots.map((plot, idx) => (
-                                        <View key={`q-${idx}`} style={styles.statusRow}>
-                                            <Text style={[styles.statusDot, styles.dotError]}>!</Text>
-                                            <Text style={[styles.statusLabel, { color: Colors.ALERT }]}>{plot.name || 'Untitled plot'}</Text>
-                                            <Text style={styles.needsFixTag}>needs fix</Text>
+                                        <View key={`q-${idx}`} style={styles.quarantinedRow}>
+                                            <View style={styles.statusRow}>
+                                                <Text style={[styles.statusDot, styles.dotError]}>!</Text>
+                                                <Text style={[styles.statusLabel, { color: Colors.ALERT }]}>{plot.name || 'Untitled plot'}</Text>
+                                                {/* Fixing from here, because this is where the user
+                                                    finds out the plot is stuck. */}
+                                                <TouchableOpacity
+                                                    onPress={() => { handleFixPlot(plot.plot_id) }}
+                                                    disabled={fixingPlotId === plot.plot_id}
+                                                    style={styles.fixButton}>
+                                                    <Text style={styles.fixButtonLabel}>
+                                                        {fixingPlotId === plot.plot_id
+                                                            ? i18next.t('label.plot_fix_working')
+                                                            : i18next.t('label.plot_fix_action')}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                            {/* The reason the server gave, verbatim. It is the only
+                                                thing that tells the user what to change. */}
+                                            {!!plot.fix_reason && (
+                                                <Text style={styles.fixReasonText}>{plot.fix_reason}</Text>
+                                            )}
                                         </View>
                                     ))}
                                 </ScrollView>
@@ -826,6 +960,44 @@ const styles = StyleSheet.create({
     uploadingTag: {
         fontSize: 12,
         color: Colors.PRIMARY,
+    },
+    quarantinedRow: {
+        width: '100%',
+    },
+    fixButton: {
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 6,
+        backgroundColor: Colors.NEW_PRIMARY,
+    },
+    fixButtonLabel: {
+        fontSize: 11,
+        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        color: Colors.WHITE,
+    },
+    fixReasonText: {
+        fontSize: 11,
+        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        color: Colors.TEXT_LIGHT,
+        lineHeight: 15,
+        paddingLeft: 22,
+        paddingRight: 6,
+        paddingBottom: 6,
+    },
+    lastRunBlock: {
+        width: '100%',
+        paddingBottom: 8,
+        marginBottom: 8,
+        borderBottomWidth: 0.5,
+        borderColor: Colors.GRAY_LIGHT,
+    },
+    lastRunTitle: {
+        fontSize: 11,
+        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        color: Colors.TEXT_LIGHT,
+        letterSpacing: 0.4,
+        textTransform: 'uppercase',
+        marginBottom: 4,
     },
     needsFixTag: {
         fontSize: 12,

@@ -113,5 +113,10 @@
   "plot_refresh_up_to_date": "Las parcelas están al día",
   "plot_refresh_added": "añadidas",
   "plot_refresh_updated": "actualizadas",
-  "plot_refresh_removed": "eliminadas"
+  "plot_refresh_removed": "eliminadas",
+  "plot_fix_action": "Intentar arreglar",
+  "plot_fix_working": "Arreglando…",
+  "plot_fix_requeued": "Parcela en cola para subir. Toca sincronizar para enviarla.",
+  "plot_fix_needs_you": "Esta necesita un cambio que solo tú puedes hacer. Mira los detalles en la parcela.",
+  "plot_fix_nothing_found": "No se encontró nada mal. En cola para intentar la subida otra vez."
 }

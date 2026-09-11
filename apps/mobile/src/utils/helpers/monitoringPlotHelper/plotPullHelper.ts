@@ -211,6 +211,7 @@ export const toMonitoringPlot = (
   meta_data: JSON.stringify({ ...(plot.metadata ?? {}), serverUid: plot.uid }),
   status: 'SYNCED',
   fix_required: 'NO',
+  fix_reason: '',
   hid: plot.hid || '',
   // A pulled plot is finished; the capture wizard must not reopen at step one.
   lastScreen: 'location',

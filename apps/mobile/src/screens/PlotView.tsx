@@ -1,8 +1,8 @@
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native'
 import React, { useState } from 'react'
 import Header from 'src/components/common/Header'
 import PlotList from 'src/components/monitoringPlot/PlotList'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors, Typography } from 'src/utils/constants'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -12,7 +12,6 @@ import RefreshIcon from 'assets/images/svg/RefreshIcon.svg'
 import { useQuery } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot } from 'src/types/interface/slice.interface'
-import Popover from 'react-native-popover-view';
 import i18next from 'src/locales/index'
 import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 
@@ -23,12 +22,16 @@ import { useToast } from 'react-native-toast-notifications'
 import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import RotatingView from 'src/components/common/RotatingView'
 
+// Keep in step with the height of Header's container.
+const HEADER_HEIGHT = 80
+
 const PlotView = () => {
   const [popupVisible, setPopupVisible] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const showPlotFeature = useSelector((state: RootState) => state.userState.showPlotFeature)
   const { refreshPlotsFromServer } = useMonitoringPlotManagement()
   const toast = useToast()
+  const insets = useSafeAreaInsets()
 
   const plotData = useQuery<MonitoringPlot>(
     RealmSchema.MonitoringPlot,
@@ -100,30 +103,49 @@ const PlotView = () => {
           ? <RotatingView isClockwise><RefreshIcon width={18} height={18} /></RotatingView>
           : <RefreshIcon width={18} height={18} />}
       </Pressable>
-      <Popover
-      isVisible={popupVisible}
-      backgroundStyle={{ opacity: 0 }}
-      popoverStyle={{
-
-      }}
-      verticalOffset={Platform.OS === 'android' ? -50 : 0}
-      onRequestClose={togglePopup}
-      from={(
-        <Pressable onPress={togglePopup} style={styles.rightContainer}><AddIcon width={16} height={16} fill={Colors.WHITE} /></Pressable>
-      )}>
-      <View style={styles.popOverWrapper}>
-        <Pressable onPress={addGroups}><Text style={styles.menuLabel}>{i18next.t('label.plot_group')}</Text></Pressable>
-      </View>
-
-      </Popover>
+      <Pressable onPress={togglePopup} style={styles.rightContainer}>
+        <AddIcon width={16} height={16} fill={Colors.WHITE} />
+      </Pressable>
     </View>
   }
+
+  /**
+   * Plain Modal rather than react-native-popover-view.
+   *
+   * The popover measures its anchor with measureInWindow before it draws
+   * anything, and under the New Architecture that measurement comes back as an
+   * empty rect. The popover then renders nothing while its own full screen
+   * Modal is already on screen, which swallows every touch. iOS never fires
+   * onRequestClose for an overFullScreen modal, so there is no way back out and
+   * the app looks frozen. The menu is anchored by hand instead: no measuring,
+   * nothing to fail.
+   */
+  const renderMenu = () => {
+    return <Modal
+      transparent
+      visible={popupVisible}
+      animationType="fade"
+      onRequestClose={togglePopup}
+      supportedOrientations={['portrait', 'landscape']}
+    >
+      <View style={styles.menuOverlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={togglePopup} />
+        <View style={[styles.popOverWrapper, { top: insets.top + HEADER_HEIGHT - 12 }]}>
+          <Pressable onPress={addGroups} style={styles.menuItem}>
+            <Text style={styles.menuLabel}>{i18next.t('label.plot_group')}</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Header label={i18next.t('label.monitoring_plot_header')} showBackIcon={false} rightComponent={renderIcon()} />
       <View style={styles.wrapper}>
         <PlotList data={[...plotData]} />
       </View>
+      {renderMenu()}
     </SafeAreaView>
   )
 }
@@ -151,11 +173,13 @@ const styles = StyleSheet.create({
     marginRight: 20,
     borderRadius: 8
   },
+  menuOverlay: {
+    flex: 1,
+  },
   popOverWrapper: {
-    width: 100,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: "center",
+    position: 'absolute',
+    right: 20,
+    minWidth: 120,
     borderWidth: 0.5,
     borderColor: Colors.PALE_WHITE,
     backgroundColor: Colors.WHITE,
@@ -165,6 +189,12 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 2,
     borderRadius: 8,
+    overflow: 'hidden',
+  },
+  menuItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
   },
   menuLabel: {
     fontSize: 14,

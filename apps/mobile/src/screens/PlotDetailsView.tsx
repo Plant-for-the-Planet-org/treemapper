@@ -7,6 +7,7 @@ import PlotDetailsTab from 'src/components/monitoringPlot/PlotDetailsTab'
 import PlotPlantList from 'src/components/monitoringPlot/PlotPlantList'
 import EcosystemList from 'src/components/monitoringPlot/EcosystemList'
 import PlotMapDisplay from 'src/components/monitoringPlot/PlotMapDisplay'
+import PlotFixBanner from 'src/components/monitoringPlot/PlotFixBanner'
 import EidPlantModal from 'src/components/monitoringPlot/EidPlantModal'
 import { useObject } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
@@ -29,6 +30,9 @@ const PlotDetailsView = () => {
         <View style={styles.container}>
             <PlotDetailsHeader showOptions={() => { setShowEdit(true) }} label={name} type={complexity} group={plot_group && plot_group.length > 0 ? plot_group[0].name : ''} />
             <MainHeaderPlot shape={shape} width={width} length={length} radius={radius} plotID={plotID} obsCount={totalObs} />
+            {/* Sits above the tabs so a stuck plot explains itself the moment it
+                is opened, rather than only saying "Fix required" in the list. */}
+            <PlotFixBanner plot={monitoringPlot} />
             <PlotDetailsTab changeIndex={setSelectedIndex} selectedIndex={selectedIndex} />
             <View style={styles.mainSection}>
                 {selectedIndex === 0 &&

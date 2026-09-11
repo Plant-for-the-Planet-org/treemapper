@@ -100,7 +100,13 @@ export function updateFilePath(oldPath: string) {
     const documentDir = Paths.document.uri.endsWith('/') ? Paths.document.uri.slice(0, -1) : Paths.document.uri;
     const newPath = `${documentDir}${relativePath}`;
 
-    return Platform.OS==='android'?`file://${newPath}`:newPath;
+    // Exactly one file:// scheme, on both platforms. This used to add file:// on
+    // Android, which was right when the base was RNFS.DocumentDirectoryPath (a bare
+    // path) and wrong once it became Paths.document.uri, which is already a
+    // file:// URI. Android got file://file:///data/... and only worked where the
+    // native side happened to parse it loosely. iOS has returned a file:// URI
+    // since the same change, so normalising leaves it as it is.
+    return `file://${newPath.replace(/^(file:\/\/)+/, '')}`;
   } else {
     if(Platform.OS==='ios'){
       return replaceId(oldPath)

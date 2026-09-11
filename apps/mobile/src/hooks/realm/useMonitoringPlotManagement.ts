@@ -19,6 +19,8 @@ import {
   toPlant,
 } from 'src/utils/helpers/monitoringPlotHelper/plotPullHelper'
 import { ProjectInterface } from 'src/types/interface/app.interface'
+import { inspectPlot } from 'src/utils/helpers/monitoringPlotHelper/plotRepairHelper'
+import { snapshotPlot } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 
 
 export interface PlotDetailsParams {
@@ -45,6 +47,18 @@ export interface PlotDetailsParams {
 export type PlotGroupResult = {
   ok: boolean
   reason?: 'offline' | 'server' | 'local'
+}
+
+/**
+ * What the fix attempt did.
+ *
+ * `requeued` is the honest part: it is only true when nothing is left that needs
+ * a person, so the button never claims to have fixed a plot it has not.
+ */
+export type PlotFixResult = {
+  repaired: string[]
+  blockers: string[]
+  requeued: boolean
 }
 
 /** What a manual refresh did, so the screen can say something specific. */
@@ -96,7 +110,10 @@ const useMonitoringPlotManagement = () => {
   // this: the data is different now, and the next sync deserves a fresh attempt.
   // Must be called inside a realm.write.
   const clearFixRequired = (plot: MonitoringPlot | null | undefined) => {
-    if (plot && plot.fix_required !== 'NO') plot.fix_required = 'NO'
+    if (plot && plot.fix_required !== 'NO') {
+      plot.fix_required = 'NO'
+      plot.fix_reason = ''
+    }
   }
 
   // Take a plot out of the sync queue because retrying the same payload can
@@ -106,16 +123,78 @@ const useMonitoringPlotManagement = () => {
   const updateFixRequiredPlot = async (
     plotId: string,
     reason: FIX_REQUIRED,
+    detail = '',
   ): Promise<boolean> => {
     try {
       realm.write(() => {
         const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotId)
         if (!plot) return
         plot.fix_required = reason
+        // What went wrong, in words. Without this the user is told to fix
+        // something and never told what, which is the whole complaint.
+        plot.fix_reason = detail
       })
       return true
     } catch (error) {
       return false
+    }
+  }
+
+  /**
+   * Repair what can be repaired on a stuck plot, and re-queue it if that is all
+   * of it.
+   *
+   * The mechanical problems (dates the wrong way round, a centre that was never
+   * computed, text longer than the column) are put right here. Anything whose
+   * repair would mean inventing or discarding data comes back as a blocker and
+   * the plot stays out of the queue, because re-queueing it would only fail
+   * again and teach the user that the button does nothing.
+   */
+  const repairPlot = async (plotId: string): Promise<PlotFixResult> => {
+    const live = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotId)
+    if (!live) return { repaired: [], blockers: [], requeued: false }
+
+    // A plain snapshot, so nothing is read off a live object across the write.
+    const snapshot = snapshotPlot(live)
+    const plan = inspectPlot(snapshot)
+
+    try {
+      realm.write(() => {
+        const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotId)
+        if (!plot) return
+
+        if (plan.plot.name !== undefined) plot.name = plan.plot.name
+        if (plan.plot.radius !== undefined) plot.radius = plan.plot.radius
+        if (plan.plot.length !== undefined) plot.length = plan.plot.length
+        if (plan.plot.width !== undefined) plot.width = plan.plot.width
+        if (plan.plot.plot_updated_at !== undefined) plot.plot_updated_at = plan.plot.plot_updated_at
+        if (plan.plot.coords !== undefined) plot.coords = plan.plot.coords
+
+        for (const repair of plan.plants) {
+          const plant = plot.plot_plants.find(p => p.plot_plant_id === repair.plot_plant_id)
+          if (!plant) continue
+          if (repair.tag !== undefined) plant.tag = repair.tag
+          if (repair.scientificName !== undefined) plant.scientificName = repair.scientificName
+          if (repair.aliases !== undefined) plant.aliases = repair.aliases
+        }
+
+        // Back in the queue only when nothing is left for the user to do. A plot
+        // with blockers keeps its flag, and the reason it now shows is the list
+        // of things to go and change.
+        if (plan.blockers.length === 0) {
+          clearFixRequired(plot)
+        } else {
+          plot.fix_reason = plan.blockers.join(' ')
+        }
+      })
+    } catch (error) {
+      return { repaired: [], blockers: plan.blockers, requeued: false }
+    }
+
+    return {
+      repaired: plan.repaired,
+      blockers: plan.blockers,
+      requeued: plan.blockers.length === 0,
     }
   }
 
@@ -1100,7 +1179,7 @@ const useMonitoringPlotManagement = () => {
 
 
 
-  return { updatePlotObservation, deletePlotObservation, deletePlotTimeline, updateTimelineDetails, deletePlantDetails: deletePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, updatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, deleteMonitoringPlot, initializeNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurementPlantPlots, addPlotImageRecord, deleteImageRecord, markMonitoringPlotSynced, markRemeasurementsSynced, markPlotPlantsSynced, markPlotObservationsSynced, markPlotImagesSynced, reconcilePlotGroups, pushGroupMembers, updateFixRequiredPlot, refreshPlotsFromServer }
+  return { updatePlotObservation, deletePlotObservation, deletePlotTimeline, updateTimelineDetails, deletePlantDetails: deletePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, updatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, deleteMonitoringPlot, initializeNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurementPlantPlots, addPlotImageRecord, deleteImageRecord, markMonitoringPlotSynced, markRemeasurementsSynced, markPlotPlantsSynced, markPlotObservationsSynced, markPlotImagesSynced, reconcilePlotGroups, pushGroupMembers, updateFixRequiredPlot, refreshPlotsFromServer, repairPlot }
 }
 
 export default useMonitoringPlotManagement
