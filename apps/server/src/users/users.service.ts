@@ -102,6 +102,14 @@ export class UsersService {
                     await this.cacheUserByAuth(raced, auth0Id);
                     return raced;
                 }
+                // The winner may have inserted under a different sub: the same
+                // person racing their own first login across two connections.
+                // The unique index that rejected us was on email, so claim that
+                // row by email rather than failing the login.
+                const linked = await this.linkAuth0IdByEmail(email, auth0Id);
+                if (linked.status === 'linked') {
+                    return linked.user;
+                }
             }
             throw error;
         }
@@ -127,13 +135,19 @@ export class UsersService {
     }
 
     /**
-     * Attaches a real Auth0 sub to an existing row found by email.
+     * Points the row that owns `email` at the Auth0 sub of the current login.
      *
-     * This is how migrated users get through their first login: the migration
-     * wrote `auth0_id = 'email:<email>'` because it ran before the user had ever
-     * authenticated, so no lookup by sub can ever find them. Only placeholder
-     * rows are claimable -- a row already owned by a different real sub is
-     * reported as a conflict, never re-pointed.
+     * Two kinds of caller land here. A migrated user whose row still holds the
+     * `email:<email>` placeholder the migration wrote, and an existing user
+     * signing in through a different Auth0 connection than last time: email and
+     * password one day, Google, Facebook or Apple the next. Auth0 mints a
+     * separate sub per connection, so the sub alone cannot recognise them. The
+     * verified email can, and it is the only thing tying the two logins to one
+     * person.
+     *
+     * The caller must have checked `email_verified` on the incoming token first.
+     * That check is what makes the claim safe: whoever proves control of the
+     * address owns the account. Never call this on an unverified email.
      */
     async linkAuth0IdByEmail(email: string, newAuth0Id: string): Promise<LinkAuth0Result> {
         const existing = await this.findInDbByEmail(email);
@@ -144,40 +158,51 @@ export class UsersService {
             // Already linked (concurrent request won the race, or the cache was
             // simply cold). Nothing to write.
             await this.cacheUserByAuth(existing, newAuth0Id);
-            return { status: 'linked', user: existing };
+            return { status: 'linked', user: existing, previousAuth0Id: null };
         }
-        if (!isMigrationPlaceholderAuth0Id(existing.auth0Id)) {
-            return { status: 'conflict', existingAuth0Id: existing.auth0Id };
-        }
+        const previousAuth0Id = existing.auth0Id;
         const [updated] = await this.drizzleService.db
             .update(user)
             // Only the sub changes. `migratedAt` belongs to the data migration and
             // `existingPlanetUser` still describes where this account came from.
             .set({ auth0Id: newAuth0Id })
-            // Re-check the placeholder in the WHERE clause so two concurrent
+            // Re-check the previous sub in the WHERE clause so two concurrent
             // logins cannot both claim the row.
             .where(and(
                 eq(user.id, existing.id),
-                eq(user.auth0Id, existing.auth0Id),
+                eq(user.auth0Id, previousAuth0Id),
             ))
             .returning(this.FULL_USER_SELECT);
 
         if (!updated) {
-            // Another request claimed it between the read and the write. Re-read
-            // and let the normal checks decide.
+            // Another login claimed the row between the read and the write. It
+            // was the same person either way, so hand back what the row holds
+            // now, and only cache it if the key matches the sub stored on it.
             const reread = await this.findInDbByEmail(email);
-            if (reread?.auth0Id === newAuth0Id) {
-                await this.cacheUserByAuth(reread, newAuth0Id);
-                return { status: 'linked', user: reread };
+            if (!reread) {
+                return { status: 'not_found' };
             }
-            return reread
-                ? { status: 'conflict', existingAuth0Id: reread.auth0Id }
-                : { status: 'not_found' };
+            if (reread.auth0Id === newAuth0Id) {
+                await this.cacheUserByAuth(reread, newAuth0Id);
+            }
+            return { status: 'linked', user: reread, previousAuth0Id: null };
         }
 
-        this.logger.log(`Linked migrated user ${updated.uid} to auth0Id ${newAuth0Id}`);
+        // Drop whatever is cached under the sub we just replaced. Leaving it
+        // would serve a record whose auth0Id no longer matches its own key, and
+        // every invalidation elsewhere keys off the row's current sub, so that
+        // stale copy would survive until its TTL expired.
+        await this.userCacheService.invalidateUser({ auth0Id: previousAuth0Id });
+
+        if (isMigrationPlaceholderAuth0Id(previousAuth0Id)) {
+            this.logger.log(`Linked migrated user ${updated.uid} to auth0Id ${newAuth0Id}`);
+        } else {
+            this.logger.log(
+                `User ${updated.uid} signed in through a different Auth0 connection: ${previousAuth0Id} -> ${newAuth0Id}`,
+            );
+        }
         await this.cacheUserByAuth(updated, newAuth0Id);
-        return { status: 'linked', user: updated };
+        return { status: 'linked', user: updated, previousAuth0Id };
     }
 
     private async findInDbByAuth0Id(auth0Id: string): Promise<User | null> {
@@ -596,27 +621,22 @@ export class UsersService {
                     .set({ lastActiveAt: now })
                     .where(eq(user.id, userId));
 
+                // Only the keys the client actually sent. The update branch
+                // leaves everything else untouched; the insert branch lets the
+                // remaining columns fall back to their schema defaults.
+                const fields = this.mapDeviceFields(dto);
+
                 if (existingDevice.length > 0) {
-                    const updateData: Partial<typeof userDevice.$inferInsert> = {
-                        userId,
-                        lastActiveAt: now,
-                        updatedAt: now,
-                    };
-
-                    if (dto.oneSignalId !== undefined) updateData.oneSignalId = dto.oneSignalId;
-                    if (dto.deviceOs !== undefined) updateData.deviceOs = dto.deviceOs;
-                    if (dto.deviceName !== undefined) updateData.deviceName = dto.deviceName;
-                    if (dto.deviceModel !== undefined) updateData.deviceModel = dto.deviceModel;
-                    if (dto.osVersion !== undefined) updateData.osVersion = dto.osVersion;
-                    if (dto.appVersion !== undefined) updateData.appVersion = dto.appVersion;
-                    if (dto.locale !== undefined) updateData.locale = dto.locale;
-                    if (dto.timezone !== undefined) updateData.timezone = dto.timezone;
-                    if (dto.notificationPermission !== undefined) updateData.notificationPermission = dto.notificationPermission;
-                    if (dto.isActive !== undefined) updateData.isActive = dto.isActive;
-
                     await tx
                         .update(userDevice)
-                        .set(updateData)
+                        .set({
+                            ...fields,
+                            userId,
+                            lastActiveAt: now,
+                            updatedAt: now,
+                            // A device that reports in is no longer deleted.
+                            deletedAt: null,
+                        })
                         .where(eq(userDevice.deviceId, dto.deviceId));
 
                     return {
@@ -627,17 +647,10 @@ export class UsersService {
 
                 const deviceUid = generateUid('dev');
                 await tx.insert(userDevice).values({
+                    ...fields,
                     uid: deviceUid,
                     deviceId: dto.deviceId,
                     userId,
-                    oneSignalId: dto.oneSignalId || null,
-                    deviceOs: dto.deviceOs || null,
-                    deviceName: dto.deviceName || null,
-                    deviceModel: dto.deviceModel || null,
-                    osVersion: dto.osVersion || null,
-                    appVersion: dto.appVersion || null,
-                    locale: dto.locale || null,
-                    timezone: dto.timezone || null,
                     notificationPermission: dto.notificationPermission ?? true,
                     isActive: dto.isActive ?? true,
                     lastActiveAt: now,
@@ -661,6 +674,44 @@ export class UsersService {
 
             throw new InternalServerErrorException('Failed to register device');
         }
+    }
+
+    // The mobile app sends the platform-cased value from expo-device's
+    // Device.osName: 'iOS', 'iPadOS', 'Android'. The column is constrained to
+    // 'ios' | 'android' so dashboard filters can match without normalizing on
+    // read. An OS we do not recognise becomes null rather than failing the
+    // insert, so a register call never breaks over a cosmetic field.
+    private normalizeDeviceOs(osName: string): string | null {
+        const lower = osName.trim().toLowerCase();
+        if (lower === 'ios' || lower === 'ipados') return 'ios';
+        if (lower === 'android') return 'android';
+        return null;
+    }
+
+    // Picks out the device columns the client sent, skipping keys it omitted so
+    // an update never overwrites a known value with null.
+    private mapDeviceFields(dto: CreateDeviceDto): Partial<typeof userDevice.$inferInsert> {
+        const fields: Partial<typeof userDevice.$inferInsert> = {};
+
+        if (dto.oneSignalId !== undefined) fields.oneSignalId = dto.oneSignalId;
+        if (dto.deviceOs !== undefined) fields.deviceOs = this.normalizeDeviceOs(dto.deviceOs);
+        if (dto.deviceName !== undefined) fields.deviceName = dto.deviceName;
+        if (dto.deviceModel !== undefined) fields.deviceModel = dto.deviceModel;
+        if (dto.osVersion !== undefined) fields.osVersion = dto.osVersion;
+        if (dto.appVersion !== undefined) fields.appVersion = dto.appVersion;
+        if (dto.appBuild !== undefined) fields.appBuild = dto.appBuild;
+        if (dto.locale !== undefined) fields.locale = dto.locale;
+        if (dto.timezone !== undefined) fields.timezone = dto.timezone;
+        if (dto.notificationPermission !== undefined) fields.notificationPermission = dto.notificationPermission;
+        if (dto.isActive !== undefined) fields.isActive = dto.isActive;
+        if (dto.batteryLevel !== undefined) fields.batteryLevel = dto.batteryLevel;
+        if (dto.storageUsedPct !== undefined) fields.storageUsedPct = dto.storageUsedPct;
+        if (dto.networkType !== undefined) fields.networkType = dto.networkType;
+        if (dto.pendingInterventions !== undefined) fields.pendingInterventions = dto.pendingInterventions;
+        if (dto.pendingTrees !== undefined) fields.pendingTrees = dto.pendingTrees;
+        if (dto.lastSyncAt !== undefined) fields.lastSyncAt = new Date(dto.lastSyncAt);
+
+        return fields;
     }
 
     //   async findByEmail(email: string): Promise<User | null> {

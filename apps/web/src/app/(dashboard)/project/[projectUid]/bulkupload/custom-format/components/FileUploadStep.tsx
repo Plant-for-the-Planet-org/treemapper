@@ -5,6 +5,7 @@ import React, { useRef, useState } from 'react';
 import { Upload, FolderOpen, FileText, CheckCircle, AlertCircle, X, Map as MapIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getCsvSample, parseCSVWithMapping, autoMapFields, FieldMapping } from '../utils/parseCSV';
+import { isLegacyExcelFile, isSpreadsheetFile, SPREADSHEET_ACCEPT } from '@/utils/spreadsheet';
 import { parseSpatialFile } from '../utils/geojsonUtils';
 import { Intervention } from '../types';
 import FieldMappingModal from './FieldMappingModal';
@@ -28,8 +29,12 @@ const FileUploadStep = ({ onDataLoaded }: Props) => {
 
     const handleCsvSelect = async (file: File) => {
         setError('');
-        if (!file.name.toLowerCase().endsWith('.csv') && file.type !== 'text/csv') {
-            setError('Please upload a valid CSV file.');
+        if (isLegacyExcelFile(file)) {
+            setError('The old .xls format is not supported. Save the file as .xlsx or .csv and try again.');
+            return;
+        }
+        if (!isSpreadsheetFile(file)) {
+            setError('Please upload an Excel (.xlsx) or CSV file.');
             return;
         }
         if (file.size > 10 * 1024 * 1024) {
@@ -122,7 +127,7 @@ const FileUploadStep = ({ onDataLoaded }: Props) => {
                             <input
                                 ref={csvInputRef}
                                 type="file"
-                                accept=".csv"
+                                accept={SPREADSHEET_ACCEPT}
                                 onChange={e => e.target.files?.[0] && handleCsvSelect(e.target.files[0])}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             />
@@ -156,7 +161,7 @@ const FileUploadStep = ({ onDataLoaded }: Props) => {
                                     <p className="text-sm text-gray-600">
                                         <span className="font-medium text-[#007A49] cursor-pointer">Click to upload</span> or drag and drop
                                     </p>
-                                    <p className="text-xs text-gray-500">CSV files only (max 10MB)</p>
+                                    <p className="text-xs text-gray-500">Excel (.xlsx) or CSV, max 10MB</p>
                                 </div>
                             )}
                         </div>

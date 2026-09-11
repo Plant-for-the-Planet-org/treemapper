@@ -1,4 +1,14 @@
-import { IsString, IsOptional, IsBoolean, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  MaxLength,
+  IsInt,
+  Min,
+  Max,
+  IsIn,
+  IsISO8601,
+} from 'class-validator';
 
 export class CreateDeviceDto {
   @IsString()
@@ -36,6 +46,11 @@ export class CreateDeviceDto {
   appVersion?: string;
 
   @IsOptional()
+  @IsInt()
+  @Min(0)
+  appBuild?: number;
+
+  @IsOptional()
   @IsString()
   @MaxLength(10)
   locale?: string;
@@ -52,4 +67,36 @@ export class CreateDeviceDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  // Telemetry snapshot from this app open. All optional: an older app build
+  // sends none of it and the columns stay null.
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  batteryLevel?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  storageUsedPct?: number;
+
+  @IsOptional()
+  @IsIn(['wifi', 'cellular', 'offline'])
+  networkType?: 'wifi' | 'cellular' | 'offline';
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  pendingInterventions?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  pendingTrees?: number;
+
+  @IsOptional()
+  @IsISO8601()
+  lastSyncAt?: string;
 }

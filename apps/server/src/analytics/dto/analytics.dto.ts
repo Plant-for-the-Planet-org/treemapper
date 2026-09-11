@@ -1,4 +1,4 @@
-import { IsOptional, IsInt, Min, IsEnum, IsDateString } from 'class-validator';
+import { IsOptional, IsInt, Min, IsEnum, IsDateString, IsBoolean, IsArray, IsString } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
 export enum SortOrder {
@@ -205,11 +205,37 @@ export interface CsvExportDataResponse {
   }>;
 }
 
-export interface InterventionExportDto {
-  startDate: string; // ISO date string
-  endDate: string;   // ISO date string
-  includeDeleted?: boolean; // Optional - default false
-  interventionTypes?: string[]; // Optional - filter by intervention types
+/**
+ * Body of POST /analytics/:id/export.
+ *
+ * This is a class, not an interface, on purpose: the route runs a
+ * ValidationPipe, and a pipe given an interface validates nothing because the
+ * type is erased at compile time.
+ */
+export class InterventionExportDto {
+  @IsDateString()
+  startDate: string;
+
+  @IsDateString()
+  endDate: string;
+
+  /** Include soft-deleted interventions and trees. Defaults to false. */
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  includeDeleted?: boolean = false;
+
+  /** Restrict to these intervention types. Omit for all types. */
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  interventionTypes?: string[];
+
+  /** Drop monitoring plots from the export. Defaults to true. */
+  @IsOptional()
+  @Transform(({ value }) => value !== false && value !== 'false')
+  @IsBoolean()
+  excludeMonitoringPlots?: boolean = true;
 }
 
 export interface ExportedIntervention {

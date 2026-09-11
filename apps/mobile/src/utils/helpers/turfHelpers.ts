@@ -11,14 +11,18 @@ export default function distanceCalculator(
   if (latLong1[0] === latLong2[0] && latLong1[1] === latLong2[1]) {
     return 0
   } else {
-    // calculate the distance between two latitudes and longitudes using @turf/distance
+    // calculate the distance between two latitudes and longitudes using @turf/distance.
+    // Callers hand over [lat, long], but GeoJSON -- and so turf -- reads
+    // Point.coordinates as [long, lat]. Passing the pair through unswapped
+    // measures between mirrored points: a true 5 m north-south gap comes back
+    // as 1 m at 20N, and a 5 m east-west gap comes back as 8 m at 51N.
     const point1: Point = {
       type: 'Point',
-      coordinates: latLong1,
+      coordinates: [latLong1[1], latLong1[0]],
     }
     const point2: Point = {
       type: 'Point',
-      coordinates: latLong2,
+      coordinates: [latLong2[1], latLong2[0]],
     }
     const distance = turfDistance(point1, point2, {
       units: unit,

@@ -82,14 +82,18 @@ const ReviewPill = ({ status }: { status: string | null }) => {
 type SortKey = 'name' | 'survival' | 'stems';
 
 const PlotsOverview = ({
-  plots, groups, loading, onSelect, canManage, onManageGroups,
+  plots, groups, loading, onSelect, canManage, canCreate, onManageGroups, onCreatePlot,
 }: {
   plots: PlotListItem[];
   groups: PlotGroup[];
   loading: boolean;
   onSelect: (p: PlotListItem) => void;
+  /** Owners and admins: group management. */
   canManage: boolean;
+  /** Owners, admins and contributors: creating a plot. */
+  canCreate: boolean;
   onManageGroups: () => void;
+  onCreatePlot: () => void;
 }) => {
   const [q, setQ] = useState('');
   const [groupFilter, setGroupFilter] = useState('all');
@@ -158,7 +162,7 @@ const PlotsOverview = ({
         <div className="flex items-center gap-2">
           {canManage && <Button variant="outline" size="sm" onClick={onManageGroups}><Layers className="w-3.5 h-3.5 mr-1" /> Manage groups</Button>}
           <Button variant="outline" size="sm"><Download className="w-3.5 h-3.5 mr-1" /> Export</Button>
-          {canManage && <Button size="sm"><Plus className="w-3.5 h-3.5 mr-1" /> Import plots</Button>}
+          {canCreate && <Button size="sm" onClick={onCreatePlot}><Plus className="w-3.5 h-3.5 mr-1" /> Create plot</Button>}
         </div>
       </div>
 
@@ -211,7 +215,12 @@ const PlotsOverview = ({
         ) : rows.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
             <Grid2x2 className="w-8 h-8 mb-2 opacity-40" />
-            <p className="text-sm">No plots found</p>
+            <p className="text-sm">{plots.length === 0 ? 'No plots yet' : 'No plots match this filter'}</p>
+            {plots.length === 0 && canCreate && (
+              <Button size="sm" className="mt-3" onClick={onCreatePlot}>
+                <Plus className="w-3.5 h-3.5 mr-1" /> Create your first plot
+              </Button>
+            )}
           </div>
         ) : (
           <Table>

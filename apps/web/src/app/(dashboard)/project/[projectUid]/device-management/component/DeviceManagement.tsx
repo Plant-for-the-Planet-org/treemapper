@@ -1,30 +1,41 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Smartphone, Wifi, BellRing, RefreshCw, Send, LayoutGrid, ListFilter,
-  History, FileText, ArrowUpCircle, RefreshCcwDot, BatteryLow, TriangleAlert,
+  ArrowUpCircle, RefreshCcwDot, TriangleAlert, AlertCircle,
 } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+import { getProjectDevices } from '@shared-core/fetchApi/api.fetch'
+import { useToken } from '@/context/useTokenContext'
+import useProjectStore from '@shared-core/store/useProjectStore'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 
 import {
-  MOCK_DEVICES, MOCK_CAMPAIGNS, MOCK_TEMPLATES, computeStats,
-  appVersionDistribution, LATEST_APP_VERSION,
-  type Device, type NotificationCampaign,
-} from './mockData'
-import { initials, relativeTime } from './helpers'
+  appVersionDistribution,
+  type Device, type FleetStats, type ProjectDevicesResponse,
+} from './types'
+import { errorMessage, initials, relativeTime } from './helpers'
 import FleetView from './FleetView'
-import NotificationsView from './NotificationsView'
-import TemplatesView from './TemplatesView'
 import SendNotificationDialog, { type ComposePrefill } from './SendNotificationDialog'
 
 const BRAND = '#007A49'
+
+const EMPTY_STATS: FleetStats = {
+  total: 0, online: 0, notificationsEnabled: 0, inactive: 0,
+  ios: 0, android: 0, needsUpdate: 0, pendingSync: 0,
+}
+
+// A device is worth flagging when its storage is nearly full or it is sitting on
+// a lot of unuploaded work. Ordered by how much the user can do about it.
+const STORAGE_WARN_PCT = 85
+const PENDING_WARN_COUNT = 10
 
 const StatCard = ({
   title, value, subtitle, icon: Icon, loading,
@@ -53,42 +64,66 @@ const StatCard = ({
 
 const DeviceManagement = () => {
   const [devices, setDevices] = useState<Device[]>([])
-  const [campaigns, setCampaigns] = useState<NotificationCampaign[]>([])
+  const [stats, setStats] = useState<FleetStats>(EMPTY_STATS)
+  const [latestAppBuild, setLatestAppBuild] = useState<number | null>(null)
+  const [latestAppVersion, setLatestAppVersion] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState('overview')
   const [selectedUid, setSelectedUid] = useState<string | null>(null)
 
   const [notifyOpen, setNotifyOpen] = useState(false)
   const [prefill, setPrefill] = useState<ComposePrefill>({ target: 'fleet' })
 
-  // Simulate loading the fleet. POC: data is local, no API call.
-  const loadFleet = () => {
+  const selectedProject = useProjectStore(state => state.selectedProject)
+  const { accessToken } = useToken()
+
+  const loadFleet = useCallback(async () => {
+    if (!selectedProject?.uid) return
     setLoading(true)
-    setTimeout(() => {
-      setDevices(MOCK_DEVICES)
-      setCampaigns(MOCK_CAMPAIGNS)
-      setSelectedUid(prev => prev ?? MOCK_DEVICES[0]?.uid ?? null)
+    setError(null)
+    try {
+      const response = await getProjectDevices(accessToken || '', selectedProject.uid)
+      const data: ProjectDevicesResponse | undefined = response?.data
+
+      if (!data) {
+        throw new Error(response?.message || 'Could not load devices')
+      }
+
+      setDevices(data.devices || [])
+      setStats(data.stats || EMPTY_STATS)
+      setLatestAppBuild(data.latestAppBuild ?? null)
+      setLatestAppVersion(data.latestAppVersion ?? null)
+      // Keep the current selection if it still exists, else fall back to the
+      // first device so the fleet pane is never blank on open.
+      setSelectedUid(prev => {
+        const stillThere = prev && (data.devices || []).some(d => d.uid === prev)
+        return stillThere ? prev : data.devices?.[0]?.uid ?? null
+      })
+    } catch (err) {
+      console.error('Error fetching devices:', err)
+      setError(errorMessage(err, 'Could not load devices'))
+    } finally {
       setLoading(false)
-    }, 450)
-  }
+    }
+  }, [selectedProject, accessToken])
 
   useEffect(() => {
     loadFleet()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [loadFleet])
 
-  const stats = useMemo(() => computeStats(devices), [devices])
-  const versions = useMemo(() => appVersionDistribution(devices), [devices])
+  const versions = useMemo(
+    () => appVersionDistribution(devices, latestAppBuild),
+    [devices, latestAppBuild],
+  )
 
   const attention = useMemo(() => devices
     .map(d => {
-      if (d.appVersion !== LATEST_APP_VERSION)
+      if (d.needsUpdate)
         return { d, reason: 'Outdated app', icon: ArrowUpCircle, cls: 'text-blue-600' }
-      if (d.pendingInterventions >= 10)
+      if ((d.pendingInterventions ?? 0) >= PENDING_WARN_COUNT)
         return { d, reason: `${d.pendingInterventions} unsynced`, icon: RefreshCcwDot, cls: 'text-amber-600' }
-      if (d.batteryLevel <= 20)
-        return { d, reason: `Battery ${d.batteryLevel}%`, icon: BatteryLow, cls: 'text-red-600' }
-      if (d.storageUsedPct >= 85)
+      if ((d.storageUsedPct ?? 0) >= STORAGE_WARN_PCT)
         return { d, reason: `Storage ${d.storageUsedPct}%`, icon: TriangleAlert, cls: 'text-amber-600' }
       return null
     })
@@ -106,15 +141,16 @@ const DeviceManagement = () => {
     setNotifyOpen(true)
   }
 
-  const onSent = (campaign: NotificationCampaign) => {
-    setCampaigns(prev => [campaign, ...prev])
-    setTab('notifications')
-  }
-
   const goToDevice = (uid: string) => {
     setSelectedUid(uid)
     setTab('fleet')
   }
+
+  const outdatedDeviceUids = useMemo(
+    () => devices.filter(d => d.needsUpdate && d.notificationPermission && d.isActive)
+      .map(d => d.uid),
+    [devices],
+  )
 
   return (
     <div className="w-full h-full flex flex-col p-4 gap-4 overflow-hidden">
@@ -125,10 +161,7 @@ const DeviceManagement = () => {
             <Smartphone size={20} className="text-[#007A49]" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-gray-900 leading-tight">Device management</h1>
-              <Badge variant="secondary" className="text-[10px]">POC</Badge>
-            </div>
+            <h1 className="text-xl font-bold text-gray-900 leading-tight">Device management</h1>
             <p className="text-xs text-gray-500">
               Devices of members using the TreeMapper mobile app
             </p>
@@ -142,7 +175,7 @@ const DeviceManagement = () => {
           <Button
             size="sm"
             onClick={() => openCompose({ target: 'fleet' })}
-            disabled={stats.notificationsEnabled === 0}
+            disabled={loading || stats.notificationsEnabled === 0}
             className="bg-[#007A49] hover:bg-green-700 text-white"
           >
             <Send size={14} className="mr-1.5" />
@@ -151,12 +184,18 @@ const DeviceManagement = () => {
         </div>
       </div>
 
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle size={16} />
+          <AlertTitle>Could not load devices</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       <Tabs value={tab} onValueChange={setTab} className="flex-1 min-h-0 flex flex-col gap-4">
         <TabsList className="w-full sm:w-fit">
           <TabsTrigger value="overview"><LayoutGrid size={14} /> Overview</TabsTrigger>
           <TabsTrigger value="fleet"><ListFilter size={14} /> Fleet</TabsTrigger>
-          <TabsTrigger value="notifications"><History size={14} /> Notifications</TabsTrigger>
-          <TabsTrigger value="templates"><FileText size={14} /> Templates</TabsTrigger>
         </TabsList>
 
         {/* OVERVIEW */}
@@ -177,21 +216,25 @@ const DeviceManagement = () => {
             <div className="lg:col-span-2 rounded-xl border border-border bg-card p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-gray-900">App version adoption</h3>
-                <Badge variant="outline" className="text-[10px] text-green-700 border-green-200">
-                  Latest {LATEST_APP_VERSION}
-                </Badge>
+                {latestAppVersion && (
+                  <Badge variant="outline" className="text-[10px] text-green-700 border-green-200">
+                    Latest {latestAppVersion}
+                  </Badge>
+                )}
               </div>
               {loading ? (
                 <div className="space-y-3">
                   {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}
                 </div>
+              ) : versions.length === 0 ? (
+                <p className="text-sm text-gray-500 py-4 text-center">No devices registered yet.</p>
               ) : (
                 <div className="space-y-3">
                   {versions.map(v => (
                     <div key={v.version}>
                       <div className="flex items-center justify-between text-xs mb-1">
                         <span className="flex items-center gap-1.5 font-medium text-gray-700">
-                          v{v.version}
+                          {v.version === 'Unknown' ? 'Unknown' : `v${v.version}`}
                           {!v.outdated && (
                             <Badge variant="outline" className="text-[9px] text-green-600 border-green-200">latest</Badge>
                           )}
@@ -201,22 +244,26 @@ const DeviceManagement = () => {
                       <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
                         <div
                           className={cn('h-full rounded-full', v.outdated ? 'bg-amber-400' : 'bg-[#007A49]')}
-                          style={{ width: `${(v.count / stats.total) * 100}%` }}
+                          style={{ width: `${stats.total > 0 ? (v.count / stats.total) * 100 : 0}%` }}
                         />
                       </div>
                     </div>
                   ))}
-                  {stats.needsUpdate > 0 && (
+                  {outdatedDeviceUids.length > 0 && (
                     <button
                       onClick={() => openCompose({
-                        target: 'segment',
+                        target: 'selected',
+                        deviceUids: outdatedDeviceUids,
+                        targetLabel: `${outdatedDeviceUids.length} outdated device${outdatedDeviceUids.length !== 1 ? 's' : ''}`,
                         title: 'Update to the latest version',
-                        message: `TreeMapper ${LATEST_APP_VERSION} is available with sync fixes. Please update when you can.`,
+                        message: latestAppVersion
+                          ? `TreeMapper ${latestAppVersion} is available. Please update when you can.`
+                          : 'A new TreeMapper version is available. Please update when you can.',
                       })}
                       className="text-xs text-[#007A49] font-medium hover:underline inline-flex items-center gap-1 mt-1"
                     >
                       <ArrowUpCircle size={13} />
-                      Nudge {stats.needsUpdate} outdated device{stats.needsUpdate !== 1 && 's'} to update
+                      Nudge {outdatedDeviceUids.length} outdated device{outdatedDeviceUids.length !== 1 && 's'} to update
                     </button>
                   )}
                 </div>
@@ -282,6 +329,7 @@ const DeviceManagement = () => {
                     className="flex items-center gap-3 rounded-lg border border-border px-3 py-2 text-left hover:bg-muted/50 transition-colors"
                   >
                     <Avatar className="h-8 w-8">
+                      <AvatarImage src={d.user.image || undefined} alt={d.user.name} />
                       <AvatarFallback className="text-[10px] bg-green-700 text-white">{initials(d.user.name)}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 flex-1">
@@ -308,23 +356,16 @@ const DeviceManagement = () => {
             <FleetView
               devices={devices}
               selectedUid={selectedUid}
+              latestAppVersion={latestAppVersion}
               onSelect={setSelectedUid}
-              onNotify={d => openCompose({ target: 'device', device: d })}
+              onNotify={d => openCompose({
+                target: 'selected',
+                deviceUids: [d.uid],
+                targetLabel: d.user.name,
+              })}
+              onDeviceChanged={loadFleet}
             />
           )}
-        </TabsContent>
-
-        {/* NOTIFICATIONS */}
-        <TabsContent value="notifications" className="min-h-0 flex flex-col">
-          <NotificationsView campaigns={campaigns} onCompose={() => openCompose({ target: 'fleet' })} />
-        </TabsContent>
-
-        {/* TEMPLATES */}
-        <TabsContent value="templates" className="min-h-0 flex flex-col">
-          <TemplatesView
-            templates={MOCK_TEMPLATES}
-            onUse={t => openCompose({ target: 'fleet', title: t.title, message: t.message })}
-          />
         </TabsContent>
       </Tabs>
 
@@ -333,7 +374,7 @@ const DeviceManagement = () => {
         onOpenChange={setNotifyOpen}
         prefill={prefill}
         fleetCount={stats.notificationsEnabled}
-        onSent={onSent}
+        onSent={loadFleet}
       />
     </div>
   )

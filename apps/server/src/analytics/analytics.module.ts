@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
+import { DataExplorerController } from './data-explorer.controller';
+import { DataExplorerService } from './data-explorer.service';
 import { DatabaseModule } from '../database/database.module';
 import { ProjectsModule } from '../projects/projects.module';
 
@@ -10,8 +12,8 @@ import { ProjectsModule } from '../projects/projects.module';
     DatabaseModule,
     ProjectsModule,
   ],
-  controllers: [AnalyticsController],
-  providers: [AnalyticsService],
-  exports: [AnalyticsService],
+  controllers: [AnalyticsController, DataExplorerController],
+  providers: [AnalyticsService, DataExplorerService],
+  exports: [AnalyticsService, DataExplorerService],
 })
 export class AnalyticsModule {}

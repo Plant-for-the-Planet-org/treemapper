@@ -1,8 +1,7 @@
 import React from 'react';
 import i18next from 'src/locales/index';
-import Share from 'react-native-share';
-import { toBase64 } from 'src/utils/constants/base64';
 import { convertInterventionDetailsToGeoJSON, convertTreeDetailsToGeoJSON } from 'src/utils/helpers/interventionHelper/convertDataToGeoJSON';
+import { shareJSONFile } from 'src/utils/helpers/fileManagementHelper';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors } from 'src/utils/constants';
 import { FONT_FAMILY_BOLD } from 'src/utils/constants/typography';
@@ -30,21 +29,19 @@ export const ExportGeoJSONButton = (props: Props) => {
             "features": [...features]
         }
 
-        const options = {
-            url: 'data:application/json;base64,' + toBase64(JSON.stringify(geoJSON)),
-            message: i18next.t('label.inventory_overview_export_json_message'),
-            title: i18next.t('label.inventory_overview_export_json_title'),
-            filename: type === 'intervention' ? `Intervention_${details.intervention_id}_GeoJSON.json` : `Tree_${details.tree_id}_GeoJSON.json`,
-            saveToFiles: true,
-        };
-        Share.open(options)
-            .then(() => {
-                //
-            })
-            .catch(() => {
-                //error
-            });
+        const filename = type === 'intervention'
+            ? `Intervention_${details.intervention_id}_GeoJSON.json`
+            : `Tree_${details.tree_id}_GeoJSON.json`;
 
+        try {
+            await shareJSONFile(filename, geoJSON, {
+                message: i18next.t('label.inventory_overview_export_json_message'),
+                title: i18next.t('label.inventory_overview_export_json_title'),
+                saveToFiles: true,
+            });
+        } catch (e) {
+            console.log('Error while exporting GeoJSON file', e);
+        }
     };
     const onPressExportJSON = async () => {
         await exportGeoJSONFile();

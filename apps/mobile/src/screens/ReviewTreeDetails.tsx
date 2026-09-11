@@ -114,7 +114,12 @@ const ReviewTreeDetails = () => {
         const bounds = bbox(geoJSON)
         dispatch(updateBoundary({ coord: JSON.parse(Intervention.location.coordinates), id: uuid(), form_ID: Intervention.form_id, }))
         dispatch(updateMapBounds({ bounds: bounds, key: 'POINT_MAP' }))
-        navigation.replace('PointMarker', { id: interventionId })
+        // Pop back to the location picker instead of pushing on top of it.
+        // Each sample tree pushes four screens (picker, species, camera,
+        // measurement) and nothing was ever popped, so ten trees left ten live
+        // MapLibre maps and ten full-size photos mounted and the app hung.
+        // popTo falls back to a push if the picker is not in the stack.
+        navigation.popTo('PointMarker', { id: interventionId })
     }
 
     const setupTreeDetailsFlow = () => {

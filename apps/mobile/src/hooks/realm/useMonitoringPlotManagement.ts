@@ -557,6 +557,28 @@ const useMonitoringPlotManagement = () => {
     }
   };
 
+  // Mark plot photos synced once the server holds them. The stored filename is
+  // kept as the row's cdn_url, so the gallery can read the remote copy and a
+  // later sync does not upload the same photo again.
+  const markPlotImagesSynced = async (
+    uploaded: { imageId: string; filename: string }[],
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        uploaded.forEach(({ imageId, filename }) => {
+          if (!imageId) return
+          const record = realm.objectForPrimaryKey<{ cdn_url: string; status: string }>(RealmSchema.ImageData, imageId)
+          if (!record) return
+          if (filename) record.cdn_url = filename
+          record.status = 'SYNCED'
+        })
+      })
+      return true
+    } catch (error) {
+      return false
+    }
+  }
+
   // Mark observations added to an already-synced plot as synced after the
   // add-observations upload was accepted. Scoped to the obs ids the server
   // actually stored, so only those that went up are flipped.
@@ -649,7 +671,7 @@ const useMonitoringPlotManagement = () => {
 
 
 
-  return { updatePlotObservation, deletePlotObservation, deletePlotTimeline, updateTimelineDetails, deletePlantDetails: deletePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, updatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, deleteMonitoringPlot, initializeNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurementPlantPlots, addPlotImageRecord, deleteImageRecord, markMonitoringPlotSynced, markRemeasurementsSynced, markPlotPlantsSynced, markPlotObservationsSynced }
+  return { updatePlotObservation, deletePlotObservation, deletePlotTimeline, updateTimelineDetails, deletePlantDetails: deletePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, updatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, deleteMonitoringPlot, initializeNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurementPlantPlots, addPlotImageRecord, deleteImageRecord, markMonitoringPlotSynced, markRemeasurementsSynced, markPlotPlantsSynced, markPlotObservationsSynced, markPlotImagesSynced }
 }
 
 export default useMonitoringPlotManagement

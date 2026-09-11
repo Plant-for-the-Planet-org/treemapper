@@ -31,7 +31,19 @@ interface Props {
   handleTrackComplete: (e: Feature) => void
   handleInvalidArea: () => void
   isSatellite: boolean
+  // Route recovered from a killed session, as [lng, lat] pairs. Walking is
+  // resumed from its last point instead of from the starting corner.
+  initialCoordinates?: number[][]
+  // Reports the walked route so the parent can save it. `force` asks for an
+  // immediate save, bypassing the parent's throttle.
+  onPathChange?: (path: number[][], force?: boolean) => void
 }
+
+const toLocations = (coords: number[][]): Location[] =>
+  coords.map(c => ({ coords: { longitude: c[0], latitude: c[1] } }))
+
+const toLngLat = (points: Location[]): number[][] =>
+  points.map(p => [p.coords.longitude, p.coords.latitude])
 
 
 const BUFFER_SIZE = 3; // Number of points to collect before simplification
@@ -85,12 +97,21 @@ const simplifyPath = (points: Location[], epsilon: number): Location[] => {
   return [firstPoint, lastPoint];
 };
 
-const PolygonTracker: React.FC<Props> = ({ latestCoords, startCoord, isPaused, handleCompletePress, handleTrackComplete, isSatellite, handleInvalidArea }) => {
-  const [simplifiedCoordinates, setSimplifiedCoordinates] = useState<Location[]>([]);
+const PolygonTracker: React.FC<Props> = ({ latestCoords, startCoord, isPaused, handleCompletePress, handleTrackComplete, isSatellite, handleInvalidArea, initialCoordinates, onPathChange }) => {
+  const restored = useRef<Location[]>(toLocations(initialCoordinates ?? [])).current
+  const [simplifiedCoordinates, setSimplifiedCoordinates] = useState<Location[]>(restored);
   const coordinatesBuffer = useRef<Location[]>([]);
   const toast = useToast()
   const [finalGeoJSON, setFinalGeoJSON] = useState(null)
   useEffect(() => {
+    // A restored route already contains the starting corner and everything
+    // walked after it. Re-seeding from startCoord here would draw a line
+    // straight back to corner A, so the buffer continues from the last point
+    // that was actually recorded.
+    if (restored.length > 0) {
+      coordinatesBuffer.current = [restored[restored.length - 1]]
+      return
+    }
     if (startCoord) {
       const firstCoord: Location = {
         coords: {
@@ -101,6 +122,24 @@ const PolygonTracker: React.FC<Props> = ({ latestCoords, startCoord, isPaused, h
       coordinatesBuffer.current.push(firstCoord);
     }
   }, [startCoord])
+
+  // Hand the route to the parent as it grows so a crash mid-walk costs seconds,
+  // not the whole perimeter. Pausing and leaving the screen force a save.
+  useEffect(() => {
+    if (onPathChange) {
+      onPathChange(toLngLat(simplifiedCoordinates), isPaused)
+    }
+  }, [simplifiedCoordinates, isPaused])
+
+  const latestPathRef = useRef<Location[]>(simplifiedCoordinates)
+  latestPathRef.current = simplifiedCoordinates
+  useEffect(() => {
+    return () => {
+      if (onPathChange) {
+        onPathChange(toLngLat(latestPathRef.current), true)
+      }
+    }
+  }, [])
 
   const processBuffer = useCallback(() => {
     if (coordinatesBuffer.current.length >= BUFFER_SIZE) {

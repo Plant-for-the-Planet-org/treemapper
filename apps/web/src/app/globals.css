@@ -47,6 +47,40 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 }
+
+/*
+ * TreeMapper product page palette.
+ * Literal brand values from the design concept, kept out of the shadcn token
+ * set on purpose: these are marketing-page colours and must not drift with the
+ * dashboard theme (they are the same in light and dark).
+ */
+@theme {
+  --color-tm-green: #007a49;
+  --color-tm-green-dark: #006b3f;
+  --color-tm-lime: #68b030;
+  --color-tm-ink: #333333;
+  --color-tm-body: #4d5153;
+  --color-tm-muted: #828282;
+  --color-tm-cream: #faf9f5;
+  --color-tm-mist: #f0f7ea;
+  --color-tm-edge: #e1ede8;
+  --color-tm-line: #e6e9ec;
+  --color-tm-rule: #d5d5d5;
+  --color-tm-canopy: #eaf1e2;
+  --color-tm-water: #cfe3ee;
+
+  --animate-tm-marquee: tm-marquee 75s linear infinite;
+
+  @keyframes tm-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
 /* Notion-style Toast Container Overrides */
 
 /* Container positioning and layout */

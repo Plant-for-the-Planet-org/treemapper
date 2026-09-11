@@ -4,9 +4,8 @@ import Header from 'src/components/common/Header'
 import ActivityLogsTab from 'src/components/activityLogs/ActivityLogsTab'
 import { Colors } from 'src/utils/constants'
 import { useRealm } from '@realm/react'
-import Share from 'react-native-share';
 import { RealmSchema } from 'src/types/enum/db.enum'
-import { toBase64 } from 'src/utils/constants/base64'
+import { shareJSONFile } from 'src/utils/helpers/fileManagementHelper'
 import ShareIcon from 'assets/images/svg/ShareIcon.svg';
 import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAdditionalData'
 import { useSelector } from 'react-redux'
@@ -43,20 +42,17 @@ const ActivityLogsView = () => {
     }
 
     const shareLogs = async (logs: any) => {
-        const options = {
-            url: 'data:application/json;base64,' + toBase64(JSON.stringify(logs)),
-            message: "All activity logs for TreeMapper app",
-            title: "Activity Logs",
-            filename: `TreeMapper_Activity_Logs.json`,
-            saveToFiles: false,
-        };
-        Share.open(options)
-            .then(() => {
-                setLoading(false)
-            })
-            .catch(() => {
-                setLoading(false)
+        try {
+            await shareJSONFile('TreeMapper_Activity_Logs.json', logs, {
+                message: "All activity logs for TreeMapper app",
+                title: "Activity Logs",
+                saveToFiles: false,
             });
+        } catch (e) {
+            console.log('Error while sharing activity logs', e);
+        } finally {
+            setLoading(false)
+        }
     }
 
     const renderShareIcon = () => {

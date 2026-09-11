@@ -77,3 +77,14 @@ export interface IAdditionalDetailsForm{
   title: string,
   description: string,
 }
+
+export type MapDraftKind = 'POLYGON' | 'TRACK' | 'SITE'
+
+export interface MapDraftData {
+  draft_id: string
+  kind: MapDraftKind
+  owner_id: string
+  // JSON stringified number[][] of [lng, lat] pairs.
+  coordinates: string
+  updated_at: number
+}

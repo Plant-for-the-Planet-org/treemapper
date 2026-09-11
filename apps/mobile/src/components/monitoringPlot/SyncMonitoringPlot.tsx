@@ -16,8 +16,8 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import RotatingView from '../common/RotatingView'
 import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
-import { getMobileHealth, getPersonalProject, uploadMonitoringPlot, uploadPlotRemeasurement, addPlotPlants, addPlotObservations } from 'src/api/api.fetch'
-import { convertPlotToUploadBody, buildPlotRemeasurementBody, buildPlotNewPlantsBody, buildPlotObservationsBody } from 'src/utils/helpers/monitoringPlotHelper/monitoringPlotSyncHelper'
+import { getMobileHealth, getPersonalProject, uploadMonitoringPlot, uploadPlotRemeasurement, addPlotPlants, addPlotObservations, addPlotImages } from 'src/api/api.fetch'
+import { convertPlotToUploadBody, buildPlotRemeasurementBody, buildPlotNewPlantsBody, buildPlotObservationsBody, buildPlotImagesBody, PlotImageRecord } from 'src/utils/helpers/monitoringPlotHelper/monitoringPlotSyncHelper'
 
 interface Props {
     isLoggedIn: boolean
@@ -28,6 +28,16 @@ interface PlotSyncStatus {
     plotId: string
     name: string
     status: 'pending' | 'syncing' | 'done' | 'error' | 'rejected'
+}
+
+// Just what the queue and the modal need of a synced plot whose photos are still
+// on the device. Photos are their own Realm collection, so these are stitched
+// together rather than read off a plot query.
+interface PlotWithPendingImages {
+    plot_id: string
+    name: string
+    project_id: string
+    pending: number
 }
 
 // Outcome of one plot upload:
@@ -58,7 +68,7 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const { isConnected } = useNetInfo()
-    const { markMonitoringPlotSynced, markRemeasurementsSynced, markPlotPlantsSynced, markPlotObservationsSynced } = useMonitoringPlotManagement()
+    const { markMonitoringPlotSynced, markRemeasurementsSynced, markPlotPlantsSynced, markPlotObservationsSynced, markPlotImagesSynced } = useMonitoringPlotManagement()
     const { addNewLog } = useLogManagement()
 
     // Only complete, not-yet-synced plots are uploadable.
@@ -93,18 +103,57 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
         data => data.filtered('status == "SYNCED" AND plot_plants.server_tree_id != "" AND plot_plants.timeline.sync_status == "NOT_SYNCED"'),
     )
 
+    // Plot photos live in their own collection (ImageData) with no link to the
+    // plot, so they are matched back by parent_id.
+    const pendingImageRows = useQuery<{ image_id: string; parent_id: string }>(
+        RealmSchema.ImageData,
+        data => data.filtered('type == "monitoring_plot" AND status != "SYNCED"'),
+    )
+
+    // One plot's photos, oldest first, as plain objects (the convertor awaits
+    // uploads, so live-Realm rows must not be read across them).
+    const galleryFor = (plotId: string): PlotImageRecord[] =>
+        realm.objects<PlotImageRecord>(RealmSchema.ImageData)
+            .filtered('parent_id == $0 AND type == $1 SORT(date_taken ASC)', plotId, 'monitoring_plot')
+            .map(r => ({
+                image_id: r.image_id,
+                local_uri: r.local_uri,
+                cdn_url: r.cdn_url,
+                date_taken: r.date_taken,
+                status: r.status,
+            }))
+
+    // Already-synced plots that gained photos afterwards. A plot that has not
+    // synced yet sends its photos with the plot itself, so it is excluded here.
+    const plotIdsWithPendingImages = (): string[] =>
+        Array.from(new Set(realm.objects<{ parent_id: string }>(RealmSchema.ImageData)
+            .filtered('type == "monitoring_plot" AND status != "SYNCED"')
+            .map(r => r.parent_id)))
+            .filter(id => realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id)?.status === 'SYNCED')
+
+    const newImagesData: PlotWithPendingImages[] = Array.from(new Set(pendingImageRows.map(r => r.parent_id)))
+        .map(id => realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id))
+        .filter(plot => plot?.status === 'SYNCED')
+        .map(plot => ({
+            plot_id: plot!.plot_id,
+            name: plot!.name,
+            project_id: plot!.project_id,
+            pending: pendingImageRows.filter(r => r.parent_id === plot!.plot_id).length,
+        }))
+
     // A plot needs a remeasure upload only if the SAME plant is synced and has a
     // pending timeline entry.
     const plotNeedsRemeasure = (plot: MonitoringPlot) =>
         (plot.plot_plants || []).some(pl => !!pl.server_tree_id && (pl.timeline || []).some(t => t.sync_status !== 'SYNCED'))
 
     // Distinct plots awaiting any kind of sync (full upload + new plants +
-    // new observations + remeasure).
+    // new observations + remeasure + new photos).
     const pendingCount = new Set<string>([
         ...plotData.map(p => p.plot_id),
         ...newPlantsData.map(p => p.plot_id),
         ...newObservationsData.map(p => p.plot_id),
         ...remeasureData.map(p => p.plot_id),
+        ...newImagesData.map(p => p.plot_id),
     ]).size
 
     const showLogin = () => {
@@ -127,7 +176,7 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
             // image uploads inside the convertor.
             const snapshot = JSON.parse(JSON.stringify(plot)) as MonitoringPlot
 
-            const { body, error } = await convertPlotToUploadBody(snapshot)
+            const { body, error, uploadedImages } = await convertPlotToUploadBody(snapshot, galleryFor(plotId))
             if (!body) {
                 addNewLog({ logType: 'DATA_SYNC', message: `Plot upload blocked: ${error}. Marked for user fix.`, logLevel: 'error', statusCode: '' })
                 return 'rejected'
@@ -136,6 +185,9 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
             const { response, success, status } = await uploadMonitoringPlot(projectUid, body)
             const result = response?.data
             if (success && result?.id) {
+                // The plot carried its photos, so they are stored too. A photo whose
+                // upload failed is not in this list and stays pending.
+                if (uploadedImages.length > 0) await markPlotImagesSynced(uploadedImages)
                 const persisted = await markMonitoringPlotSynced(plotId, result.hid || '', result.id, result.plants || [])
                 if (!persisted) {
                     addNewLog({ logType: 'DATA_SYNC', message: `Plot uploaded but local mark-synced failed (plot ${plotId})`, logLevel: 'error', statusCode: '' })
@@ -281,6 +333,53 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
         }
     }
 
+    // Upload photos added to an already-synced plot. The plot itself is already on
+    // the server, so this only attaches photos; on success we mark exactly the ones
+    // that landed as synced.
+    const handleImages = async (plotId: string, projectUid: string): Promise<PlotUploadOutcome> => {
+        try {
+            const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotId)
+            if (!plot) return 'retryable'
+            const snapshot = JSON.parse(JSON.stringify(plot)) as MonitoringPlot
+
+            const { body, uploaded, error } = await buildPlotImagesBody(snapshot, galleryFor(plotId))
+            if (!body) {
+                // No photo to send, or the plot has no server id to target.
+                if (error) {
+                    addNewLog({ logType: 'DATA_SYNC', message: `Plot image upload blocked: ${error} (plot ${plotId})`, logLevel: 'error', statusCode: '' })
+                    return 'rejected'
+                }
+                // Every photo upload failed: keep them queued for the next sync.
+                return 'retryable'
+            }
+
+            const { response, success, status } = await addPlotImages(projectUid, body)
+            const result = response?.data
+            if (success && result) {
+                // Only the filenames the server confirmed are marked synced.
+                const stored = new Set<string>((result.images || []).map((i: any) => i.filename).filter(Boolean))
+                const toMark = uploaded.filter(u => stored.has(u.filename))
+                if (toMark.length > 0) {
+                    const persisted = await markPlotImagesSynced(toMark)
+                    if (!persisted) {
+                        addNewLog({ logType: 'DATA_SYNC', message: `Plot images uploaded but local mark-synced failed (plot ${plotId})`, logLevel: 'error', statusCode: '' })
+                        return 'retryable'
+                    }
+                }
+                return toMark.length === uploaded.length ? 'success' : 'retryable'
+            }
+            if (isRejectedByServer(status)) {
+                addNewLog({ logType: 'DATA_SYNC', message: `Server rejected plot image payload (HTTP ${status})`, logLevel: 'error', statusCode: `${status}` })
+                return 'rejected'
+            }
+            addNewLog({ logType: 'DATA_SYNC', message: 'Plot image API response error', logLevel: 'error', statusCode: `${status ?? ''}` })
+            return 'retryable'
+        } catch (error) {
+            addNewLog({ logType: 'DATA_SYNC', message: 'Plot image upload error (Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
+            return 'retryable'
+        }
+    }
+
     // Single entry point. Plots have no inter-dependencies, so one pass over all
     // complete unsynced plots is enough (no until-empty loop like interventions).
     const startSyncingPlots = async () => {
@@ -320,7 +419,7 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
             // back to the user's personal project (fetched once, only when needed),
             // matching the previous behaviour and the intervention fallback.
             let personalProjectUid: string | null = null
-            const needsPersonalFallback = [...plotData, ...newPlantsData, ...newObservationsData, ...remeasureData]
+            const needsPersonalFallback = [...plotData, ...newPlantsData, ...newObservationsData, ...remeasureData, ...newImagesData]
                 .some(p => !p.project_id)
             if (needsPersonalFallback) {
                 const { response, success } = await getPersonalProject()
@@ -331,7 +430,7 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                     return
                 }
             }
-            const projectUidFor = (plot: MonitoringPlot) => plot.project_id || personalProjectUid || ''
+            const projectUidFor = (plot: { project_id: string }) => plot.project_id || personalProjectUid || ''
 
             // Snapshot the queue up front so it stays stable while we mark plots
             // SYNCED (which removes them from the live query). Order matters: full
@@ -343,21 +442,24 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
             const newPlantsQueue = newPlantsData.map(p => ({ plotId: p.plot_id, name: `${p.name || 'Untitled plot'} (new plants)`, kind: 'newPlants' as const, projectUid: projectUidFor(p) }))
             const newObservationsQueue = newObservationsData.map(p => ({ plotId: p.plot_id, name: `${p.name || 'Untitled plot'} (observations)`, kind: 'newObservations' as const, projectUid: projectUidFor(p) }))
             const remeasureQueue = remeasureData.filter(plotNeedsRemeasure).map(p => ({ plotId: p.plot_id, name: `${p.name || 'Untitled plot'} (remeasure)`, kind: 'remeasure' as const, projectUid: projectUidFor(p) }))
-            const queue = [...uploadQueue, ...newPlantsQueue, ...newObservationsQueue, ...remeasureQueue]
+            const newImagesQueue = newImagesData.map(p => ({ plotId: p.plot_id, name: `${p.name || 'Untitled plot'} (photos)`, kind: 'newImages' as const, projectUid: projectUidFor(p) }))
+            const queue = [...uploadQueue, ...newPlantsQueue, ...newObservationsQueue, ...remeasureQueue, ...newImagesQueue]
             if (queue.length === 0) { setShowFullSync(true); return }
 
             setSyncStatuses(queue.map(q => ({ plotId: q.plotId, name: q.name, status: 'pending' })))
 
+            const handlerByKind = {
+                upload: handlePlot,
+                newPlants: handleNewPlants,
+                newObservations: handleObservations,
+                remeasure: handleRemeasure,
+                newImages: handleImages,
+            }
+
             for (let i = 0; i < queue.length; i++) {
                 if (!isConnected) throw new Error('No network connection')
                 setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'syncing' } : s))
-                const outcome = queue[i].kind === 'upload'
-                    ? await handlePlot(queue[i].plotId, queue[i].projectUid)
-                    : queue[i].kind === 'newPlants'
-                        ? await handleNewPlants(queue[i].plotId, queue[i].projectUid)
-                        : queue[i].kind === 'newObservations'
-                            ? await handleObservations(queue[i].plotId, queue[i].projectUid)
-                            : await handleRemeasure(queue[i].plotId, queue[i].projectUid)
+                const outcome = await handlerByKind[queue[i].kind](queue[i].plotId, queue[i].projectUid)
                 if (outcome === 'success') uploaded++
                 else if (outcome === 'rejected') rejected++
                 else failed++
@@ -375,7 +477,8 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
             const remainingRemeasure = realm.objects<MonitoringPlot>(RealmSchema.MonitoringPlot)
                 .filtered('status == "SYNCED" AND plot_plants.server_tree_id != "" AND plot_plants.timeline.sync_status == "NOT_SYNCED"')
                 .filter(plotNeedsRemeasure).length
-            const remaining = remainingUploads + remainingNewPlants + remainingNewObservations + remainingRemeasure
+            const remainingImages = plotIdsWithPendingImages().length
+            const remaining = remainingUploads + remainingNewPlants + remainingNewObservations + remainingRemeasure + remainingImages
 
             if (remaining === 0) {
                 setShowFullSync(true)
@@ -476,6 +579,12 @@ const SyncMonitoringPlot = ({ isLoggedIn, tokenValid }: Props) => {
                                         <View key={`r-${idx}`} style={styles.statusRow}>
                                             <Text style={styles.countBadge}>{plot.plot_plants?.length ?? 0}</Text>
                                             <Text style={styles.statusLabel}>{plot.name || 'Untitled plot'} (remeasure)</Text>
+                                        </View>
+                                    ))}
+                                    {newImagesData.map((plot, idx) => (
+                                        <View key={`i-${idx}`} style={styles.statusRow}>
+                                            <Text style={styles.countBadge}>{plot.pending}</Text>
+                                            <Text style={styles.statusLabel}>{plot.name || 'Untitled plot'} (photos)</Text>
                                         </View>
                                     ))}
                                 </ScrollView>

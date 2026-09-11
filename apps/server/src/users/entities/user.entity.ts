@@ -22,13 +22,16 @@ export const migrationPlaceholderAuth0Id = (email: string): string =>
 export const isMigrationPlaceholderAuth0Id = (auth0Id: string): boolean =>
   auth0Id.startsWith(MIGRATION_AUTH0_ID_PREFIX);
 
-// Outcome of trying to attach a real Auth0 sub to an existing row found by email.
+// Outcome of attaching the Auth0 sub of the current login to the row that owns
+// this email address.
+//
+// One person can hold several Auth0 identities for the same address: an
+// email/password account (`auth0|...`) plus Google, Facebook or Apple, each with
+// its own sub. They are all the same human, so they all resolve to one row. The
+// row stores whichever sub signed in last, and the user cache is keyed on it.
 export type LinkAuth0Result =
-  // The row was a migration placeholder (or already linked to this sub) and now
-  // carries the real sub.
-  | { status: 'linked'; user: User }
+  // The row now carries `newAuth0Id`. `previousAuth0Id` is the sub it replaced,
+  // or null when the row already carried this one.
+  | { status: 'linked'; user: User; previousAuth0Id: string | null }
   // No row holds this email -- the caller should create a fresh user.
-  | { status: 'not_found' }
-  // A row holds this email but is already owned by a *different* real Auth0
-  // identity. Never re-point it: that would hand one identity another's account.
-  | { status: 'conflict'; existingAuth0Id: string };
+  | { status: 'not_found' };

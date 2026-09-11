@@ -34,6 +34,7 @@ import { PlantLocationHistory } from './plantLocationHistory'
 import { ImageData } from './image'
 import { ProjectForm } from './projectForm'
 import { FormPrefill } from './formPrefill'
+import { MapDraft } from './mapDraft'
 
 export default [
   MonitoringPlot,
@@ -72,4 +73,5 @@ export default [
   ImageData,
   ProjectForm,
   FormPrefill,
+  MapDraft,
 ]

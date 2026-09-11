@@ -22,7 +22,12 @@ import { ProjectCacheService } from 'src/cache/project-cache.service';
 import { UserCacheService } from 'src/cache/user-cache.service';
 import { AuditService } from 'src/audit/audit.service';
 
-export interface ProjectGuardResponse { projectId: number, role: string, userId: number, projectName: string, siteAccess: string, restrictedSites: string[] | null, extraPermissions: string[] | null }
+// `viaWorkspaceAdmin` marks a membership the guard synthesized from a workspace
+// owner/admin role rather than read from `project_member`. Routes that are happy
+// with the usual "workspace admins can act on any project in their workspace"
+// rule can ignore it; a route that needs a real membership of the project itself
+// (TreeMatch, which writes irreversible claims to TTC) reads it and refuses.
+export interface ProjectGuardResponse { projectId: number, role: string, userId: number, projectName: string, siteAccess: string, restrictedSites: string[] | null, extraPermissions: string[] | null, viaWorkspaceAdmin?: boolean }
 
 export interface ProjectMemberResponse {
   role: string;

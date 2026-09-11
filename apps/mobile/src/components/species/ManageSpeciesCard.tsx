@@ -9,10 +9,8 @@ import { SCALE_30 } from 'src/utils/constants/spacing'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { PlantedSpecies } from 'src/types/interface/slice.interface'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
-import * as ExpoImage from 'expo-image';
-import { useSelector } from 'react-redux'
-import { RootState } from 'src/store'
-import { v3CdnUrl } from 'src/utils/cdnUrl'
+import FallbackImage from '../common/FallbackImage'
+import { legacyCdnUrl, v3CdnUrl } from 'src/utils/cdnUrl'
 
 interface SpecieCardProps {
   item: PlantedSpecies | IScientificSpecies
@@ -34,8 +32,11 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
   onlyProjectSpecies
 }) => {
 
-  const { v3Approved } = useSelector((state: RootState) => state.userState)
-
+  // a filename means the image lives on the CDN, a path means it is local
+  const isCdnImage = !!item.image && !item.image.includes('/')
+  const imageUri = isCdnImage ? (v3CdnUrl('species', item.image) ?? '') : item.image
+  // species images uploaded before the v3 migration are only on the old CDN
+  const imageFallbackUri = isCdnImage ? legacyCdnUrl('species', item.image) : null
 
   const handlePress = () => {
     onPressSpecies(item)
@@ -56,11 +57,9 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
           onPress={handlePress}>
           <View style={styles.imageCon}>
             {item.image ? (
-              <ExpoImage.Image
-                cachePolicy='memory-disk'
-                source={{
-                  uri: item.image.includes('/') ? `${item.image}` : v3Approved ? (v3CdnUrl('species', item.image) ?? '') : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/species/default/${item.image}`,
-                }}
+              <FallbackImage
+                uri={imageUri}
+                fallbackUri={imageFallbackUri}
                 style={styles.imageView}
               />
             ) : (

@@ -3,9 +3,13 @@
 import React, { useMemo, useState } from 'react'
 import {
   Smartphone, Search, Send, ChevronLeft, Globe, Clock, Tag, Bell, CircleSlash,
-  BatteryLow, BatteryFull, HardDrive, Wifi, WifiOff, Signal, RefreshCw,
-  MapPin, ArrowUpCircle, CheckCircle2,
+  HardDrive, Wifi, WifiOff, Signal, RefreshCw, ArrowUpCircle, CheckCircle2,
+  Power, PowerOff, Loader2,
 } from 'lucide-react'
+import { toast } from 'react-toastify'
+import { updateProjectDeviceState } from '@shared-core/fetchApi/api.fetch'
+import { useToken } from '@/context/useTokenContext'
+import useProjectStore from '@shared-core/store/useProjectStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -14,27 +18,29 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import type { Device } from './mockData'
-import { LATEST_APP_VERSION, needsUpdate } from './mockData'
+import type { Device } from './types'
 import {
   platformLabel, initials, relativeTime, formatDate, networkLabel,
-  levelColor, levelBar,
+  levelColor, levelBar, roleLabel, errorMessage,
 } from './helpers'
 
-const NetworkIcon = ({ type, size = 14 }: { type: Device['networkType']; size?: number }) => {
+type PlatformFilter = 'all' | 'ios' | 'android'
+type StatusFilter = 'all' | 'online' | 'pending' | 'inactive'
+
+const NetworkIcon = ({ type, size = 14 }: { type: string | null; size?: number }) => {
   if (type === 'wifi') return <Wifi size={size} className="text-green-600" />
   if (type === 'cellular') return <Signal size={size} className="text-green-600" />
   return <WifiOff size={size} className="text-gray-400" />
 }
 
+// Renders a 0-100 meter. Null means the device has not reported the value, which
+// is shown as "-" rather than as an empty bar reading zero.
 const Meter = ({
-  label, icon: Icon, pct, invert, suffix = '%',
+  label, icon: Icon, pct,
 }: {
   label: string
   icon: React.ElementType
-  pct: number
-  invert?: boolean
-  suffix?: string
+  pct: number | null
 }) => (
   <div className="space-y-1.5">
     <div className="flex items-center justify-between text-xs">
@@ -42,15 +48,19 @@ const Meter = ({
         <Icon size={13} className="text-gray-400" />
         {label}
       </span>
-      <span className={cn('font-semibold tabular-nums', levelColor(pct, invert))}>
-        {pct}{suffix}
-      </span>
+      {pct === null ? (
+        <span className="text-gray-400">-</span>
+      ) : (
+        <span className={cn('font-semibold tabular-nums', levelColor(pct))}>{pct}%</span>
+      )}
     </div>
     <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-      <div
-        className={cn('h-full rounded-full transition-all', levelBar(pct, invert))}
-        style={{ width: `${Math.max(pct, 3)}%` }}
-      />
+      {pct !== null && (
+        <div
+          className={cn('h-full rounded-full transition-all', levelBar(pct))}
+          style={{ width: `${Math.max(pct, 3)}%` }}
+        />
+      )}
     </div>
   </div>
 )
@@ -58,14 +68,18 @@ const Meter = ({
 interface Props {
   devices: Device[]
   selectedUid: string | null
+  latestAppVersion: string | null
   onSelect: (uid: string) => void
   onNotify: (device: Device) => void
+  onDeviceChanged: () => void
 }
 
-const FleetView = ({ devices, selectedUid, onSelect, onNotify }: Props) => {
+const FleetView = ({
+  devices, selectedUid, latestAppVersion, onSelect, onNotify, onDeviceChanged,
+}: Props) => {
   const [search, setSearch] = useState('')
-  const [platform, setPlatform] = useState<'all' | 'ios' | 'android'>('all')
-  const [status, setStatus] = useState<'all' | 'online' | 'pending' | 'inactive'>('all')
+  const [platform, setPlatform] = useState<PlatformFilter>('all')
+  const [status, setStatus] = useState<StatusFilter>('all')
   const [mobileView, setMobileView] = useState<'list' | 'detail'>('list')
 
   const filtered = useMemo(() => {
@@ -73,7 +87,7 @@ const FleetView = ({ devices, selectedUid, onSelect, onNotify }: Props) => {
     return devices.filter(d => {
       if (platform !== 'all' && d.deviceOs !== platform) return false
       if (status === 'online' && !d.online) return false
-      if (status === 'pending' && d.pendingInterventions === 0) return false
+      if (status === 'pending' && !(d.pendingInterventions ?? 0)) return false
       if (status === 'inactive' && d.isActive) return false
       if (!term) return true
       return [d.user.name, d.user.email, d.deviceName, d.deviceModel, platformLabel(d.deviceOs)]
@@ -104,7 +118,7 @@ const FleetView = ({ devices, selectedUid, onSelect, onNotify }: Props) => {
             />
           </div>
           <div className="flex gap-2">
-            <Select value={platform} onValueChange={(v: any) => setPlatform(v)}>
+            <Select value={platform} onValueChange={v => setPlatform(v as PlatformFilter)}>
               <SelectTrigger className="h-8 text-xs flex-1"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All platforms</SelectItem>
@@ -112,7 +126,7 @@ const FleetView = ({ devices, selectedUid, onSelect, onNotify }: Props) => {
                 <SelectItem value="android">Android</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={status} onValueChange={(v: any) => setStatus(v)}>
+            <Select value={status} onValueChange={v => setStatus(v as StatusFilter)}>
               <SelectTrigger className="h-8 text-xs flex-1"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All status</SelectItem>
@@ -128,7 +142,11 @@ const FleetView = ({ devices, selectedUid, onSelect, onNotify }: Props) => {
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center px-6 py-10">
               <Smartphone size={28} className="text-gray-300 mb-2" />
-              <p className="text-sm text-gray-500">No devices match your filters</p>
+              <p className="text-sm text-gray-500">
+                {devices.length === 0
+                  ? 'No devices registered yet'
+                  : 'No devices match your filters'}
+              </p>
             </div>
           ) : (
             <ul className="divide-y divide-border">
@@ -162,13 +180,13 @@ const FleetView = ({ devices, selectedUid, onSelect, onNotify }: Props) => {
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                           {platformLabel(device.deviceOs)}
                         </Badge>
-                        {device.pendingInterventions > 0 && (
+                        {(device.pendingInterventions ?? 0) > 0 && (
                           <span className="inline-flex items-center gap-1 text-[10px] text-amber-600 font-medium">
                             <RefreshCw size={10} />
                             {device.pendingInterventions} queued
                           </span>
                         )}
-                        {needsUpdate(device) && (
+                        {device.needsUpdate && (
                           <span className="inline-flex items-center gap-1 text-[10px] text-blue-600 font-medium">
                             <ArrowUpCircle size={10} />
                             update
@@ -195,8 +213,10 @@ const FleetView = ({ devices, selectedUid, onSelect, onNotify }: Props) => {
         {selectedDevice ? (
           <DeviceDetail
             device={selectedDevice}
+            latestAppVersion={latestAppVersion}
             onBack={() => setMobileView('list')}
             onNotify={() => onNotify(selectedDevice)}
+            onDeviceChanged={onDeviceChanged}
           />
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center px-6">
@@ -226,14 +246,46 @@ const DetailRow = ({
 )
 
 const DeviceDetail = ({
-  device, onBack, onNotify,
+  device, latestAppVersion, onBack, onNotify, onDeviceChanged,
 }: {
   device: Device
+  latestAppVersion: string | null
   onBack: () => void
   onNotify: () => void
+  onDeviceChanged: () => void
 }) => {
-  const outdated = needsUpdate(device)
+  const [updating, setUpdating] = useState(false)
+  const selectedProject = useProjectStore(state => state.selectedProject)
+  const { accessToken } = useToken()
+
   const reachable = device.notificationPermission && device.isActive
+  const pendingInterventions = device.pendingInterventions
+  const pendingTrees = device.pendingTrees ?? 0
+
+  const toggleActive = async () => {
+    if (!selectedProject?.uid) return
+    const nextState = !device.isActive
+    setUpdating(true)
+    try {
+      const response = await updateProjectDeviceState(
+        accessToken || '',
+        selectedProject.uid,
+        device.uid,
+        { isActive: nextState },
+      )
+      if (response?.statusCode && response.statusCode >= 400) {
+        toast.error(response.message || 'Could not update the device')
+        return
+      }
+      toast.success(nextState ? 'Device reactivated' : 'Device deactivated')
+      onDeviceChanged()
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not update the device'))
+    } finally {
+      setUpdating(false)
+    }
+  }
+
   return (
     <div className="p-4 md:p-5 space-y-4">
       <button onClick={onBack} className="md:hidden flex items-center gap-1 text-sm text-gray-500">
@@ -256,7 +308,7 @@ const DeviceDetail = ({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-semibold text-gray-900 truncate">{device.user.name}</h2>
-              <Badge variant="outline" className="text-[10px]">{device.user.role}</Badge>
+              <Badge variant="outline" className="text-[10px]">{roleLabel(device.user.role)}</Badge>
             </div>
             <p className="text-xs text-gray-500 truncate">{device.user.email}</p>
           </div>
@@ -266,22 +318,20 @@ const DeviceDetail = ({
         </Badge>
       </div>
 
-      {/* Telemetry meters */}
-      <div className="grid grid-cols-2 gap-x-5 gap-y-3 rounded-xl border border-border p-4">
-        <Meter
-          label="Battery" pct={device.batteryLevel} invert
-          icon={device.batteryLevel <= 20 ? BatteryLow : BatteryFull}
-        />
+      {/* Telemetry */}
+      <div className="grid grid-cols-1 gap-x-5 gap-y-3 rounded-xl border border-border p-4">
         <Meter label="Storage used" pct={device.storageUsedPct} icon={HardDrive} />
-        <div className="col-span-2 flex items-center justify-between pt-1 border-t border-border">
+        <div className="flex items-center justify-between pt-1 border-t border-border">
           <span className="flex items-center gap-2 text-xs text-gray-500">
             <NetworkIcon type={device.networkType} />
             {networkLabel(device.networkType)}
           </span>
-          {device.pendingInterventions > 0 ? (
+          {pendingInterventions === null ? (
+            <span className="text-xs text-gray-400">Sync status not reported</span>
+          ) : pendingInterventions > 0 ? (
             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600">
               <RefreshCw size={13} />
-              {device.pendingInterventions} interventions · {device.pendingTrees} trees queued
+              {pendingInterventions} interventions · {pendingTrees} trees queued
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-600">
@@ -302,16 +352,15 @@ const DeviceDetail = ({
         <DetailRow icon={Tag} label="App version" value={
           <span className="inline-flex items-center gap-1.5">
             {device.appVersion || '-'}
-            {outdated ? (
+            {device.needsUpdate ? (
               <Badge variant="outline" className="text-[10px] text-blue-600 border-blue-200">
-                {LATEST_APP_VERSION} available
+                {latestAppVersion ? `${latestAppVersion} available` : 'update available'}
               </Badge>
-            ) : (
+            ) : device.appVersion ? (
               <Badge variant="outline" className="text-[10px] text-green-600 border-green-200">latest</Badge>
-            )}
+            ) : null}
           </span>
         } />
-        <DetailRow icon={MapPin} label="Site" value={device.site || '-'} />
         <DetailRow icon={Globe} label="Locale" value={device.locale || '-'} />
         <DetailRow icon={Globe} label="Timezone" value={device.timezone || '-'} />
         <DetailRow
@@ -326,19 +375,42 @@ const DeviceDetail = ({
         <DetailRow icon={Clock} label="Registered" value={formatDate(device.createdAt)} />
       </div>
 
-      <Button
-        onClick={onNotify}
-        disabled={!reachable}
-        className="w-full bg-[#007A49] hover:bg-green-700 text-white"
-      >
-        <Send size={15} className="mr-1.5" />
-        Send notification to this device
-      </Button>
-      {!reachable && (
+      <div className="space-y-2">
+        <Button
+          onClick={onNotify}
+          disabled={!reachable}
+          className="w-full bg-[#007A49] hover:bg-green-700 text-white"
+        >
+          <Send size={15} className="mr-1.5" />
+          Send notification to this device
+        </Button>
+        {!reachable && (
+          <p className="text-[11px] text-gray-400 text-center">
+            This device cannot receive notifications right now.
+          </p>
+        )}
+
+        <Button
+          variant="outline"
+          onClick={toggleActive}
+          disabled={updating}
+          className={cn('w-full', device.isActive && 'text-red-600 hover:text-red-700')}
+        >
+          {updating ? (
+            <Loader2 size={15} className="mr-1.5 animate-spin" />
+          ) : device.isActive ? (
+            <PowerOff size={15} className="mr-1.5" />
+          ) : (
+            <Power size={15} className="mr-1.5" />
+          )}
+          {device.isActive ? 'Deactivate device' : 'Reactivate device'}
+        </Button>
         <p className="text-[11px] text-gray-400 text-center">
-          This device cannot receive notifications right now.
+          {device.isActive
+            ? 'Stops this device receiving notifications. Signing in on it again turns it back on.'
+            : 'Lets this device receive notifications again.'}
         </p>
-      )}
+      </div>
     </div>
   )
 }

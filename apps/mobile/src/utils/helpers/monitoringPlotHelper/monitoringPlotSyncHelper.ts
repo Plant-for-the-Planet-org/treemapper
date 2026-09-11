@@ -1,5 +1,6 @@
 import { MonitoringPlot } from 'src/types/interface/slice.interface'
 import { presingedUrl } from 'src/api/api.fetch'
+import { updateFilePath } from 'src/utils/helpers/fileSystemHelper'
 
 // Mobile -> server plot shape. The device only records circular/rectangular;
 // 'polygon' exists on the server for completeness but is never produced here.
@@ -23,20 +24,46 @@ const safeParseObject = (raw?: string): Record<string, any> | undefined => {
   } catch { return undefined }
 }
 
+// The server only accepts these (R2Service.ALLOWED_IMAGE_MIME_TYPES), and the
+// camera writes jpeg. Anything unrecognised is sent as jpeg rather than rejected.
+const MIME_BY_EXTENSION: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  heic: 'image/heic',
+  heif: 'image/heif',
+}
+
+const fileNameOf = (uri: string): string => uri.split('?')[0].split('/').pop() || 'image.jpg'
+
+const mimeTypeOf = (uri: string): string => {
+  const ext = fileNameOf(uri).split('.').pop()?.toLowerCase() || ''
+  return MIME_BY_EXTENSION[ext] || 'image/jpeg'
+}
+
 /**
  * Upload one local image to S3/R2 via a presigned URL and return the stored
  * filename (the value the server persists as the image reference). A file that
  * is already a remote url is returned unchanged so re-syncs don't re-upload.
  * Returns undefined on any failure: images are optional, so a failed image
  * upload must never block the plot from syncing.
+ *
+ * The stored path is run through updateFilePath first, the same as the
+ * intervention sync does (SyncIntervention.handleTreeImage). Without it the file
+ * is unreadable after an app update on iOS, where the container id in the saved
+ * path changes, and nothing would ever upload.
  */
 export const uploadPlotImage = async (uri?: string): Promise<string | undefined> => {
   if (!uri) return undefined
   if (/^https?:\/\//i.test(uri)) return uri
   try {
+    const filePath = updateFilePath(uri)
+    const mimeType = mimeTypeOf(filePath)
     const presigned = await presingedUrl({
-      fileName: String(new Date().getTime()),
-      fileType: 'image/jpg',
+      // The extension decides the stored key's extension, so send the real name.
+      fileName: fileNameOf(filePath),
+      fileType: mimeType,
       folder: 'tree',
     })
     if (presigned.success && presigned.response?.code === 'success') {
@@ -44,8 +71,8 @@ export const uploadPlotImage = async (uri?: string): Promise<string | undefined>
       const fileName = presigned.response.data.data.fileName
       const uploadResponse = await fetch(signedUrl, {
         method: 'PUT',
-        body: { uri, type: 'image/jpg', name: fileName || 'image.jpg' } as any,
-        headers: { 'Content-Type': 'image/jpg' },
+        body: { uri: filePath, type: mimeType, name: fileName || 'image.jpg' } as any,
+        headers: { 'Content-Type': mimeType },
       })
       if (uploadResponse.ok) return fileName
     }
@@ -53,6 +80,66 @@ export const uploadPlotImage = async (uri?: string): Promise<string | undefined>
     // swallow: image is optional, the plot still uploads without it
   }
   return undefined
+}
+
+/**
+ * One row of the device image gallery (Realm ImageData). Plot photos live in
+ * their own collection rather than on the plot, so they have to be handed to the
+ * convertors separately.
+ */
+export interface PlotImageRecord {
+  image_id: string
+  local_uri: string
+  cdn_url: string
+  date_taken: number
+  status: string
+}
+
+/** What the server stores for one photo (server PlotImageDto). */
+interface PlotImagePayload {
+  clientId: string
+  filename: string
+  mimeType: string
+  capturedAt?: string
+  isPrimary?: boolean
+}
+
+/** Which gallery rows made it up, so the caller can stop resending them. */
+export interface UploadedPlotImage {
+  imageId: string
+  filename: string
+}
+
+/**
+ * Upload a plot's photos one by one and build the payload for the ones that
+ * landed. Sequential on purpose: a field connection copes better with one upload
+ * at a time, and a photo that fails is simply left for the next sync.
+ */
+const uploadPlotGallery = async (
+  records: PlotImageRecord[],
+  coverUri?: string,
+): Promise<{ images: PlotImagePayload[]; uploaded: UploadedPlotImage[] }> => {
+  const images: PlotImagePayload[] = []
+  const uploaded: UploadedPlotImage[] = []
+  const coverName = coverUri ? fileNameOf(coverUri) : ''
+
+  for (const record of records) {
+    const source = record.cdn_url || record.local_uri
+    if (!source) continue
+    const filename = await uploadPlotImage(source)
+    if (!filename) continue
+    images.push({
+      clientId: record.image_id,
+      filename,
+      mimeType: mimeTypeOf(source),
+      capturedAt: toISO(record.date_taken),
+      // The plot's cover photo, so plot cards on the dashboard show the same one
+      // the device shows.
+      isPrimary: !!coverName && fileNameOf(record.local_uri) === coverName,
+    })
+    uploaded.push({ imageId: record.image_id, filename })
+  }
+  return { images, uploaded }
 }
 
 // Plot boundary is stored as { type:'Polygon', coordinates: JSON.stringify(coords) }.
@@ -129,24 +216,40 @@ export interface PlotUploadConversion {
   // plot will never sync as-is, so the caller should surface it rather than
   // retry forever.
   error: string | null
+  // Gallery rows that reached storage, so the caller can mark them synced.
+  uploadedImages: UploadedPlotImage[]
 }
 
 /**
  * Convert a Realm MonitoringPlot into the server upload payload, uploading every
- * referenced image (plot, each plant, each timeline measurement) on the way and
- * replacing the local uri with the stored filename. Pass a plain JS snapshot of
- * the plot (JSON.parse(JSON.stringify(plot))) so live-Realm access doesn't break
- * across the awaited image uploads.
+ * referenced image (each plot photo, each plant, each timeline measurement) on
+ * the way and replacing the local uri with the stored filename. Pass a plain JS
+ * snapshot of the plot (JSON.parse(JSON.stringify(plot))) so live-Realm access
+ * doesn't break across the awaited image uploads.
+ *
+ * `gallery` is the plot's ImageData rows. They live in their own Realm collection
+ * with no link to the plot, so the caller has to read and pass them.
  */
 export const convertPlotToUploadBody = async (
   plot: MonitoringPlot,
+  gallery: PlotImageRecord[] = [],
 ): Promise<PlotUploadConversion> => {
   const geometry = buildGeometry(plot.location)
   if (!geometry) {
-    return { body: null, error: 'Plot has no valid boundary geometry' }
+    return { body: null, error: 'Plot has no valid boundary geometry', uploadedImages: [] }
   }
 
-  const plotImage = await uploadPlotImage(plot.cdn_image || plot.local_image)
+  const cover = plot.cdn_image || plot.local_image
+  // Plots recorded before the gallery existed only have the cover photo, so it
+  // stands in as a one-photo gallery. When gallery rows exist the cover is one of
+  // them and must not be uploaded twice.
+  const galleryRows: PlotImageRecord[] = gallery.length > 0
+    ? gallery
+    : cover
+      ? [{ image_id: '', local_uri: cover, cdn_url: '', date_taken: plot.plot_created_at, status: 'NOT_SYNCED' }]
+      : []
+  const { images, uploaded } = await uploadPlotGallery(galleryRows, cover)
+  const plotImage = images.find(i => i.isPrimary)?.filename || images[0]?.filename
 
   const additional = safeParseObject(plot.meta_data) || {}
   if (plot.additional_data) additional.additionalData = plot.additional_data
@@ -183,10 +286,45 @@ export const convertPlotToUploadBody = async (
     captureMode: 'on-site',
     metadata,
     image: plotImage,
+    images,
     plants,
     observations,
   }
-  return { body, error: null }
+  return { body, error: null, uploadedImages: uploaded }
+}
+
+export interface PlotImagesConversion {
+  // null when the plot has no un-uploaded photos to send.
+  body: { plotUid: string; images: PlotImagePayload[] } | null
+  uploaded: UploadedPlotImage[]
+  error: string | null
+}
+
+/**
+ * Build the add-images payload for an already-synced plot: every gallery row not
+ * yet uploaded (status !== 'SYNCED'). Photos keep being added to a plot after it
+ * syncs, so they travel on their own. Needs the plot's server uid (stashed in
+ * meta_data.serverUid by markMonitoringPlotSynced).
+ */
+export const buildPlotImagesBody = async (
+  plot: MonitoringPlot,
+  gallery: PlotImageRecord[],
+): Promise<PlotImagesConversion> => {
+  const pending = (gallery || []).filter(g => g.status !== 'SYNCED' && (g.local_uri || g.cdn_url))
+  if (pending.length === 0) return { body: null, uploaded: [], error: null }
+
+  const serverUid = safeParseObject(plot.meta_data)?.serverUid
+  if (!serverUid) {
+    // Synced plot with no server uid recorded: can't target the plot remotely.
+    return { body: null, uploaded: [], error: 'Plot has no server id; cannot add images' }
+  }
+
+  const { images, uploaded } = await uploadPlotGallery(pending, plot.cdn_image || plot.local_image)
+  // Every upload failed (offline mid-sync, storage refused): nothing to send, and
+  // the rows stay pending for the next run.
+  if (images.length === 0) return { body: null, uploaded: [], error: null }
+
+  return { body: { plotUid: serverUid, images }, uploaded, error: null }
 }
 
 export interface RemeasurementConversion {

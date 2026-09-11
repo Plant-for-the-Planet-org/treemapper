@@ -16,12 +16,17 @@ import { useEffect, useState, useCallback } from 'react';
 import { useUserStore } from '@shared-core/store/useUserStore';
 import { getMyWorkspaceProjects, createNewPersonalProject, getMyDetails, updateUserAvatar } from '@shared-core/fetchApi/api.fetch';
 import { motion } from 'framer-motion';
-import { XCircle } from 'lucide-react';
+import { MailWarning, XCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ToastContainer } from 'react-toastify';
 import ProjectInviteModal from '@/component/ProjectInviteModal';
-import MigrationModal from '@/component/MigrationModal';
+// Migration off the old Planet platform is done, so this stays unmounted.
+// import MigrationModal from '@/component/MigrationModal';
 import { projectHref, subpageFromPath } from '@/lib/projectRoutes';
 import { logout } from '@/lib/logout';
+import { getAccessTokenSilently } from '@/lib/auth/auth0-config';
+import { emailFromAccessToken } from '@/lib/auth/token-claims';
+import { useAuthStore } from '@/stores/auth-store';
 
 const STANDALONE_ROUTES = [
   'profile',
@@ -54,6 +59,13 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
   // Simplified state management
   const [appState, setAppState] = useState<LoadingState>('idle');
   const [retryCount, setRetryCount] = useState(3);
+  // Set when the API rejected the token itself. Retrying cannot change that
+  // answer, so we stop straight away and say what the server said instead of
+  // spinning for twenty seconds and then blaming the dashboard. `code` is the
+  // server's stable reason and decides which screen to show; the message is the
+  // fallback for reasons we do not have a screen for.
+  const [authError, setAuthError] = useState<{ code?: string; message: string } | null>(null);
+  const [recheckingEmail, setRecheckingEmail] = useState(false);
 
   const getCurrentSection = (path: string): string => {
     const section = STANDALONE_ROUTES.find(route => path.includes(`/dashboard/${route}`));
@@ -122,7 +134,12 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
   const fetchUserDetails = async (): Promise<any> => {
     const res = await getMyDetails(accessToken);
     if (res?.statusCode !== 200) {
-      throw new Error('Failed to fetch user details');
+      const failure = new Error(
+        res?.message || 'Failed to fetch user details'
+      ) as Error & { statusCode?: number; code?: string };
+      failure.statusCode = res?.statusCode;
+      failure.code = res?.code;
+      throw failure;
     }
     return res.data;
   };
@@ -182,6 +199,15 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
 
     } catch (error) {
       console.error('App initialization failed:', error);
+      const failure = error as Error & { statusCode?: number; code?: string };
+      if (failure?.statusCode === 401 || failure?.statusCode === 403) {
+        setAuthError({
+          code: failure.code,
+          message: failure.message || 'Your session is no longer valid.',
+        });
+        setAppState('error');
+        return;
+      }
       handleError();
     }
   };
@@ -218,12 +244,38 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
   };
 
   const handleRetry = () => {
+    setAuthError(null);
     setRetryCount(3);
     setAppState('idle');
   };
 
   const handleLogout = () => {
     logout({ accessToken, impersonating: !!(User as { impersonated?: boolean } | null)?.impersonated });
+  };
+
+  // The token carries `email_verified` from the moment Auth0 minted it, so
+  // refetching with the same token returns the same refusal however many times
+  // the user clicks. Get a fresh one first: silent auth re-runs Auth0 against the
+  // now-verified profile. Browsers that block the hidden iframe (third-party
+  // cookie rules increasingly do) return null, so fall through to a full sign-in,
+  // which always mints a new token. Either way the user moves forward.
+  const handleEmailVerifiedRecheck = async () => {
+    setRecheckingEmail(true);
+    try {
+      const freshToken = await getAccessTokenSilently();
+      if (!freshToken) {
+        handleLogout();
+        return;
+      }
+      useAuthStore.getState().setAccessToken(freshToken);
+      setAuthError(null);
+      setRetryCount(3);
+      setAppState('idle');
+    } catch {
+      handleLogout();
+    } finally {
+      setRecheckingEmail(false);
+    }
   };
 
   const navigationHandlers = {
@@ -270,6 +322,12 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
     }
 
     if (appState === 'error') {
+      // The email is not verified yet. This is a pending step, not a failure, so
+      // it gets its own screen: what to do, which address to do it at, and a way
+      // out if that address is the wrong one.
+      const unverified = authError?.code === 'email_not_verified';
+      const signedInAs = unverified ? emailFromAccessToken(accessToken) : undefined;
+
       return (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ zIndex: 1000 }}>
           <motion.div
@@ -283,7 +341,7 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: 'spring', bounce: 0.3 }}
-            className="relative mx-4 w-full max-w-xl overflow-hidden rounded-3xl bg-white p-8 shadow-2xl border border-green-200"
+            className="relative mx-4 w-full max-w-md overflow-hidden rounded-3xl bg-white p-8 shadow-2xl border border-green-200"
           >
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -291,27 +349,71 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6 text-center"
             >
-              <div className="mb-5 flex items-center justify-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
-                  <XCircle size={24} />
+              <div className="flex items-center justify-center">
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-full ${unverified ? 'bg-amber-100 text-amber-600' : 'bg-red-100 text-red-600'
+                    }`}
+                >
+                  {unverified ? <MailWarning size={24} /> : <XCircle size={24} />}
                 </div>
               </div>
 
-              <h3 className="text-xl font-bold text-red-800">
-                Error Occurred
+              <h3 className={`text-xl font-bold ${unverified ? 'text-gray-900' : 'text-red-800'}`}>
+                {unverified ? 'Verify your email' : 'Error Occurred'}
               </h3>
 
-              <div className="space-y-4">
-                <p className="text-red-600 font-medium">
-                  There was an error while loading your dashboard
-                </p>
-                <button
-                  onClick={handleRetry}
-                  className="cursor-pointer w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-700 transition hover:bg-gray-100"
-                >
-                  Try Again
-                </button>
-              </div>
+              {unverified ? (
+                <>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <p>
+                      Open the link we sent to{' '}
+                      <span className="font-medium break-all text-gray-900">
+                        {signedInAs || 'your email address'}
+                      </span>
+                      , then come back here.
+                    </p>
+                    <p className="text-gray-500">Not there? Check your spam folder.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Button
+                      className="w-full"
+                      onClick={handleEmailVerifiedRecheck}
+                      disabled={recheckingEmail}
+                    >
+                      {recheckingEmail ? 'Checking...' : 'I have verified, check again'}
+                    </Button>
+                    <Button variant="outline" className="w-full" onClick={handleLogout}>
+                      Sign in with a different account
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="font-medium text-red-600">
+                    {/* `email_missing` means the token reached us with no address on
+                        it, which is a tenant misconfiguration. "Email not found in
+                        token" is the right thing to log and the wrong thing to show
+                        a person, so it gets plain copy. */}
+                    {authError?.code === 'email_missing'
+                      ? 'We could not read your email address from your sign in. Please sign in again.'
+                      : authError?.message || 'There was an error while loading your dashboard'}
+                  </p>
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={authError ? handleLogout : handleRetry}
+                    >
+                      {authError ? 'Sign in again' : 'Try Again'}
+                    </Button>
+                    {!authError && (
+                      <Button variant="ghost" className="w-full" onClick={handleLogout}>
+                        Sign out
+                      </Button>
+                    )}
+                  </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         </div>
@@ -359,7 +461,12 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
               closeButton={true}
             />
             {inviteFound && <ProjectInviteModal />}
-            <MigrationModal/>
+            {/* Mounting this fired GET /migration/check against the old Planet
+                backend on every dashboard load, for every user whose
+                `migratedAt` was still null. The migration is finished, so it is
+                off. The component and the /migration/* endpoints are kept for a
+                manual re-run. */}
+            {/* <MigrationModal/> */}
             <SidebarProvider
               defaultOpen={typeof window !== 'undefined' ? window.innerWidth >= 1280 : true}
               className="!min-h-0 h-full overflow-hidden"

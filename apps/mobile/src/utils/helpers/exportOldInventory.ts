@@ -6,8 +6,6 @@ import Share from 'react-native-share';
 const sharedData = async (filePath: string, id: string) => {
   try {
     const zip = new JSZip();
-    const documentDir = Paths.document.uri.endsWith('/') ? Paths.document.uri.slice(0, -1) : Paths.document.uri;
-    const outputPath = `${documentDir}/${id}.zip`;
 
     // Helper function to convert ArrayBuffer to base64
     const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
@@ -41,15 +39,19 @@ const sharedData = async (filePath: string, id: string) => {
       compressionOptions: { level: 9 }
     });
 
-    // Write the zip file
-    const outputFile = new File(outputPath);
+    // Write the zip into the app cache. Files outside the internal cache dir
+    // cannot be turned into a content:// URI by react-native-share 12.x,
+    // see shareJSONFile in fileManagementHelper.
+    const outputFile = new File(Paths.cache, `${id}.zip`);
+    if (outputFile.exists) {
+      outputFile.delete();
+    }
+    outputFile.create({ intermediates: true });
     outputFile.write(zipContent);
 
-
-    // Keep the same Share logic
     const options = {
-      url: 'file://' + outputPath,
-      type: 'application/pdf'
+      url: outputFile.uri,
+      type: 'application/zip'
     };
 
     Share.open(options)

@@ -35,4 +35,5 @@ export enum RealmSchema {
   ImageData = 'ImageData',
   ProjectForm = 'ProjectForm',
   FormPrefill = 'FormPrefill',
+  MapDraft = 'MapDraft',
 }

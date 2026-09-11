@@ -284,6 +284,7 @@ export const formInterventionAssignmentEnum = pgEnum('form_intervention_assignme
 
 
 
+
 const geometryWithGeoJSON = (srid?: number) =>
   customType<{
     data: GeoJSONGeometry
@@ -625,31 +626,67 @@ export const notifications = pgTable('notifications', {
 // One row per physical device (deviceId is the client-generated id stored on
 // the device). On app open the mobile app upserts this row: if the same
 // deviceId logs in as a different user, ownership (userId) is reassigned.
-// Used for push delivery (oneSignalId) and, later, a web device-management view.
+// Used for push delivery (oneSignalId) and the web device-management view.
+//
+// The telemetry block (battery/storage/network/pending*/lastSyncAt) is a
+// snapshot from the last app open, not a time series. It powers the dashboard's
+// "needs attention" list, so a stale value is fine but a missing one is not
+// treated as zero: all telemetry columns are nullable and the UI shows "-"
+// until a device has reported once.
 export const userDevice = pgTable('user_device', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
   deviceId: text('device_id').notNull().unique(),
   userId: integer('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   oneSignalId: text('one_signal_id'),
+  // Stored lowercase ('ios' | 'android') so dashboard filters can match
+  // directly; the mobile app sends the platform-cased Device.osName and
+  // `normalizeDeviceOs` in users.service.ts folds it. Deliberately NOT a CHECK
+  // constraint: device registration runs on every app open, and the normalizer
+  // already maps an unknown OS to null rather than failing the write. A check
+  // here would turn a cosmetic field into a hard 23514 on that path the moment
+  // any deployment lagged the normalizer.
   deviceOs: text('device_os'),
   deviceName: text('device_name'),
   deviceModel: text('device_model'),
   osVersion: text('os_version'),
   appVersion: text('app_version'),
+  // Monotonic build number. Comparing builds is reliable; comparing the
+  // human-readable appVersion string is not.
+  appBuild: integer('app_build'),
   locale: text('locale'),
   timezone: text('timezone'),
   notificationPermission: boolean('notification_permission').default(true).notNull(),
   isActive: boolean('is_active').default(true).notNull(),
+  batteryLevel: integer('battery_level'),
+  storageUsedPct: integer('storage_used_pct'),
+  networkType: text('network_type'),
+  // Field data recorded on the device but not yet uploaded.
+  pendingInterventions: integer('pending_interventions'),
+  pendingTrees: integer('pending_trees'),
+  lastSyncAt: timestamp('last_sync_at', { withTimezone: true }),
   lastActiveAt: timestamp('last_active_at', { withTimezone: true }).defaultNow().notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  // Soft delete, same rule as the rest of the schema: all reads filter on
+  // `deleted_at IS NULL`.
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => ({
   userDevicesIdx: index('user_device_user_idx').on(table.userId),
   oneSignalIdx: index('user_device_one_signal_idx')
     .on(table.oneSignalId)
     .where(sql`one_signal_id IS NOT NULL`),
   lastActiveIdx: index('user_device_last_active_idx').on(table.lastActiveAt),
+  validBatteryLevel: check('valid_battery_level',
+    sql`battery_level IS NULL OR (battery_level >= 0 AND battery_level <= 100)`),
+  validStorageUsedPct: check('valid_storage_used_pct',
+    sql`storage_used_pct IS NULL OR (storage_used_pct >= 0 AND storage_used_pct <= 100)`),
+  validNetworkType: check('valid_network_type',
+    sql`network_type IS NULL OR network_type IN ('wifi', 'cellular', 'offline')`),
+  validPendingInterventions: check('valid_pending_interventions',
+    sql`pending_interventions IS NULL OR pending_interventions >= 0`),
+  validPendingTrees: check('valid_pending_trees',
+    sql`pending_trees IS NULL OR pending_trees >= 0`),
 }));
 
 export const auditLog = pgTable('audit_log', {
@@ -1435,6 +1472,254 @@ export const form = pgTable('form', {
     sql`status != 'published' OR published_at IS NOT NULL`),
 }));
 
+// ---------------------------------------------------------------------------
+// TreeMatch: allocating planted trees that exist here to contributions that
+// exist in TTC (TreeCounter).
+//
+// TTC owns contributions, their absolute allocated totals, and the ignore
+// flag. None of that is stored here. This one table exists for a single
+// reason: so TreeMapper knows how many of its own trees are already claimed.
+// Units are integer centi-units, TTC's scale: 100 = 1 tree (it allows partial
+// trees). Convert to whole trees only at the API boundary.
+// ---------------------------------------------------------------------------
+
+// One row per (TTC contribution, plant location) pair: how many centi-units of
+// that contribution sit on that location. There is no history and no audit
+// trail by design; unmatching a pair deletes the row.
+export const treematchAllocation = pgTable('treematch_allocation', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  // TTC's ProjectContribution id. No FK: TreeMapper does not store contributions.
+  ttcContributionId: integer('ttc_contribution_id').notNull(),
+  // Cascade (not restrict): interventions are soft-deleted in normal operation;
+  // hard deletes only happen via the project wipe cascade, where a restrict
+  // here would make the multi-path cascade fail.
+  interventionId: integer('intervention_id').notNull()
+    .references(() => intervention.id, { onDelete: 'cascade' }),
+  units: integer('units').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  // One row per pair; re-matching the same pair adds to it. Leading column, so
+  // this also serves "the absolute total of this contribution".
+  pairUnique: uniqueIndex('treematch_allocation_pair_unique')
+    .on(table.ttcContributionId, table.interventionId),
+  // "How many trees of this location are claimed."
+  interventionIdx: index('treematch_allocation_intervention_idx')
+    .on(table.interventionId),
+  unitsPositive: check('treematch_allocation_units_positive', sql`units > 0`),
+}));
+
+// --- Auto-match -------------------------------------------------------------
+// A rule reads as one sentence: WHEN these donations -> PREFER these locations
+// -> ORDER BY this donation order. Rules run top to bottom; each takes what it
+// can and passes the remainder down, and an implicit catch-all always runs
+// last. See docs/treematch-automatch-rules.md for the vocabulary.
+
+// The rule body. Stored as JSONB rather than a column per field: the condition
+// catalogue keeps growing, the database never queries inside it, and the old
+// column-per-field table needed a migration and a CHECK edit for every new
+// condition. Validated by the DTO layer instead.
+export interface TreematchRuleDefinition {
+  when: {
+    // Which TTC list the donations come from. profileType and country are not
+    // returned per item, so each distinct value costs its own paged sweep at
+    // roughly 700ms per page, serialized. 'any' is the unfiltered list and is
+    // shared by every rule that does not need a filtered one.
+    sweep: 'any' | 'company' | 'individual' | 'country';
+    // ISO-2, uppercase. Only when sweep = 'country'.
+    country?: string;
+    // Free: evaluated in memory over what the sweep returned, AND-ed together.
+    filters?: TreematchRuleFilter[];
+  };
+  prefer: {
+    type: 'oldest' | 'newest' | 'site' | 'capacityHigh' | 'capacityLow';
+    // Only when type = 'site'. A soft-deleted site makes the rule match
+    // nothing and fall through, rather than failing the run.
+    siteUid?: string;
+    // Gate on review_status = 'approved' and flag = false.
+    onlyApproved?: boolean;
+  };
+  orderBy: 'oldest' | 'newest' | 'largest' | 'smallest';
+  // 'skip' is the exclusion rule: it claims the donations so later rules cannot
+  // touch them, and places nothing.
+  action: 'match' | 'skip';
+}
+
+export interface TreematchRuleFilter {
+  field:
+    | 'openTrees'
+    | 'totalTrees'
+    | 'matchState'
+    | 'unitType'
+    | 'currency'
+    | 'paymentDate'
+    | 'olderThanDays'
+    | 'donationRef'
+    // TTC's 'automatic' | 'first' | 'manual'. Not narrowed to those three: a
+    // value TTC adds later must not break a stored rule.
+    | 'allocationPriority';
+  op: 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte' | 'in';
+  value: string | number | Array<string | number>;
+}
+
+// What a run decided to do. Pairs are in whole trees, not centi-units, because
+// applying feeds them straight into the ordinary match write path.
+export interface TreematchAutomatchPlan {
+  pairs: Array<{
+    contributionId: number;
+    interventionUid: string;
+    trees: number;
+    // Labels for the review screen. Resolved while planning, where both are
+    // already in hand: a sweep reaches donations the client has not loaded, so
+    // it cannot look them up itself.
+    donationRef: string | null;
+    interventionHid: string;
+  }>;
+  perRule: Array<{
+    ruleUid: string | null;
+    label: string;
+    matchedTrees: number;
+    contributionsUsed: number;
+    // The rule prefers a site that no longer exists.
+    siteMissing?: boolean;
+    // Donations an 'skip' rule held back.
+    skipped?: number;
+  }>;
+  // How far the TTC sweep reached. Ordering inside a rule is true over this
+  // window, not over the whole project.
+  scan: {
+    pagesRead: number;
+    donationsSeen: number;
+    // Hit the page cap before free capacity was covered.
+    truncated: boolean;
+  };
+  // The plan hit the pair cap and was cut short.
+  capped: boolean;
+  // Why the plan is empty. Absent when it placed anything. An empty plan is a
+  // normal outcome with several very different causes, and "the rules found
+  // nothing" is useless on its own, so the run records which one it was. A code
+  // plus the counts, not a sentence: the server log and the review dialog word
+  // it for different readers.
+  empty?: {
+    reason: TreematchAutomatchEmptyReason;
+    donationsSeen: number;
+    ignoredDonations: number;
+    // At least one unallocated unit left.
+    openDonations: number;
+    // Open and not ignored.
+    usableDonations: number;
+    priorityCounts: Record<string, number>;
+    freeTrees: number;
+    locations: number;
+    locationsWithRoom: number;
+  };
+}
+
+// How far the sweep has got. One entry per TTC list the run has to read, in the
+// order it reads them, so the UI can show a bar per list rather than one opaque
+// spinner over a job that can run for a minute.
+export interface TreematchAutomatchProgress {
+  lists: Array<{
+    // '' is the unfiltered list; otherwise the sweep signature.
+    signature: string;
+    page: number;
+    maxPages: number;
+    done: boolean;
+  }>;
+  donationsRead: number;
+  // Open, not ignored, and a priority auto-match may consume. The number that
+  // decides whether the run can do anything at all.
+  usableDonations: number;
+  stopped?: boolean;
+}
+
+export type TreematchAutomatchEmptyReason =
+  // Nothing local to fill; the run never called TTC.
+  | 'noLocations'
+  | 'noFreeTrees'
+  // The sweep came back with nothing usable.
+  | 'noDonations'
+  | 'allIgnored'
+  | 'allAllocated'
+  // Usable donations existed, but the rules or the locations rejected them.
+  | 'filteredOut'
+  | 'noRoom';
+
+export interface TreematchRuleSnapshot {
+  uid: string | null;
+  label: string;
+  definition: TreematchRuleDefinition;
+}
+
+// Ordered rule list per project. Saving replaces the whole list, so rows are
+// hard-deleted and reinserted at positions 0..n-1; nothing points at a rule
+// row, and the run snapshot preserves what actually ran.
+export const treematchRule = pgTable('treematch_rule', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  projectId: integer('project_id').notNull()
+    .references(() => project.id, { onDelete: 'cascade' }),
+  // 0-based priority; the planner runs rules in ascending order.
+  position: integer('position').notNull(),
+  enabled: boolean('enabled').notNull().default(true),
+  label: text('label').notNull(),
+  definition: jsonb('definition').$type<TreematchRuleDefinition>().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  positionUnique: uniqueIndex('treematch_rule_position_unique')
+    .on(table.projectId, table.position),
+  projectIdx: index('treematch_rule_project_idx')
+    .on(table.projectId, table.position),
+}));
+
+// One row per auto-match run, holding both the plan and the outcome. A run
+// plans first and stops at 'planned'; nothing reaches TTC until it is applied.
+// The partial unique index is the concurrency guard and the "one open plan per
+// project" rule at the same time.
+export const treematchAutomatchRun = pgTable('treematch_automatch_run', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  projectId: integer('project_id').notNull()
+    .references(() => project.id, { onDelete: 'cascade' }),
+  createdById: integer('created_by_id').notNull()
+    .references(() => user.id, { onDelete: 'restrict' }),
+  // planning -> planned -> applying -> completed
+  //                    \-> discarded        \-> failed
+  status: text('status').notNull().default('planning'),
+  // The rule list as evaluated, including the implicit catch-all, so a run
+  // stays readable after the rules are edited.
+  rulesSnapshot: jsonb('rules_snapshot').$type<TreematchRuleSnapshot[]>(),
+  plan: jsonb('plan').$type<TreematchAutomatchPlan>(),
+  // Live sweep state, rewritten after every TTC page. The client polls the run
+  // row anyway, so this needs no socket and no queue. Only meaningful while the
+  // status is 'planning'; it is left in place afterwards as a record of how far
+  // the run actually read.
+  progress: jsonb('progress').$type<TreematchAutomatchProgress>(),
+  // The user asked the sweep to stop and plan with whatever it has. Checked
+  // between pages, so it takes effect within about one page.
+  stopRequested: boolean('stop_requested').notNull().default(false),
+  // Outcome totals in centi-units, like every other unit column here.
+  matchedUnits: integer('matched_units').notNull().default(0),
+  contributionsMatched: integer('contributions_matched').notNull().default(0),
+  interventionsFilled: integer('interventions_filled').notNull().default(0),
+  error: text('error'),
+  startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
+  plannedAt: timestamp('planned_at', { withTimezone: true }),
+  finishedAt: timestamp('finished_at', { withTimezone: true }),
+  // A 'planned' run stops holding the project slot after this.
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+}, (table) => ({
+  openRunUnique: uniqueIndex('treematch_automatch_run_open_unique')
+    .on(table.projectId)
+    .where(sql`status IN ('planning', 'planned', 'applying')`),
+  projectTimeIdx: index('treematch_automatch_run_project_time_idx')
+    .on(table.projectId, table.startedAt),
+  validStatus: check('treematch_automatch_run_valid_status',
+    sql`status IN ('planning', 'planned', 'applying', 'completed', 'failed', 'discarded')`),
+}));
+
 export const userRelations = relations(user, ({ many }) => ({
   projectMemberships: many(projectMember),
   createdProjects: many(project, { relationName: 'createdBy' }),
@@ -1521,6 +1806,7 @@ export const interventionRelations = relations(intervention, ({ one, many }) => 
   monitoringPlot: one(monitoringPlot),
   observations: many(plotObservation),
   groupMemberships: many(plotGroupMembership),
+  treematchAllocations: many(treematchAllocation),
 }));
 
 export const monitoringPlotRelations = relations(monitoringPlot, ({ one }) => ({
@@ -1874,5 +2160,30 @@ export const auditLogRelations = relations(auditLog, ({ one }) => ({
   project: one(project, {
     fields: [auditLog.projectId],
     references: [project.id],
+  }),
+}));
+
+export const treematchAllocationRelations = relations(treematchAllocation, ({ one }) => ({
+  intervention: one(intervention, {
+    fields: [treematchAllocation.interventionId],
+    references: [intervention.id],
+  }),
+}));
+
+export const treematchRuleRelations = relations(treematchRule, ({ one }) => ({
+  project: one(project, {
+    fields: [treematchRule.projectId],
+    references: [project.id],
+  }),
+}));
+
+export const treematchAutomatchRunRelations = relations(treematchAutomatchRun, ({ one }) => ({
+  project: one(project, {
+    fields: [treematchAutomatchRun.projectId],
+    references: [project.id],
+  }),
+  createdBy: one(user, {
+    fields: [treematchAutomatchRun.createdById],
+    references: [user.id],
   }),
 }));

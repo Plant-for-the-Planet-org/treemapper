@@ -509,3 +509,9 @@ export const addPlotObservations = async (projectUid: string, params: any) => {
   return result;
 };
 
+export const addPlotImages = async (projectUid: string, params: any) => {
+  const uri = `${postUrlNewApi.monitoringPlot}/${projectUid}/images`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+

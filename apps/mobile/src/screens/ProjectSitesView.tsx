@@ -27,6 +27,7 @@ import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelpe
 import { createNewSite } from 'src/api/api.fetch'
 import useProjectManagement from 'src/hooks/realm/useProjectManagement'
 import { updateLastProject } from 'src/store/slice/displayMapSlice'
+import useMapDraft from 'src/hooks/realm/useMapDraft'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
@@ -42,6 +43,7 @@ const ProjectSitesView = () => {
   const [loading, setLoading] = useState(false)
   const [projectBounds, setProjectBounds] = useState([])
   const { addNewSite } = useProjectManagement()
+  const { clearDraft } = useMapDraft()
   const dispatch = useDispatch()
   const [selectedProject, setSelectedProject] = useState<DropdownData>({
     label: '',
@@ -236,6 +238,9 @@ const ProjectSitesView = () => {
     // with HTTP 200, so a created site is confirmed by `data.uid`.
     const createdSite = response?.data
     if (success && createdSite?.uid) {
+      // The site exists on the server now, so the drawn points have an owner
+      // and the recovery copy is no longer needed.
+      clearDraft('SITE', selectedProject.value)
       await addNewSite(selectedProject.value, {
         id: createdSite.uid,
         name: createdSite.name,
@@ -273,7 +278,7 @@ const ProjectSitesView = () => {
           {!geometry && !showMap ? <AddIcon height={14} width={14} fill={Colors.NEW_PRIMARY} /> : <PenIcon height={14} width={14} fill={Colors.NEW_PRIMARY} />}
         </Pressable>}
         {showMap && <View style={styles.mapWrapper}>
-          <SiteCreationMap setGeometry={handleGeometry} close={toggleSiteCreation} projectBounds={projectBounds} />
+          <SiteCreationMap setGeometry={handleGeometry} close={toggleSiteCreation} projectBounds={projectBounds} projectId={selectedProject.value} />
         </View>}
         {!showMap && geometry !== null ? <View style={styles.previewMap}>
           <Map
