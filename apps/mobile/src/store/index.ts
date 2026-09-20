@@ -40,7 +40,11 @@ const appReducer = combineReducers({
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['appState', 'userState', 'projectState', 'gpsState'],
+  // gpsState is deliberately NOT persisted. It is live device state: rehydrating
+  // it makes the app open showing (and saving) the previous session's fix and
+  // its accuracy, which silently passes the accuracy gates before the receiver
+  // has produced a single reading.
+  whitelist: ['appState', 'userState', 'projectState'],
   timeout: null
 }
 

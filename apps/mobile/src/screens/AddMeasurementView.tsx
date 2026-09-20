@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import { AvoidSoftInput, AvoidSoftInputView } from "react-native-avoid-softinput";
 import getUserLocation from 'src/utils/helpers/getUserLocation'
+import useLocationPermission from 'src/hooks/useLocationPermission'
 import { usePostHog } from 'posthog-react-native'
 import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 import i18next from 'i18next'
@@ -32,6 +33,10 @@ import { measurementValidation } from 'src/utils/constants/measurementValidation
 
 const AddMeasurement = () => {
   const realm = useRealm()
+  // This screen has no map, but it writes device_latitude/longitude at save
+  // time. Without its own watch it would record wherever the last map screen
+  // left the fix, which can be minutes and several hundred metres ago.
+  useLocationPermission({ track: true })
   const SampleTreeData = useSelector((state: RootState) => state.sampleTree)
   const Intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, SampleTreeData.form_id);
   const [showOptimalAlert, setShowOptimalAlert] = useState(false)

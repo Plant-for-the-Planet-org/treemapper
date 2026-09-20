@@ -15,7 +15,10 @@ const windowWidth = Dimensions.get('window').width;
 
 const UserlocationMarker = (props: Props) => {
   const { stopAutoFocus, low, high } = props
-  const { userCurrentLocation } = useLocationPermission()
+  // This marker is rendered on every screen that captures or shows a position,
+  // so holding the shared watch here keeps the fix converging (and the accuracy
+  // readout live) exactly where it matters, without tracking in the background.
+  const { userCurrentLocation } = useLocationPermission({ track: true })
 
 
   useEffect(() => {

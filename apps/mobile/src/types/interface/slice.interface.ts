@@ -182,10 +182,26 @@ export interface ProjectStateSlice {
 
 export type LocationPermissionStatus = 'undetermined' | 'granted' | 'denied'
 
+// iOS 14+ and Android 12+ let the user grant approximate location while still
+// reporting the permission as granted. 'reduced' caps accuracy at roughly
+// 1-5 km whatever we ask the location manager for.
+export type LocationAccuracyAuthorization = 'full' | 'reduced' | 'unknown'
+
 export interface GpsSliceInitialState {
+  // GeoJSON order: [longitude, latitude].
   user_location: number[],
   accuracy: number,
   permission_status: LocationPermissionStatus
+  accuracy_authorization: LocationAccuracyAuthorization
+  services_enabled: boolean
+  // Epoch ms of the fix currently in the store, null when we have none.
+  last_fix_at: number | null
+  // Android only. iOS never reports which providers CoreLocation is using, so
+  // both stay true there rather than pretending we looked.
+  gps_provider_available: boolean
+  network_provider_available: boolean
+  // Android only: the current fix came from a mock location provider.
+  is_mocked: boolean
 }
 
 export interface TakePictureInitialState {

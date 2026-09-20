@@ -31,6 +31,7 @@ import { measurementValidation } from 'src/utils/constants/measurementValidation
 import AlertModal from 'src/components/common/AlertModal'
 import DeleteModal from 'src/components/common/DeleteModal'
 import getUserLocation from 'src/utils/helpers/getUserLocation'
+import useLocationPermission from 'src/hooks/useLocationPermission'
 import { point } from '@turf/helpers';
 import distance from '@turf/distance';
 import * as ExpoImage from 'expo-image'
@@ -99,6 +100,9 @@ const TreeRemeasurementView = () => {
     const isNonISUCountry = nonISUCountries.includes(Country)
     const [showSkipModal, setShowSkipModal] = useState(false)
     const [showAccuracyModal, setShowAccuracyModal] = useState(false)
+    // The 20 m proximity gate below is only meaningful against a live fix, and
+    // this screen has no map to keep one running.
+    useLocationPermission({ track: true })
     useEffect(() => {
         if (treeId) {
             const treeData = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
@@ -141,8 +145,9 @@ const TreeRemeasurementView = () => {
         setShowSkipModal(false)
         const updatedHeight = height.replace(/,/g, '.');
         const updatedWidth = width.replace(/,/g, '.');
-        const { lat, long } = getUserLocation()
-        const isWithin20m = isWithinRange(lat, long, treeDetails.latitude, treeDetails.longitude)
+        const { lat, long, isStale } = getUserLocation()
+        // A stale fix cannot confirm proximity, so it must not read as "yes".
+        const isWithin20m = !isStale && isWithinRange(lat, long, treeDetails.latitude, treeDetails.longitude)
         const param: History = {
             history_id: uuid(),
             eventName: 'skip',
@@ -287,8 +292,9 @@ const TreeRemeasurementView = () => {
 
         const finalHeight = updatedHeight || treeDetails.specie_height
         const finalWidth = updatedWidth || treeDetails.specie_diameter
-        const { lat, long } = getUserLocation()
-        const isWithin20m = isWithinRange(lat, long, treeDetails.latitude, treeDetails.longitude)
+        const { lat, long, isStale } = getUserLocation()
+        // A stale fix cannot confirm proximity, so it must not read as "yes".
+        const isWithin20m = !isStale && isWithinRange(lat, long, treeDetails.latitude, treeDetails.longitude)
 
         if (!gpsValidated && !isWithin20m) {
             setShowAccuracyModal(true)

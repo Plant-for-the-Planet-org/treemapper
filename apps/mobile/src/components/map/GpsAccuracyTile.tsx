@@ -16,42 +16,37 @@ const GpsAccuracyTile = (props: Props) => {
   // a leaked, uncleaned watchPositionAsync here was racing the other location
   // consumers on mount and crashing Android.
   const accuracy = useSelector((state: RootState) => state.gpsState.accuracy);
+  const lastFixAt = useSelector((state: RootState) => state.gpsState.last_fix_at);
+  const accuracyAuthorization = useSelector((state: RootState) => state.gpsState.accuracy_authorization);
+  const servicesEnabled = useSelector((state: RootState) => state.gpsState.services_enabled);
   const showModal = () => {
     showModalInfo(true);
   };
 
-  // Define variables for colors based on accuracy
-const getBackgroundColor = (accuracy) => {
-  if (accuracy < 10) {
-    return Colors.NEW_PRIMARY + '1A';
-  } else if (accuracy < 30) {
-    return Colors.LIGHT_AMBER + '1A';
-  } else {
-    return Colors.LIGHT_RED + '1A';
-  }
-};
+  // Until a fix lands there is no accuracy to report. Showing the raw 0 here
+  // read as a perfect sub-metre fix, which is the opposite of the truth.
+  const hasFix = lastFixAt !== null;
 
-const getIconColor = (accuracy) => {
-  if (accuracy < 10) {
-    return Colors.NEW_PRIMARY;
-  } else if (accuracy < 30) {
-    return Colors.LIGHT_AMBER;
-  } else {
-    return Colors.LIGHT_RED;
-  }
-};
+  const getState = () => {
+    if (!servicesEnabled) return { color: Colors.LIGHT_RED, label: 'Off' };
+    // Approximate location is a Settings choice that caps accuracy at km scale.
+    // No amount of precision we ask for can override it, so name it instead of
+    // rendering the resulting kilometre figure as a GPS reading.
+    if (accuracyAuthorization === 'reduced') return { color: Colors.LIGHT_RED, label: 'Approx.' };
+    if (!hasFix) return { color: Colors.GRAY_LIGHTEST, label: '--' };
+    if (accuracy < 10) return { color: Colors.NEW_PRIMARY, label: `${accuracy.toFixed(0)} m` };
+    if (accuracy < 30) return { color: Colors.LIGHT_AMBER, label: `${accuracy.toFixed(0)} m` };
+    return { color: Colors.LIGHT_RED, label: `${accuracy.toFixed(0)} m` };
+  };
 
-// Use the functions to set the styles
-const activeStyle = {
-  bgColor: getBackgroundColor(accuracy),
-  iconColor: getIconColor(accuracy),
-};
+  const activeState = getState();
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={[styles.wrapper, { backgroundColor: activeStyle.bgColor }]} onPress={showModal}>
-        <GpsIcon style={styles.iconWrapper} fill={activeStyle.iconColor} />
+      <TouchableOpacity style={[styles.wrapper, { backgroundColor: activeState.color + '1A' }]} onPress={showModal}>
+        <GpsIcon style={styles.iconWrapper} fill={activeState.color} />
         <Text style={styles.boldText}>
-          GPS <Text style={styles.lightText}>{accuracy.toFixed(0)} m</Text>
+          GPS <Text style={styles.lightText}>{activeState.label}</Text>
         </Text>
       </TouchableOpacity>
     </View>

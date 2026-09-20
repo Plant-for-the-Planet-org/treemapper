@@ -206,8 +206,10 @@ const PointMarkerMap = (props: Props) => {
   };
 
   const checkForAccuracy = async () => {
-    const { accuracy } = getUserLocation()
-    if (accuracy >= 30) {
+    const { accuracy, isStale } = getUserLocation()
+    // No fix yet reads as accuracy 0, which used to sail through this gate as
+    // though it were a perfect reading.
+    if (isStale || accuracy >= 30) {
       setAlertModal(true)
     } else {
       onSelectLocation()

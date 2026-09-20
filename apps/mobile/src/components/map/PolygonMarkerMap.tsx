@@ -459,7 +459,9 @@ const PolygonMarkerMap = (props: Props) => {
         attribution={false}
         mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
         <Camera ref={cameraRef} trackUserLocation={trackingState === 'start' ? 'course' : undefined} />
-        <UserLocation heading minDisplacement={1} />
+        {/* minDisplacement stays 0 so the dot keeps refining while the user
+            stands still; a displacement filter freezes it at the first fix. */}
+        <UserLocation heading minDisplacement={0} />
         {/* Boundary of the site picked for this intervention, outline only.
             site_id is 'other' (or empty) when no real site was chosen --
             in that case no boundary is drawn. */}

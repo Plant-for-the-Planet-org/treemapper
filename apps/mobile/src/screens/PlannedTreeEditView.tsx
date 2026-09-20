@@ -91,7 +91,10 @@ const PlannedTreeEditView = () => {
         return
       }
       subscription = await Location.watchPositionAsync(
-        { accuracy: Location.Accuracy.Highest, distanceInterval: 1, timeInterval: 2000 },
+        // distanceInterval must be 0: with a 1 m filter the marker stops
+        // updating the moment the user stands still next to the tree, which is
+        // precisely when they are reading it.
+        { accuracy: Location.Accuracy.Highest, distanceInterval: 0, timeInterval: 1000 },
         (location) => {
           if (active && location?.coords?.longitude && location?.coords?.latitude) {
             setLiveLocation([location.coords.longitude, location.coords.latitude])
