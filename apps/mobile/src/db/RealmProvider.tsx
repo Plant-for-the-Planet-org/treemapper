@@ -4,7 +4,7 @@ import schema from './schema'
 import { runRealmMigrations } from './migrations'
 import { clearLegacyAdditionalData } from './legacyAdditionalDataCleanup'
 import Realm from 'realm'
-const schemaVersion = 30
+const schemaVersion = 31
 
 const realmConfig = {
   schemaVersion: schemaVersion,

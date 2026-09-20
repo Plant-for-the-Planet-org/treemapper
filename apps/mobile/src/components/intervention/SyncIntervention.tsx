@@ -288,7 +288,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
     // stops counting it as pending. It shows up as "Fix Required" in the
     // intervention list; editing it resets fix_required and re-queues it.
     const quarantineItem = async (el: QuaeBody, reason: FIX_REQUIRED, detail: string): Promise<UploadOutcome> => {
-        await updateFixRequireIntervention(el.p1Id, reason)
+        await updateFixRequireIntervention(el.p1Id, reason, detail)
         addNewLog({ logType: 'DATA_SYNC', message: `Upload blocked (${el.type}): ${detail}. Marked for user fix.`, logLevel: 'error', statusCode: '' })
         return 'quarantined'
     }

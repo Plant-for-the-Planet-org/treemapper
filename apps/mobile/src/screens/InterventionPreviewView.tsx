@@ -26,6 +26,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useObject, useQuery } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import InterventionDeleteContainer from 'src/components/previewIntervention/InterventionDeleteContainer'
+import InterventionFixBanner from 'src/components/previewIntervention/InterventionFixBanner'
 import ExportGeoJSONButton from 'src/components/intervention/ExportGeoJSON'
 import InterventionAdditionalData from 'src/components/previewIntervention/InterventionAdditionalData'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
@@ -341,6 +342,7 @@ const InterventionPreviewView = () => {
         decelerationRate='normal'
         style={styles.scrollWrapper} bounces={false} showsVerticalScrollIndicator={false} ref={scrollViewRef}>
         <Header label="Review" rightComponent={renderRightContainer()} />
+        <InterventionFixBanner intervention={InterventionData} />
         {InterventionData.location.coordinates.length > 0 && <InterventionArea data={InterventionData} />}
         <InterventionBasicInfo
           data={InterventionData}

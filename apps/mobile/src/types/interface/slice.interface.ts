@@ -426,6 +426,7 @@ export interface InterventionData {
   remeasurement_required: boolean
   next_measurement_date: number
   fix_required: FIX_REQUIRED
+  fix_reason?: string
   is_legacy?: boolean
   last_edited?: number
 }

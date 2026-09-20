@@ -41,4 +41,8 @@ export type LAST_SCREEN = "FORM" | "LOCATION" | "SPECIES" | "TOTAL_TREES" | "TRE
 // the server returned a 4xx for this payload, so retrying the same data can
 // never succeed. Both quarantine the record out of the sync queue until the
 // user edits it (editing resets fix_required to "NO").
-export type FIX_REQUIRED = "NO" | "PROJECT_ID_MISSING" | "UNKNOWN" | "SERVER_REJECTED"
+// "INCOMPLETE_DATA": the record arrived from the server with fields missing
+// or unreadable, so defaults were stored in their place. It is already
+// uploaded, so this never holds back a sync; it marks the record in the
+// list and carries the reason in fix_reason.
+export type FIX_REQUIRED = "NO" | "PROJECT_ID_MISSING" | "UNKNOWN" | "SERVER_REJECTED" | "INCOMPLETE_DATA"

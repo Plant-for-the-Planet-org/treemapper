@@ -39,6 +39,7 @@ export const Intervention: ObjectSchema = {
     next_measurement_date: { type: 'double', default: 0 },
     is_legacy: { type: 'bool', default: false },
     fix_required: { type: 'string', default: 'NO' },
+    fix_reason: { type: 'string', default: '' },
     last_updated_at: { type: 'double', default: 0 }
   },
 }

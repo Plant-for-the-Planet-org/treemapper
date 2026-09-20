@@ -37,6 +37,8 @@ const InterventionCard = (props: Props) => {
       return "Project not assigned";
     } else if (item.fix_required === "SERVER_REJECTED") {
       return "Upload rejected";
+    } else if (item.fix_required === "INCOMPLETE_DATA") {
+      return "Incomplete data";
     } else {
       return "Fix Required";
     }

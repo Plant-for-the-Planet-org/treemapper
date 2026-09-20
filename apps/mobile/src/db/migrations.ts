@@ -90,6 +90,10 @@ export const runRealmMigrations = ({
     // wrong instead of only that something is. Nothing to backfill: the reason is
     // captured when an upload fails, and any plot already carrying fix_required
     // picks one up on its next attempt.
+    // v31: Intervention.fix_reason was added, matching the plot side. Nothing to
+    // backfill: the reason is written when a record is converted or an upload
+    // fails, and a record stored before this picks one up the next time it is
+    // pulled from the server.
   } catch (error) {
     Bugsnag.notify(error as Error)
   }

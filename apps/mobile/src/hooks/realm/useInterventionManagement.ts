@@ -379,8 +379,14 @@ const useInterventionManagement = () => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        if (!intervention) throw new Error(`Intervention not found: ${interventionID}`)
         intervention.is_complete = true
         intervention.status = 'PENDING_DATA_UPLOAD'
+        // A quarantined record is out of the sync queue until someone changes it.
+        // Saving is that change, so the flag clears here and the record is tried
+        // again. Without this it stayed quarantined however often it was edited.
+        intervention.fix_required = 'NO'
+        intervention.fix_reason = ''
         intervention.last_updated_at = Date.now()
       });
       addNewLog({
@@ -990,11 +996,15 @@ const useInterventionManagement = () => {
   };
 
 
-  const updateFixRequireIntervention = async (interventionID: string, fix: FIX_REQUIRED): Promise<boolean> => {
+  // The reason travels with the flag. A record that only says "Fix required"
+  // asks the user to guess, which is what the preview banner exists to stop.
+  const updateFixRequireIntervention = async (interventionID: string, fix: FIX_REQUIRED, reason = ''): Promise<boolean> => {
     try {
       realm.write(() => {
         const Intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        if (!Intervention) throw new Error(`Intervention not found: ${interventionID}`)
         Intervention.fix_required = fix
+        Intervention.fix_reason = fix === 'NO' ? '' : reason
         Intervention.last_updated_at = Date.now()
       });
       return true
