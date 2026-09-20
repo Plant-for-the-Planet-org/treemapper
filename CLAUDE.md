@@ -556,6 +556,36 @@ web or server. Expo 55 / RN 0.83, bare workflow (checked-in `android/` and
 - Navigation is one big `createNativeStackNavigator` (`src/navigation/
   RootNavigator.tsx`, ~60 screens) over a bottom-tab home. Deep links come in
   through `applinks:treemapper.app` / `dev.treemapper.app`.
+- **Additional Data is retired; Forms replaced it.** The on-device form builder
+  (sidebar "Additional Data", its metadata key/value tab, and the JSON
+  import/export) is gone: the sidebar entry is removed and `AdditionalData`,
+  `AdditionDataElement`, `SelectElement`, `LocalForm`, `ImportForm` and
+  `MetaDataElement` are no longer registered in `RootNavigator`. The capture
+  flow now goes straight to `DynamicForm` (the built-in per-intervention-type
+  form from `setUpIntervention` in `utils/helpers/formHelper/selectIntervention`,
+  which was never part of Additional Data).
+  Extra fields come from `ProjectForm`, defined on the web dashboard.
+  The screen and component files still sit on disk unreferenced, and the route
+  names stay in `RootStackParamList` so they compile -- navigating to one now
+  fails at runtime. `db/legacyAdditionalDataCleanup.ts` wipes the definitions a
+  device created in an older build; it runs against `appRealm` on launch rather
+  than as a migration, because `appRealm` opens with no migration handler and so
+  beats `RealmProvider`'s `onMigration` to the file. Answers already captured on
+  an intervention (`Intervention.form_data`) are left alone and still upload.
+- **Extra data is added per intervention, from the review screen.** The two
+  cards on `InterventionPreviewView` (`InterventionAdditionalData` and
+  `InterventionMetaData`) each carry an Add button that opens
+  `AddInterventionDataView` (label, value, unit, public/private). The additional
+  card appends a `FormElement` to `Intervention.additional_data`; the metadata
+  card writes an entry into `Intervention.meta_data`. Both are gated on
+  `status === 'INITIALIZED'`, because there is no API to change an intervention
+  once it uploads -- a field added later would never leave the device. Keys are
+  slugged through `formHelper/slugifyLabel.ts`, the one definition forms and
+  metadata share, and a repeated label on the additional side gets a numeric
+  suffix because `handleAdditionalData` keys the upload payload by `key`.
+  The metadata card lists every public entry plus the private ones the user
+  typed here (`elementType: 'metaData'`); private form answers stay with the
+  form that collected them rather than being repeated on every preview.
 - 7 languages under `src/locales/languages` (de, en, es, fr, it, mg, pt-BR) --
   unlike web, which is English-only.
 - Crash reporting is Bugsnag; analytics is PostHog; push is OneSignal.

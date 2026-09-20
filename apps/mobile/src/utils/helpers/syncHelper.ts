@@ -215,7 +215,7 @@ export const convertInterventionBody = (d: InterventionData): BodyPayload => {
             },
             private: {
                 ...additionalDataConvert.privateAdd,
-                ...metaData.privateAdd
+                ...metaData.private
             }
         }
         const interventionForm = setUpIntervention(d.intervention_key)
@@ -280,7 +280,7 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree): BodyPaylo
             },
             private: {
                 ...additionalDataConvert.privateAdd,
-                ...metaData.privateAdd
+                ...metaData.private
             }
         }
         const postData: any = {
@@ -350,7 +350,7 @@ export const convertPlannedTreeToBody = (i: InterventionData, d: SampleTree): Bo
             },
             private: {
                 ...additionalDataConvert.privateAdd,
-                ...metaData.privateAdd
+                ...metaData.private
             }
         }
         const postData: any = {

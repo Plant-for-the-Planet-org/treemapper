@@ -2,6 +2,7 @@ import React from 'react'
 import { RealmProvider as Provider } from '@realm/react'
 import schema from './schema'
 import { runRealmMigrations } from './migrations'
+import { clearLegacyAdditionalData } from './legacyAdditionalDataCleanup'
 import Realm from 'realm'
 const schemaVersion = 30
 
@@ -11,6 +12,10 @@ const realmConfig = {
 }
 
 export const appRealm = new Realm(realmConfig)
+
+// Additional Data is retired; drop anything an older build left behind before
+// the rest of the app reads the file. See legacyAdditionalDataCleanup.
+clearLegacyAdditionalData(appRealm)
 
 
 interface Props { 

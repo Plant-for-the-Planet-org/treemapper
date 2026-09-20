@@ -413,7 +413,7 @@ const InterventionFormView = () => {
     if (registerForm.species_required) {
       navigation.replace('ManageSpecies', { manageSpecies: false, id: registerForm.form_id });
     } else if (registerForm.form_details.length > 0) {
-      navigation.replace('LocalForm', { id: registerForm.form_id });
+      navigation.replace('DynamicForm', { id: registerForm.form_id });
     } else {
       navigation.replace('InterventionPreview', { id: 'review', intervention: '', interventionId: registerForm.form_id });
     }

@@ -12,6 +12,8 @@ import { useToast } from 'react-native-toast-notifications'
 import { useDispatch } from 'react-redux'
 import { File } from 'expo-file-system';
 import { updateImageSize } from 'src/store/slice/appStateSlice'
+import { v4 as uuid } from 'uuid'
+import { slugifyLabel } from 'src/utils/helpers/formHelper/slugifyLabel'
 
 const useInterventionManagement = () => {
   const realm = useRealm()
@@ -755,6 +757,111 @@ const useInterventionManagement = () => {
     }
   };
 
+  // Appends one field the user typed on the review screen to this one
+  // intervention. Stored as a FormElement so it renders and syncs exactly like
+  // the answers the built-in form produces: `handleAdditionalData` in syncHelper
+  // keys the upload payload by `key`, so a label that slugs to an existing key
+  // gets a numeric suffix rather than overwriting the earlier field.
+  const addInterventionAdditionalField = async (
+    interventionID: string,
+    field: { label: string; value: string; unit: string; visibility: 'public' | 'private' }
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        const taken = new Set([...intervention.additional_data, ...intervention.form_data].map(el => el.key))
+        const baseKey = slugifyLabel(field.label)
+        let key = baseKey
+        let suffix = 2
+        while (taken.has(key)) {
+          key = `${baseKey}-${suffix}`
+          suffix += 1
+        }
+        // Only the properties without a schema default are set; the rest come
+        // from the FormElement schema, which is also why `condition` and
+        // `sub_form` are left out (they are strings in Realm, objects in TS).
+        const element: FormElement = {
+          element_id: uuid(),
+          index: intervention.additional_data.length,
+          key,
+          label: field.label,
+          type: 'INPUT',
+          unit: field.unit,
+          visibility: field.visibility,
+          data_type: 'string',
+          value: field.value,
+          keyboard_type: 'default',
+        }
+        intervention.additional_data.push(element)
+        intervention.last_updated_at = Date.now()
+      });
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Added a field to intervention' + `(${interventionID}).`,
+        logLevel: 'info',
+        statusCode: '',
+      })
+      return true
+    } catch (error) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error while adding a field to intervention' + `(${interventionID}).`,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      return false;
+    }
+  };
+
+  // Adds one key/value pair straight into this intervention's meta_data, in the
+  // same entry shape Forms and the device metadata use, so the review screen and
+  // the upload payload both read it without a special case. A repeated label
+  // replaces the earlier entry in its bucket, which is what a key/value list
+  // means.
+  const addInterventionMetadataEntry = async (
+    interventionID: string,
+    entry: { label: string; value: string; visibility: 'public' | 'private' }
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        const parsed = intervention.meta_data ? JSON.parse(intervention.meta_data) : {}
+        const bucket = { ...(parsed[entry.visibility] || {}) }
+        const key = slugifyLabel(entry.label)
+        bucket[key] = {
+          key,
+          originalKey: key,
+          value: entry.value,
+          label: entry.label,
+          type: 'input',
+          unit: '',
+          visibility: entry.visibility,
+          dataType: 'string',
+          elementType: 'metaData',
+        }
+        intervention.meta_data = JSON.stringify({ ...parsed, [entry.visibility]: bucket })
+        intervention.last_updated_at = Date.now()
+      });
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Added a metadata entry to intervention' + `(${interventionID}).`,
+        logLevel: 'info',
+        statusCode: '',
+      })
+      return true
+    } catch (error) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error while adding a metadata entry to intervention' + `(${interventionID}).`,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      return false;
+    }
+  };
+
   const updateInterventionStatus = async (interventionID: string, hid: string, location_id: string, status: INTERVENTION_STATUS): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -1127,7 +1234,7 @@ const useInterventionManagement = () => {
     }
   };
 
-  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, refreshSyncedIntervention, interventionExists, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount, updatePlannedTreeLocation, markPlannedInterventionSynced }
+  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, refreshSyncedIntervention, interventionExists, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, addInterventionAdditionalField, addInterventionMetadataEntry, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount, updatePlannedTreeLocation, markPlannedInterventionSynced }
 }
 
 export default useInterventionManagement

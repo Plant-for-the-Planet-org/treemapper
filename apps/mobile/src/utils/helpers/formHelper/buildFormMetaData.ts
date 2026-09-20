@@ -5,11 +5,7 @@ import {
   FormValues,
 } from 'src/types/interface/projectForm.interface'
 import { evaluateFieldVisibility, getAllFields } from './formConditions'
-
-// Slugify a label into a metadata key. Mirrors formatString() used by
-// InterventionPreviewView.setupMetaData so form answers sit alongside the
-// existing metadata entries in the same shape.
-const slug = (s: string): string => (s || '').toLowerCase().replace(/\s+/g, '-')
+import { slugifyLabel as slug } from './slugifyLabel'
 
 export interface FormMetaEntry {
   key: string

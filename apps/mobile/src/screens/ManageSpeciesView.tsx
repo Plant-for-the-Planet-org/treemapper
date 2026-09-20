@@ -189,7 +189,7 @@ const ManageSpeciesView = () => {
       return toast.show('Error occurred while adding species');
     }
 
-    const route = tree_details_required ? 'ReviewTreeDetails' : 'LocalForm';
+    const route = tree_details_required ? 'ReviewTreeDetails' : 'DynamicForm';
     const params = { id: interventionData?.form_id || "", ...(tree_details_required && { detailsCompleted: false }) };
 
     navigation.navigate(route, params);

@@ -148,7 +148,7 @@ export const lastScreenNavigationHelper = (data: InterventionData): NavigationRe
         result = { screen: 'ManageSpecies', params: { manageSpecies: false, id: data.intervention_id } };
       }
       if (!formData.species_required) {
-        result = { screen: 'LocalForm', params: { id: data.intervention_id } };
+        result = { screen: 'DynamicForm', params: { id: data.intervention_id } };
       }
       break;
 
@@ -165,7 +165,7 @@ export const lastScreenNavigationHelper = (data: InterventionData): NavigationRe
       result = { screen: 'ReviewTreeDetails', params: { id: data.intervention_id } };
       break;
     case "TREE_DETAILS":
-      result = { screen: 'LocalForm', params: { id: data.intervention_id } };
+      result = { screen: 'DynamicForm', params: { id: data.intervention_id } };
       break;
     case "LOCAL_FORM":
       result = { screen: 'DynamicForm', params: { id: data.intervention_id } };

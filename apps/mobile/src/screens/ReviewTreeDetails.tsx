@@ -80,9 +80,9 @@ const ReviewTreeDetails = () => {
         if (!editTree) {
             if (detailsCompleted) {
                 if (!FormData.has_sample_trees && FormData.form_details.length === 0) {
-                    navigation.replace('LocalForm', { id: interventionId })
+                    navigation.replace('DynamicForm', { id: interventionId })
                 } else if (FormData.form_details.length > 0) {
-                    navigation.replace('LocalForm', { id: interventionId })
+                    navigation.replace('DynamicForm', { id: interventionId })
                 } else {
                     setTreeDetails(Intervention.sample_trees[currentTreeIndex - 1])
                 }
@@ -104,7 +104,7 @@ const ReviewTreeDetails = () => {
 
 
     const nextTreeButton = () => {
-        navigation.replace('LocalForm', { id: interventionId })
+        navigation.replace('DynamicForm', { id: interventionId })
     }
 
 

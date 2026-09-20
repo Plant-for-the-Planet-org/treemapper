@@ -190,7 +190,7 @@ const PointMarkerMap = (props: Props) => {
         navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
       }
     } else {
-      navigation.navigate('LocalForm', { id: form_id })
+      navigation.navigate('DynamicForm', { id: form_id })
     }
   }
 

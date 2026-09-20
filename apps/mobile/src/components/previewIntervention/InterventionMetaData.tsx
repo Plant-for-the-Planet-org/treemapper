@@ -1,17 +1,29 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 import i18next from 'src/locales/index'
+
+interface Entry {
+  key: string
+  value: string
+  isPrivate: boolean
+}
 
 interface Props {
   data: string
+  interventionId: string
+  canEdit: boolean
 }
 
 
 const InterventionMetaData = (props: Props) => {
-  const [additionalData, setAdditionalData] = useState<Array<{ key: string, value: string }>>([]);
-  const { data } = props
+  const [additionalData, setAdditionalData] = useState<Entry[]>([]);
+  const { data, interventionId, canEdit } = props
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
 
   useEffect(() => {
@@ -28,42 +40,77 @@ const InterventionMetaData = (props: Props) => {
   }
 
 
-  const convertData = () => {
-    const checkForPublic: { value: string; key: string }[] = [];
-    if (typeof data === 'string') {
-      const parsedData = JSON.parse(data);
-      if (parsedData?.public && typeof parsedData.public === 'object' && !Array.isArray(parsedData.public)) {
-        Object.entries(parsedData.public).forEach(([key, value]: [string, { value: string , label: string }]) => {
-          if (key !== 'isEntireSite' && typeof value === 'string') {
-            checkForPublic.push({ value, key });
-          }
-          if (key !== 'isEntireSite' && typeof value !== 'string' && value.value && value.label) {
-            if (isJsonString(value.value)) {
-              const parsedData = JSON.parse(value.value)
-              if (JSON.parse(value.value))
-                checkForPublic.push({ value: parsedData.value, key: value.label });
-            } else {
-              checkForPublic.push({ value: value.value, key: value.label });
-            }
-          }
-        });
-      }
+  // Reads one meta_data bucket into flat rows. An entry is either a bare string
+  // or the {label, value} object that forms, device metadata and manually added
+  // entries all use; a value that is itself JSON (a dropdown answer) carries the
+  // display text inside.
+  const readBucket = (bucket: unknown, isPrivate: boolean): Entry[] => {
+    const rows: Entry[] = []
+    if (!bucket || typeof bucket !== 'object' || Array.isArray(bucket)) {
+      return rows
     }
+    Object.entries(bucket as Record<string, any>).forEach(([key, value]) => {
+      if (key === 'isEntireSite') return
+      if (typeof value === 'string') {
+        rows.push({ value, key, isPrivate })
+        return
+      }
+      if (value?.value && value?.label) {
+        if (isJsonString(value.value)) {
+          rows.push({ value: JSON.parse(value.value).value, key: value.label, isPrivate })
+        } else {
+          rows.push({ value: value.value, key: value.label, isPrivate })
+        }
+      }
+    })
+    return rows
+  }
 
-    setAdditionalData(checkForPublic);
+  const convertData = () => {
+    if (typeof data !== 'string' || !data) {
+      setAdditionalData([])
+      return
+    }
+    let parsedData: any
+    try {
+      parsedData = JSON.parse(data)
+    } catch (error) {
+      setAdditionalData([])
+      return
+    }
+    // Public entries show whatever wrote them. On the private side only the
+    // entries typed here are listed: form answers default to private and belong
+    // to the form that collected them, so listing them here would repeat a whole
+    // form on every preview.
+    const privateManual = Object.fromEntries(
+      Object.entries((parsedData?.private || {}) as Record<string, any>)
+        .filter(([, entry]) => entry?.elementType === 'metaData')
+    )
+    setAdditionalData([
+      ...readBucket(parsedData?.public, false),
+      ...readBucket(privateManual, true),
+    ]);
   };
 
-
   const renderData = () => {
-    return additionalData.map((el) => (<View style={styles.cardWrapper} key={el.key}>
-      <Text style={styles.cardTitle}> {el.key}</Text>
+    return additionalData.map((el) => (<View style={styles.cardWrapper} key={`${el.key}-${el.isPrivate}`}>
+      <View style={styles.titleRow}>
+        <Text style={styles.cardTitle}> {el.key}</Text>
+        {el.isPrivate && <Text style={styles.privateTag}>Private</Text>}
+      </View>
       <Text style={styles.cardLabel}>
         {el.value}
       </Text>
     </View>))
   }
 
-  if (additionalData.length === 0) {
+  const addData = () => {
+    navigation.navigate('AddInterventionData', { interventionId, target: 'metadata' })
+  }
+
+  // Same rule as the additional data card: stay out of the way when there is
+  // nothing to show and nothing to add.
+  if (additionalData.length === 0 && !canEdit) {
     return null
   }
 
@@ -73,6 +120,9 @@ const InterventionMetaData = (props: Props) => {
       <View style={styles.wrapper}>
         <Text style={styles.title}>{i18next.t("label.meta_data")}</Text>
         {renderData()}
+        {canEdit && <TouchableOpacity onPress={addData} style={styles.addWrapper}>
+          <Text style={styles.addLabel}>+ Add metadata</Text>
+        </TouchableOpacity>}
       </View>
     </View>
   )
@@ -104,6 +154,38 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 20,
     marginVertical: 10,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  privateTag: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: scaleSize(10),
+    color: Colors.TEXT_LIGHT,
+    borderWidth: 1,
+    borderColor: Colors.GRAY_BORDER,
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    marginLeft: 8,
+    marginBottom: 5,
+  },
+  addWrapper: {
+    marginHorizontal: 20,
+    marginTop: 10,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.NEW_PRIMARY,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addLabel: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: scaleSize(14),
+    color: Colors.NEW_PRIMARY,
   },
   cardBottomWrapper: {
     width: '90%',

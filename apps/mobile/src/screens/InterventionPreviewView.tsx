@@ -23,14 +23,13 @@ import bbox from '@turf/bbox'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useObject, useQuery, useRealm } from '@realm/react'
+import { useObject, useQuery } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import InterventionDeleteContainer from 'src/components/previewIntervention/InterventionDeleteContainer'
 import ExportGeoJSONButton from 'src/components/intervention/ExportGeoJSON'
 import InterventionAdditionalData from 'src/components/previewIntervention/InterventionAdditionalData'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
-import { Metadata } from 'src/types/interface/app.interface'
 import * as Application from 'expo-application'
 import i18next from 'i18next'
 import { useToast } from 'react-native-toast-notifications'
@@ -54,7 +53,6 @@ const InterventionPreviewView = () => {
   const UserType = useSelector((state: RootState) => state.userState.type)
 
   const toast = useToast()
-  const realm = useRealm()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
   const interventionID = route.params?.interventionId ?? "";
   const [editModal, setEditModal] = useState(null)
@@ -193,50 +191,12 @@ const InterventionPreviewView = () => {
       toast.show("Project not assign")
     }
   }
-  function formatString(str) {
-    return str.toLowerCase().replace(/\s+/g, '-');
-  }
-
   const setupMetaData = async () => {
-    const localMeta = realm.objects<Metadata>(RealmSchema.Metadata)
-    const parsedMeta = JSON.parse(InterventionData.meta_data)
-    const updatedMetadata = { ...parsedMeta };
-    if (localMeta?.length) {
-      localMeta.forEach(el => {
-        if (el.accessType === 'private') {
-          const privateKey = formatString(el.key)
-          updatedMetadata.private = {
-            ...updatedMetadata.private, [privateKey]: {
-              "key": privateKey,
-              "originalKey": privateKey,
-              "value": el.value,
-              "label": el.key,
-              "type": "input",
-              "unit": "",
-              "visibility": "private",
-              "dataType": "string",
-              "elementType": "metaData"
-            }
-          }
-        }
-        if (el.accessType === 'public') {
-          const publicKey = formatString(el.key)
-          updatedMetadata.public = {
-            ...updatedMetadata.public, [publicKey]: {
-              "key": publicKey,
-              "originalKey": publicKey,
-              "value": el.value,
-              "label": el.key,
-              "type": "input",
-              "unit": "",
-              "visibility": "public",
-              "dataType": "string",
-              "elementType": "metaData"
-            }
-          }
-        }
-      })
-    }
+    // Only the app's own device metadata is stamped here now. The user-defined
+    // key/value list that Additional Data used to merge in is retired, and its
+    // stored entries are cleared on launch (see legacyAdditionalDataCleanup).
+    // Extra fields come from Forms, which write their own meta_data entries.
+    const updatedMetadata = JSON.parse(InterventionData.meta_data)
     const appMeta = getDeviceDetails()
     updatedMetadata.app = {
       deviceLocation: {
@@ -396,7 +356,11 @@ const InterventionPreviewView = () => {
             passRefs={(ref, index) => (childRefs.current[index] = ref)}
           />
         )}
-        {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} />}
+        <InterventionMetaData
+          data={InterventionData.meta_data}
+          interventionId={InterventionData.intervention_id}
+          canEdit={InterventionData.status === 'INITIALIZED'}
+        />
         <InterventionFormsRequired
           forms={matchingForms}
           interventionId={InterventionData.intervention_id}

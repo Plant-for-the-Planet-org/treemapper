@@ -23,17 +23,22 @@ export type RootStackParamList = {
   TotalTrees: TotalTreesView
   ManageProjects: undefined
   DataExplorer: undefined
+  // Retired with Additional Data. The names stay so the orphaned screen files
+  // still compile, but none of them is registered in RootNavigator: navigating
+  // to one now fails at runtime. Use Forms instead.
   AdditionalData: undefined
   OfflineMap: undefined
   OfflineMapSelection: undefined
   ReviewTreeDetails: ReviewTreeDetailsView
   ActivityLog: undefined
+  // Retired with Additional Data, see the note above.
   MetaDataElement: MetaDataElementView
   AdditionDataElement: AdditionDataElementView
   SelectElement: SelectElementView
   LocalForm: LocalFormView
   ImportForm: undefined
   EditAdditionData: EditAdditionDataView
+  AddInterventionData: AddInterventionDataView
   EditPolygon: EditPolygonView
   CreatePlot: undefined
   CreatePlotDetail: CreatePlotDetails
@@ -160,6 +165,13 @@ type AdditionDataElementView = {
 type SelectElementView = {
   form_id: string
   element_order: number
+}
+
+type AddInterventionDataView = {
+  interventionId: string
+  // Which review-screen list the new entry joins: a typed field on
+  // Intervention.additional_data, or a key/value pair in Intervention.meta_data.
+  target: 'additional' | 'metadata'
 }
 
 type EditAdditionDataView = {

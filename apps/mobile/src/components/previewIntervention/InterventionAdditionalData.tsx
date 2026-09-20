@@ -28,7 +28,10 @@ const InterventionAdditionalData = (props: Props) => {
     }
   }, [data])
 
-  if (Object.keys(additionalData).length === 0) {
+  // Hidden only when there is nothing to show and nothing to do. While the
+  // intervention is still editable the card stays, so the Add button has a home
+  // even on an intervention that carries no extra fields yet.
+  if (additionalData.length === 0 && !canEdit) {
     return null
   }
 
@@ -80,14 +83,21 @@ const InterventionAdditionalData = (props: Props) => {
     navigation.navigate('EditAdditionData', { 'interventionID': id })
   }
 
+  const addData = () => {
+    navigation.navigate('AddInterventionData', { interventionId: id, target: 'additional' })
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
-        {canEdit && <TouchableOpacity onPress={editData} style={styles.editWrapper}>
+        {canEdit && additionalData.length > 0 && <TouchableOpacity onPress={editData} style={styles.editWrapper}>
           <PenIcon width={30} height={30} />
         </TouchableOpacity>}
         <Text style={styles.title}>{i18next.t("label.additional_data")}</Text>
         {renderData()}
+        {canEdit && <TouchableOpacity onPress={addData} style={styles.addWrapper}>
+          <Text style={styles.addLabel}>+ Add field</Text>
+        </TouchableOpacity>}
       </View>
     </View>
   )
@@ -96,6 +106,22 @@ const InterventionAdditionalData = (props: Props) => {
 export default InterventionAdditionalData
 
 const styles = StyleSheet.create({
+  addWrapper: {
+    marginHorizontal: 20,
+    marginTop: 10,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.NEW_PRIMARY,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addLabel: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: scaleSize(14),
+    color: Colors.NEW_PRIMARY,
+  },
   container: {
     width: '100%',
     justifyContent: 'center',

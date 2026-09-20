@@ -26,17 +26,16 @@ const RootNavigator = () => {
       <Stack.Screen name="ManageProjects" component={Screens.ManageProjects} />
       <Stack.Screen name="DataExplorer" component={Screens.DataExplore} />
       <Stack.Screen name="InterventionPreview" component={Screens.InterventionPreview} />
-      <Stack.Screen name="AdditionalData" component={Screens.AdditionalData} />
       <Stack.Screen name="OfflineMap" component={Screens.OfflineMap} />
       <Stack.Screen name="OfflineMapSelection" component={Screens.OfflineMapSelection} />
       <Stack.Screen name='ReviewTreeDetails' component={Screens.ReviewTreeDetails} />
       <Stack.Screen name='ActivityLog' component={Screens.ActivityLogs} />
-      <Stack.Screen name='MetaDataElement' component={Screens.MetaDataElement} />
-      <Stack.Screen name='AdditionDataElement' component={Screens.AdditionDataElement} />
-      <Stack.Screen name='SelectElement' component={Screens.SelectElement} />
-      <Stack.Screen name='LocalForm' component={Screens.LocalForm} />
-      <Stack.Screen name='ImportForm' component={Screens.ImportForm} />
+      {/* Additional Data is retired (AdditionalData, AdditionDataElement,
+          SelectElement, LocalForm, ImportForm, MetaDataElement are no longer
+          registered). EditAdditionData stays: it still edits the built-in
+          intervention form, and legacy answers on older records. */}
       <Stack.Screen name='EditAdditionData' component={Screens.EditAdditionData} />
+      <Stack.Screen name='AddInterventionData' component={Screens.AddInterventionData} />
       <Stack.Screen name='EditPolygon' component={Screens.EditPolygon} />
       <Stack.Screen name='CreatePlot' component={Screens.CreatePlot} />
       <Stack.Screen name='CreatePlotDetail' component={Screens.CreatePlotDetail} />

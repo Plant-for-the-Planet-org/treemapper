@@ -15,17 +15,12 @@ import AddMeasurementView from './AddMeasurementView'
 import DynamicFormView from './DynamicFormView'
 import ManageProjectsView from './ManageProjectsView'
 import DataExplorerView from './DataExplorerView'
-import AdditionalDataView from './AdditionalDataView'
 import OfflineMapSelectionView from './OfflineMapSelectionView'
 import OfflineMapView from './OfflineMapView'
 import ReviewTreeDetails from './ReviewTreeDetails'
 import ActivityLogsView from './ActivityLogsView'
-import MetaDataElementView from './MetaDataElementView'
-import AdditionDataElementView from './AdditionDataElement'
-import SelectElement from './SelectElementView'
-import LocalFormView from './LocalFormView'
-import ImportForm from './ImportFormView'
 import EditAdditionData from './EditAdditionDataView'
+import AddInterventionDataView from './AddInterventionDataView'
 import EditPolygonView from './EditPolygonView'
 import CreatePlotView from './CreatePlotView'
 import CreatePlotDetailsView from './CreatePlotDetailsView'
@@ -75,17 +70,16 @@ export default {
   ManageProjects: ManageProjectsView,
   DataExplore: DataExplorerView,
   InterventionPreview: InterventionPreview,
-  AdditionalData: AdditionalDataView,
   OfflineMap: OfflineMapView,
   OfflineMapSelection: OfflineMapSelectionView,
   ReviewTreeDetails: ReviewTreeDetails,
   ActivityLogs: ActivityLogsView,
-  MetaDataElement: MetaDataElementView,
-  AdditionDataElement: AdditionDataElementView,
-  SelectElement: SelectElement,
-  LocalForm: LocalFormView,
-  ImportForm: ImportForm,
+  // Additional Data is retired: AdditionalDataView, MetaDataElementView,
+  // AdditionDataElement, SelectElementView, LocalFormView and ImportFormView
+  // are no longer reachable. EditAdditionData still edits the built-in
+  // intervention form.
   EditAdditionData: EditAdditionData,
+  AddInterventionData: AddInterventionDataView,
   EditPolygon: EditPolygonView,
   CreatePlot: CreatePlotView,
   CreatePlotDetail: CreatePlotDetailsView,

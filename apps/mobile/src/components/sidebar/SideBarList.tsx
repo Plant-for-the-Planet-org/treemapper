@@ -44,13 +44,6 @@ const SideBarList = (props: Props) => {
       key: 'manage_projects'
     },
     {
-      label: t('label.additional_data'),
-      screen: 'AdditionalData',
-      icon: <AdditionalDataIcon width={SCALE_24} height={SCALE_24} />,
-      visible: true,
-      key: 'additional_data'
-    },
-    {
       label: t('label.forms'),
       screen: 'Forms',
       icon: <AdditionalDataIcon width={SCALE_24} height={SCALE_24} />,

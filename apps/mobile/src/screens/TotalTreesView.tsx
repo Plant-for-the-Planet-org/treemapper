@@ -78,9 +78,9 @@ const TotalTreesView = () => {
     }
 
     if (!has_sample_trees) {
-      navigation.replace('LocalForm', { id: interventionId })
+      navigation.replace('DynamicForm', { id: interventionId })
     } else if (has_sample_trees && intervention.location.type === 'Point') {
-      navigation.replace('LocalForm', { id: interventionId })
+      navigation.replace('DynamicForm', { id: interventionId })
     } else {
       navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: intervention.form_id })
     }
@@ -162,7 +162,7 @@ const TotalTreesView = () => {
   const secondaryBtnHandler = () => {
     setShowSampleTreeModal(false)
     setTimeout(() => {
-      navigation.navigate('LocalForm', { id: interventionId })
+      navigation.navigate('DynamicForm', { id: interventionId })
     }, 200);
   }
 
