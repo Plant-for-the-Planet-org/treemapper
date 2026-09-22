@@ -1,4 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { and, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
 import { DrizzleService } from '../database/drizzle.service';
@@ -10,6 +16,7 @@ import {
 } from '../database/schema/index';
 import { generateUid } from '../util/uidGenerator';
 import { AuditService } from '../audit/audit.service';
+import { CacheService } from '../cache/cache.service';
 import { PushService } from '../notification/push/push.service';
 import { SendDeviceNotificationDto } from './dto/devices.dto';
 import {
@@ -21,6 +28,13 @@ import {
 // A device counts as "online" if it pinged us (lastActiveAt) within this many
 // minutes. The mobile app stamps lastActiveAt on every app open.
 const ONLINE_WINDOW_MINUTES = 15;
+
+// The fallback in getLatestAppBuild sorts the whole user_device table on a
+// column with no index, so it is cached rather than run once per fleet load.
+// Short, because the number only moves when a release rolls out, and a few
+// minutes of staleness on an "update available" badge costs nothing.
+const LATEST_BUILD_CACHE_KEY = 'devices:latest-app-build';
+const LATEST_BUILD_CACHE_TTL_MS = 5 * 60 * 1000;
 
 interface ProjectMemberRow {
   userId: number;
@@ -43,6 +57,7 @@ export class DevicesService {
     private readonly configService: ConfigService,
     private readonly pushService: PushService,
     private readonly auditService: AuditService,
+    private readonly cacheService: CacheService,
   ) {}
 
   // Active, non-deleted members of the project. Devices belong to users, so a
@@ -89,16 +104,26 @@ export class DevicesService {
       );
     }
 
-    const rows = await this.drizzle.db
-      .select({ build: userDevice.appBuild, version: userDevice.appVersion })
-      .from(userDevice)
-      .where(and(isNotNull(userDevice.appBuild), isNull(userDevice.deletedAt)))
-      .orderBy(desc(userDevice.appBuild))
-      .limit(1);
+    const observed = await this.cacheService.getOrSet(
+      LATEST_BUILD_CACHE_KEY,
+      async () => {
+        const rows = await this.drizzle.db
+          .select({ build: userDevice.appBuild, version: userDevice.appVersion })
+          .from(userDevice)
+          .where(and(isNotNull(userDevice.appBuild), isNull(userDevice.deletedAt)))
+          .orderBy(desc(userDevice.appBuild))
+          .limit(1);
+
+        // An object, not a bare value: getOrSet treats null as a miss, so a
+        // fleet with no reported builds would re-run the scan every time.
+        return { build: rows[0]?.build ?? null, version: rows[0]?.version ?? null };
+      },
+      LATEST_BUILD_CACHE_TTL_MS,
+    );
 
     return {
-      build: rows[0]?.build ?? null,
-      version: rows[0]?.version ?? configuredVersion,
+      build: observed?.build ?? null,
+      version: observed?.version ?? configuredVersion,
     };
   }
 
@@ -131,9 +156,11 @@ export class DevicesService {
 
     const [rows, latest] = await Promise.all([
       this.drizzle.db
+        // No deviceId: it is the key registerOrUpdateDevice upserts on, and
+        // handing it to the dashboard would let anyone who can read this list
+        // claim the row. See ProjectDevice.
         .select({
           uid: userDevice.uid,
-          deviceId: userDevice.deviceId,
           deviceName: userDevice.deviceName,
           deviceModel: userDevice.deviceModel,
           deviceOs: userDevice.deviceOs,
@@ -144,7 +171,6 @@ export class DevicesService {
           timezone: userDevice.timezone,
           notificationPermission: userDevice.notificationPermission,
           isActive: userDevice.isActive,
-          batteryLevel: userDevice.batteryLevel,
           storageUsedPct: userDevice.storageUsedPct,
           networkType: userDevice.networkType,
           pendingInterventions: userDevice.pendingInterventions,
@@ -177,7 +203,6 @@ export class DevicesService {
       const lastActive = r.lastActiveAt ? new Date(r.lastActiveAt).getTime() : 0;
       return {
         uid: r.uid,
-        deviceId: r.deviceId,
         deviceName: r.deviceName,
         deviceModel: r.deviceModel,
         deviceOs: r.deviceOs,
@@ -194,7 +219,6 @@ export class DevicesService {
           latest.build !== null &&
           r.appBuild !== null &&
           r.appBuild < latest.build,
-        batteryLevel: r.batteryLevel,
         storageUsedPct: r.storageUsedPct,
         networkType: r.networkType,
         pendingInterventions: r.pendingInterventions,
@@ -240,6 +264,10 @@ export class DevicesService {
   // Marks a device active or inactive. An inactive device stays in the list but
   // stops being a push target, which is what "revoke" means here: we cannot
   // reach into the phone, only stop addressing it.
+  //
+  // This does not survive the device's next app open: registration sends
+  // isActive and the mobile app always sends true. The dashboard copy says so.
+  // Making it stick needs a separate column the client cannot write.
   async setDeviceActive(
     projectId: number,
     deviceUid: string,
@@ -250,13 +278,10 @@ export class DevicesService {
     const memberIds = members.map((m) => m.userId);
 
     if (memberIds.length === 0) {
-      return {
+      throw new NotFoundException({
         message: 'Device not found in this project',
-        statusCode: 404,
-        error: 'device_not_found',
-        data: null,
         code: 'device_not_found',
-      };
+      });
     }
 
     // Scoped to project members so an admin cannot touch a device outside the
@@ -274,18 +299,15 @@ export class DevicesService {
       .returning({ uid: userDevice.uid, isActive: userDevice.isActive });
 
     if (updated.length === 0) {
-      return {
+      throw new NotFoundException({
         message: 'Device not found in this project',
-        statusCode: 404,
-        error: 'device_not_found',
-        data: null,
         code: 'device_not_found',
-      };
+      });
     }
 
-    // Not audited: auditEntityEnum has no 'device' value, and adding one needs
-    // an ALTER TYPE migration that Drizzle cannot run inside its transaction.
-    // Worth doing as its own change if device revokes need an audit trail.
+    // Not audited: auditEntityEnum has no 'device' value, so this needs an
+    // ALTER TYPE migration of its own. Worth doing if device revokes need an
+    // audit trail.
 
     return {
       message: isActive ? 'Device reactivated' : 'Device deactivated',
@@ -345,13 +367,10 @@ export class DevicesService {
     const memberIds = members.map((m) => m.userId);
 
     if (dto.recipients === 'selected' && (dto.deviceUids ?? []).length === 0) {
-      return {
+      throw new BadRequestException({
         message: 'No devices selected',
-        statusCode: 400,
-        error: 'no_devices_selected',
-        data: null,
         code: 'no_devices_selected',
-      };
+      });
     }
 
     const targets = await this.resolveTargetDevices(dto, memberIds);
@@ -388,13 +407,10 @@ export class DevicesService {
         .returning({ id: notifications.id, uid: notifications.uid });
     } catch (error) {
       this.logger.error('Failed to record device notification', error);
-      return {
+      throw new InternalServerErrorException({
         message: 'Failed to send notification',
-        statusCode: 500,
-        error: error?.message || 'internal_server_error',
-        data: null,
         code: 'notification_send_failed',
-      };
+      });
     }
 
     // Push is attempted after the rows exist, so a OneSignal outage still
@@ -454,13 +470,25 @@ export class DevicesService {
       };
     }
 
+    // A push problem is not a failed request: the notification rows exist and
+    // every recipient sees the message in the app. So these stay 201, like the
+    // no-push-configured case above, and say what happened in `code`. Calling
+    // them 502 put a failure status on a body that also carried the counts the
+    // dashboard needs, and only the body ever said so -- the wire said 201
+    // either way.
     if (push.error) {
+      // A send is chunked, so one chunk can fail after another succeeded.
+      // Saying "push delivery failed" when most devices already have it sends
+      // the admin off to resend something that mostly landed.
+      const partial = push.accepted > 0;
       return {
-        message: `Saved in the app for ${inserted.length} recipient(s), but push delivery failed.`,
-        statusCode: 502,
+        message: partial
+          ? `Sent to ${push.accepted} device(s). The rest did not go out, and all ${inserted.length} recipient(s) have it in the app.`
+          : `Saved in the app for ${inserted.length} recipient(s), but push delivery failed.`,
+        statusCode: 201,
         error: push.error,
         data,
-        code: 'notification_push_failed',
+        code: partial ? 'notification_push_partial' : 'notification_push_failed',
       };
     }
 
@@ -473,12 +501,25 @@ export class DevicesService {
     };
   }
 
+  // Nothing was sent and nothing failed, so this is a 200 carrying a reason.
+  //
+  // The data block has to name every key of a normal send. The dashboard picks
+  // its wording by reading fields off it, so a short payload reads as an
+  // ordinary success and the reason in `message` is lost.
   private noRecipientsResponse(message: string) {
     return {
       message,
       statusCode: 200,
       error: null,
-      data: { devicesTargeted: 0, usersNotified: 0, pushAccepted: 0 },
+      data: {
+        batchId: null,
+        devicesTargeted: 0,
+        usersNotified: 0,
+        devicesWithoutPushId: 0,
+        pushAccepted: 0,
+        pushConfigured: this.pushService.isConfigured,
+        pushError: null,
+      },
       code: 'no_recipients',
     };
   }

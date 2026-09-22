@@ -1,8 +1,12 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { ProjectRoles } from '../sites/decorators/project-roles.decorator';
+import { ProjectRoles } from '../projects/decorators/project-roles.decorator';
 import { ProjectPermissionsGuard } from '../projects/guards/project-permissions.guard';
+import {
+  UserRateLimit,
+  UserRateLimitGuard,
+} from '../common/guards/user-rate-limit.guard';
 import { Membership } from '../projects/decorators/membership.decorator';
 import { ProjectGuardResponse } from '../projects/projects.service';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -28,10 +32,13 @@ export class DevicesController {
     return this.devicesService.getProjectDevices(membership.projectId);
   }
 
+  // Each call puts a notification on every team phone, so the ceiling is per
+  // admin rather than per IP: a crew on one hotspot must not share a budget.
   @Post('notify')
   @ApiOperation({ summary: 'Send a push notification to project devices' })
   @ProjectRoles('owner', 'admin')
-  @UseGuards(ProjectPermissionsGuard)
+  @UseGuards(ProjectPermissionsGuard, UserRateLimitGuard)
+  @UserRateLimit({ limit: 20, windowMs: 60 * 60 * 1000, name: 'device-notify' })
   async notify(
     @Membership() membership: ProjectGuardResponse,
     @Body() dto: SendDeviceNotificationDto,

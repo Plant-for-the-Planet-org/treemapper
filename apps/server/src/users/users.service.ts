@@ -604,13 +604,19 @@ export class UsersService {
     // Upsert the device row for this user and stamp last-active on both the
     // device and the user. Called on every app open. deviceId is unique, so a
     // device that logs in as a new user has its ownership (userId) reassigned.
+    //
+    // That reassignment is deliberate (a shared field phone moves with whoever
+    // signs in), but deviceId is client-supplied and only the phone is supposed
+    // to know it. So a handover never inherits the previous owner's state: see
+    // `handoverReset` below. Keep it that way -- without it, anyone who learns
+    // a deviceId takes over a row that still points at someone else's phone.
     async registerOrUpdateDevice(userId: number, dto: CreateDeviceDto): Promise<{ uid: string; deviceId: string }> {
         try {
             return await this.drizzleService.db.transaction(async (tx) => {
                 const now = new Date();
 
                 const existingDevice = await tx
-                    .select({ id: userDevice.id, uid: userDevice.uid })
+                    .select({ id: userDevice.id, uid: userDevice.uid, userId: userDevice.userId })
                     .from(userDevice)
                     .where(eq(userDevice.deviceId, dto.deviceId))
                     .limit(1);
@@ -627,10 +633,23 @@ export class UsersService {
                 const fields = this.mapDeviceFields(dto);
 
                 if (existingDevice.length > 0) {
+                    const previousOwnerId = existingDevice[0].userId;
+                    const isHandover = previousOwnerId !== userId;
+
+                    if (isHandover) {
+                        this.logger.warn(
+                            `Device ${existingDevice[0].uid} reassigned from user ${previousOwnerId} to user ${userId}`,
+                        );
+                    }
+
                     await tx
                         .update(userDevice)
                         .set({
                             ...fields,
+                            // Wipes what the previous owner reported, so the new
+                            // owner starts from what this call carries and
+                            // nothing else. No-op when the owner is unchanged.
+                            ...(isHandover ? this.handoverReset(dto) : {}),
                             userId,
                             lastActiveAt: now,
                             updatedAt: now,
@@ -686,6 +705,30 @@ export class UsersService {
         if (lower === 'ios' || lower === 'ipados') return 'ios';
         if (lower === 'android') return 'android';
         return null;
+    }
+
+    // Columns that must not survive a device changing hands.
+    //
+    // `mapDeviceFields` deliberately skips keys the client omitted, which is
+    // right for the same owner reporting in again and wrong the moment the row
+    // changes user: the new owner would silently inherit the old one's push
+    // alias and telemetry. oneSignalId is the one that matters -- inheriting it
+    // means the row addresses a phone that now belongs to someone else. The
+    // telemetry goes too, because a battery or pending-sync reading from
+    // another person's phone is not a fact about this one.
+    //
+    // Applied after mapDeviceFields, so anything this call actually sent still
+    // wins; only the fields it left out are cleared.
+    private handoverReset(dto: CreateDeviceDto): Partial<typeof userDevice.$inferInsert> {
+        return {
+            oneSignalId: dto.oneSignalId ?? null,
+            batteryLevel: dto.batteryLevel ?? null,
+            storageUsedPct: dto.storageUsedPct ?? null,
+            networkType: dto.networkType ?? null,
+            pendingInterventions: dto.pendingInterventions ?? null,
+            pendingTrees: dto.pendingTrees ?? null,
+            lastSyncAt: dto.lastSyncAt ? new Date(dto.lastSyncAt) : null,
+        };
     }
 
     // Picks out the device columns the client sent, skipping keys it omitted so

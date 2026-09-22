@@ -405,9 +405,11 @@ const DeviceDetail = ({
           )}
           {device.isActive ? 'Deactivate device' : 'Reactivate device'}
         </Button>
+        {/* Says "opening", not "signing in on": the app re-registers on every
+            foreground, not only at login, so that is when this is undone. */}
         <p className="text-[11px] text-gray-400 text-center">
           {device.isActive
-            ? 'Stops this device receiving notifications. Signing in on it again turns it back on.'
+            ? 'Stops this device receiving notifications until someone opens the app on it again.'
             : 'Lets this device receive notifications again.'}
         </p>
       </div>

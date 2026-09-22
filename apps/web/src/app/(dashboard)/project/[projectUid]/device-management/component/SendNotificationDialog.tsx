@@ -93,30 +93,56 @@ const SendNotificationDialog = ({ open, onOpenChange, prefill, fleetCount, onSen
 
       const result: NotifyResult | undefined = response?.data
       const statusCode = response?.statusCode ?? 200
+      const code = response?.code
 
-      // The server answers with its own statusCode in the body, so a failure
-      // does not throw. Read that rather than assuming success.
+      // A rejected request: no notification was created. These are real HTTP
+      // errors now, so customFetch has already turned them into this shape.
       if (statusCode >= 400) {
         toast.error(response?.message || 'Could not send the notification')
-        // A push failure still recorded the message in-app, so refresh either way.
-        if (result) onSent()
         return
       }
 
-      if (result && result.pushConfigured === false) {
-        toast.warning(
-          `Saved in the app for ${result.usersNotified} recipient(s). Push delivery is not set up on this server.`,
-        )
-      } else if (result) {
-        const skipped = result.devicesWithoutPushId
-        toast.success(
-          `Sent to ${result.pushAccepted} device(s)${skipped > 0 ? `, ${skipped} in-app only` : ''}`,
-        )
-      } else {
-        toast.success(response?.message || 'Notification sent')
+      // Everything below created the notification, so the list is refreshed
+      // whichever way it went. What differs is only what the admin is told, and
+      // that comes off `code`: push trouble is not an HTTP failure, so reading
+      // the status alone reported every one of these as a clean send.
+      onSent()
+
+      switch (code) {
+        // Nothing was reachable. Stale fleet counts make this reachable from a
+        // dialog whose Send button looked enabled.
+        case 'no_recipients':
+          toast.warning(response?.message || 'No reachable devices right now')
+          return
+
+        // Some phones have it, some do not. Not a failure worth resending.
+        case 'notification_push_partial':
+          toast.warning(response?.message || 'Some devices did not get the push')
+          break
+
+        case 'notification_push_failed':
+          toast.error(
+            response?.message
+              || `Saved in the app for ${result?.usersNotified ?? 0} recipient(s), but push delivery failed.`,
+          )
+          break
+
+        case 'notification_saved_no_push':
+          toast.warning(
+            `Saved in the app for ${result?.usersNotified ?? 0} recipient(s). Push delivery is not set up on this server.`,
+          )
+          break
+
+        default: {
+          const skipped = result?.devicesWithoutPushId ?? 0
+          toast.success(
+            result
+              ? `Sent to ${result.pushAccepted} device(s)${skipped > 0 ? `, ${skipped} in-app only` : ''}`
+              : response?.message || 'Notification sent',
+          )
+        }
       }
 
-      onSent()
       onOpenChange(false)
     } catch (err) {
       toast.error(errorMessage(err, 'Could not send the notification'))

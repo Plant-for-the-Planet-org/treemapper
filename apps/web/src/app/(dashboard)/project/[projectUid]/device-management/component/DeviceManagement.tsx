@@ -37,6 +37,10 @@ const EMPTY_STATS: FleetStats = {
 const STORAGE_WARN_PCT = 85
 const PENDING_WARN_COUNT = 10
 
+// How many flagged devices the card lists before it stops. The count beside the
+// heading is the real total, not this.
+const ATTENTION_VISIBLE = 6
+
 const StatCard = ({
   title, value, subtitle, icon: Icon, loading,
 }: {
@@ -65,7 +69,9 @@ const StatCard = ({
 const DeviceManagement = () => {
   const [devices, setDevices] = useState<Device[]>([])
   const [stats, setStats] = useState<FleetStats>(EMPTY_STATS)
-  const [latestAppBuild, setLatestAppBuild] = useState<number | null>(null)
+  // latestAppBuild is in the response but not held here: nothing on this screen
+  // compares builds any more. Each device carries the server's own needsUpdate,
+  // and latestAppVersion is what the badges actually say.
   const [latestAppVersion, setLatestAppVersion] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -92,7 +98,6 @@ const DeviceManagement = () => {
 
       setDevices(data.devices || [])
       setStats(data.stats || EMPTY_STATS)
-      setLatestAppBuild(data.latestAppBuild ?? null)
       setLatestAppVersion(data.latestAppVersion ?? null)
       // Keep the current selection if it still exists, else fall back to the
       // first device so the fleet pane is never blank on open.
@@ -112,10 +117,7 @@ const DeviceManagement = () => {
     loadFleet()
   }, [loadFleet])
 
-  const versions = useMemo(
-    () => appVersionDistribution(devices, latestAppBuild),
-    [devices, latestAppBuild],
-  )
+  const versions = useMemo(() => appVersionDistribution(devices), [devices])
 
   const attention = useMemo(() => devices
     .map(d => {
@@ -127,14 +129,27 @@ const DeviceManagement = () => {
         return { d, reason: `Storage ${d.storageUsedPct}%`, icon: TriangleAlert, cls: 'text-amber-600' }
       return null
     })
-    .filter(Boolean)
-    .slice(0, 6) as { d: Device; reason: string; icon: React.ElementType; cls: string }[],
+    .filter(Boolean) as { d: Device; reason: string; icon: React.ElementType; cls: string }[],
   [devices])
 
-  const platformData = [
-    { name: 'iOS', value: stats.ios, fill: BRAND },
-    { name: 'Android', value: stats.android, fill: '#7BC47F' },
-  ]
+  // Sliced for display only. Counting the sliced list said "6 devices" however
+  // many actually needed attention.
+  const attentionShown = useMemo(
+    () => attention.slice(0, ATTENTION_VISIBLE),
+    [attention],
+  )
+
+  // A device whose OS the server could not place is stored as null, so iOS plus
+  // Android can come to less than the total printed in the middle of the ring.
+  // The "Other" slice keeps the two agreeing.
+  const platformData = useMemo(() => {
+    const other = Math.max(0, stats.total - stats.ios - stats.android)
+    return [
+      { name: 'iOS', value: stats.ios, fill: BRAND },
+      { name: 'Android', value: stats.android, fill: '#7BC47F' },
+      ...(other > 0 ? [{ name: 'Other', value: other, fill: '#CBD5E1' }] : []),
+    ]
+  }, [stats])
 
   const openCompose = (p: ComposePrefill) => {
     setPrefill(p)
@@ -322,7 +337,7 @@ const DeviceManagement = () => {
               <p className="text-sm text-gray-500 py-4 text-center">Everything looks healthy.</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {attention.map(({ d, reason, icon: Icon, cls }) => (
+                {attentionShown.map(({ d, reason, icon: Icon, cls }) => (
                   <button
                     key={d.uid}
                     onClick={() => goToDevice(d.uid)}
@@ -342,6 +357,14 @@ const DeviceManagement = () => {
                   </button>
                 ))}
               </div>
+            )}
+            {!loading && attention.length > attentionShown.length && (
+              <button
+                onClick={() => setTab('fleet')}
+                className="text-xs text-[#007A49] font-medium hover:underline mt-2"
+              >
+                Showing {attentionShown.length} of {attention.length}. See all in Fleet.
+              </button>
             )}
           </div>
         </TabsContent>

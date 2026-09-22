@@ -28,8 +28,17 @@ export interface PushResult {
   // Aliases OneSignal rejected, usually because the install was removed.
   invalidAliases: string[];
   notificationIds: string[];
-  error: string | null;
+  // A stable code, never OneSignal's own wording. The upstream detail goes to
+  // the log instead: it is their internals, it changes without notice, and this
+  // value travels all the way to a browser.
+  error: PushErrorCode | null;
 }
+
+export type PushErrorCode =
+  | 'push_not_configured'
+  | 'push_rejected'
+  | 'push_request_timeout'
+  | 'push_request_failed';
 
 // Sends push notifications through the OneSignal REST API.
 //
@@ -56,7 +65,7 @@ export class PushService {
     return Boolean(this.appId && this.restApiKey);
   }
 
-  private emptyResult(configured: boolean, error: string | null = null): PushResult {
+  private emptyResult(configured: boolean, error: PushErrorCode | null = null): PushResult {
     return {
       configured,
       accepted: 0,
@@ -143,7 +152,7 @@ export class PushService {
       if (!response.ok) {
         const detail = this.describeErrors(payload) || `http_${response.status}`;
         this.logger.error(`OneSignal rejected the send: ${detail}`);
-        return this.emptyResult(true, detail);
+        return this.emptyResult(true, 'push_rejected');
       }
 
       return {
@@ -154,12 +163,15 @@ export class PushService {
         error: null,
       };
     } catch (error) {
-      const detail =
-        error?.name === 'TimeoutError' || error?.name === 'AbortError'
-          ? 'push_request_timeout'
-          : error?.message || 'push_request_failed';
-      this.logger.error(`Failed to reach OneSignal: ${detail}`);
-      return this.emptyResult(true, detail);
+      const timedOut =
+        error?.name === 'TimeoutError' || error?.name === 'AbortError';
+      this.logger.error(
+        `Failed to reach OneSignal: ${error?.message || error?.name || 'unknown'}`,
+      );
+      return this.emptyResult(
+        true,
+        timedOut ? 'push_request_timeout' : 'push_request_failed',
+      );
     }
   }
 
