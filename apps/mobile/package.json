@@ -32,6 +32,7 @@
     "@turf/distance": "6.5.0",
     "@turf/helpers": "6.5.0",
     "@turf/turf": "7.3.1",
+    "@wrack/react-native-tour-guide": "2.0.0",
     "d3-shape": "3.2.0",
     "expo": "55.0.26",
     "expo-application": "~55.0.15",

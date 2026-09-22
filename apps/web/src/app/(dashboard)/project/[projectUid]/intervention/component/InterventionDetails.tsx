@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Trees,
   Leaf,
@@ -15,7 +15,9 @@ import {
   Pen,
   CloudAlert,
   CloudCheck,
-  MapPin
+  MapPin,
+  Satellite,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { deleteIntervention, editIntervention } from '@shared-core/fetchApi/api.fetch';
@@ -34,6 +36,9 @@ import MapDisplayComponent from './InterventionDisplayMap';
 import EditSpeciesModal from './SpeciesEditModal';
 import OwenrshipTransfer from './OwnershipTransferModal';
 import EditInterventionModal from './EditInterventionModal';
+import SatelliteCountModal from './SatelliteCountModal';
+import { useSatelliteCount } from '@/lib/satellite-count/useSatelliteCount';
+import { extractPolygon } from '@/lib/satellite-count/mercator';
 
 interface Site {
   id: string | number;
@@ -191,6 +196,7 @@ export const InterventionDetails = ({
   const [showOwnerDialog, setShowOwnerDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showSatelliteCount, setShowSatelliteCount] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     species: true,
     trees: true,
@@ -203,6 +209,19 @@ export const InterventionDetails = ({
   useEffect(() => {
     setLocalSpecies(intervention.species || []);
   }, [intervention.species]);
+
+  // Satellite count: needs a polygon; the job is tracked in the background so
+  // the user can close the modal while the backend is counting.
+  const hasPolygon = useMemo(() => !!extractPolygon(intervention.originalGeometry), [intervention.originalGeometry]);
+  const satellite = useSatelliteCount(intervention.uid, () => {
+    if (!showSatelliteCount) {
+      toast.success(`Satellite count for ${intervention.hid} is ready to review`, {
+        onClick: () => setShowSatelliteCount(true),
+      });
+    }
+  });
+  const satelliteReady = satellite.status?.status === 'succeeded' && !!satellite.pending;
+  const satelliteRunning = !!satellite.pending && !satellite.status?.status?.match(/succeeded|failed/);
 
   const canManage =
     selectedProjectDetails.userRole === 'owner' || selectedProjectDetails.userRole === 'admin';
@@ -342,6 +361,12 @@ export const InterventionDetails = ({
                   <><CloudAlert className="h-3 w-3" /> Not synced</>
                 )}
               </Badge>
+              {hasPolygon && (
+                <Button variant="outline" size="sm" onClick={() => setShowSatelliteCount(true)}>
+                  {satelliteRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Satellite className="h-4 w-4" />}
+                  Satellite Count
+                </Button>
+              )}
               {canManage && (
                 <>
                   <Button variant="ghost" size="sm" onClick={() => setShowEditModal(true)}>
@@ -381,6 +406,28 @@ export const InterventionDetails = ({
                 <span className="font-semibold text-foreground">{(intervention.trees?.length || 0).toLocaleString('en-US')}</span>
                 <span className="text-muted-foreground">Sample Trees</span>
               </span>
+            )}
+            {(satellite.review || satellite.pending) && (
+              <button
+                type="button"
+                onClick={() => setShowSatelliteCount(true)}
+                className="flex items-center gap-1.5 hover:underline underline-offset-4"
+                title="Open satellite count"
+              >
+                <Satellite className="h-4 w-4 text-muted-foreground" />
+                {satelliteReady ? (
+                  <span className="text-primary font-medium">Satellite count ready to review</span>
+                ) : satelliteRunning ? (
+                  <span className="text-muted-foreground">Satellite count processing…</span>
+                ) : satellite.status?.status === 'failed' ? (
+                  <span className="text-destructive">Satellite count failed</span>
+                ) : satellite.review ? (
+                  <>
+                    <span className="font-semibold text-foreground">{satellite.review.metadata.counts.final.toLocaleString('en-US')}</span>
+                    <span className="text-muted-foreground">Satellite count (reviewed)</span>
+                  </>
+                ) : null}
+              </button>
             )}
           </div>
 
@@ -596,6 +643,18 @@ export const InterventionDetails = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Satellite Count */}
+      {hasPolygon && (
+        <SatelliteCountModal
+          open={showSatelliteCount}
+          onOpenChange={setShowSatelliteCount}
+          intervention={intervention}
+          projectUid={selectedProject}
+          reviewer={{ id: userDetails?.id }}
+          state={satellite}
+        />
+      )}
 
       {/* Edit Intervention Modal */}
       <EditInterventionModal

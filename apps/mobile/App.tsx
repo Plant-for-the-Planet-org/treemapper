@@ -17,6 +17,7 @@ import { ToastProvider } from 'react-native-toast-notifications'
 import { StatusBar } from 'expo-status-bar'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useKeepAwake } from 'expo-keep-awake'
+import { TourGuideProvider, TourGuideOverlay } from '@wrack/react-native-tour-guide'
 
 
 
@@ -40,23 +41,26 @@ export default function App() {
             <ToastProvider>
               <PersistGate loading={null} persistor={persister}>
                 <GestureHandlerRootView style={{ flex: 1 }}>
-                  <BottomSheetModalProvider>
-                    <NavigationContainer>
-                      <PostHogProvider
-                        apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY}
-                        debug={__DEV__}
-                        options={{
-                          host: process.env.EXPO_PUBLIC_POSTHOG_HOST,
-                          disabled: __DEV__,
-                        }}
-                        autocapture={{
-                          captureScreens: false,
-                          captureTouches: true,
-                        }}>
-                        <RootNavigator />
-                      </PostHogProvider>
-                    </NavigationContainer>
-                  </BottomSheetModalProvider>
+                  <TourGuideProvider>
+                    <BottomSheetModalProvider>
+                      <NavigationContainer>
+                        <PostHogProvider
+                          apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY}
+                          debug={__DEV__}
+                          options={{
+                            host: process.env.EXPO_PUBLIC_POSTHOG_HOST,
+                            disabled: __DEV__,
+                          }}
+                          autocapture={{
+                            captureScreens: false,
+                            captureTouches: true,
+                          }}>
+                          <RootNavigator />
+                        </PostHogProvider>
+                      </NavigationContainer>
+                    </BottomSheetModalProvider>
+                    <TourGuideOverlay />
+                  </TourGuideProvider>
                 </GestureHandlerRootView>
               </PersistGate>
             </ToastProvider>

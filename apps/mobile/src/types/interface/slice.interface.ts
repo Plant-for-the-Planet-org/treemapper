@@ -21,6 +21,7 @@ export interface AppInitialState {
   refetchProject: string,
   imageSize: number,
   userProjectSpecies: IScientificSpecies[]
+  seenTours: Record<string, boolean>
 }
 
 export interface SyncSlice {

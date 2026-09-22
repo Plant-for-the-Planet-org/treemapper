@@ -20,6 +20,7 @@ const initialState: AppInitialState = {
   imageSize: 0,
   refetchProject: '',
   userProjectSpecies: [],
+  seenTours: {},
 }
 
 const appStateSlice = createSlice({
@@ -87,12 +88,17 @@ const appStateSlice = createSlice({
     clearImageSize(state) {
       state.imageSize = 0
     },
+    // Tours are a device-level "has this hardware seen it" concept, not an
+    // account one, so they survive logoutAppUser below like speciesSync does.
+    markTourSeen(state, action: PayloadAction<string>) {
+      state.seenTours[action.payload] = true
+    },
     logoutAppUser(state) {
-      return { ...initialState, speciesSync: true, speciesLocalURL: state.speciesLocalURL , lastServerInterventionpage: ''}
+      return { ...initialState, speciesSync: true, speciesLocalURL: state.speciesLocalURL, lastServerInterventionpage: '', seenTours: state.seenTours }
     },
   },
 })
 
-export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData, updateRefetchProject, updateUserPojectSpecies } = appStateSlice.actions
+export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData, updateRefetchProject, updateUserPojectSpecies, markTourSeen } = appStateSlice.actions
 
 export default appStateSlice.reducer

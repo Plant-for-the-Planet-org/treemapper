@@ -37,8 +37,9 @@ import { useToast } from 'react-native-toast-notifications'
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
-import { updateNewIntervention } from 'src/store/slice/appStateSlice'
+import { markTourSeen, updateNewIntervention } from 'src/store/slice/appStateSlice'
 import i18next from 'i18next'
+import { TourTarget, useTourGuide } from '@wrack/react-native-tour-guide'
 import { getRandomPointInPolygon } from 'src/utils/helpers/generatePointInPolygon'
 import CustomDatePicker from 'src/components/common/CustomDatePicker'
 import bbox from '@turf/bbox'
@@ -70,6 +71,8 @@ const InterventionFormView = () => {
   const UserType = useSelector(
     (state: RootState) => state.userState.type
   )
+  const { startTour } = useTourGuide()
+  const seenTours = useSelector((state: RootState) => state.appState.seenTours)
 
   const isTpoUser = true
   const paramId = route.params ? route.params.id : ''
@@ -81,6 +84,31 @@ const InterventionFormView = () => {
       AvoidSoftInput.setShouldMimicIOSBehavior(false);
     };
   }, [])
+
+  // Spike: first-time hint pointing at the intervention type picker, shown
+  // once per device. registerForm is reassigned on every field change (see
+  // handleInterventionType etc.), so a startedRef guards against re-firing
+  // the tour on each of those instead of once when the form first mounts.
+  const tourStartedRef = React.useRef(false)
+  useEffect(() => {
+    if (!registerForm || seenTours['intervention-type-picker'] || tourStartedRef.current) {
+      return
+    }
+    tourStartedRef.current = true
+    startTour([
+      {
+        id: 'intervention-type-picker',
+        targetId: 'intervention-type-picker',
+        title: i18next.t('label.intervention_type'),
+        description: 'Choose what kind of activity this is. The form below adjusts to match.',
+      },
+    ], {
+      tourId: 'intervention-type-picker',
+      onTourEnd: () => {
+        dispatch(markTourSeen('intervention-type-picker'))
+      },
+    })
+  }, [registerForm])
 
 
 
@@ -496,16 +524,18 @@ const InterventionFormView = () => {
                 />
               )}
               {isTpoUser && <View style={styles.divider} />}
-              <CustomDropDown
-                label={i18next.t("label.intervention_type")}
-                data={allIntervention}
-                onSelect={handleInterventionType}
-                selectedValue={{
-                  label: registerForm.title,
-                  value: registerForm.key,
-                  index: 0
-                }}
-              />
+              <TourTarget id="intervention-type-picker">
+                <CustomDropDown
+                  label={i18next.t("label.intervention_type")}
+                  data={allIntervention}
+                  onSelect={handleInterventionType}
+                  selectedValue={{
+                    label: registerForm.title,
+                    value: registerForm.key,
+                    index: 0
+                  }}
+                />
+              </TourTarget>
               {registerForm.optionalLocation && registerForm.entire_site_selected === false ? <SelectionLocationType header={'Location Type'} labelOne={{
                 key: 'Polygon',
                 value: 'Polygon'
