@@ -32,7 +32,7 @@
             "compileSdkVersion": 36
           },
           "ios": {
-            "deploymentTarget": "15.1"
+            "deploymentTarget": "15.5"
           }
         }
       ],

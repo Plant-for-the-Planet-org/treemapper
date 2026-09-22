@@ -15,6 +15,13 @@ import { updateSampleImageUrl } from 'src/store/slice/sampleTreeSlice'
 import { RootState } from 'src/store'
 import i18next from 'src/locales'
 import { useToast } from 'react-native-toast-notifications'
+import { Ionicons } from '@expo/vector-icons'
+import useLogManagement from 'src/hooks/realm/useLogManagement'
+import {
+  detectTree,
+  shouldRunTreeCheck,
+  TreeDetectionResult,
+} from 'src/utils/helpers/treeDetectionHelper'
 
 interface Props {
   imageData: CapturedPicture
@@ -33,6 +40,10 @@ const ImagePreview = (props: Props) => {
   const [imageLoading, setImageLoading] = useState(true)
   const [imageError, setImageError] = useState(false)
   const [processing, setProcessing] = useState(false)
+  const { addNewLog } = useLogManagement()
+  const runTreeCheck = shouldRunTreeCheck(screen)
+  const [treeCheckRunning, setTreeCheckRunning] = useState(runTreeCheck)
+  const [treeCheck, setTreeCheck] = useState<TreeDetectionResult | null>(null)
 
   useEffect(() => {
     // Validate image data on mount
@@ -42,6 +53,36 @@ const ImagePreview = (props: Props) => {
       toast.show('Invalid image data. Please retake the picture.')
     }
   }, [imageData.uri])
+
+  // Offline ML check: does the captured photo look like a tree?
+  // Advisory only. A "not a tree" result shows a warning, but the user can
+  // still continue, because the generic model can miss small saplings.
+  useEffect(() => {
+    if (!runTreeCheck || !imageData.uri) {
+      setTreeCheckRunning(false)
+      return
+    }
+    let cancelled = false
+    setTreeCheckRunning(true)
+    setTreeCheck(null)
+    detectTree(imageData.uri).then(result => {
+      if (cancelled) return
+      setTreeCheck(result)
+      setTreeCheckRunning(false)
+      if (result.status === 'unavailable') {
+        addNewLog({
+          logType: 'INTERVENTION',
+          message: 'Offline tree detection unavailable',
+          logLevel: 'warn',
+          statusCode: '',
+          logStack: JSON.stringify({ message: result.error }),
+        })
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [imageData.uri, runTreeCheck])
 
   const handleImageLoad = () => {
     setImageLoading(false)
@@ -130,6 +171,39 @@ const ImagePreview = (props: Props) => {
     retakePicture()
   }
 
+  const renderTreeCheckBanner = () => {
+    if (!runTreeCheck || imageError || imageLoading) return null
+    if (treeCheckRunning) {
+      return (
+        <View style={[styles.treeBanner, styles.treeBannerChecking]}>
+          <ActivityIndicator size="small" color={Colors.WHITE} />
+          <Text style={styles.treeBannerText}>{i18next.t('label.tree_check_running')}</Text>
+        </View>
+      )
+    }
+    if (treeCheck?.status === 'tree') {
+      return (
+        <View style={[styles.treeBanner, styles.treeBannerOk]}>
+          <Ionicons name="checkmark-circle" size={20} color={Colors.WHITE} />
+          <Text style={styles.treeBannerText}>{i18next.t('label.tree_check_detected')}</Text>
+        </View>
+      )
+    }
+    if (treeCheck?.status === 'not_tree') {
+      return (
+        <View style={[styles.treeBanner, styles.treeBannerWarning]}>
+          <Ionicons name="warning" size={20} color={Colors.WHITE} />
+          <View style={styles.treeBannerTextWrapper}>
+            <Text style={styles.treeBannerText}>{i18next.t('label.tree_check_not_detected')}</Text>
+            <Text style={styles.treeBannerSubText}>{i18next.t('label.tree_check_not_detected_note')}</Text>
+          </View>
+        </View>
+      )
+    }
+    // 'unavailable': stay silent and let the user continue as before.
+    return null
+  }
+
   const renderImageContent = () => {
     if (imageError) {
       return (
@@ -150,6 +224,7 @@ const ImagePreview = (props: Props) => {
           onError={handleImageError}
           cachePolicy="none"
         />
+        {renderTreeCheckBanner()}
         {imageLoading && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={Colors.PRIMARY_DARK} />
@@ -181,7 +256,7 @@ const ImagePreview = (props: Props) => {
           pressHandler={navigateToNext}
           wrapperStyle={styles.noBorderWrapperPreview}
           loading={processing}
-          disable={processing || imageError || imageLoading}
+          disable={processing || imageError || imageLoading || treeCheckRunning}
           hideFadeIn
         />
       </View>
@@ -220,6 +295,42 @@ const styles = StyleSheet.create({
   imageContainerPreview: {
     width: '100%',
     height: '100%',
+  },
+  treeBanner: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  treeBannerChecking: {
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  },
+  treeBannerOk: {
+    backgroundColor: Colors.PRIMARY_DARK,
+  },
+  treeBannerWarning: {
+    backgroundColor: Colors.WARNING,
+  },
+  treeBannerTextWrapper: {
+    flex: 1,
+  },
+  treeBannerText: {
+    marginLeft: 8,
+    fontSize: 14,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.WHITE,
+  },
+  treeBannerSubText: {
+    marginLeft: 8,
+    marginTop: 2,
+    fontSize: 12,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    color: Colors.WHITE,
   },
   loadingOverlay: {
     position: 'absolute',

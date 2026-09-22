@@ -4571,6 +4571,11 @@
   resolved "https://registry.yarnpkg.com/@react-native-masked-view/masked-view/-/masked-view-0.3.2.tgz#7064533a573e3539ec912f59c1f457371bf49dd9"
   integrity sha512-XwuQoW7/GEgWRMovOQtX3A4PrXhyaZm0lVUiY8qJDvdngjLms9Cpdck6SmGAUNqQwcj2EadHC1HwL0bEyoa/SQ==
 
+"@react-native-ml-kit/image-labeling@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@react-native-ml-kit/image-labeling/-/image-labeling-2.0.0.tgz#08e143e00ae9ce0cb92bc8c7fd88dc3ffedada07"
+  integrity sha512-z7lozFOTc13dYpyKem6Dnbz63aj4JEs5NdwW59ytm0YyHPlYzcTTQbZ0exSLRiOQAlQPMfR59gX/9XMpafUXqQ==
+
 "@react-native/assets-registry@0.83.6":
   version "0.83.6"
   resolved "https://registry.yarnpkg.com/@react-native/assets-registry/-/assets-registry-0.83.6.tgz#36c4d986aa2903ab05c29589749618cfd9d2a258"
