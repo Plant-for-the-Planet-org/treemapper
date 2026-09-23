@@ -31,6 +31,9 @@ import MapZoomScale from './MapZoomScale'
 import SiteMapSource from './SiteMapSource'
 import MapPin from 'assets/images/svg/MapPin.svg'
 import { Colors } from 'src/utils/constants'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import useInterventionTour, { useTourAction } from 'src/hooks/useInterventionTour'
+import { TOUR_TARGETS, TOUR_STEPS } from 'src/utils/tour/interventionTour'
 
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -50,6 +53,17 @@ const PointMarkerMap = (props: Props) => {
   const [outOfBoundary, setOutOfBoundary] = useState(false)
   const [loading, setLoading] = useState(true)
   const [selectedCoordinate, setSelectedCoordinate] = useState<[number, number] | null>(null)
+  const { advanceIfOn } = useInterventionTour()
+
+  useEffect(() => {
+    if (selectedCoordinate && selectedCoordinate[0] !== 0) {
+      advanceIfOn(TOUR_STEPS.MAP_TAP)
+    }
+  }, [selectedCoordinate, advanceIfOn])
+
+  // Tapping anywhere on this tour step confirms, same as the button. Its own
+  // guards still run, so a tap before a pin is placed just shows the toast.
+  useTourAction(TOUR_STEPS.CONFIRM_LOCATION, () => checkForAccuracy())
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
   const { boundary } = useSelector((state: RootState) => state.sampleTree)
   const currentUserLocation = useSelector(
@@ -172,6 +186,7 @@ const PointMarkerMap = (props: Props) => {
       toast.show("Please tap your location on the map")
       return
     }
+    advanceIfOn(TOUR_STEPS.CONFIRM_LOCATION)
     if (has_sample_trees) {
       dispatch(updateSampleTreeCoordinates([selectedCoordinate]))
     } else {
@@ -274,51 +289,54 @@ const PointMarkerMap = (props: Props) => {
 
   return (
     <View style={styles.container}>
-      <Map
-        style={styles.map}
-        ref={mapRef}
-        logo={false}
-        attribution={false}
-        onRegionDidChange={handleDrag}
-        onPress={handleMapPress}
-        onDidFinishLoadingMap={!mapRender ? handleCameraViewChange : null}
-        onRegionIsChanging={() => {
-          setLoading(true)
-        }}
-        mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
-        <Camera ref={cameraRef} maxZoom={18} />
-        <UserLocation heading minDisplacement={1} />
-        {/* Boundary of the site picked for this intervention, outline only.
-            site_id is 'other' (or empty) when no real site was chosen --
-            in that case no boundary is drawn. */}
-        {!!siteId && siteId !== 'other' && (
-          <SiteMapSource isSatellite={mainMapView === 'SATELLITE'} siteId={siteId} />
-        )}
-        {geoJSON && (
-          <MapShapeSource
-            geoJSON={[geoJSON]}
-            onShapeSourcePress={() => { }}
-            showError={outOfBoundary}
-          />
-        )}
-        {has_sample_trees && <MapMarkers
-          hasSampleTree={has_sample_trees}
-          sampleTreeData={tree_details} />}
-        {selectedCoordinate && (
-          <Marker lngLat={selectedCoordinate} anchor="bottom">
-            <MapPin fill={outOfBoundary ? Colors.LIGHT_RED : Colors.NEW_PRIMARY} />
-          </Marker>
-        )}
-      </Map>
+      <TourTarget id={TOUR_TARGETS.POINT_MAP} style={styles.map}>
+        <Map
+          style={styles.mapFill}
+          ref={mapRef}
+          logo={false}
+          attribution={false}
+          onRegionDidChange={handleDrag}
+          onPress={handleMapPress}
+          onDidFinishLoadingMap={!mapRender ? handleCameraViewChange : null}
+          onRegionIsChanging={() => {
+            setLoading(true)
+          }}
+          mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
+          <Camera ref={cameraRef} maxZoom={18} />
+          <UserLocation heading minDisplacement={1} />
+          {/* Boundary of the site picked for this intervention, outline only.
+              site_id is 'other' (or empty) when no real site was chosen --
+              in that case no boundary is drawn. */}
+          {!!siteId && siteId !== 'other' && (
+            <SiteMapSource isSatellite={mainMapView === 'SATELLITE'} siteId={siteId} />
+          )}
+          {geoJSON && (
+            <MapShapeSource
+              geoJSON={[geoJSON]}
+              onShapeSourcePress={() => { }}
+              showError={outOfBoundary}
+            />
+          )}
+          {has_sample_trees && <MapMarkers
+            hasSampleTree={has_sample_trees}
+            sampleTreeData={tree_details} />}
+          {selectedCoordinate && (
+            <Marker lngLat={selectedCoordinate} anchor="bottom">
+              <MapPin fill={outOfBoundary ? Colors.LIGHT_RED : Colors.NEW_PRIMARY} />
+            </Marker>
+          )}
+        </Map>
+      </TourTarget>
       <SatelliteIconWrapper low />
       {/* <MapZoomScale mapRef={mapRef} position="top-left" padTop={20} /> */}
-      <CustomButton
-        label={i18next.t('label.tree_map_marking_btn')}
-        containerStyle={styles.btnContainer}
-        pressHandler={checkForAccuracy}
-        loading={loading}
-        disable={loading || outOfBoundary || !selectedCoordinate}
-      />
+      <TourTarget id={TOUR_TARGETS.POINT_CONFIRM} style={styles.btnContainer}>
+        <CustomButton
+          label={i18next.t('label.tree_map_marking_btn')}
+          pressHandler={checkForAccuracy}
+          loading={loading}
+          disable={loading || outOfBoundary || !selectedCoordinate}
+        />
+      </TourTarget>
       <AlertModal
         visible={alertModal}
         heading={i18next.t('label.poor_accuracy')}
@@ -344,6 +362,13 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
     alignSelf: 'stretch',
+  },
+  // The TourTarget wrapper takes the map's place in the flex column, so the
+  // map itself just fills the wrapper. Keeping `map` as the wrapper's style
+  // means the measured spotlight region is exactly the map's box.
+  mapFill: {
+    width: '100%',
+    height: '100%',
   },
   btnContainer: {
     position: 'absolute',

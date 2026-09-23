@@ -32,6 +32,9 @@ import { RootState } from 'src/store'
 import EyeIcon from 'assets/images/svg/EyeIcon.svg'
 import { updateProjectModal } from 'src/store/slice/displayMapSlice'
 import useLocationPermission from 'src/hooks/useLocationPermission'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import useInterventionTour, { useTourAction } from 'src/hooks/useInterventionTour'
+import { TOUR_TARGETS, TOUR_STEPS } from 'src/utils/tour/interventionTour'
 
 
 interface Props {
@@ -48,6 +51,25 @@ const AddOptionModal = (props: Props) => {
   const userType = useSelector((state: RootState) => state.userState.type)
   const GPSLocation = useSelector((state: RootState) => state.gpsState.user_location)
   const showPlotFeature = useSelector((state: RootState) => state.userState.showPlotFeature)
+  const { advanceIfOn } = useInterventionTour()
+
+  const handleSingleTree = () => {
+    if (!checkWhetherProjectIsSelected()) {
+      return
+    }
+    // No pre-navigation location fetch here: the marker screen acquires
+    // location itself on mount. Firing getCurrentPositionAsync now raced
+    // the destination's own location consumers and crashed Android.
+    navigation.navigate('InterventionForm', {
+      id: 'single-tree-registration',
+    })
+    props.setVisible(false)
+    advanceIfOn(TOUR_STEPS.SINGLE_TREE)
+  }
+
+  // The tour cannot reach this row by touch (it renders outside the "+"
+  // button's bounds), so it calls this handler directly instead.
+  useTourAction(TOUR_STEPS.SINGLE_TREE, handleSingleTree)
 
 
 
@@ -123,17 +145,8 @@ const AddOptionModal = (props: Props) => {
       svgIcon: <SingleTreeIcon width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.single_tree'),
       coming_soon: false,
-      onPress: () => {
-        if (checkWhetherProjectIsSelected()) {
-          // No pre-navigation location fetch here: the marker screen acquires
-          // location itself on mount. Firing getCurrentPositionAsync now raced
-          // the destination's own location consumers and crashed Android.
-          navigation.navigate('InterventionForm', {
-            id: 'single-tree-registration',
-          })
-          props.setVisible(false)
-        }
-      },
+      tourTargetId: TOUR_TARGETS.ADD_SINGLE_TREE,
+      onPress: handleSingleTree,
       disabled: false,
     },
     {
@@ -160,24 +173,30 @@ const AddOptionModal = (props: Props) => {
 
   const calcComponents = useMemo(() => {
     return addOptions.map((option) => {
-      return (
-        (
-          <TouchableOpacity
-            key={String(option.title)}
-            style={styles.addButtonOptionWrap}
-            disabled={option.disabled}
-            onPress={option.onPress}>
-            <View style={styles.addButtonOption}>
-              <View style={styles.icon}>{option.svgIcon}</View>
-              <View>
-                <Text style={styles.text}>{i18next.t(option.title)}</Text>
-                {option.coming_soon && (
-                  <Text style={styles.coming_soon}>{i18next.t('label.coming_soon')}</Text>
-                )}
-              </View>
+      const row = (
+        <TouchableOpacity
+          key={String(option.title)}
+          style={styles.addButtonOptionWrap}
+          disabled={option.disabled}
+          onPress={option.onPress}>
+          <View style={styles.addButtonOption}>
+            <View style={styles.icon}>{option.svgIcon}</View>
+            <View>
+              <Text style={styles.text}>{i18next.t(option.title)}</Text>
+              {option.coming_soon && (
+                <Text style={styles.coming_soon}>{i18next.t('label.coming_soon')}</Text>
+              )}
             </View>
-          </TouchableOpacity>
-        )
+          </View>
+        </TouchableOpacity>
+      )
+      if (!option.tourTargetId) {
+        return row
+      }
+      return (
+        <TourTarget key={String(option.title)} id={option.tourTargetId}>
+          {row}
+        </TourTarget>
       )
     })
   }, [addOptions])

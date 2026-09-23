@@ -25,6 +25,9 @@ import AskSampleTreeModal from 'src/components/common/AskSampleTreeModal'
 import AlertModal from 'src/components/common/AlertModal'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 import i18next from 'i18next'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import useInterventionTour, { useTourAction, useTourStage } from 'src/hooks/useInterventionTour'
+import { TOUR_TARGETS, TOUR_STEPS } from 'src/utils/tour/interventionTour'
 
 
 
@@ -42,6 +45,10 @@ const TotalTreesView = () => {
   const [showExistingTree, setShowExistingTree] = useState('')
   const toast = useToast()
   const [showSampleTreeModal, setShowSampleTreeModal] = useState(false)
+  const { advanceIfOn, suspendTour } = useInterventionTour()
+  useTourStage('totalTrees')
+  // Tapping anywhere on this tour step continues, same as the button.
+  useTourAction(TOUR_STEPS.REVIEW_SPECIES, () => navigationToNext())
 
   const goBack = () => {
     if (isEditTrees) {
@@ -57,6 +64,12 @@ const TotalTreesView = () => {
     RealmSchema.Intervention, interventionId
   )
   const navigationToNext = async () => {
+    advanceIfOn(TOUR_STEPS.REVIEW_SPECIES)
+    // DynamicForm sits between here and the review screen. For a single tree it
+    // has no fields, so it renders nothing and resets straight through -- but
+    // it is still a screen the walkthrough does not cover, so hide the overlay
+    // rather than let it flash against an empty one. The review screen resumes.
+    suspendTour()
     const { has_sample_trees } = setUpIntervention(intervention.intervention_key)
     if (!isEditTrees) {
       const result = await updateInterventionLastScreen(intervention.form_id, 'TOTAL_TREES')
@@ -214,13 +227,14 @@ const TotalTreesView = () => {
               wrapperStyle={styles.borderWrapper}
               labelStyle={styles.highlightLabel}
             />
-            <CustomButton
-              label={isEditTrees ? "Save" : "Continue"}
-              containerStyle={styles.btnWrapper}
-              pressHandler={navigationToNext}
-              disable={intervention.planted_species.length === 0}
-              grayOut={intervention.planted_species.length === 0}
-            />
+            <TourTarget id={TOUR_TARGETS.SPECIES_CONTINUE} style={styles.btnWrapper}>
+              <CustomButton
+                label={isEditTrees ? "Save" : "Continue"}
+                pressHandler={navigationToNext}
+                disable={intervention.planted_species.length === 0}
+                grayOut={intervention.planted_species.length === 0}
+              />
+            </TourTarget>
           </View>
         )}
       </View>

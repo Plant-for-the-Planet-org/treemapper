@@ -26,6 +26,9 @@ import { getMobileUserDetails } from '../../api/api.fetch'
 import { updateUserDetails } from '../../store/slice/userStateSlice'
 import ProjectInviteModal from './DeepLinkModal'
 import SyncMonitoringPlot from '../monitoringPlot/SyncMonitoringPlot'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import { useTourAction } from 'src/hooks/useInterventionTour'
+import { TOUR_TARGETS, TOUR_STEPS } from 'src/utils/tour/interventionTour'
 
 interface Props {
   toggleFilterModal: () => void
@@ -36,6 +39,8 @@ const HomeHeader = (props: Props) => {
   // Self-triggers: registers the device once after login and on every foreground.
   useDeviceRegistration()
   const { toggleFilterModal, toggleProjectModal } = props
+  // Tapping anywhere on this tour step opens the picker, same as the icon.
+  useTourAction(TOUR_STEPS.PROJECT, toggleProjectModal)
   useAppStartup()
   const { addNewIntervention, interventionExists } = useInterventionManagement()
   const isCheckingNewInterventions = useRef(false)
@@ -311,12 +316,14 @@ const HomeHeader = (props: Props) => {
       </View>
       <ProjectInviteModal />
       <View style={styles.sectionWrapper} />
-      {userType && <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>
-        <HomeMapIcon
-          onPress={toggleProjectModal}
-          width={SCALE_24} height={SCALE_24}
-        />
-      </Pressable>}
+      {userType && <TourTarget id={TOUR_TARGETS.PROJECT_PICKER}>
+        <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>
+          <HomeMapIcon
+            onPress={toggleProjectModal}
+            width={SCALE_24} height={SCALE_24}
+          />
+        </Pressable>
+      </TourTarget>}
       <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleFilterModal}>
         <FilterMapIcon
           onPress={toggleFilterModal}

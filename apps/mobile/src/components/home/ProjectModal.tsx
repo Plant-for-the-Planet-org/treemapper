@@ -33,6 +33,8 @@ import AddIcon from 'assets/images/svg/AddIcon.svg'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import useInterventionTour from 'src/hooks/useInterventionTour'
+import { TOUR_STEPS } from 'src/utils/tour/interventionTour'
 
 interface Props {
   isVisible: boolean
@@ -58,6 +60,7 @@ const ProjectModal = (props: Props) => {
   })
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const { advanceIfOn } = useInterventionTour()
   const realm = useRealm()
   const dispatch = useDispatch()
 
@@ -268,7 +271,11 @@ const ProjectModal = (props: Props) => {
       name: '',
       id: '',
     }))
-  }, [dispatch])
+
+    // The tour's opening step is gated on a project actually being chosen, not
+    // on the picker being opened -- the rest of the flow writes to a project.
+    advanceIfOn(TOUR_STEPS.PROJECT)
+  }, [dispatch, advanceIfOn])
 
   // Site selection handler
   const handleSiteSelection = useCallback((siteId: string, site: any) => {

@@ -27,6 +27,9 @@ import { updateSelectedSpeciesId, updateSpeciesUpdatedAt } from 'src/store/slice
 import RotatingView from 'src/components/common/RotatingView'
 import RefreshIcon from 'assets/images/svg/RefreshIcon.svg';
 import { updateSpeciesDownloaded } from 'src/store/slice/appStateSlice'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import { useTourStage } from 'src/hooks/useInterventionTour'
+import { TOUR_TARGETS } from 'src/utils/tour/interventionTour'
 
 
 const ManageSpeciesView = () => {
@@ -54,6 +57,7 @@ const ManageSpeciesView = () => {
 
   const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false)
   const dispatch = useDispatch()
+  useTourStage('manageSpecies')
   useEffect(() => {
     const InterventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
     if (InterventionData) {
@@ -230,13 +234,15 @@ const ManageSpeciesView = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Header label={i18next.t("label.manage_species")} rightComponent={renderRightComponent()} />
-      <ManageSpeciesHome
-        handleSpeciesPress={handleSpeciesPress}
-        toggleFavSpecies={addRemoveUserFavSpecies}
-        userFavSpecies={[...userFavSpecies]}
-        isManageSpecies={isManageSpecies}
-        currentProjectUid={currentProject.projectId || ''}
-      />
+      <TourTarget id={TOUR_TARGETS.SPECIES_LIST} style={styles.tourFill}>
+        <ManageSpeciesHome
+          handleSpeciesPress={handleSpeciesPress}
+          toggleFavSpecies={addRemoveUserFavSpecies}
+          userFavSpecies={[...userFavSpecies]}
+          isManageSpecies={isManageSpecies}
+          currentProjectUid={currentProject.projectId || ''}
+        />
+      </TourTarget>
       <RemoveSpeciesModal
         isVisible={showRemoveFavModal}
         toggleModal={toggleRemoveFavModal}
@@ -265,6 +271,11 @@ const ManageSpeciesView = () => {
 export default ManageSpeciesView
 
 const styles = StyleSheet.create({
+  // TourTarget wraps its children in a plain View; the species list is the
+  // screen's flex child, so the wrapper has to carry the flex itself.
+  tourFill: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.WHITE

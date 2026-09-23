@@ -40,6 +40,7 @@ import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interfa
 import { markTourSeen, updateNewIntervention } from 'src/store/slice/appStateSlice'
 import i18next from 'i18next'
 import { TourTarget, useTourGuide } from '@wrack/react-native-tour-guide'
+import useInterventionTour from 'src/hooks/useInterventionTour'
 import { getRandomPointInPolygon } from 'src/utils/helpers/generatePointInPolygon'
 import CustomDatePicker from 'src/components/common/CustomDatePicker'
 import bbox from '@turf/bbox'
@@ -72,6 +73,7 @@ const InterventionFormView = () => {
     (state: RootState) => state.userState.type
   )
   const { startTour } = useTourGuide()
+  const { isTourRunning: walkthroughRunning } = useInterventionTour()
   const seenTours = useSelector((state: RootState) => state.appState.seenTours)
 
   const isTpoUser = true
@@ -91,7 +93,11 @@ const InterventionFormView = () => {
   // the tour on each of those instead of once when the form first mounts.
   const tourStartedRef = React.useRef(false)
   useEffect(() => {
-    if (!registerForm || seenTours['intervention-type-picker'] || tourStartedRef.current) {
+    // The Multiple Trees walkthrough passes straight through this screen
+    // (skipForm replaces it before it paints). Starting this hint then would
+    // swap the walkthrough out for a one-step tour on a screen the user never
+    // sees, and the walkthrough would be gone with no way back.
+    if (!registerForm || seenTours['intervention-type-picker'] || tourStartedRef.current || walkthroughRunning) {
       return
     }
     tourStartedRef.current = true
@@ -108,7 +114,7 @@ const InterventionFormView = () => {
         dispatch(markTourSeen('intervention-type-picker'))
       },
     })
-  }, [registerForm])
+  }, [registerForm, walkthroughRunning])
 
 
 

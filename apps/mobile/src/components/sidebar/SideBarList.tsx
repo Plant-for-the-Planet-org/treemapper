@@ -15,6 +15,11 @@ import { RootState } from 'src/store'
 import { Ionicons } from '@expo/vector-icons'
 
 import { SCALE_24 } from 'src/utils/constants/spacing'
+import AlertModal from '../common/AlertModal'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import useInterventionTour from 'src/hooks/useInterventionTour'
 
 interface Props {
   isLoggedIn: boolean
@@ -24,6 +29,19 @@ const SideBarList = (props: Props) => {
   const { isLoggedIn } = props
   const { t } = useTranslation()
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+  const [showTourConfirm, setShowTourConfirm] = useState(false)
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const { startSingleTreeTour } = useInterventionTour()
+
+  // The first spotlight sits on the home screen (the project picker, or the
+  // "+" button when a project is already chosen), so the drawer has to be off
+  // screen before the tour starts or the step would measure a target that is
+  // about to unmount.
+  const beginTour = () => {
+    setShowTourConfirm(false)
+    navigation.popToTop()
+    startSingleTreeTour()
+  }
   const UserType = useSelector(
     (state: RootState) => state.userState.type
   )
@@ -64,6 +82,15 @@ const SideBarList = (props: Props) => {
       icon: <View style={styles.guideIconWrapper}><Ionicons name={'book'} size={16} color="#fff" style={{paddingTop: 2}} /></View>,
       visible: true,
       key: 'guide'
+    },
+    {
+      label: t('label.show_me_how'),
+      icon: <View style={styles.guideIconWrapper}><Ionicons name="footsteps" size={16} color="#fff" style={{ paddingTop: 2 }} /></View>,
+      // Available signed out too. The whole flow works without an account --
+      // the intervention is written to Realm and syncs later -- and the tour
+      // drops its project step when there is no project picker to point at.
+      visible: true,
+      key: 'intervention_tour'
     },
     {
       label: t('label.activity_logs'),
@@ -111,12 +138,23 @@ const SideBarList = (props: Props) => {
             item={item}
             key={item.key}
             onPressFeedback={() => setShowFeedbackModal(true)}
+            onPressTour={() => setShowTourConfirm(true)}
           />
         )}
       />
       <FeedbackModal
         isVisible={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
+      />
+      <AlertModal
+        visible={showTourConfirm}
+        heading={t('label.tour_start_alert_title')}
+        message={t('label.tour_start_alert_message')}
+        primaryBtnText={t('label.tour_start_alert_primary')}
+        onPressPrimaryBtn={beginTour}
+        showSecondaryButton
+        secondaryBtnText={t('label.tour_start_alert_secondary')}
+        onPressSecondaryBtn={() => setShowTourConfirm(false)}
       />
       <View style={{ height: 30 }} />
     </View>

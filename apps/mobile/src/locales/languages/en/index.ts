@@ -21,6 +21,7 @@ import Intervention from './user/intervention.json'
 import CommonStrings from './user/commonData.json'
 import Plots from './monitoringPlots/plots.json'
 import Other from './user/other.json'
+import Tour from './user/tour.json'
 export default {
   ...WelcomeScreen,
   ...RegisterTree,
@@ -44,5 +45,6 @@ export default {
   ...Intervention,
   ...CommonStrings,
   ...Plots,
-  ...Other
+  ...Other,
+  ...Tour
 };

@@ -46,6 +46,9 @@ import { getSingleIntervention, getProjectForms } from 'src/api/api.fetch'
 import useFormsData from 'src/hooks/realm/useFormsData'
 import { convertInventoryToIntervention } from 'src/utils/helpers/interventionHelper/legacyInventoryIntervention'
 import { convertDateToTimestamp } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import useInterventionTour, { useTourAction, useTourStage } from 'src/hooks/useInterventionTour'
+import { TOUR_TARGETS, TOUR_STEPS } from 'src/utils/tour/interventionTour'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -66,6 +69,11 @@ const InterventionPreviewView = () => {
   )
   const { saveIntervention, updateInterventionMetaData, resetIntervention, addNewIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
+  useTourStage('interventionPreview')
+  const { advanceIfOn } = useInterventionTour()
+  // Tapping anywhere on this tour step saves, same as the button. Its own
+  // guards (project assigned, required forms completed) still run first.
+  useTourAction(TOUR_STEPS.SAVE, () => navigateToNext())
 
   // Forms targeted at this intervention (by site + intervention type). Cached
   // forms are reactive, so confirming a form re-renders and unblocks Save.
@@ -274,6 +282,11 @@ const InterventionPreviewView = () => {
         key: 'DISPLAY_MAP',
       }),
     )
+    // Last step of the walkthrough, so this closes the tour rather than
+    // advancing it. Placed after the save actually succeeds: a save blocked by
+    // a missing project or an unfinished form returns above, and the tour
+    // should still be pointing at the button.
+    advanceIfOn(TOUR_STEPS.SAVE)
     navigation.popToTop()
   }
 
@@ -374,11 +387,12 @@ const InterventionPreviewView = () => {
         {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>{i18next.t("label.collected_using")}{InterventionData.is_legacy ? '1.0.8' : Application.nativeApplicationVersion}</Text>}
         <View style={styles.footer} />
       </ScrollView>
-      {!InterventionData.is_complete && <CustomButton
-        label={i18next.t("label.save")}
-        pressHandler={navigateToNext}
-        containerStyle={styles.btnContainer}
-      />}
+      {!InterventionData.is_complete && <TourTarget id={TOUR_TARGETS.PREVIEW_SAVE} style={styles.btnContainer}>
+        <CustomButton
+          label={i18next.t("label.save")}
+          pressHandler={navigateToNext}
+        />
+      </TourTarget>}
     </SafeAreaView>
   )
 }

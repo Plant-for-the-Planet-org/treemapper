@@ -12,6 +12,9 @@ import { Colors, Typography } from 'src/utils/constants'
 import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { Svg, Defs, Rect, Mask, Circle } from 'react-native-svg';
 import i18next from 'i18next'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import useInterventionTour, { useTourAction } from 'src/hooks/useInterventionTour'
+import { TOUR_TARGETS, TOUR_STEPS } from 'src/utils/tour/interventionTour'
 const windowWidth = Dimensions.get('window').width;
 
 const WrappedSvg = () => (
@@ -34,6 +37,7 @@ const WrappedSvg = () => (
 
 const AddBottomTabIcon = () => {
   const [open, setOpen] = useState(false)
+  const { advanceIfOn } = useInterventionTour()
 
   const rotation = useDerivedValue(() => {
     return withTiming(open ? '135deg' : '0deg')
@@ -46,7 +50,17 @@ const AddBottomTabIcon = () => {
   const onAddPress = () => {
     ctaHaptic()
     setOpen(prev => !prev)
+    advanceIfOn(TOUR_STEPS.ADD)
   }
+
+  // Tapping anywhere on this tour step opens the menu. Opens rather than
+  // toggles: the press handler is a toggle, and a stray tap while the menu is
+  // already up would shut it again mid-step.
+  useTourAction(TOUR_STEPS.ADD, () => {
+    if (!open) {
+      onAddPress()
+    }
+  })
   return (
     <View style={{ flex: 1, justifyContent: "center" }}>
       {open && <Pressable
@@ -56,16 +70,18 @@ const AddBottomTabIcon = () => {
       <View style={{ width: windowWidth / 4, height: '100%', position: 'absolute' }}>
         <WrappedSvg />
       </View>
-      <Pressable
-        style={styles.addIconContainer}
-        onPress={() => onAddPress()}>
-        <View style={styles.iconWrapper}>
-          <Animated.View style={[rotationStyle]}>
-            <AddTabIcon />
-          </Animated.View>
-        </View>
-        <AddOptionModal setVisible={setOpen} visible={open} />
-      </Pressable>
+      <TourTarget id={TOUR_TARGETS.ADD_BUTTON} style={styles.addIconContainer}>
+        <Pressable
+          style={styles.addIconFill}
+          onPress={() => onAddPress()}>
+          <View style={styles.iconWrapper}>
+            <Animated.View style={[rotationStyle]}>
+              <AddTabIcon />
+            </Animated.View>
+          </View>
+          <AddOptionModal setVisible={setOpen} visible={open} />
+        </Pressable>
+      </TourTarget>
       <View style={[styles.labelContainer, { marginTop: Platform.OS==='ios' ? '35%' : '24%' }]}>
         <Text
           style={[
@@ -104,6 +120,12 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 0.5,
     zIndex:10
+  },
+  addIconFill: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   iconWrapper: {
     // marginBottom:5

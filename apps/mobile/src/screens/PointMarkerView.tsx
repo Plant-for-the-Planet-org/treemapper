@@ -14,6 +14,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRoute, RouteProp } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { StatusBar } from 'expo-status-bar'
+import { useTourStage } from 'src/hooks/useInterventionTour'
 
 const PointMarkerView = () => {
   const [showInfoModal, setShowInfoModal] = useState(false)
@@ -29,6 +30,8 @@ const PointMarkerView = () => {
   const interventionData = useObject<InterventionData>(
     RealmSchema.Intervention, interventionID
   )
+
+  useTourStage('pointMarker')
 
   if (!interventionData) {
     return (
