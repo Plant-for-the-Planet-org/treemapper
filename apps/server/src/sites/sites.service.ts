@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
-import { eq, and, desc, count, sql, inArray } from 'drizzle-orm';
+import { eq, and, desc, count, sql, inArray, isNull } from 'drizzle-orm';
 import { site, project, user, projectMember } from '../database/schema'; // Adjust import path as needed
 import { CreateSiteDto, UpdateSiteDto, UpdateSiteImagesDto } from './dto/site.dto';
 import { generateUid } from 'src/util/uidGenerator';
@@ -438,7 +438,7 @@ export class SiteService {
       .from(projectMember)
       .innerJoin(user, eq(projectMember.userId, user.id))
       .innerJoin(site, eq(projectMember.projectId, site.projectId))
-      .where(eq(site.uid, siteUid))
+      .where(and(eq(site.uid, siteUid), isNull(projectMember.deletedAt)))
 
     // Filter members who have access to this specific site
     const membersWithAccess = allMembers.filter(member => {
@@ -500,7 +500,7 @@ export class SiteService {
       })
       .from(projectMember)
       .innerJoin(user, eq(projectMember.userId, user.id))
-      .where(eq(projectMember.projectId, projectId));
+      .where(and(eq(projectMember.projectId, projectId), isNull(projectMember.deletedAt)));
     console.log('Members with members:', members);
 
     return members.map(member => ({
@@ -566,7 +566,8 @@ export class SiteService {
       .where(
         and(
           eq(projectMember.projectId, siteData[0].projectId),
-          eq(user.uid, dto.memberUid)
+          eq(user.uid, dto.memberUid),
+          isNull(projectMember.deletedAt)
         )
       )
       .limit(1);
@@ -642,7 +643,8 @@ export class SiteService {
       .where(
         and(
           eq(projectMember.projectId, siteData[0].projectId),
-          eq(user.uid, dto.memberUid)
+          eq(user.uid, dto.memberUid),
+          isNull(projectMember.deletedAt)
         )
       )
       .limit(1);

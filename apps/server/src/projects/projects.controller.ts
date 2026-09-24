@@ -164,7 +164,7 @@ export class ProjectsController {
     @Membership() membership: any,
     @Body() updateRoleDto: UpdateProjectRoleDto,
   ) {
-    return this.projectsService.updateMemberRole(memberId, membership, updateRoleDto);
+    return this.projectsService.updateMemberRole(memberId, membership, updateRoleDto, id);
   }
 
   @Patch(':id/members/:memberId/extra-permissions')
@@ -203,7 +203,7 @@ export class ProjectsController {
     @Membership() membership: any,
     @CurrentUser() userData: User,
   ) {
-    return this.projectsService.removeMember(memberId, membership, userData);
+    return this.projectsService.removeMember(memberId, membership, userData, id);
   }
 
 

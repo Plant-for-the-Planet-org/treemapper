@@ -107,31 +107,38 @@ const roleVariant = (role: string): 'default' | 'secondary' | 'outline' => {
 }
 
 // Build a short human sentence for a team-activity audit entry.
+// The audit row's user is always the person who acted. For anything done *to*
+// someone else the member is carried in the values, so those lines name the
+// member and add "by <actor>" instead of naming the admin as the subject.
 const describeActivity = (a: any): { actor: string; text: string } => {
-    const actor = a.userDisplayName || a.userEmail?.split('@')[0] || 'Someone'
+    const who = a.userDisplayName || a.userEmail?.split('@')[0] || 'Someone'
     const nv = a.newValues || {}
-    const role = nv.projectRole ? capitalize(nv.projectRole) : null
+    const ov = a.oldValues || {}
+    const role = nv.role || nv.projectRole ? capitalize(nv.role || nv.projectRole) : null
+    const member = nv.memberName || ov.memberName || nv.memberEmail || ov.memberEmail
+    const subject = member || who
+    const by = member && member !== who ? ` by ${who}` : ''
     switch (`${a.entityType}:${a.action}`) {
         case 'project_invite:invite':
-            return { actor, text: `invited ${nv.email || 'a new member'}${role ? ` as ${role}` : ''}` }
+            return { actor: who, text: `invited ${nv.email || 'a new member'}${role ? ` as ${role}` : ''}` }
         case 'project_invite:accept_invite':
         case 'project_member:accept_invite':
         case 'project_member:create':
-            return { actor, text: `joined the project${role ? ` as ${role}` : ''}` }
+            return { actor: who, text: `joined the project${role ? ` as ${role}` : ''}` }
         case 'project_member:role_change':
-            return { actor, text: role ? `was set to ${role}` : 'had their role changed' }
+            return { actor: subject, text: `${role ? `was set to ${role}` : 'had their role changed'}${by}` }
         case 'project_member:permission_change':
-            return { actor, text: 'had their permissions updated' }
+            return { actor: subject, text: `had their permissions updated${by}` }
         case 'project_member:soft_delete':
         case 'project_member:delete':
-            return { actor, text: 'was removed from the project' }
+            return { actor: subject, text: `was removed from the project${by}` }
         case 'project_invite:decline_invite':
-            return { actor, text: 'declined an invitation' }
+            return { actor: who, text: 'declined an invitation' }
         case 'bulk_invite:invite':
         case 'bulk_invite:create':
-            return { actor, text: 'created an invite link' }
+            return { actor: who, text: 'created an invite link' }
         default:
-            return { actor, text: `${String(a.action).replace(/_/g, ' ')} ${String(a.entityType).replace(/_/g, ' ')}` }
+            return { actor: who, text: `${String(a.action).replace(/_/g, ' ')} ${String(a.entityType).replace(/_/g, ' ')}` }
     }
 }
 

@@ -353,7 +353,14 @@ export class ProjectsService {
         .from(projectMember)
         .innerJoin(project, eq(projectMember.projectId, project.id))
         .innerJoin(workspace, eq(project.workspaceId, workspace.id))
-        .where(eq(projectMember.userId, userData.id));
+        .where(
+          and(
+            eq(projectMember.userId, userData.id),
+            // Removal only soft deletes the membership, so without this the
+            // project stays in the user's own list after they are removed.
+            isNull(projectMember.deletedAt)
+          )
+        );
 
       const workspacesResult = await this.drizzleService.db
         .select({
@@ -424,7 +431,10 @@ export class ProjectsService {
         .where(
           and(
             eq(projectMember.projectId, projectData.id),
-            eq(projectMember.userId, userId)
+            eq(projectMember.userId, userId),
+            // Without this a removed member keeps every project permission,
+            // because the row is still there with deleted_at set.
+            isNull(projectMember.deletedAt)
           )
         )
         .limit(1);
@@ -680,7 +690,10 @@ export class ProjectsService {
           .where(
             and(
               eq(projectMember.projectId, membership.projectId),
-              eq(projectMember.userId, existingUser.id)
+              eq(projectMember.userId, existingUser.id),
+              // A removed member is no longer a member, so they can be invited
+              // back; their old row is revived when they accept.
+              isNull(projectMember.deletedAt)
             )
           )
           .then(results => results[0] || null);
@@ -803,7 +816,12 @@ export class ProjectsService {
       })
       .from(projectMember)
       .innerJoin(user, eq(user.id, projectMember.userId))
-      .where(eq(projectMember.projectId, membership.projectId))
+      .where(
+        and(
+          eq(projectMember.projectId, membership.projectId),
+          isNull(projectMember.deletedAt)
+        )
+      )
       .orderBy(desc(projectMember.joinedAt));
 
     const invitations = await this.drizzleService.db
@@ -1237,6 +1255,7 @@ export class ProjectsService {
             and(
               eq(projectMember.projectId, invite.invite.projectId),
               eq(projectMember.userId, userId),
+              isNull(projectMember.deletedAt),
             )
           )
           .then(results => results[0] || null),
@@ -1285,6 +1304,22 @@ export class ProjectsService {
             uid: generateUid('projmem'),
             projectRole: invite.invite.projectRole,
             joinedAt: new Date(),
+          })
+          // Someone removed earlier still owns a soft deleted row, and
+          // (project_id, user_id) is unique, so re-joining has to revive that
+          // row. The reset fields put it back to what a first-time join gets.
+          .onConflictDoUpdate({
+            target: [projectMember.projectId, projectMember.userId],
+            set: {
+              projectRole: invite.invite.projectRole,
+              status: 'active',
+              deletedAt: null,
+              joinedAt: new Date(),
+              updatedAt: new Date(),
+              siteAccess: 'all_sites',
+              restrictedSites: [],
+              extraPermissions: null,
+            },
           })
           .returning();
 
@@ -1430,6 +1465,7 @@ export class ProjectsService {
     memberId: string,
     myMembership: ProjectGuardResponse,
     updateRoleDto: UpdateProjectRoleDto,
+    projectUid: string,
   ) {
     try {
       if (!myMembership || !['owner', 'admin'].includes(myMembership.role)) {
@@ -1453,7 +1489,8 @@ export class ProjectsService {
         .where(
           and(
             eq(projectMember.projectId, myMembership.projectId),
-            eq(projectMember.userId, user.id)
+            eq(projectMember.userId, user.id),
+            isNull(projectMember.deletedAt)
           )
         );
 
@@ -1511,6 +1548,10 @@ export class ProjectsService {
         primaryWorkspaceUid: null
       }).where(eq(user.id, memberQuery[0].user.id))
 
+      // Same as removal: the guard answers from a cached membership, so the new
+      // role only takes effect once that entry is dropped.
+      await this.projectCacheService.invalidateUserProject(projectUid, memberToUpdate.user.id)
+
       const m = memberToUpdate as any;
       this.auditLogsService.log('project_member', {
         action: 'role_change',
@@ -1518,7 +1559,14 @@ export class ProjectsService {
         userId: myMembership.userId,
         projectId: myMembership.projectId,
         oldValues: { role: m.member.projectRole, memberEmail: m.user.email },
-        newValues: { role: result.projectRole, memberEmail: m.user.email },
+        // As above: userId is the admin who made the change, so the member is
+        // named here for the activity feed.
+        newValues: {
+          role: result.projectRole,
+          memberUid: m.user.uid,
+          memberName: m.user.displayName,
+          memberEmail: m.user.email,
+        },
         source: 'web',
       });
 
@@ -1609,7 +1657,7 @@ export class ProjectsService {
     }
   }
 
-  async removeMember(memberId: string, myMembership: ProjectGuardResponse, currentUser: User) {
+  async removeMember(memberId: string, myMembership: ProjectGuardResponse, currentUser: User, projectUid: string) {
     try {
 
 
@@ -1633,6 +1681,9 @@ export class ProjectsService {
           and(
             eq(projectMember.projectId, myMembership.projectId),
             eq(projectMember.userId, user.id),
+            // Already removed is not a member, so a second removal is a 404
+            // rather than another "removed successfully".
+            isNull(projectMember.deletedAt),
           )
         );
 
@@ -1686,6 +1737,10 @@ export class ProjectsService {
           )
         );
 
+      // Where the removed member lands next. This used to read currentUser, so
+      // removing someone repointed the remover's own primary project instead of
+      // theirs.
+      const removedUserId = memberToRemove.user.id;
       const otherProjects = await this.drizzleService.db
         .select({
           projectUid: project.uid,
@@ -1700,9 +1755,10 @@ export class ProjectsService {
         .innerJoin(workspace, eq(workspace.id, project.workspaceId))
         .where(
           and(
-            eq(projectMember.userId, currentUser.id),
+            eq(projectMember.userId, removedUserId),
             eq(project.isActive, true), // Only active projects
             eq(projectMember.status, 'active'), // Only active memberships
+            isNull(projectMember.deletedAt), // Membership not removed
             isNull(project.deletedAt), // Not soft deleted
             ne(project.id, myMembership.projectId) // Exclude the project being removed
           )
@@ -1722,7 +1778,7 @@ export class ProjectsService {
             primaryProjectUid: null,
             primaryWorkspaceUid: null
           })
-          .where(eq(user.id, currentUser.id));
+          .where(eq(user.id, removedUserId));
       } else {
         // Set the highest priority project as primary
         const newPrimaryProject = otherProjects[0];
@@ -1732,17 +1788,28 @@ export class ProjectsService {
             primaryWorkspaceUid: newPrimaryProject.workspaceUid,
             primaryProjectUid: newPrimaryProject.projectUid
           })
-          .where(eq(user.id, currentUser.id));
+          .where(eq(user.id, removedUserId));
       }
       await this.userCacheService.invalidateUser({ auth0Id: memberToRemove.user.auth0Id })
+      // The guard reads a cached membership, so without this the removed member
+      // keeps their old role until the cache entry expires on its own.
+      await this.projectCacheService.invalidateUserProject(projectUid, removedUserId)
 
       const mr = memberToRemove as any;
       this.auditLogsService.log('project_member', {
         action: 'delete',
         entityId: mr.project_member?.id ?? 0,
-        userId: myMembership.userId,
+        entityUid: mr.project_member?.uid,
+        userId: currentUser.id,
         projectId: myMembership.projectId,
-        oldValues: { memberEmail: mr.user?.email, role: mr.project_member?.projectRole },
+        // userId is who removed them. The team activity feed needs who was
+        // removed, so carry that here too.
+        oldValues: {
+          memberUid: mr.user?.uid,
+          memberName: mr.user?.displayName,
+          memberEmail: mr.user?.email,
+          role: mr.project_member?.projectRole,
+        },
         source: 'web',
       });
 
@@ -1929,6 +1996,7 @@ export class ProjectsService {
             and(
               eq(projectMember.projectId, invite.invite.projectId),
               eq(projectMember.userId, userId),
+              isNull(projectMember.deletedAt),
             )
           )
           .then(results => results[0] || null),
@@ -1983,6 +2051,22 @@ export class ProjectsService {
             bulkInviteId: invite.invite.id,
             siteAccess: 'limited_access',
             restrictedSites: []
+          })
+          // See the single-invite accept: a removed member's row is revived,
+          // never duplicated.
+          .onConflictDoUpdate({
+            target: [projectMember.projectId, projectMember.userId],
+            set: {
+              projectRole: invite.invite.projectRole,
+              status: 'active',
+              deletedAt: null,
+              joinedAt: new Date(),
+              updatedAt: new Date(),
+              bulkInviteId: invite.invite.id,
+              siteAccess: 'limited_access',
+              restrictedSites: [],
+              extraPermissions: null,
+            },
           })
           .returning();
 

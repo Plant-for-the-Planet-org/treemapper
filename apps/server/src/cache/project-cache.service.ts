@@ -19,6 +19,13 @@ export class ProjectCacheService {
         await this.cacheService.set(this.getUserProjectKey(`${projectId}-${userId}`), data, CACHE_TTL.MEDIUM);
     }
 
+    // Drop one user's cached membership for one project. Needed whenever a
+    // membership is removed or changed, since the entry otherwise lives on for
+    // the whole MEDIUM TTL and the guard keeps answering with the old role.
+    async invalidateUserProject(projectId: string, userId: number): Promise<void> {
+        await this.cacheService.delete(this.getUserProjectKey(`${projectId}-${userId}`));
+    }
+
 
     async refreshWorspaceId(workspaceUid: string, workspaceId: number): Promise<void> {
        try{
