@@ -2,6 +2,7 @@ import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
 import { Public } from '../auth/public.decorator';
 import { ApiKeyGuard } from './guards/api-key.guard';
+import { ApiKeyRateLimit, ApiKeyRateLimitGuard } from './guards/api-key-rate-limit.guard';
 import { ApiProject, ApiProjectContext } from './decorators/api-project.decorator';
 import { PublicApiService } from './public-api.service';
 
@@ -9,7 +10,8 @@ import { PublicApiService } from './public-api.service';
 @ApiSecurity('x-api-key')
 @Controller('v1/public')
 @Public()
-@UseGuards(ApiKeyGuard)
+@UseGuards(ApiKeyGuard, ApiKeyRateLimitGuard)
+@ApiKeyRateLimit({ limit: 60, windowMs: 60_000 })
 export class PublicApiController {
   constructor(private readonly publicApiService: PublicApiService) {}
 

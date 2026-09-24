@@ -16,6 +16,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { ExtendedUser, User } from './entities/user.entity';
 import { CreatePresignedUrlDto } from './dto/signed-url.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UserRateLimit, UserRateLimitGuard } from '../common/guards/user-rate-limit.guard';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
@@ -80,7 +81,16 @@ export class UsersController {
     return await this.usersService.invalidateMyCache(user);
   }
 
+  // Every row here is keyed on a deviceId the client picks, so an unthrottled
+  // caller can grow the table one row per request. The ceiling is deliberately
+  // far above real use: the app registers on login and on every foreground, and
+  // a foreground happens each time the camera or maps hands control back, so a
+  // tight limit would throttle ordinary field work. 300/hour still caps a loop
+  // hard. Going over is harmless for the user (the app reports the failure and
+  // retries on the next open), so it only ever costs stale telemetry.
   @Post('devices')
+  @UseGuards(UserRateLimitGuard)
+  @UserRateLimit({ limit: 300, windowMs: 60 * 60 * 1000, name: 'device-register' })
   async registerDevice(
     @Body() createDeviceDto: CreateDeviceDto,
     @CurrentUser() user: User,

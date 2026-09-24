@@ -2442,6 +2442,14 @@
   resolved "https://registry.yarnpkg.com/@fastify/forwarded/-/forwarded-3.0.1.tgz#9662b7bd4a59f6d123cc3487494f75f635c32d23"
   integrity sha512-JqDochHFqXs3C3Ml3gOY58zM7OqO9ENqPo0UqAjAjH8L01fRZqwX9iLeX34//kiJubF7r2ZQHtBRU36vONbLlw==
 
+"@fastify/helmet@13.1.1":
+  version "13.1.1"
+  resolved "https://registry.yarnpkg.com/@fastify/helmet/-/helmet-13.1.1.tgz#dc9347d2019d87380e291da603d3ca687422dbf5"
+  integrity sha512-bSat5DTq8geASv8G6P0KW1UbltZ+xGD/zyd9S72pT7ogAHehcsWL85GdjMRCjDsExJvaEvgEZ52qU/2HXirVCw==
+  dependencies:
+    fastify-plugin "^6.0.0"
+    helmet "^8.0.0"
+
 "@fastify/merge-json-schemas@^0.2.0":
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/@fastify/merge-json-schemas/-/merge-json-schemas-0.2.1.tgz#3aa30d2f0c81a8ac5995b6d94ed4eaa2c3055824"
@@ -11964,6 +11972,11 @@ fastify-plugin@5.1.0, fastify-plugin@^5.0.0:
   resolved "https://registry.yarnpkg.com/fastify-plugin/-/fastify-plugin-5.1.0.tgz#7083e039d6418415f9a669f8c25e72fc5bf2d3e7"
   integrity sha512-FAIDA8eovSt5qcDgcBvDuX/v0Cjz0ohGhENZ/wpc3y+oZCY2afZ9Baqql3g/lC+OHRnciQol4ww7tuthOb9idw==
 
+fastify-plugin@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/fastify-plugin/-/fastify-plugin-6.0.0.tgz#7cd659c6aad5f3bf07b4c59205412351a47d39c8"
+  integrity sha512-fZOty7z3O7vOliF6d8bHE3wiEh1KcNnKEQensSgTk9C1DvN6nRLS++XVd86v33Hw/8u9Un8A1zDrQ8ujcQDHEg==
+
 fastify@5.8.5:
   version "5.8.5"
   resolved "https://registry.yarnpkg.com/fastify/-/fastify-5.8.5.tgz#c452224295e0ca550bcd0efc3f7d3e90e9c11955"
@@ -12689,6 +12702,11 @@ headers-polyfill@^5.0.1:
   dependencies:
     "@types/set-cookie-parser" "^2.4.10"
     set-cookie-parser "^3.0.1"
+
+helmet@^8.0.0:
+  version "8.3.0"
+  resolved "https://registry.yarnpkg.com/helmet/-/helmet-8.3.0.tgz#3842eea921e7c7015d11f217910c710c434efb26"
+  integrity sha512-Qgpiaws3Sm30Av8Eah6sjMCZZwjlBu+E68rhpCWBshY1lb09HtLwj5GviX0OyQIn+ulUS0iX0AxN5n3tLZzz1w==
 
 hermes-compiler@0.14.1:
   version "0.14.1"

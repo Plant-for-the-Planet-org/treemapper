@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../database/database.module';
 import { ProjectsModule } from '../projects/projects.module';
 import { PushModule } from '../notification/push/push.module';
+import { UserRateLimitGuard } from '../common/guards/user-rate-limit.guard';
 import { DevicesController } from './devices.controller';
 import { DevicesService } from './devices.service';
 
@@ -12,7 +13,7 @@ import { DevicesService } from './devices.service';
 @Module({
   imports: [DatabaseModule, ProjectsModule, PushModule],
   controllers: [DevicesController],
-  providers: [DevicesService],
+  providers: [DevicesService, UserRateLimitGuard],
   exports: [DevicesService],
 })
 export class DevicesModule {}

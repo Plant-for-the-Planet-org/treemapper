@@ -5,9 +5,13 @@ export type UserDevice = InferSelectModel<typeof userDevice>;
 
 // Device row enriched with its owner and a computed online flag, shaped for the
 // dashboard list.
+//
+// `deviceId` is deliberately NOT here. It is the client-supplied key that
+// `UsersService.registerOrUpdateDevice` upserts on, so anyone holding one can
+// claim that row; the dashboard addresses devices by `uid` and has no use for
+// it. Do not add it back.
 export interface ProjectDevice {
   uid: string;
-  deviceId: string;
   deviceName: string | null;
   deviceModel: string | null;
   deviceOs: string | null;
@@ -24,7 +28,11 @@ export interface ProjectDevice {
   needsUpdate: boolean;
   // Telemetry snapshot from the device's last app open. Null means the device
   // has not reported it yet (older app build), which is not the same as zero.
-  batteryLevel: number | null;
+  //
+  // `batteryLevel` is not exposed: the column exists but the mobile app never
+  // collects it (see collectDeviceTelemetry) and no screen renders it, so every
+  // value would be null. Wire the collection first if the dashboard ever wants
+  // it.
   storageUsedPct: number | null;
   networkType: string | null;
   pendingInterventions: number | null;

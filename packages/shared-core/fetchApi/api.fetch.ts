@@ -292,26 +292,29 @@ export const getUserProjectSites = async (token: string, id: string) => {
 //devices
 
 export const getProjectDevices = async (token: string, projectId: string) => {
-  const uri = `${getUrlApi.projectDevices}/${projectId}/devices`
+  const uri = `${getUrlApi.projectDevices}/${encodeURIComponent(projectId)}/devices`
   const result = await fetchGetCall(uri, token)
   return result
 }
 
 export const notifyProjectDevices = async (token: string, projectId: string, params: any) => {
-  const uri = `${postUrlApi.notifyProjectDevices}/${projectId}/devices/notify`
+  const uri = `${postUrlApi.notifyProjectDevices}/${encodeURIComponent(projectId)}/devices/notify`
   const result = await fetchPostCall(uri, params, token)
   return result
 }
 
 // Activates or deactivates a single device. A deactivated device stays listed
 // but stops receiving notifications.
+//
+// Both ids are server-generated today, so escaping them changes nothing; it is
+// here so that stays true if either ever comes from somewhere less trusted.
 export const updateProjectDeviceState = async (
   token: string,
   projectId: string,
   deviceUid: string,
   params: { isActive: boolean },
 ) => {
-  const uri = `${patchUrlApi.projectDeviceState}/${projectId}/devices/${deviceUid}`
+  const uri = `${patchUrlApi.projectDeviceState}/${encodeURIComponent(projectId)}/devices/${encodeURIComponent(deviceUid)}`
   const result = await fetchPatchCall(uri, params, token)
   return result
 }
