@@ -22,6 +22,12 @@ const initialState: AppInitialState = {
   userProjectSpecies: [],
   seenTours: {},
   analyticsConsent: 'unset',
+  rating: {
+    eventCount: 0,
+    lastAskedAt: 0,
+    hasRated: false,
+    dontAskAgain: false,
+  },
 }
 
 const appStateSlice = createSlice({
@@ -99,12 +105,36 @@ const appStateSlice = createSlice({
     setAnalyticsConsent(state, action: PayloadAction<AnalyticsConsent>) {
       state.analyticsConsent = action.payload
     },
+    // Records a "happy moment" that makes the store-rating prompt a little more
+    // likely. Never resets on its own -- the prompt logic reads the count.
+    registerRatingEvent(state) {
+      // Older installs rehydrate without `rating`; heal it in place.
+      if (!state.rating) {
+        state.rating = { eventCount: 0, lastAskedAt: 0, hasRated: false, dontAskAgain: false }
+      }
+      state.rating.eventCount += 1
+    },
+    // The pre-prompt was shown; stamp the time so we don't ask again too soon.
+    markRatingAsked(state) {
+      if (!state.rating) return
+      state.rating.lastAskedAt = Date.now()
+    },
+    // The person was sent to the store. Never ask again.
+    markRated(state) {
+      if (!state.rating) return
+      state.rating.hasRated = true
+    },
+    // The person opted out. The automatic prompt never appears again.
+    setRatingDontAskAgain(state) {
+      if (!state.rating) return
+      state.rating.dontAskAgain = true
+    },
     logoutAppUser(state) {
-      return { ...initialState, speciesSync: true, speciesLocalURL: state.speciesLocalURL, lastServerInterventionpage: '', seenTours: state.seenTours, analyticsConsent: state.analyticsConsent }
+      return { ...initialState, speciesSync: true, speciesLocalURL: state.speciesLocalURL, lastServerInterventionpage: '', seenTours: state.seenTours, analyticsConsent: state.analyticsConsent, rating: state.rating }
     },
   },
 })
 
-export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData, updateRefetchProject, updateUserPojectSpecies, markTourSeen, setAnalyticsConsent } = appStateSlice.actions
+export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData, updateRefetchProject, updateUserPojectSpecies, markTourSeen, setAnalyticsConsent, registerRatingEvent, markRatingAsked, markRated, setRatingDontAskAgain } = appStateSlice.actions
 
 export default appStateSlice.reducer

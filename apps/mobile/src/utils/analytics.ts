@@ -92,6 +92,11 @@ export const AnalyticsEvents = {
   // first_launch or settings. Sent in both cases; a decline goes anonymously.
   ANALYTICS_CONSENT_UPDATED: 'analytics_consent_updated',
 
+  // ── Rating ────────────────────────────────────────────────────────────────
+  // The "Enjoying TreeMapper?" store-rating prompt. `action` is rate / feedback
+  // / dismiss and `source` is prompt (automatic) or menu (manual entry).
+  APP_RATING_PROMPT:      'app_rating_prompt',
+
   // ── Content ───────────────────────────────────────────────────────────────
   GUIDE_OPENED:           'guide_opened',
   NOTIFICATION_OPENED:    'notification_opened',

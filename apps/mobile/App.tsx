@@ -19,6 +19,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useKeepAwake } from 'expo-keep-awake'
 import { TourGuideProvider, TourGuideOverlay } from '@wrack/react-native-tour-guide'
 import AnalyticsConsentGate from 'src/components/analytics/AnalyticsConsentGate'
+import AppRatingGate from 'src/components/rating/AppRatingGate'
 
 
 
@@ -59,6 +60,7 @@ export default function App() {
                           <RootNavigator />
                           {/* Needs PostHog and the rehydrated store, so it sits here. */}
                           <AnalyticsConsentGate />
+                          <AppRatingGate />
                         </PostHogProvider>
                       </NavigationContainer>
                     </BottomSheetModalProvider>

@@ -25,9 +25,25 @@ export interface AppInitialState {
   // Whether the person lets us tie analytics to their account. 'unset' until
   // they answer the first-launch prompt. Anonymous analytics run either way.
   analyticsConsent: AnalyticsConsent
+  // Drives the "Enjoying TreeMapper?" store-rating prompt. Device-level, so it
+  // survives logout like seenTours and analyticsConsent do.
+  rating: AppRatingState
 }
 
 export type AnalyticsConsent = 'unset' | 'granted' | 'denied'
+
+export interface AppRatingState {
+  // Count of "happy moments" (an intervention created, etc.) since install.
+  // The pre-prompt only appears once this crosses a threshold.
+  eventCount: number
+  // Epoch ms the pre-prompt was last shown. 0 = never shown.
+  lastAskedAt: number
+  // The person chose to rate (was sent to the store). Never ask again.
+  hasRated: boolean
+  // The person opted out (said they were not enjoying it, or dismissed for
+  // good). The automatic prompt never appears again.
+  dontAskAgain: boolean
+}
 
 export interface SyncSlice {
   syncRequired: boolean

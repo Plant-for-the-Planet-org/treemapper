@@ -23,6 +23,7 @@ import Plots from './monitoringPlots/plots.json'
 import Other from './user/other.json'
 import Tour from './user/tour.json'
 import Analytics from './user/analytics.json'
+import Rating from './user/rating.json'
 export default {
   ...WelcomeScreen,
   ...RegisterTree,
@@ -48,5 +49,6 @@ export default {
   ...Plots,
   ...Other,
   ...Tour,
-  ...Analytics
+  ...Analytics,
+  ...Rating
 };

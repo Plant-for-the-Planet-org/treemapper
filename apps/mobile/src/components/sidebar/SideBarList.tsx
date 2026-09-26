@@ -22,6 +22,7 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import useInterventionTour from 'src/hooks/useInterventionTour'
 import useAnalyticsConsent from 'src/hooks/useAnalyticsConsent'
 import AnalyticsConsentModal from '../analytics/AnalyticsConsentModal'
+import useAppRating from 'src/hooks/useAppRating'
 import { useToast } from 'react-native-toast-notifications'
 
 interface Props {
@@ -35,6 +36,7 @@ const SideBarList = (props: Props) => {
   const [showTourConfirm, setShowTourConfirm] = useState(false)
   const [showConsentModal, setShowConsentModal] = useState(false)
   const { consent, updateConsent } = useAnalyticsConsent()
+  const { rateFromMenu } = useAppRating()
   const toast = useToast()
 
   const onChooseConsent = (choice: 'granted' | 'denied') => {
@@ -138,6 +140,13 @@ const SideBarList = (props: Props) => {
       key: 'feedback'
     },
     {
+      label: t('label.rate_app'),
+      icon: <View style={styles.guideIconWrapper}><Ionicons name="star" size={16} color="#fff" style={{ paddingTop: 2 }} /></View>,
+      // Anyone can rate, signed in or not.
+      visible: true,
+      key: 'rate_app'
+    },
+    {
       label: "Delete Account",
       screen: 'DeleteAccount',
       icon: <View style={styles.binIconWrapper}><BinIcon width={15} height={15} fill={'#fff'} /></View>,
@@ -165,6 +174,7 @@ const SideBarList = (props: Props) => {
             onPressFeedback={() => setShowFeedbackModal(true)}
             onPressTour={() => setShowTourConfirm(true)}
             onPressAnalyticsConsent={() => setShowConsentModal(true)}
+            onPressRate={rateFromMenu}
           />
         )}
       />

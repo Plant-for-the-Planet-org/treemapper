@@ -37,7 +37,7 @@ import { useToast } from 'react-native-toast-notifications'
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
-import { markTourSeen, updateNewIntervention } from 'src/store/slice/appStateSlice'
+import { markTourSeen, updateNewIntervention, registerRatingEvent } from 'src/store/slice/appStateSlice'
 import i18next from 'i18next'
 import { TourTarget, useTourGuide } from '@wrack/react-native-tour-guide'
 import useInterventionTour from 'src/hooks/useInterventionTour'
@@ -352,6 +352,9 @@ const InterventionFormView = () => {
           intervention_key: registerForm.intervention_key,
           project_id: registerForm.project_id,
         })
+        // A completed intervention is a genuine "happy moment"; count it towards
+        // the store-rating prompt. AppRatingGate decides when to actually ask.
+        dispatch(registerRatingEvent())
         await handleSuccessfulInterventionInitialization();
       } else {
         handleInterventionInitializationError();

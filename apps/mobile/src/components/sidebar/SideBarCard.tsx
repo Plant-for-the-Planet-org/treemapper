@@ -21,6 +21,7 @@ interface Props {
   onPressFeedback?: () => void
   onPressTour?: () => void
   onPressAnalyticsConsent?: () => void
+  onPressRate?: () => void
 }
 
 const SideBarCard = (props: Props) => {
@@ -55,6 +56,10 @@ const SideBarCard = (props: Props) => {
     }
     if (key === 'analytics_consent') {
       props.onPressAnalyticsConsent?.()
+      return
+    }
+    if (key === 'rate_app') {
+      props.onPressRate?.()
       return
     }
     if (key === 'manage_species') {
