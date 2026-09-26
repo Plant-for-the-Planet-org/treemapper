@@ -21,6 +21,8 @@ import CustomDropDownPicker from 'src/components/common/CustomDropDown'
 import { DropdownData, ProjectInterface } from 'src/types/interface/app.interface'
 import { RootState } from 'src/store'
 import i18next from 'src/locales/index'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 
 const AddPlotGroup = () => {
@@ -36,6 +38,7 @@ const AddPlotGroup = () => {
     const realm = useRealm()
     const { createNewPlotGroup, editGroupName } = useMonitoringPlotManagement()
     const toast = useToast()
+    const posthog = usePostHog()
 
     // A group belongs to one project, because the server's group routes are
     // project-scoped. Same picker and same exclusion as creating a plot.
@@ -102,6 +105,10 @@ const AddPlotGroup = () => {
             const result = await createNewPlotGroup(groupDetails)
             setSaving(false)
             if (result.ok) {
+                captureAnalyticsEvent(posthog, AnalyticsEvents.PLOT_GROUP_CREATED, {
+                    group_id: newGroupId,
+                    project_id: selectedProject.value,
+                })
                 setIsEditable(true)
                 setGID(newGroupId)
             } else {

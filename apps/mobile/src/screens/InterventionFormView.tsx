@@ -80,6 +80,10 @@ const InterventionFormView = () => {
   const paramId = route.params ? route.params.id : ''
 
   useEffect(() => {
+    // Start of the intervention creation funnel — every form open is a
+    // potential intervention.  Outcome is intervention_created on success
+    // or absence (abandoned) if the user backs out.
+    captureAnalyticsEvent(posthog, AnalyticsEvents.INTERVENTION_STARTED)
     setUpRegisterFlow()
     AvoidSoftInput.setShouldMimicIOSBehavior(true);
     return () => {

@@ -4,6 +4,8 @@ import OfflineMapTile from 'assets/images/svg/MapTileIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 interface Props {
   data: any,
@@ -11,7 +13,11 @@ interface Props {
 }
 
 const OfflineMapCars = (props: Props) => {
+  const posthog = usePostHog()
   const handleDelete = () => {
+    captureAnalyticsEvent(posthog, AnalyticsEvents.OFFLINE_MAP_DELETED, {
+      area_name: props.data?.areaName,
+    })
     props.delete(props.data)
   }
   return (

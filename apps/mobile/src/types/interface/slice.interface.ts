@@ -22,7 +22,12 @@ export interface AppInitialState {
   imageSize: number,
   userProjectSpecies: IScientificSpecies[]
   seenTours: Record<string, boolean>
+  // Whether the person lets us tie analytics to their account. 'unset' until
+  // they answer the first-launch prompt. Anonymous analytics run either way.
+  analyticsConsent: AnalyticsConsent
 }
+
+export type AnalyticsConsent = 'unset' | 'granted' | 'denied'
 
 export interface SyncSlice {
   syncRequired: boolean

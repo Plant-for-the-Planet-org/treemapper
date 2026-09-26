@@ -8,6 +8,8 @@ import { RouteProp, useRoute } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { getNotifications, markNotificationAsRead } from 'src/api/api.fetch'
 import { Ionicons } from '@expo/vector-icons'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 type NotificationDetailRouteProp = RouteProp<RootStackParamList, 'NotificationDetail'>
 
@@ -30,6 +32,7 @@ const NotificationDetailView = () => {
   const { notificationUid } = route.params
   const [notification, setNotification] = useState<NotificationItem | null>(null)
   const [loading, setLoading] = useState(true)
+  const posthog = usePostHog()
 
   useEffect(() => {
     loadNotification()
@@ -47,7 +50,15 @@ const NotificationDetailView = () => {
         )
         if (found) {
           setNotification(found)
-          
+          // Track which notifications users open and whether they were already
+          // read (opened from notification history vs a fresh push).
+          captureAnalyticsEvent(posthog, AnalyticsEvents.NOTIFICATION_OPENED, {
+            notification_type: found.type,
+            category: found.category,
+            priority: found.priority,
+            was_unread: !found.isRead,
+          })
+
           // Mark as read if not already read
           if (!found.isRead) {
             try {

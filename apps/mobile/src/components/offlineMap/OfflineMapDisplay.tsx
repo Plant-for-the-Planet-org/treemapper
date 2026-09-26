@@ -15,6 +15,8 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import SatelliteIconWrapper from '../map/SatelliteIconWrapper'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 
 
@@ -39,6 +41,7 @@ const OfflineMapDisplay = () => {
   )
 
   const { createNewOfflineMap } = useOfflineMapManager()
+  const posthog = usePostHog()
 
 
   const handleCamera = () => {
@@ -68,6 +71,10 @@ const OfflineMapDisplay = () => {
       }
       const result = await createNewOfflineMap(writeData)
       if (result) {
+        captureAnalyticsEvent(posthog, AnalyticsEvents.OFFLINE_MAP_DOWNLOADED, {
+          area_name: areaName,
+          tile_size: status.completedTileSize,
+        })
         alert(i18next.t('label.download_map_complete'));
         navigation.goBack()
       } else {

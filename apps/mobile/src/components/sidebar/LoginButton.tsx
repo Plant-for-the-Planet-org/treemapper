@@ -21,6 +21,8 @@ import { getMobileUserDetails } from '../../api/api.fetch'
 import EmailVerificationModal from '../common/EmailVerifcationModal'
 import AlertModal from '../common/AlertModal'
 import { UserInterface } from 'src/types/interface/slice.interface'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 const LoginButton = () => {
   const webAuthLoading = useSelector(
@@ -33,6 +35,7 @@ const LoginButton = () => {
   const [buttonMounted, setButtonMounted] = useState(false)
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [showFetchErrorModal, setShowFetchErrorModal] = useState(false)
+  const posthog = usePostHog()
 
 
   function getFirstAndLastName(fullName) {
@@ -50,6 +53,14 @@ const LoginButton = () => {
 
   useEffect(() => {
     if (error) {
+      // Track the Auth0 callback failure so we can split email-confirmation
+      // issues (user's side) from other rejections (possibly our side).
+      captureAnalyticsEvent(posthog, AnalyticsEvents.LOGIN_FAILED, {
+        stage: 'auth0_callback',
+        error_code: error.code ?? 'unknown',
+        needs_email_confirmation:
+          error.code === 'unauthorized' || error.code === 'access_denied',
+      })
       if (error.code === "unauthorized" || error.code === 'access_denied') {
         setTimeout(() => {
           toast.show("Please confirm your email \nusing the link sent to your inbox.", {
@@ -92,6 +103,11 @@ const LoginButton = () => {
     if (response && response.data) {
       loginAndUpdateDetails({ ...response.data, image: response.data.image || user.picture || user.profile || '' })
     } else {
+      // Auth0 accepted the credentials but our profile endpoint failed.
+      // Tracked separately from LOGIN_FAILED because the fix is on our side.
+      captureAnalyticsEvent(posthog, AnalyticsEvents.PROFILE_FETCH_FAILED, {
+        status_code: status ?? null,
+      })
       Bugsnag.notify(new Error("Failed to fetch user details"))
       addNewLog({
         logType: 'USER',
@@ -108,9 +124,15 @@ const LoginButton = () => {
 
   const handleLogin = async () => {
     try {
+      // Fires before the Auth0 browser opens so we can measure the full
+      // funnel: login_started → login_succeeded (or login_failed).
+      captureAnalyticsEvent(posthog, AnalyticsEvents.LOGIN_STARTED)
       dispatch(updateWebAuthLoading(true))
       const result = await authorizeUser()
       if (!result.success) {
+        captureAnalyticsEvent(posthog, AnalyticsEvents.LOGIN_FAILED, {
+          stage: 'credentials_not_found',
+        })
         dispatch(updateWebAuthLoading(false))
         Snackbar.show({
           text: "Failed to login",
@@ -127,6 +149,9 @@ const LoginButton = () => {
         await handleLogout()
       }
     } catch (err) {
+      captureAnalyticsEvent(posthog, AnalyticsEvents.LOGIN_FAILED, {
+        stage: 'unexpected_error',
+      })
       dispatch(updateWebAuthLoading(false))
       addNewLog({
         logType: 'USER',
@@ -154,6 +179,12 @@ const LoginButton = () => {
 
   const loginAndUpdateDetails = async (data: UserInterface) => {
     const finalDetails = { ...data }
+    // End of the login funnel: credentials accepted AND profile loaded.
+    // This is the first moment the user can actually do something in the app.
+    captureAnalyticsEvent(posthog, AnalyticsEvents.LOGIN_SUCCEEDED, {
+      country: finalDetails.country || null,
+      user_type: finalDetails.type || null,
+    })
     dispatch(updateUserDetails(finalDetails))
     dispatch(updateUserLogin(true))
     dispatch(updateWebAuthLoading(false))

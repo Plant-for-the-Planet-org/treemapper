@@ -20,6 +20,9 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import useInterventionTour from 'src/hooks/useInterventionTour'
+import useAnalyticsConsent from 'src/hooks/useAnalyticsConsent'
+import AnalyticsConsentModal from '../analytics/AnalyticsConsentModal'
+import { useToast } from 'react-native-toast-notifications'
 
 interface Props {
   isLoggedIn: boolean
@@ -30,6 +33,20 @@ const SideBarList = (props: Props) => {
   const { t } = useTranslation()
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [showTourConfirm, setShowTourConfirm] = useState(false)
+  const [showConsentModal, setShowConsentModal] = useState(false)
+  const { consent, updateConsent } = useAnalyticsConsent()
+  const toast = useToast()
+
+  const onChooseConsent = (choice: 'granted' | 'denied') => {
+    setShowConsentModal(false)
+    if (choice === consent) return
+    updateConsent(choice, 'settings')
+    toast.show(
+      choice === 'granted'
+        ? t('label.analytics_consent_saved_granted')
+        : t('label.analytics_consent_saved_denied'),
+    )
+  }
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { startSingleTreeTour } = useInterventionTour()
 
@@ -107,6 +124,14 @@ const SideBarList = (props: Props) => {
       key: 'language'
     },
     {
+      label: t('label.analytics_consent_menu'),
+      icon: <View style={styles.guideIconWrapper}><Ionicons name="shield-checkmark" size={14} color="#fff" style={{ paddingTop: 1 }} /></View>,
+      // Shown signed out too: the choice is made before sign-in and applies
+      // to whoever signs in on this device next.
+      visible: true,
+      key: 'analytics_consent'
+    },
+    {
       label: t('label.feedback'),
       icon: <View style={styles.guideIconWrapper}><Ionicons name="chatbox-ellipses" size={16} color="#fff" style={{paddingTop: 2}} /></View>,
       visible: isLoggedIn,
@@ -139,12 +164,20 @@ const SideBarList = (props: Props) => {
             key={item.key}
             onPressFeedback={() => setShowFeedbackModal(true)}
             onPressTour={() => setShowTourConfirm(true)}
+            onPressAnalyticsConsent={() => setShowConsentModal(true)}
           />
         )}
       />
       <FeedbackModal
         isVisible={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
+      />
+      <AnalyticsConsentModal
+        isVisible={showConsentModal}
+        consent={consent}
+        dismissible
+        onChoose={onChooseConsent}
+        onClose={() => setShowConsentModal(false)}
       />
       <AlertModal
         visible={showTourConfirm}

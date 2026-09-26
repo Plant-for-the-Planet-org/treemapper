@@ -28,6 +28,8 @@ import bbox from '@turf/bbox'
 import MapZoomScale from './MapZoomScale'
 import SiteMapSource from './SiteMapSource'
 import useMapDraft from 'src/hooks/realm/useMapDraft'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -73,6 +75,7 @@ const PolygonMarkerMap = (props: Props) => {
   )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updateInterventionLocation } = useInterventionManagement()
+  const posthog = usePostHog()
   const { saveDraft, readDraft, clearOwnerDrafts } = useMapDraft()
   const toast = useToast();
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
@@ -289,6 +292,12 @@ const PolygonMarkerMap = (props: Props) => {
       id: String.fromCharCode(prevState.id.charCodeAt(0) + 1),
       index: prevState.index + 1,
     }))
+    // Track each corner so we can compute drop-off: how many points does a
+    // typical user place before abandoning vs completing a polygon?
+    captureAnalyticsEvent(posthog, AnalyticsEvents.MAP_POLYGON_POINT_ADDED, {
+      point_count: updatedCoordinates.length,
+      intervention_key,
+    })
     toast.show("Point marked, move to other location", { placement: 'top' })
     if (coordinates.length >= 2) {
       setPolygonComplete(true)
@@ -329,6 +338,13 @@ const PolygonMarkerMap = (props: Props) => {
     // The intervention owns the boundary now, so the recovery copy can go.
     committedRef.current = true
     clearOwnerDrafts(form_id)
+    // Polygon saved successfully — record point count and type so we can see
+    // whether more complex polygons (more corners) have lower completion rates.
+    captureAnalyticsEvent(posthog, AnalyticsEvents.MAP_POLYGON_COMPLETED, {
+      point_count: coordinates.length,
+      intervention_key,
+      capture_mode: 'manual',
+    })
     if (species_required) {
       navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
     } else {
@@ -347,6 +363,12 @@ const PolygonMarkerMap = (props: Props) => {
     }
     committedRef.current = true
     clearOwnerDrafts(form_id)
+    // GPS-tracked polygon — point count comes from the recorded track.
+    captureAnalyticsEvent(posthog, AnalyticsEvents.MAP_POLYGON_COMPLETED, {
+      point_count: trackingGeoJSON[0]?.length ?? 0,
+      intervention_key,
+      capture_mode: 'gps_track',
+    })
     if (species_required) {
       navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
     } else {

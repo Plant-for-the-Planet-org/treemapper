@@ -19,6 +19,8 @@ import useAdditionalForm from 'src/hooks/realm/useAdditionalForm';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from 'src/types/type/navigation.type';
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 
 const ImportFormView = () => {
@@ -31,6 +33,7 @@ const ImportFormView = () => {
   const { bulkMetaDataAddition, deleteAllMetaData } = useMetaData()
   const { bulkFormAddition, deleteAllAdditionalData } = useAdditionalForm()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const posthog = usePostHog()
 
   const realm = useRealm();
 
@@ -56,6 +59,10 @@ const ImportFormView = () => {
           saveToFiles: true,
         },
       );
+      captureAnalyticsEvent(posthog, AnalyticsEvents.FORM_EXPORTED, {
+        form_count: formData.length,
+        meta_count: metaData.length,
+      })
     } catch (e) {
       // shows error if occurred and not canceled by the user
       console.log('Error while exporting form data', e);
@@ -91,9 +98,16 @@ const ImportFormView = () => {
       const { formData, metaData } = parsedData
       await bulkMetaDataAddition(metaData)
       await bulkFormAddition(formData)
+      captureAnalyticsEvent(posthog, AnalyticsEvents.FORM_IMPORTED, {
+        form_count: formData?.length ?? 0,
+        meta_count: metaData?.length ?? 0,
+      })
       toast.show("Form Data added successfully")
       navigation.goBack()
     } else {
+      captureAnalyticsEvent(posthog, AnalyticsEvents.FORM_IMPORT_FAILED, {
+        reason: 'invalid_file',
+      })
       toast.show("Provided file is invalid")
       setShowAlert(false);
     }

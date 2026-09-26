@@ -21,6 +21,8 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import openWebView from 'src/utils/helpers/appHelper/openWebView'
 import i18next from 'src/locales/index'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 
 const DeleteAccount = () => {
@@ -31,6 +33,7 @@ const DeleteAccount = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const toast = useToast()
+  const posthog = usePostHog()
   useEffect(() => {
     if (timer > 0) {
       setTimeout(() => {
@@ -58,6 +61,7 @@ const DeleteAccount = () => {
         return
       }
       if(result?.success){
+        captureAnalyticsEvent(posthog, AnalyticsEvents.ACCOUNT_DELETED)
         toast.show("Account Deleted")
         await logoutUser()
         dispatch(resetProjectState())

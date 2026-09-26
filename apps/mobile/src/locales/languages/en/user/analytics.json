@@ -1,0 +1,15 @@
+{
+    "analytics_consent_menu": "Privacy & analytics",
+    "analytics_consent_title": "Help us improve TreeMapper",
+    "analytics_consent_body": "TreeMapper collects usage data to see which features work well and where people get stuck. This includes screens you open, buttons you tap and counts like how many trees you added. It never includes your photos, locations, notes or email.",
+    "analytics_consent_question": "Can we link this data to your TreeMapper account? This helps us fix problems you report and support your team.",
+    "analytics_consent_anonymous_note": "If you say no, usage data stays anonymous and is never tied to you.",
+    "analytics_consent_change_note": "You can change this at any time from the menu.",
+    "analytics_consent_privacy_link": "Read our privacy terms",
+    "analytics_consent_allow": "Link to my account",
+    "analytics_consent_decline": "Keep anonymous",
+    "analytics_consent_status_granted": "Currently: linked to your account",
+    "analytics_consent_status_denied": "Currently: anonymous",
+    "analytics_consent_saved_granted": "Usage data will be linked to your account",
+    "analytics_consent_saved_denied": "Usage data will stay anonymous"
+}

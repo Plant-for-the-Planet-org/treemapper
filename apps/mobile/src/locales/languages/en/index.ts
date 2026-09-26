@@ -22,6 +22,7 @@ import CommonStrings from './user/commonData.json'
 import Plots from './monitoringPlots/plots.json'
 import Other from './user/other.json'
 import Tour from './user/tour.json'
+import Analytics from './user/analytics.json'
 export default {
   ...WelcomeScreen,
   ...RegisterTree,
@@ -46,5 +47,6 @@ export default {
   ...CommonStrings,
   ...Plots,
   ...Other,
-  ...Tour
+  ...Tour,
+  ...Analytics
 };

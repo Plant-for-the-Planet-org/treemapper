@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
-import { AppInitialState } from 'src/types/interface/slice.interface'
+import { AnalyticsConsent, AppInitialState } from 'src/types/interface/slice.interface'
 
 const initialState: AppInitialState = {
   isLoggedIn: false,
@@ -21,6 +21,7 @@ const initialState: AppInitialState = {
   refetchProject: '',
   userProjectSpecies: [],
   seenTours: {},
+  analyticsConsent: 'unset',
 }
 
 const appStateSlice = createSlice({
@@ -93,12 +94,17 @@ const appStateSlice = createSlice({
     markTourSeen(state, action: PayloadAction<string>) {
       state.seenTours[action.payload] = true
     },
+    // Consent is a device-level choice made before sign-in, so like seenTours
+    // it survives logoutAppUser. The sidebar lets anyone change it.
+    setAnalyticsConsent(state, action: PayloadAction<AnalyticsConsent>) {
+      state.analyticsConsent = action.payload
+    },
     logoutAppUser(state) {
-      return { ...initialState, speciesSync: true, speciesLocalURL: state.speciesLocalURL, lastServerInterventionpage: '', seenTours: state.seenTours }
+      return { ...initialState, speciesSync: true, speciesLocalURL: state.speciesLocalURL, lastServerInterventionpage: '', seenTours: state.seenTours, analyticsConsent: state.analyticsConsent }
     },
   },
 })
 
-export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData, updateRefetchProject, updateUserPojectSpecies, markTourSeen } = appStateSlice.actions
+export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData, updateRefetchProject, updateUserPojectSpecies, markTourSeen, setAnalyticsConsent } = appStateSlice.actions
 
 export default appStateSlice.reducer

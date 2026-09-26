@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import NetInfo from '@react-native-community/netinfo'
 import { useNavigation } from '@react-navigation/native'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 const DOCS_URL = 'https://docs.treemapper.app/en/docs/introduction'
 
@@ -13,6 +15,13 @@ const GuideView = () => {
   const [loading, setLoading] = useState(true)
   const webViewRef = useRef<WebView>(null)
   const navigation = useNavigation()
+  const posthog = usePostHog()
+
+  useEffect(() => {
+    captureAnalyticsEvent(posthog, AnalyticsEvents.GUIDE_OPENED, {
+      url: DOCS_URL,
+    })
+  }, [])
 
   useEffect(() => {
     // Check network status and reload when coming back online to update cache

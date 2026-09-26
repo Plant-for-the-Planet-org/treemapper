@@ -13,11 +13,14 @@ import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import { resetProjectState } from 'src/store/slice/projectStateSlice'
 import { SCALE_16 } from 'src/utils/constants/spacing'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 interface Props {
   item: SideDrawerItem
   onPressFeedback?: () => void
   onPressTour?: () => void
+  onPressAnalyticsConsent?: () => void
 }
 
 const SideBarCard = (props: Props) => {
@@ -25,11 +28,18 @@ const SideBarCard = (props: Props) => {
   const { label, screen, icon, visible, key, disable } = props.item
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
+  const posthog = usePostHog()
 
   const handleNavigation = () => {
     if (disable) {
       return
     }
+    // Track every enabled tap with the stable key (not the translated label)
+    // so the breakdown never splits by language.
+    captureAnalyticsEvent(posthog, AnalyticsEvents.MENU_ITEM_CLICKED, {
+      item_key: key,
+      target_screen: screen,
+    })
     let params = {}
     if (key === 'logout') {
       handleLogout()
@@ -43,6 +53,10 @@ const SideBarCard = (props: Props) => {
       props.onPressTour?.()
       return
     }
+    if (key === 'analytics_consent') {
+      props.onPressAnalyticsConsent?.()
+      return
+    }
     if (key === 'manage_species') {
       params = { manageSpecies: true }
     }
@@ -51,6 +65,7 @@ const SideBarCard = (props: Props) => {
 
   const handleLogout = async () => {
     try {
+      captureAnalyticsEvent(posthog, AnalyticsEvents.LOGOUT)
       await logoutUser()
       dispatch(resetProjectState())
       dispatch(updateUserLogin(false))

@@ -18,6 +18,7 @@ import { StatusBar } from 'expo-status-bar'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useKeepAwake } from 'expo-keep-awake'
 import { TourGuideProvider, TourGuideOverlay } from '@wrack/react-native-tour-guide'
+import AnalyticsConsentGate from 'src/components/analytics/AnalyticsConsentGate'
 
 
 
@@ -56,6 +57,8 @@ export default function App() {
                             captureTouches: true,
                           }}>
                           <RootNavigator />
+                          {/* Needs PostHog and the rehydrated store, so it sits here. */}
+                          <AnalyticsConsentGate />
                         </PostHogProvider>
                       </NavigationContainer>
                     </BottomSheetModalProvider>

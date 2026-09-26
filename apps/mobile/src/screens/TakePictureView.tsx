@@ -10,6 +10,8 @@ import { useRoute, RouteProp } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import i18next from 'src/locales/index'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 const TakePicture = () => {
   const [imageMetaData, setImageMetaData] = useState<CapturedPicture>({
@@ -19,11 +21,20 @@ const TakePicture = () => {
   })
   const route = useRoute<RouteProp<RootStackParamList, 'TakePicture'>>()
   const plotImage = route.params?.plotImage ?? false
+  const posthog = usePostHog()
 
   const takePicture = (data: CapturedPicture) => {
+    // Track every successful capture so we can compare photo_taken vs
+    // photo_retaken to see how often field conditions require a second try.
+    captureAnalyticsEvent(posthog, AnalyticsEvents.PHOTO_TAKEN, {
+      is_plot_image: plotImage,
+    })
     setImageMetaData(data)
   }
   const retakePicture = () => {
+    captureAnalyticsEvent(posthog, AnalyticsEvents.PHOTO_RETAKEN, {
+      is_plot_image: plotImage,
+    })
     setImageMetaData({
       width: 0,
       height: 0,

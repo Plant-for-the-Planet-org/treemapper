@@ -13,17 +13,26 @@ import Header from 'src/components/common/Header'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
 import i18next, { SUPPORTED_LANGUAGES, setAppLanguage } from 'src/locales'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 const LanguageSettingsView = () => {
   const { i18n } = useTranslation()
   const [saving, setSaving] = useState<string | null>(null)
   const currentLang = i18n.language?.split('-')[0] || 'en'
+  const posthog = usePostHog()
 
   const onSelectLanguage = async (code: string) => {
     if (code === currentLang) return
     setSaving(code)
     try {
       await setAppLanguage(code)
+      // Sends both the new and previous language so we can see which
+      // transitions are most common (e.g. en → fr, en → de).
+      captureAnalyticsEvent(posthog, AnalyticsEvents.LANGUAGE_CHANGED, {
+        language: code,
+        previous_language: currentLang,
+      })
     } finally {
       setSaving(null)
     }

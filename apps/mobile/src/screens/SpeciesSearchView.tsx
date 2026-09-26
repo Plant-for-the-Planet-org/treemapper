@@ -18,6 +18,8 @@ import { FONT_FAMILY_ITALIC, FONT_FAMILY_REGULAR } from 'src/utils/constants/typ
 import { useDispatch } from 'react-redux'
 import { updateSelectedSpeciesId, updateSpeciesUpdatedAt } from 'src/store/slice/tempStateSlice'
 import { updateSpeciesDownloaded } from 'src/store/slice/appStateSlice'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 const SpeciesSearchView = () => {
   const [specieList, setSpecieList] = useState<IScientificSpecies[]>([])
@@ -28,6 +30,7 @@ const SpeciesSearchView = () => {
   const isManageSpecies = route.params?.manageSpecies;
   const dispatch = useDispatch()
   const toast = useToast()
+  const posthog = usePostHog()
   const handleBackPress = () => {
     navigation.goBack()
   }
@@ -45,6 +48,13 @@ const SpeciesSearchView = () => {
       )
     })
     updateUserFavSpecies(item.guid, status)
+    // Track favourite changes so we can see which species are most saved
+    // and whether field workers build personal lists or rely on the default set.
+    captureAnalyticsEvent(
+      posthog,
+      status ? AnalyticsEvents.SPECIES_FAVORITED : AnalyticsEvents.SPECIES_UNFAVORITED,
+      { species_guid: item.guid, scientific_name: item.scientificName },
+    )
     toast.hideAll();
     if (status) {
       toast.show(<Text style={styles.toastLabel}><Text style={styles.speciesLabel}>"{item.scientificName}"</Text> {i18next.t("label.added_to_favorites")}</Text>, { style: { backgroundColor: Colors.GRAY_LIGHT }, textStyle: { textAlign: 'center' } })
@@ -58,6 +68,12 @@ const SpeciesSearchView = () => {
     status: boolean
   ) => {
     if (!isManageSpecies) {
+      // Selecting a species for an intervention — track guid and name so we
+      // can see which species are most recorded without logging any field data.
+      captureAnalyticsEvent(posthog, AnalyticsEvents.SPECIES_SELECTED, {
+        species_guid: item.guid,
+        scientific_name: item.scientificName,
+      })
       navigation.goBack()
       dispatch(updateSelectedSpeciesId(item.guid))
     } else {

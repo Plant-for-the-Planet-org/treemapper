@@ -25,6 +25,8 @@ import { FIX_REQUIRED } from 'src/types/type/app.type';
 import i18next from 'src/locales/index';
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper';
 import useLogManagement from 'src/hooks/realm/useLogManagement';
+import { usePostHog } from 'posthog-react-native';
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics';
 
 interface Props {
     isLoggedIn: boolean
@@ -80,6 +82,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
     const dispatch = useDispatch()
     const { addNewLog } = useLogManagement()
     const { isConnected } = useNetInfo();
+    const posthog = usePostHog()
     const lastSyncDate = useSelector((state: RootState) => state.appState.lastSyncDate)
 
     // Only records that can actually upload. Quarantined records
@@ -192,11 +195,18 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             // /health doesn't come back OK, the server is down/in maintenance. In
             // both cases the data stays queued in Realm and uploads on a later sync.
             if (!isConnected) {
+                captureAnalyticsEvent(posthog, AnalyticsEvents.SYNC_FAILED, {
+                    reason: 'offline',
+                })
                 toast.show("Network call failed \nPlease check your internet connection", { textStyle: { textAlign: 'center' } })
                 return
             }
             const health = await getMobileHealth()
             if (!health.success) {
+                captureAnalyticsEvent(posthog, AnalyticsEvents.SYNC_FAILED, {
+                    reason: 'server_maintenance',
+                    status_code: health.status ?? null,
+                })
                 addNewLog({ logType: 'DATA_SYNC', message: 'Sync skipped: server health check failed', logLevel: 'error', statusCode: `${health.status}` })
                 Alert.alert(
                     "Server under maintenance",
@@ -204,6 +214,9 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
                 )
                 return
             }
+            captureAnalyticsEvent(posthog, AnalyticsEvents.SYNC_STARTED, {
+                pending_count: interventionData.length,
+            })
 
             const projectPass = await checkForProjectId();
             if (!projectPass) return;
@@ -226,6 +239,16 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             const needsFix = realm.objects(RealmSchema.Intervention)
                 .filtered('status != "SYNCED" AND is_complete == true AND fix_required != "NO"').length
 
+            // Sync outcome — record counts whether the queue is clear or not so
+            // we can see upload success rates and how often items need a fix.
+            captureAnalyticsEvent(posthog, AnalyticsEvents.SYNC_COMPLETED, {
+                uploaded: totalUploaded,
+                failed: totalFailed,
+                quarantined: totalQuarantined,
+                remaining,
+                needs_fix: needsFix,
+                all_clear: remaining === 0 && needsFix === 0,
+            })
             if (remaining === 0 && needsFix === 0) {
                 setShowFullSync(true)
                 dispatch(updateNewIntervention())
@@ -238,6 +261,9 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
                 toast.show(`${remaining} intervention${remaining !== 1 ? 's' : ''} still need attention.`)
             }
         } catch (error) {
+            captureAnalyticsEvent(posthog, AnalyticsEvents.SYNC_FAILED, {
+                reason: 'network_error',
+            })
             addNewLog({ logType: 'DATA_SYNC', message: 'Sync aborted (network)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
             toast.show("Network call failed \nPlease check your internet connection", { textStyle: { textAlign: 'center' } })
         } finally {
