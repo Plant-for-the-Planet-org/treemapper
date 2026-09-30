@@ -1,5 +1,5 @@
 import { StyleSheet, Text, } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Colors } from 'src/utils/constants'
 import SpeciesSearchHeader from 'src/components/species/SpeciesSearchHeader'
 import EmptySpeciesSearchList from 'src/components/species/EmptySpeciesSearchList'
@@ -20,6 +20,9 @@ import { updateSelectedSpeciesId, updateSpeciesUpdatedAt } from 'src/store/slice
 import { updateSpeciesDownloaded } from 'src/store/slice/appStateSlice'
 import { usePostHog } from 'posthog-react-native'
 import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
+import useManageSpeciesTour, { useSpeciesTourScreen } from 'src/hooks/useManageSpeciesTour'
+import { useTourAction } from 'src/hooks/useTourController'
+import { SPECIES_TOUR_STEPS } from 'src/utils/tour/manageSpeciesTour'
 
 const SpeciesSearchView = () => {
   const [specieList, setSpecieList] = useState<IScientificSpecies[]>([])
@@ -31,9 +34,26 @@ const SpeciesSearchView = () => {
   const dispatch = useDispatch()
   const toast = useToast()
   const posthog = usePostHog()
+  const { advanceIfOn } = useManageSpeciesTour()
+  // Only reached from Manage Species in the drawer's manage mode; the capture
+  // flow uses this screen to pick a species for an intervention instead.
+  useSpeciesTourScreen('speciesSearch', Boolean(isManageSpecies))
+
   const handleBackPress = () => {
     navigation.goBack()
   }
+
+  // A near-miss on the backdrop of the "go back" step should still go back:
+  // the step asks for one decision and the arrow is a small target.
+  useTourAction(SPECIES_TOUR_STEPS.BACK, handleBackPress)
+
+  // The "type a name" step is satisfied by results appearing, not by a button.
+  // Asking the user to reach past the keyboard for Next would be worse.
+  useEffect(() => {
+    if (specieList.length > 0) {
+      advanceIfOn(SPECIES_TOUR_STEPS.TYPE)
+    }
+  }, [specieList.length, advanceIfOn])
 
 
   const handleFavSpecies = async (
@@ -57,6 +77,10 @@ const SpeciesSearchView = () => {
     )
     toast.hideAll();
     if (status) {
+      // Favouriting is the act the walkthrough's heart step is waiting for.
+      // Unfavouriting is not: that would move the tour on for undoing the
+      // thing it just taught.
+      advanceIfOn(SPECIES_TOUR_STEPS.FAVOURITE)
       toast.show(<Text style={styles.toastLabel}><Text style={styles.speciesLabel}>"{item.scientificName}"</Text> {i18next.t("label.added_to_favorites")}</Text>, { style: { backgroundColor: Colors.GRAY_LIGHT }, textStyle: { textAlign: 'center' } })
     } else {
       toast.show(<Text style={styles.toastLabel}><Text style={styles.speciesLabel}>"{item.scientificName}"</Text> {i18next.t("label.removed_from_favorites")}</Text>, { style: { backgroundColor: Colors.GRAY_LIGHT }, textStyle: { textAlign: 'center' } })
@@ -93,8 +117,8 @@ const SpeciesSearchView = () => {
     <SafeAreaView style={styles.contentWrapper}>
       <FlashList
         data={specieList}
-        renderItem={({ item }) => (
-          <SpeciesSearchCard item={item} toggleFavSpecies={handleFavSpecies} handleCard={handleCardPress} />
+        renderItem={({ item, index }) => (
+          <SpeciesSearchCard item={item} toggleFavSpecies={handleFavSpecies} handleCard={handleCardPress} isTourTarget={index === 0} />
         )}
         keyExtractor={item => item.guid}
         keyboardShouldPersistTaps="always"

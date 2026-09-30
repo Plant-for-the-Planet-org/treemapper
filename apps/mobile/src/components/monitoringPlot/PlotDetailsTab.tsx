@@ -2,6 +2,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { Typography, Colors } from 'src/utils/constants'
 import i18next from 'src/locales/index'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import { PLOT_TOUR_TARGETS } from 'src/utils/tour/monitoringPlotTour'
 
 
 interface Props {
@@ -12,7 +14,7 @@ interface Props {
 const PlotDetailsTab = (props: Props) => {
     const { changeIndex, selectedIndex } = props
     return (
-        <View style={styles.container}>
+        <TourTarget id={PLOT_TOUR_TARGETS.TABS} style={styles.container}>
             <View style={styles.wrapper}>
                 <Pressable style={styles.cardWrapper} onPress={() => {
                     changeIndex(0)
@@ -51,7 +53,7 @@ const PlotDetailsTab = (props: Props) => {
                     </View>}
                 </Pressable>
             </View>
-        </View>
+        </TourTarget>
     )
 }
 

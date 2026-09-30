@@ -20,6 +20,10 @@ import CloseIcon from 'assets/images/svg/CloseIconFill.svg'
 import i18next from 'i18next'
 import useMapDraft from 'src/hooks/realm/useMapDraft'
 import bbox from '@turf/bbox'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import useCreateSiteTour from 'src/hooks/useCreateSiteTour'
+import { useTourAction } from 'src/hooks/useTourController'
+import { SITE_TOUR_STEPS, SITE_TOUR_TARGETS } from 'src/utils/tour/createSiteTour'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -48,6 +52,7 @@ const SiteCreationMap = (props: Props) => {
     )
     const toast = useToast();
     const { saveDraft, readDraft, clearDraft } = useMapDraft()
+    const { advanceIfOn } = useCreateSiteTour()
 
     const cameraRef = useRef<CameraRef>(null)
     const mapRef = useRef<MapRef>(null)
@@ -103,6 +108,16 @@ const SiteCreationMap = (props: Props) => {
     useEffect(() => {
         handleCameraViewChange()
     }, [projectBounds])
+
+    // The walkthrough's "mark a corner" step is released by the third corner,
+    // not the first: Complete only exists once a polygon is possible, so the
+    // next step would otherwise have nothing to point at. A restored draft
+    // arrives already complete, which skips the step, and that is right.
+    useEffect(() => {
+        if (polygonComplete) {
+            advanceIfOn(SITE_TOUR_STEPS.MARK)
+        }
+    }, [polygonComplete, advanceIfOn])
 
 
     useEffect(() => {
@@ -227,8 +242,14 @@ const SiteCreationMap = (props: Props) => {
     const makeComplete = async () => {
         const finalCoordinates = [...coordinates, coordinates[0]];
         const data = makeInterventionGeoJson('Polygon', finalCoordinates, '')
+        advanceIfOn(SITE_TOUR_STEPS.COMPLETE)
         setGeometry(data.geoJSON)
     }
+
+    // Continue (another corner) sits in the same spotlight as Complete, so the
+    // only ambiguous press on that step is the backdrop. Closing the shape is
+    // what the step asks for.
+    useTourAction(SITE_TOUR_STEPS.COMPLETE, makeComplete)
 
 
 
@@ -251,8 +272,9 @@ const SiteCreationMap = (props: Props) => {
                     color={Colors.GRAY_DARK}
                 />
             </TouchableOpacity>}
+            <TourTarget id={SITE_TOUR_TARGETS.MAP} style={styles.mapSite}>
             <Map
-                style={styles.mapSite}
+                style={styles.mapFillSite}
                 ref={mapRef}
                 logo={false}
                 onDidFinishLoadingMap={handleCameraViewChange}
@@ -267,9 +289,10 @@ const SiteCreationMap = (props: Props) => {
                 <LineMarker coordinates={coordinates} />
                 <AlphabetMarkers coordinates={coordinates} />
             </Map>
+            </TourTarget>
             <SatelliteIconWrapper />
             {polygonComplete && (
-                <View style={styles.btnFooterSite}>
+                <TourTarget id={SITE_TOUR_TARGETS.FOOTER} style={styles.btnFooterSite}>
                     <CustomButton
                         label="Complete"
                         containerStyle={styles.btnWrapperSite}
@@ -284,7 +307,7 @@ const SiteCreationMap = (props: Props) => {
                         wrapperStyle={styles.opaqueWrapperSite}
                         labelStyle={styles.normalLabelSite}
                     />
-                </View>
+                </TourTarget>
             )}
             {!polygonComplete && (
                 <CustomButton
@@ -319,12 +342,18 @@ const styles = StyleSheet.create({
         top: 30,
         zIndex: 10
     },
+    // The tour wraps the map so the user can still pan inside the spotlight,
+    // and TourTarget renders a plain View: the flex has to sit on the wrapper,
+    // with the Map itself filling it.
     mapSite: {
         flex: 1,
         alignSelf: 'stretch',
         borderTopLeftRadius: 0,
         borderTopRightRadius: 0,
         overflow: 'hidden'
+    },
+    mapFillSite: {
+        flex: 1,
     },
 
     btnFooterSite: {

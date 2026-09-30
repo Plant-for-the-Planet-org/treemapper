@@ -13,6 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput'
 import i18next from 'i18next'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import { useSpeciesTourScreen } from 'src/hooks/useManageSpeciesTour'
+import { SPECIES_TOUR_TARGETS } from 'src/utils/tour/manageSpeciesTour'
 
 const SpeciesInfoView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'SpeciesInfo'>>()
@@ -20,6 +23,9 @@ const SpeciesInfoView = () => {
     RealmSchema.ScientificSpecies,
     route.params.guid,
   )
+  // Only reachable from Manage Species in manage mode, so the walkthrough is
+  // always welcome here.
+  useSpeciesTourScreen('speciesInfo')
   useEffect(() => {
     // This should be run when screen gains focus - enable the module where it's needed
     AvoidSoftInput.setShouldMimicIOSBehavior(true);
@@ -35,8 +41,12 @@ const SpeciesInfoView = () => {
         <ScrollView>
           <Header label={i18next.t("label.back")} />
           <SpeciesInfoHeader item={specieData} />
-          <SpecieInfoImageSection item={specieData} />
-          <SpecieInfoDetailSection item={specieData} />
+          <TourTarget id={SPECIES_TOUR_TARGETS.INFO_PHOTO}>
+            <SpecieInfoImageSection item={specieData} />
+          </TourTarget>
+          <TourTarget id={SPECIES_TOUR_TARGETS.INFO_DETAILS}>
+            <SpecieInfoDetailSection item={specieData} />
+          </TourTarget>
         </ScrollView>
       </AvoidSoftInputView>
     </SafeAreaView>

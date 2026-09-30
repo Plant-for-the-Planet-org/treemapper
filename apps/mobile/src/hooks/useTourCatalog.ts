@@ -1,0 +1,145 @@
+import { useMemo } from 'react'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { useTranslation } from 'react-i18next'
+import { useQuery } from '@realm/react'
+import { Ionicons } from '@expo/vector-icons'
+
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import useInterventionTour from 'src/hooks/useInterventionTour'
+import useManageSpeciesTour from 'src/hooks/useManageSpeciesTour'
+import useMonitoringPlotTour from 'src/hooks/useMonitoringPlotTour'
+import useCreateSiteTour from 'src/hooks/useCreateSiteTour'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { ProjectInterface } from 'src/types/interface/app.interface'
+
+export interface TourCatalogEntry {
+  /** Stable key for the list and for analytics. Not the library's tour id. */
+  key: string
+  icon: keyof typeof Ionicons.glyphMap
+  title: string
+  /** One line on the card: what the user will end up having done. */
+  summary: string
+  confirmTitle: string
+  confirmMessage: string
+  /**
+   * Why this tour cannot be run right now, or undefined when it can. The list
+   * shows the row greyed out with this in place of the summary rather than
+   * letting a tour start and stall halfway.
+   */
+  blockedReason?: string
+  /**
+   * Puts the user on the screen the first spotlight sits on, then starts.
+   * Both entries drop the tour list from the stack on the way, so finishing a
+   * tour leaves the user where the tour ended rather than back on a menu.
+   */
+  begin: () => void
+}
+
+/**
+ * Every walkthrough the app offers, in the order the "Show me how" screen
+ * lists them.
+ *
+ * **Adding a tour is meant to be two files.** Write its steps under
+ * `utils/tour/`, give it a hook like `useManageSpeciesTour`, then add one entry
+ * here. The list screen renders whatever this returns, so it needs no change,
+ * and neither does the side drawer.
+ *
+ * `begin` is part of the entry rather than something the screen works out,
+ * because every tour starts somewhere different and the navigation is the part
+ * that is easy to get wrong: the first step's target has to be mounting before
+ * the tour starts, or it measures nothing and falls back to a centred tooltip.
+ */
+const useTourCatalog = (): TourCatalogEntry[] => {
+  const { t } = useTranslation()
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const { startSingleTreeTour } = useInterventionTour()
+  const { startManageSpeciesTour } = useManageSpeciesTour()
+  const { startMonitoringPlotTour } = useMonitoringPlotTour()
+  const { startCreateSiteTour } = useCreateSiteTour()
+
+  // A monitoring plot and a site both have to belong to a project, and both
+  // screens refuse to continue without one. Same filter `CreatePlotView` uses:
+  // "funds" projects cannot be field-recorded into.
+  const recordableProjects = useQuery<ProjectInterface>(RealmSchema.Projects, data =>
+    data.filtered('purpose != "funds"'),
+  )
+  const hasProject = recordableProjects.length > 0
+
+  return useMemo(
+    () => [
+      {
+        key: 'single_tree',
+        icon: 'footsteps',
+        title: t('label.tour_single_tree_name'),
+        summary: t('label.tour_single_tree_summary'),
+        confirmTitle: t('label.tour_start_alert_title'),
+        confirmMessage: t('label.tour_start_alert_message'),
+        begin: () => {
+          // The first spotlight sits on the home screen (the project picker, or
+          // the "+" button when a project is already chosen), so everything
+          // above Home has to be off the stack before the tour starts.
+          navigation.popToTop()
+          startSingleTreeTour()
+        },
+      },
+      {
+        key: 'manage_species',
+        icon: 'leaf',
+        title: t('label.tour_species_name'),
+        summary: t('label.tour_species_summary'),
+        confirmTitle: t('label.species_tour_start_alert_title'),
+        confirmMessage: t('label.species_tour_start_alert_message'),
+        begin: () => {
+          // `replace`, not `navigate`: the tour ends two screens deep, and a
+          // menu left underneath is not somewhere to come back to.
+          // `manageSpecies` is the same param the drawer's Manage Species row
+          // passes. Without it the screen behaves as the capture flow's species
+          // picker, where tapping a card selects a species instead of opening
+          // it to edit.
+          navigation.replace('ManageSpecies', { manageSpecies: true })
+          startManageSpeciesTour()
+        },
+      },
+      {
+        key: 'monitoring_plot',
+        icon: 'analytics',
+        title: t('label.tour_plot_name'),
+        summary: t('label.tour_plot_summary'),
+        confirmTitle: t('label.plot_tour_start_alert_title'),
+        confirmMessage: t('label.plot_tour_start_alert_message'),
+        blockedReason: hasProject ? undefined : t('label.plot_tour_needs_project'),
+        begin: () => {
+          // Opens on the "+" button, same as the single tree tour.
+          navigation.popToTop()
+          startMonitoringPlotTour()
+        },
+      },
+      {
+        key: 'create_site',
+        icon: 'map',
+        title: t('label.tour_site_name'),
+        summary: t('label.tour_site_summary'),
+        confirmTitle: t('label.site_tour_start_alert_title'),
+        confirmMessage: t('label.site_tour_start_alert_message'),
+        blockedReason: hasProject ? undefined : t('label.site_tour_needs_project'),
+        begin: () => {
+          // Opens on the "+" button, same as the tree and plot tours.
+          navigation.popToTop()
+          startCreateSiteTour()
+        },
+      },
+    ],
+    [
+      t,
+      navigation,
+      startSingleTreeTour,
+      startManageSpeciesTour,
+      startMonitoringPlotTour,
+      startCreateSiteTour,
+      hasProject,
+    ],
+  )
+}
+
+export default useTourCatalog

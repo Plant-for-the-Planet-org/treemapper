@@ -30,6 +30,7 @@ import { updateSpeciesDownloaded } from 'src/store/slice/appStateSlice'
 import { TourTarget } from '@wrack/react-native-tour-guide'
 import { useTourStage } from 'src/hooks/useInterventionTour'
 import { TOUR_TARGETS } from 'src/utils/tour/interventionTour'
+import { useSpeciesTourScreen } from 'src/hooks/useManageSpeciesTour'
 
 
 const ManageSpeciesView = () => {
@@ -58,6 +59,11 @@ const ManageSpeciesView = () => {
   const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false)
   const dispatch = useDispatch()
   useTourStage('manageSpecies')
+  // The same screen serves two flows. Only the drawer's "manage" mode lets you
+  // open a species to edit it, so the species walkthrough is anchored here only
+  // in that mode; in the capture flow this screen belongs to the intervention
+  // walkthrough above.
+  useSpeciesTourScreen('manageSpecies', Boolean(isManageSpecies))
   useEffect(() => {
     const InterventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
     if (InterventionData) {

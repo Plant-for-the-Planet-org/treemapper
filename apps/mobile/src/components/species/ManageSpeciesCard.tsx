@@ -11,6 +11,8 @@ import { PlantedSpecies } from 'src/types/interface/slice.interface'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 import FallbackImage from '../common/FallbackImage'
 import { legacyCdnUrl, v3CdnUrl } from 'src/utils/cdnUrl'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import { SPECIES_TOUR_TARGETS } from 'src/utils/tour/manageSpeciesTour'
 
 interface SpecieCardProps {
   item: PlantedSpecies | IScientificSpecies
@@ -20,6 +22,12 @@ interface SpecieCardProps {
   isSelectSpecies: boolean
   allowRemove?: boolean,
   onlyProjectSpecies: boolean
+  /**
+   * Marks this card as the one the Manage Species walkthrough points at. Only
+   * the first card in the list sets it: tour target ids are unique, and a list
+   * of them would have the last one registered win at random.
+   */
+  isTourTarget?: boolean
 }
 
 export const SpecieCard: React.FC<SpecieCardProps> = ({
@@ -29,7 +37,8 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
   actionName,
   isSelectSpecies,
   allowRemove,
-  onlyProjectSpecies
+  onlyProjectSpecies,
+  isTourTarget
 }) => {
 
   // a filename means the image lives on the CDN, a path means it is local
@@ -41,6 +50,64 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
   const handlePress = () => {
     onPressSpecies(item)
   }
+
+  const favouriteButton = onlyProjectSpecies ? null : !isSelectSpecies && item.guid !== 'unknown' || allowRemove ? (
+    <TouchableOpacity onPress={() => handleRemoveFavorite(item)}>
+      {actionName !== 'remove' ? (
+        <PinkHeart />
+      ) : (
+        <View style={styles.biContainer}>
+          <RemoveSpeciesIcon width={18} height={18} fill="tomato" />
+        </View>
+      )}
+    </TouchableOpacity>
+  ) : null
+
+  const body = (
+    <TouchableOpacity
+      style={styles.mySpecies}
+      onPress={handlePress}>
+      <View style={styles.imageCon}>
+        {item.image ? (
+          <FallbackImage
+            uri={imageUri}
+            fallbackUri={imageFallbackUri}
+            style={styles.imageView}
+          />
+        ) : (
+          <View
+            style={{
+              backgroundColor: '#82828210',
+              borderRadius: 8,
+              width: scaleSize(75),
+              height: scaleSize(75),
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <SingleTreeIcon width={SCALE_30} height={SCALE_30} />
+          </View>
+        )}
+      </View>
+      <View style={styles.flex1}>
+        <Text style={styles.unknownText} ellipsizeMode="tail">
+          {item.aliases
+            ? item.aliases
+            : item.scientificName}
+        </Text>
+        <Text style={styles.unknownTextVal}>
+          {item.scientificName
+            ? item.scientificName
+            : i18next.t('label.select_species_unknown')}
+        </Text>
+      </View>
+      {isTourTarget && favouriteButton ? (
+        <TourTarget id={SPECIES_TOUR_TARGETS.CARD_FAVOURITE}>{favouriteButton}</TourTarget>
+      ) : (
+        favouriteButton
+      )}
+    </TouchableOpacity>
+  )
+
   return (
     <View
       style={[
@@ -50,55 +117,11 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
           paddingVertical: 6,
         },
       ]}>
-      <View
-        style={styles.cardWrapper}>
-        <TouchableOpacity
-          style={styles.mySpecies}
-          onPress={handlePress}>
-          <View style={styles.imageCon}>
-            {item.image ? (
-              <FallbackImage
-                uri={imageUri}
-                fallbackUri={imageFallbackUri}
-                style={styles.imageView}
-              />
-            ) : (
-              <View
-                style={{
-                  backgroundColor: '#82828210',
-                  borderRadius: 8,
-                  width: scaleSize(75),
-                  height: scaleSize(75),
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>
-                <SingleTreeIcon width={SCALE_30} height={SCALE_30} />
-              </View>
-            )}
-          </View>
-          <View style={styles.flex1}>
-            <Text style={styles.unknownText} ellipsizeMode="tail">
-              {item.aliases
-                ? item.aliases
-                : item.scientificName}
-            </Text>
-            <Text style={styles.unknownTextVal}>
-              {item.scientificName
-                ? item.scientificName
-                : i18next.t('label.select_species_unknown')}
-            </Text>
-          </View>
-          {onlyProjectSpecies ? null : !isSelectSpecies && item.guid !== 'unknown' || allowRemove ? <TouchableOpacity onPress={() => handleRemoveFavorite(item)}>
-            {actionName !== 'remove' ? (
-              <PinkHeart />
-            ) : (
-              <View style={styles.biContainer}>
-                <RemoveSpeciesIcon width={18} height={18} fill="tomato" />
-              </View>
-            )}
-          </TouchableOpacity> : null}
-        </TouchableOpacity>
-      </View>
+      {isTourTarget ? (
+        <TourTarget id={SPECIES_TOUR_TARGETS.CARD} style={styles.cardWrapper}>{body}</TourTarget>
+      ) : (
+        <View style={styles.cardWrapper}>{body}</View>
+      )}
     </View>
   )
 }

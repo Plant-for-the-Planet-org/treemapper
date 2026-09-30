@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import { useFocusEffect } from '@react-navigation/native'
 import { useTourGuide } from '@wrack/react-native-tour-guide'
@@ -9,36 +9,24 @@ import {
   SINGLE_TREE_TOUR_ID,
   STAGE_ENTRY,
   buildSingleTreeTourSteps,
-  clearTourAction,
-  setTourAction,
   type TourStage,
 } from 'src/utils/tour/interventionTour'
+import { useTourAction, useTourController } from 'src/hooks/useTourController'
+
+export { useTourAction }
 
 /**
  * Drives the Single Tree walkthrough. See `utils/tour/interventionTour.ts`
- * for why the tour is screen-anchored rather than a linear step counter.
+ * for why the tour is screen-anchored rather than a linear step counter, and
+ * `useTourController` for the machinery it shares with the Manage Species tour.
  */
 const useInterventionTour = () => {
-  const {
-    startTour,
-    endTour,
-    nextStep,
-    goToStep,
-    setStepCompleted,
-    pauseTour,
-    resumeTour,
-    isActive,
-    isPaused,
-    activeSteps,
-    currentStep,
-    activeTourId,
-  } = useTourGuide()
+  const { startTour } = useTourGuide()
+  const controller = useTourController(SINGLE_TREE_TOUR_ID)
   const currentProject = useSelector((state: RootState) => state.projectState.currentProject.projectId)
   // Empty string when signed out. HomeHeader gates the project picker on it,
   // so it decides whether the tour's opening step has anything to point at.
   const userType = useSelector((state: RootState) => state.userState.type)
-
-  const isTourRunning = isActive && activeTourId === SINGLE_TREE_TOUR_ID
 
   const startSingleTreeTour = useCallback(() => {
     startTour(buildSingleTreeTourSteps(Boolean(currentProject), Boolean(userType)), {
@@ -57,61 +45,17 @@ const useInterventionTour = () => {
     })
   }, [startTour, currentProject, userType])
 
-  /** Index of a step id within the steps actually in play. -1 when filtered out. */
-  const indexOfStep = useCallback(
-    (stepId: string) => activeSteps.findIndex(step => step.id === stepId),
-    [activeSteps],
-  )
-
-  const currentStepId = isTourRunning ? activeSteps[currentStep]?.id : undefined
-
-  /**
-   * Advance, but only when the tour is sitting on `stepId`. Press handlers call
-   * this unconditionally; outside the tour it is a no-op, so the handler reads
-   * the same whether or not a tour is running.
-   */
-  const advanceIfOn = useCallback(
-    (stepId: string) => {
-      if (!isTourRunning || currentStepId !== stepId) {
-        return
-      }
-      // Satisfies `completed: false` gating before advancing, so a step that
-      // disables Next until the user acts is released by the act itself.
-      setStepCompleted(stepId, true)
-      nextStep()
-    },
-    [isTourRunning, currentStepId, setStepCompleted, nextStep],
-  )
-
-  const stopTour = useCallback(() => {
-    if (isTourRunning) {
-      endTour()
-    }
-  }, [isTourRunning, endTour])
-
-  /**
-   * Hide the tour without losing its place. Used where the flow detours through
-   * screens the tour does not cover (the empty dynamic form), so the overlay is
-   * not left pointing at a button on a screen the user has left. The next
-   * covered screen resumes it via `useTourStage`.
-   */
-  const suspendTour = useCallback(() => {
-    if (isTourRunning && !isPaused) {
-      pauseTour()
-    }
-  }, [isTourRunning, isPaused, pauseTour])
-
   return {
     startSingleTreeTour,
-    stopTour,
-    suspendTour,
-    resumeTour,
-    advanceIfOn,
-    indexOfStep,
-    goToStep,
-    isTourRunning,
-    isPaused,
-    currentStepId,
+    stopTour: controller.stopTour,
+    suspendTour: controller.suspendTour,
+    resumeTour: controller.resumeTour,
+    advanceIfOn: controller.advanceIfOn,
+    indexOfStep: controller.indexOfStep,
+    goToStep: controller.goToStep,
+    isTourRunning: controller.isTourRunning,
+    isPaused: controller.isPaused,
+    currentStepId: controller.currentStepId,
   }
 }
 
@@ -122,9 +66,15 @@ const useInterventionTour = () => {
  * a screen lower in the flow re-mounting (a back press, a `navigation.replace`,
  * StrictMode) must not drag the tour back to an earlier step the user has
  * already passed.
+ *
+ * Each screen in this flow is visited once, so one entry step per screen is
+ * enough. The Manage Species tour revisits a screen and uses `useTourScreen`
+ * instead, which takes every step a screen owns.
  */
 export const useTourStage = (stage: TourStage) => {
-  const { isTourRunning, isPaused, indexOfStep, goToStep, resumeTour } = useInterventionTour()
+  const { isTourRunning, isPaused, indexOfStep, goToStep, resumeTour } = useTourController(
+    SINGLE_TREE_TOUR_ID,
+  )
   const { currentStep } = useTourGuide()
   const syncedRef = useRef(false)
 
@@ -151,25 +101,6 @@ export const useTourStage = (stage: TourStage) => {
       }
     }, [isTourRunning, isPaused, resumeTour, indexOfStep, goToStep, stage, currentStep]),
   )
-}
-
-/**
- * Lend a screen's own press handler to a tour step, for the steps the tour
- * drives itself rather than by letting the tap fall through the spotlight.
- * See the note on `tourActions` in `utils/tour/interventionTour.ts`.
- *
- * The handler is read through a ref, so a step registered once still calls the
- * current closure rather than the one captured on mount.
- */
-export const useTourAction = (stepId: string, action: () => void) => {
-  const actionRef = useRef(action)
-  actionRef.current = action
-
-  useEffect(() => {
-    const run = () => actionRef.current()
-    setTourAction(stepId, run)
-    return () => clearTourAction(stepId, run)
-  }, [stepId])
 }
 
 export default useInterventionTour

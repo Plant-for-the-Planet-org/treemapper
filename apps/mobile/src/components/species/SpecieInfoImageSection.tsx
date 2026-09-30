@@ -16,6 +16,7 @@ import { updateImageDetails } from 'src/store/slice/takePictureSlice'
 import { SCALE_36, SCALE_26 } from 'src/utils/constants/spacing'
 import { scaleSize } from 'src/utils/constants/mixins'
 import FallbackImage from '../common/FallbackImage'
+import useManageSpeciesTour from 'src/hooks/useManageSpeciesTour'
 
 interface Props {
   item: IScientificSpecies
@@ -28,6 +29,7 @@ const SpecieInfoImageSection = (props: Props) => {
   const { updateSpeciesDetails } = useManageScientificSpecies()
   const [imageId, setImageId] = useState('')
   const dispatch = useDispatch()
+  const { suspendTour } = useManageSpeciesTour()
   // a filename means the image lives on the CDN, a path means it is local
   const isCdnImage = !!image && !image.includes('/')
   const imageUri = isCdnImage ? (v3CdnUrl('species', image) ?? '') : image
@@ -42,6 +44,10 @@ const SpecieInfoImageSection = (props: Props) => {
   }, [imageDetails])
 
   const takePicture = () => {
+    // The camera is not part of the walkthrough, so hide the overlay rather
+    // than leave it pointing at a card on a screen the user has left. The
+    // focus sync on this screen brings it back.
+    suspendTour()
     const newID = String(new Date().getTime())
     setImageId(newID)
     navigation.navigate('TakePicture', {

@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from 'react-native'
+import { Pressable, StyleSheet } from 'react-native'
 import React, { useMemo, useState } from 'react'
 import Header from 'src/components/common/Header'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -20,6 +20,10 @@ import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManage
 import { newPlotDetails } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { useToast } from 'react-native-toast-notifications'
 import i18next from 'src/locales/index'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import { usePlotTourScreen } from 'src/hooks/useMonitoringPlotTour'
+import { useTourAction } from 'src/hooks/useTourController'
+import { PLOT_TOUR_STEPS, PLOT_TOUR_TARGETS } from 'src/utils/tour/monitoringPlotTour'
 
 const CreatePlotView = () => {
     const [plotType, setPlotType] = useState<string>('INTERVENTION');
@@ -30,6 +34,7 @@ const CreatePlotView = () => {
     const realm = useRealm()
     const { initializeNewPlot } = useMonitoringPlotManagement()
     const toast = useToast()
+    usePlotTourScreen('createPlot')
 
     // Projects the user can record into. Mirrors the project picker elsewhere:
     // donation/"funds" projects are excluded as you can't field-record into them.
@@ -69,6 +74,11 @@ const CreatePlotView = () => {
         }
     }
 
+    // A near-miss on the backdrop of the Continue step should still continue:
+    // the step asks for one decision, and the guard that refuses without a
+    // project lives in handleNav rather than being repeated here.
+    useTourAction(PLOT_TOUR_STEPS.SETTINGS_CONTINUE, handleNav)
+
     const openInfo = () => {
         navigation.navigate('MonitoringInfo')
     }
@@ -76,7 +86,7 @@ const CreatePlotView = () => {
     return (
         <SafeAreaView style={styles.container}>
             <Header label={i18next.t('label.create_plot_header')} rightComponent={null} />
-            <View style={styles.wrapper}>
+            <TourTarget id={PLOT_TOUR_TARGETS.SETTINGS} style={styles.wrapper}>
                 <CustomDropDownPicker
                     label={i18next.t('label.project')}
                     data={projectData}
@@ -111,13 +121,14 @@ const CreatePlotView = () => {
                 }} disabled={false}
                     selectedValue={plotType}
                     onSelect={setPlotType} />
-            </View>
-            <CustomButton
-                label={i18next.t('label.continue')}
-                containerStyle={styles.btnContainer}
-                pressHandler={handleNav}
-                hideFadeIn
-            />
+            </TourTarget>
+            <TourTarget id={PLOT_TOUR_TARGETS.SETTINGS_CONTINUE} style={styles.btnContainer}>
+                <CustomButton
+                    label={i18next.t('label.continue')}
+                    pressHandler={handleNav}
+                    hideFadeIn
+                />
+            </TourTarget>
         </SafeAreaView>
     )
 }

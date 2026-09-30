@@ -586,6 +586,24 @@ web or server. Expo 55 / RN 0.83, bare workflow (checked-in `android/` and
   The metadata card lists every public entry plus the private ones the user
   typed here (`elementType: 'metaData'`); private form answers stay with the
   form that collected them rather than being repeated on every preview.
+- **Guided tours: add one in two files.** `@wrack/react-native-tour-guide`
+  drives four walkthroughs -- Single Tree, Manage Species, Monitoring Plot and
+  Create Site -- all listed on the "Show me how" screen (`GuidedToursView`),
+  which the side drawer opens. That screen knows about no individual tour: it renders
+  `hooks/useTourCatalog.ts` and calls each entry's own `begin`, which navigates
+  to the screen the first spotlight sits on. An entry can also set
+  `blockedReason` and the row greys out, which is how the plot and site tours
+  refuse to start with no project rather than stalling halfway. A new tour is its
+  steps under `utils/tour/` plus one catalogue entry; the screen and the drawer
+  stay untouched. The machinery all
+  three share is `hooks/useTourController.ts`. Three rules the library enforces
+  the hard way: an `interactive` step needs
+  `overlayMode: 'inline'` or the overlay swallows the tap; a `<TourTarget>` id
+  must be unique on screen, so only the first row of a list ever registers one;
+  and a step that hides Next *and* gates on `completed` leaves Skip as the only
+  exit if its target never mounts. A tour spanning screens cannot count
+  `nextStep()` calls, because the user can always press back -- each screen
+  declares the steps it owns and the tour re-syncs forward on focus.
 - 7 languages under `src/locales/languages` (de, en, es, fr, it, mg, pt-BR) --
   unlike web, which is English-only.
 - Crash reporting is Bugsnag; analytics is PostHog; push is OneSignal.

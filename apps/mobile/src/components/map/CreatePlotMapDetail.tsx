@@ -21,6 +21,10 @@ import { PlantedPlotSpecies } from 'src/types/interface/slice.interface';
 import { isPointInPolygon, validateMarkerForSampleTree } from 'src/utils/helpers/turfHelpers';
 import PlotMarker from './PlotMarker';
 import i18next from 'src/locales/index'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import useMonitoringPlotTour from 'src/hooks/useMonitoringPlotTour'
+import { useTourAction } from 'src/hooks/useTourController'
+import { PLOT_TOUR_STEPS, PLOT_TOUR_TARGETS } from 'src/utils/tour/monitoringPlotTour'
 
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -55,6 +59,7 @@ const CreatePlotMapDetail = (props: Props) => {
   const { updatePlotLocation, updatePlotPlantLocation } = useMonitoringPlotManagement()
   const [loading, setLoading] = useState(false)
   const toast = useToast()
+  const { advanceIfOn } = useMonitoringPlotTour()
 
 
 
@@ -150,6 +155,9 @@ const CreatePlotMapDetail = (props: Props) => {
     } else {
       setPlotCoordinates([updatedCoords])
     }
+    // Drawing the shape is what the tour's "place the centre" step asks for,
+    // and it is also what puts the confirm footer on screen for the next step.
+    advanceIfOn(PLOT_TOUR_STEPS.CENTER)
   }
 
 
@@ -237,13 +245,18 @@ const CreatePlotMapDetail = (props: Props) => {
     showNewDimensionModal()
   }
 
+  // A near-miss on the confirm step saves rather than doing nothing: Reset is
+  // inside the same spotlight, so the only ambiguous press is the backdrop.
+  useTourAction(PLOT_TOUR_STEPS.CONFIRM, continueForm)
+
 
   const showOrientationHint = plot_shape === 'RECTANGULAR' && !isMarking
 
   return (
     <View style={styles.container}>
+      <TourTarget id={PLOT_TOUR_TARGETS.MAP} style={styles.map}>
       <Map
-        style={styles.map}
+        style={styles.mapFill}
         ref={mapRef}
         logo={false}
         attribution={false}
@@ -288,6 +301,7 @@ const CreatePlotMapDetail = (props: Props) => {
           }} />}
         {plantedTrees.length > 0 && <PlotMarker sampleTreeData={plantedTrees} onMarkerPress={() => { }} />}
       </Map>
+      </TourTarget>
       {showOrientationHint && (
         <View style={styles.orientationHint} pointerEvents="none">
           <View style={styles.orientationRow}>
@@ -304,7 +318,7 @@ const CreatePlotMapDetail = (props: Props) => {
       {isEdit ? <ActiveMarkerIcon /> : null}
 
       {plotCoordinates.length > 0 && !isMarking && !isEdit ? (
-        <View style={styles.btnFooter}>
+        <TourTarget id={PLOT_TOUR_TARGETS.MAP_CONFIRM} style={styles.btnFooter}>
           <CustomButton
             label={i18next.t('label.reset')}
             containerStyle={styles.btnWrapper}
@@ -319,7 +333,7 @@ const CreatePlotMapDetail = (props: Props) => {
             wrapperStyle={styles.opaqueWrapper}
             labelStyle={styles.normalLabel}
           />
-        </View>
+        </TourTarget>
       ) : null}
 
       {isMarking && (
@@ -372,9 +386,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // The tour wraps the map so the user can still pan inside the spotlight,
+  // and TourTarget renders a plain View: the flex has to sit on the wrapper,
+  // with the Map itself filling it.
   map: {
     flex: 1,
     alignSelf: 'stretch',
+  },
+  mapFill: {
+    flex: 1,
   },
 
   btnFooter: {

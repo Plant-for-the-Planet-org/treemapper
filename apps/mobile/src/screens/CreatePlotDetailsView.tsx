@@ -26,6 +26,10 @@ import { DropdownData } from 'src/types/interface/app.interface'
 import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput'
 import { validateNumber } from 'src/utils/helpers/formHelper/validationHelper'
 import i18next from 'src/locales/index'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import { usePlotTourScreen } from 'src/hooks/useMonitoringPlotTour'
+import { useTourAction } from 'src/hooks/useTourController'
+import { PLOT_TOUR_STEPS, PLOT_TOUR_TARGETS } from 'src/utils/tour/monitoringPlotTour'
 
 
 const CreatePlotDetailsView = () => {
@@ -51,6 +55,7 @@ const CreatePlotDetailsView = () => {
     const [dropDownList, setDropDownList] = useState<DropdownData[]>([])
     const toast = useToast()
     const posthog = usePostHog()
+    usePlotTourScreen('plotForm')
 
     useEffect(() => {
         getPlotDetails()
@@ -167,6 +172,10 @@ const CreatePlotDetailsView = () => {
         }
     };
 
+    // Backdrop presses on the Create step run the real submit, so the
+    // validation toasts stay the single source of "this is not filled in yet".
+    useTourAction(PLOT_TOUR_STEPS.CREATE, submitHandler)
+
     const openInfo = () => {
         navigation.navigate('MonitoringInfo')
     }
@@ -181,7 +190,7 @@ const CreatePlotDetailsView = () => {
                     style={styles.container}>
                     <Header label={i18next.t('label.create_plot_header')} rightComponent={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
                     <View style={styles.wrapper}>
-                        <View style={{ paddingHorizontal: 20 }}>
+                        <TourTarget id={PLOT_TOUR_TARGETS.FORM} style={styles.formTarget}>
                             <AddPlotImage image={plotImage} plotID={plotID} />
                             <OutlinedTextInput
                                 placeholder={i18next.t('label.plot_name')}
@@ -214,7 +223,7 @@ const CreatePlotDetailsView = () => {
                                     errMsg={''} /><Text style={styles.noteWrapper}>
                                     {i18next.t('label.plot_radius_note')}
                                 </Text></>}
-                        </View>
+                        </TourTarget>
                         {dropDownList.length > 0 && <View style={{ marginLeft: '3%', width: '94%', justifyContent: 'center', alignItems: "center" }}>
                             <CustomDropDownPicker
                                 label={i18next.t('label.plot_group_input')}
@@ -227,12 +236,13 @@ const CreatePlotDetailsView = () => {
                     </View>
                 </AvoidSoftInputView>
             </ScrollView>
-            <CustomButton
-                label={i18next.t('label.create')}
-                containerStyle={styles.btnContainer}
-                pressHandler={submitHandler}
-                hideFadeIn
-            />
+            <TourTarget id={PLOT_TOUR_TARGETS.FORM_CREATE} style={styles.btnContainer}>
+                <CustomButton
+                    label={i18next.t('label.create')}
+                    pressHandler={submitHandler}
+                    hideFadeIn
+                />
+            </TourTarget>
         </SafeAreaView >
     )
 }
@@ -243,6 +253,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors.WHITE
+    },
+    // Was an inline { paddingHorizontal: 20 } on the View the TourTarget
+    // replaced; named so the wrapper keeps the same box to measure.
+    formTarget: {
+        paddingHorizontal: 20,
     },
     wrapper: {
         paddingTop: 20,

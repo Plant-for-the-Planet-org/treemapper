@@ -35,6 +35,10 @@ import useLocationPermission from 'src/hooks/useLocationPermission'
 import { TourTarget } from '@wrack/react-native-tour-guide'
 import useInterventionTour, { useTourAction } from 'src/hooks/useInterventionTour'
 import { TOUR_TARGETS, TOUR_STEPS } from 'src/utils/tour/interventionTour'
+import useMonitoringPlotTour from 'src/hooks/useMonitoringPlotTour'
+import { PLOT_TOUR_STEPS, PLOT_TOUR_TARGETS } from 'src/utils/tour/monitoringPlotTour'
+import useCreateSiteTour from 'src/hooks/useCreateSiteTour'
+import { SITE_TOUR_STEPS, SITE_TOUR_TARGETS } from 'src/utils/tour/createSiteTour'
 
 
 interface Props {
@@ -52,6 +56,8 @@ const AddOptionModal = (props: Props) => {
   const GPSLocation = useSelector((state: RootState) => state.gpsState.user_location)
   const showPlotFeature = useSelector((state: RootState) => state.userState.showPlotFeature)
   const { advanceIfOn } = useInterventionTour()
+  const { advanceIfOn: advancePlotTour } = useMonitoringPlotTour()
+  const { advanceIfOn: advanceSiteTour } = useCreateSiteTour()
 
   const handleSingleTree = () => {
     if (!checkWhetherProjectIsSelected()) {
@@ -70,6 +76,27 @@ const AddOptionModal = (props: Props) => {
   // The tour cannot reach this row by touch (it renders outside the "+"
   // button's bounds), so it calls this handler directly instead.
   useTourAction(TOUR_STEPS.SINGLE_TREE, handleSingleTree)
+
+  const handleMonitoringPlot = () => {
+    toast.hideAll()
+    navigation.navigate('CreatePlot')
+    props.setVisible(false)
+    advancePlotTour(PLOT_TOUR_STEPS.OPTION)
+  }
+
+  // Same reason as the single tree row above: unreachable by touch from the
+  // overlay, so the plot tour presses it through this handler.
+  useTourAction(PLOT_TOUR_STEPS.OPTION, handleMonitoringPlot)
+
+  const handleProjectSites = () => {
+    provideLocation()
+    navigation.navigate('ProjectSites')
+    props.setVisible(false)
+    advanceSiteTour(SITE_TOUR_STEPS.OPTION)
+  }
+
+  // Same reason as the rows above: unreachable by touch from the overlay.
+  useTourAction(SITE_TOUR_STEPS.OPTION, handleProjectSites)
 
 
 
@@ -110,22 +137,16 @@ const AddOptionModal = (props: Props) => {
       svgIcon: <ChartIcon width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.monitoring_plot'),
       coming_soon: false,
-      onPress: () => {
-        toast.hideAll()
-        navigation.navigate('CreatePlot')
-        props.setVisible(false)
-      },
+      tourTargetId: PLOT_TOUR_TARGETS.ADD_OPTION,
+      onPress: handleMonitoringPlot,
       disabled: false,
     },
     {
       svgIcon: <CrossArrow width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.project_sites'),
       coming_soon: false,
-      onPress: () => {
-        provideLocation()
-        navigation.navigate('ProjectSites')
-        props.setVisible(false)
-      },
+      tourTargetId: SITE_TOUR_TARGETS.ADD_OPTION,
+      onPress: handleProjectSites,
       disabled: false,
     },
     {

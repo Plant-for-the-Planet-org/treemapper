@@ -28,6 +28,10 @@ import { createNewSite } from 'src/api/api.fetch'
 import useProjectManagement from 'src/hooks/realm/useProjectManagement'
 import { updateLastProject } from 'src/store/slice/displayMapSlice'
 import useMapDraft from 'src/hooks/realm/useMapDraft'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import useCreateSiteTour, { useSiteTourScreen } from 'src/hooks/useCreateSiteTour'
+import { useTourAction } from 'src/hooks/useTourController'
+import { SITE_TOUR_STEPS, SITE_TOUR_TARGETS } from 'src/utils/tour/createSiteTour'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
@@ -44,6 +48,8 @@ const ProjectSitesView = () => {
   const [projectBounds, setProjectBounds] = useState([])
   const { addNewSite } = useProjectManagement()
   const { clearDraft } = useMapDraft()
+  const { advanceIfOn } = useCreateSiteTour()
+  useSiteTourScreen('createSite')
   const dispatch = useDispatch()
   const [selectedProject, setSelectedProject] = useState<DropdownData>({
     label: '',
@@ -161,7 +167,7 @@ const ProjectSitesView = () => {
     if (showMap) {
       return null
     }
-    return <View style={styles.rightHeader}>
+    return <TourTarget id={SITE_TOUR_TARGETS.STATUS} style={styles.rightHeader}>
       <CustomDropDown
         label={'Status'}
         data={statusData}
@@ -169,7 +175,7 @@ const ProjectSitesView = () => {
         selectedValue={selectedStatus}
         whiteBG
       />
-    </View>
+    </TourTarget>
   }
 
   const handleGeometry = (e: GeoJSONObject) => {
@@ -202,6 +208,16 @@ const ProjectSitesView = () => {
   const toggleSiteCreation = async () => {
     setShowMap(prev => !prev)
   }
+
+  // The tour needs opening the map and closing it told apart: `handleGeometry`
+  // closes through the same toggle, and advancing there would skip the two
+  // steps that happen on the map.
+  const openSiteMap = () => {
+    advanceIfOn(SITE_TOUR_STEPS.DRAW)
+    toggleSiteCreation()
+  }
+
+  useTourAction(SITE_TOUR_STEPS.DRAW, openSiteMap)
 
 
   const submitHandler = async () => {
@@ -261,22 +277,26 @@ const ProjectSitesView = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       {!showMap && <Header label='Create Site' rightComponent={rightContainer()} />}
       <View style={styles.wrapper}>
-        <CustomDropDown
-          label={i18next.t('label.project')}
-          data={allProjects}
-          onSelect={handleProjectSelection}
-          selectedValue={selectedProject}
-        />
-        <CustomTextInput
-          label={'Site name'}
-          onChangeHandler={setSiteName}
-          value={siteName}
-        />
+        <TourTarget id={SITE_TOUR_TARGETS.DETAILS}>
+          <CustomDropDown
+            label={i18next.t('label.project')}
+            data={allProjects}
+            onSelect={handleProjectSelection}
+            selectedValue={selectedProject}
+          />
+          <CustomTextInput
+            label={'Site name'}
+            onChangeHandler={setSiteName}
+            value={siteName}
+          />
+        </TourTarget>
         <Text style={styles.siteArea}>{i18next.t("label.site_area")}</Text>
-        {!showMap && <Pressable style={styles.siteWrapper} onPress={toggleSiteCreation}>
-          {geometry && !showMap ? <Text style={styles.siteLabel}> Edit site map</Text> : <Text style={styles.siteLabel}> {i18next.t("label.create_new_site_")}</Text>}
-          {!geometry && !showMap ? <AddIcon height={14} width={14} fill={Colors.NEW_PRIMARY} /> : <PenIcon height={14} width={14} fill={Colors.NEW_PRIMARY} />}
-        </Pressable>}
+        {!showMap && <TourTarget id={SITE_TOUR_TARGETS.DRAW}>
+          <Pressable style={styles.siteWrapper} onPress={openSiteMap}>
+            {geometry && !showMap ? <Text style={styles.siteLabel}> Edit site map</Text> : <Text style={styles.siteLabel}> {i18next.t("label.create_new_site_")}</Text>}
+            {!geometry && !showMap ? <AddIcon height={14} width={14} fill={Colors.NEW_PRIMARY} /> : <PenIcon height={14} width={14} fill={Colors.NEW_PRIMARY} />}
+          </Pressable>
+        </TourTarget>}
         {showMap && <View style={styles.mapWrapper}>
           <SiteCreationMap setGeometry={handleGeometry} close={toggleSiteCreation} projectBounds={projectBounds} projectId={selectedProject.value} />
         </View>}
@@ -312,10 +332,12 @@ const ProjectSitesView = () => {
             </GeoJSONSource>
           </Map>
         </View> : null}
-        {!showMap && <CustomButton
-          loading={loading}
-          disable={loading}
-          label={`${i18next.t('label.create_site')}`} pressHandler={submitHandler} containerStyle={styles.buttonContainer} />}
+        {!showMap && <TourTarget id={SITE_TOUR_TARGETS.SAVE} style={styles.buttonContainer}>
+          <CustomButton
+            loading={loading}
+            disable={loading}
+            label={`${i18next.t('label.create_site')}`} pressHandler={submitHandler} />
+        </TourTarget>}
       </View>
     </SafeAreaView>
   )

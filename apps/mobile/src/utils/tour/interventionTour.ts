@@ -1,6 +1,8 @@
 import i18next from 'i18next'
 import type { TourStep } from '@wrack/react-native-tour-guide'
 
+import { runTourAction } from './tourActions'
+
 /**
  * Guided walkthrough of the Single Tree intervention, launched on demand from
  * the side drawer ("Show me how"). It is NOT a first-run tour: the user asks
@@ -70,38 +72,6 @@ export type TourStage = keyof typeof STAGE_ENTRY
 
 const t = (key: string) => i18next.t(`label.${key}`)
 
-/**
- * Handlers a screen lends to the tour, keyed by step id.
- *
- * Almost every step works by letting the tap fall through the spotlight hole
- * to the real control. The add menu cannot: `AddOptionModal` draws itself
- * hundreds of pixels above the "+" button it is nested inside, well outside
- * that ancestor's bounds, and a tap that has to be hit-tested down from the
- * overlay never reaches it -- it lands on the map behind and nothing happens.
- *
- * So that one step is driven the other way round: it is non-interactive, the
- * library puts a press area over the cutout, and pressing it calls the row's
- * own handler. Registering the real handler rather than re-implementing the
- * navigation here keeps the guard (`checkWhetherProjectIsSelected`) and the
- * menu teardown in one place.
- */
-const tourActions = new Map<string, () => void>()
-
-export const setTourAction = (stepId: string, action: () => void) => {
-  tourActions.set(stepId, action)
-}
-
-export const clearTourAction = (stepId: string, action: () => void) => {
-  // Only clear our own entry: a remounting duplicate must not wipe the
-  // registration a still-mounted instance just made.
-  if (tourActions.get(stepId) === action) {
-    tourActions.delete(stepId)
-  }
-}
-
-export const runTourAction = (stepId: string) => {
-  tourActions.get(stepId)?.()
-}
 
 /**
  * How long to wait before measuring a row in the add menu.
@@ -170,7 +140,7 @@ export const buildSingleTreeTourSteps = (
     title: t('tour_single_tree_title'),
     description: t('tour_single_tree_desc'),
     delayBefore: ADD_MENU_ANIMATION_MS,
-    // Deliberately NOT interactive -- see `tourActions` above. A press area is
+    // Deliberately NOT interactive -- see `utils/tour/tourActions.ts`. A press area is
     // laid over the cutout instead, and it calls the row's own handler.
     onSpotlightPress: () => runTourAction(TOUR_STEPS.SINGLE_TREE),
     // Anywhere on this step counts, not just the highlighted row. The menu is

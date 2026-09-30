@@ -14,12 +14,14 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot } from 'src/types/interface/slice.interface'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { RouteProp, useRoute } from '@react-navigation/native'
+import { usePlotTourScreen } from 'src/hooks/useMonitoringPlotTour'
 
 const PlotDetailsView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'CreatePlotDetail'>>()
     const plotID = route.params?.id ?? '';
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [showEdit, setShowEdit] = useState(false)
+    usePlotTourScreen('plotOverview')
 
     const monitoringPlot = useObject<MonitoringPlot>(
         RealmSchema.MonitoringPlot, plotID

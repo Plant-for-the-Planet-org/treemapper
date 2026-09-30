@@ -10,6 +10,8 @@ import { SCALE_24, SCALE_30 } from 'src/utils/constants/spacing'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import SpeciesSyncError from './SpeciesSyncError'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import { SPECIES_TOUR_TARGETS } from 'src/utils/tour/manageSpeciesTour'
 
 interface Props {
   openSearchModal: () => void
@@ -52,12 +54,14 @@ const ManageSpeciesHeader = (props: Props) => {
             </View>
           </View>
         )}
-        <TouchableOpacity style={styles.searchBar} onPress={openSearchModal}>
-          <SearchIcon style={styles.searchIcon} width={20} height={20} />
-          <Text style={[styles.searchText, { color: Colors.GRAY_LIGHTEST }]}>
-            {i18next.t('label.select_species_search_species')}
-          </Text>
-        </TouchableOpacity>
+        <TourTarget id={SPECIES_TOUR_TARGETS.SEARCH_BAR} style={styles.searchBarTarget}>
+          <TouchableOpacity style={styles.searchBar} onPress={openSearchModal}>
+            <SearchIcon style={styles.searchIcon} width={20} height={20} />
+            <Text style={[styles.searchText, { color: Colors.GRAY_LIGHTEST }]}>
+              {i18next.t('label.select_species_search_species')}
+            </Text>
+          </TouchableOpacity>
+        </TourTarget>
       </View>}
       <View style={styles.listTitleRow}>
         <View style={styles.listTitleWrapper}>
@@ -69,7 +73,7 @@ const ManageSpeciesHeader = (props: Props) => {
           )}
         </View>
         {showProjectFilter && (
-          <View style={styles.toggleWrapper}>
+          <TourTarget id={SPECIES_TOUR_TARGETS.PROJECT_FILTER} style={styles.toggleWrapper}>
             <Text style={styles.toggleLabel}>
               {i18next.t('label.only_project_species')}
             </Text>
@@ -79,7 +83,7 @@ const ManageSpeciesHeader = (props: Props) => {
               trackColor={{ false: Colors.GRAY_LIGHT, true: Colors.NEW_PRIMARY }}
               thumbColor={Colors.WHITE}
             />
-          </View>
+          </TourTarget>
         )}
       </View>
     </View>
@@ -121,12 +125,20 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     letterSpacing: 0.5,
   },
+  // The spotlight copies the wrapper's corner radius, so the pill search bar
+  // gets a pill-shaped hole rather than a rounded rectangle around it.
+  searchBarTarget: {
+    // The gap above the bar lives on the wrapper, not the bar: a child's margin
+    // still grows the wrapper's box, so leaving it below would stretch the
+    // spotlight up over empty space.
+    marginTop: '10%',
+    borderRadius: 100,
+  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     height: scaleSize(45),
     borderRadius: 100,
-    marginTop: '10%',
     backgroundColor: Colors.WHITE,
     shadowColor: '#000000',
     shadowOffset: {

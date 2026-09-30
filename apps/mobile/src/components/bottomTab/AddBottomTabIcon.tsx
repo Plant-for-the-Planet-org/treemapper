@@ -15,6 +15,10 @@ import i18next from 'i18next'
 import { TourTarget } from '@wrack/react-native-tour-guide'
 import useInterventionTour, { useTourAction } from 'src/hooks/useInterventionTour'
 import { TOUR_TARGETS, TOUR_STEPS } from 'src/utils/tour/interventionTour'
+import useMonitoringPlotTour from 'src/hooks/useMonitoringPlotTour'
+import { PLOT_TOUR_STEPS } from 'src/utils/tour/monitoringPlotTour'
+import useCreateSiteTour from 'src/hooks/useCreateSiteTour'
+import { SITE_TOUR_STEPS } from 'src/utils/tour/createSiteTour'
 const windowWidth = Dimensions.get('window').width;
 
 const WrappedSvg = () => (
@@ -38,6 +42,10 @@ const WrappedSvg = () => (
 const AddBottomTabIcon = () => {
   const [open, setOpen] = useState(false)
   const { advanceIfOn } = useInterventionTour()
+  // Three tours open with this button. Only one can be running, so all are
+  // told and whichever is not on its own "+" step ignores it.
+  const { advanceIfOn: advancePlotTour } = useMonitoringPlotTour()
+  const { advanceIfOn: advanceSiteTour } = useCreateSiteTour()
 
   const rotation = useDerivedValue(() => {
     return withTiming(open ? '135deg' : '0deg')
@@ -51,16 +59,21 @@ const AddBottomTabIcon = () => {
     ctaHaptic()
     setOpen(prev => !prev)
     advanceIfOn(TOUR_STEPS.ADD)
+    advancePlotTour(PLOT_TOUR_STEPS.ADD)
+    advanceSiteTour(SITE_TOUR_STEPS.ADD)
   }
 
   // Tapping anywhere on this tour step opens the menu. Opens rather than
   // toggles: the press handler is a toggle, and a stray tap while the menu is
   // already up would shut it again mid-step.
-  useTourAction(TOUR_STEPS.ADD, () => {
+  const openMenuForTour = () => {
     if (!open) {
       onAddPress()
     }
-  })
+  }
+  useTourAction(TOUR_STEPS.ADD, openMenuForTour)
+  useTourAction(PLOT_TOUR_STEPS.ADD, openMenuForTour)
+  useTourAction(SITE_TOUR_STEPS.ADD, openMenuForTour)
   return (
     <View style={{ flex: 1, justifyContent: "center" }}>
       {open && <Pressable

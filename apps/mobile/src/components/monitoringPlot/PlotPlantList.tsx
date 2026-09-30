@@ -11,6 +11,8 @@ import EmptyStaticScreen from '../common/EmptyStaticScreen'
 import EmptyIcon from 'assets/images/svg/EmptyGroupIcon.svg'
 import PlotPlantSearch from './PlotPlantSearch'
 import i18next from 'src/locales/index'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import { PLOT_TOUR_TARGETS } from 'src/utils/tour/monitoringPlotTour'
 
 interface Props {
     plants: PlantedPlotSpecies[]
@@ -69,12 +71,13 @@ const PlotPlantList = (props: Props) => {
                 renderItem={({ item }) => (<PlantPlotCards item={item} handleSelection={handleSelection} />)}
                 data={plantData}
             />
-            <CustomButton
-                label={i18next.t('label.add_plants')}
-                containerStyle={styles.btnContainer}
-                pressHandler={addMorePlants}
-                showAdd
-            />
+            <TourTarget id={PLOT_TOUR_TARGETS.ADD_PLANTS} style={styles.btnContainer}>
+                <CustomButton
+                    label={i18next.t('label.add_plants')}
+                    pressHandler={addMorePlants}
+                    showAdd
+                />
+            </TourTarget>
         </View>
     )
 }

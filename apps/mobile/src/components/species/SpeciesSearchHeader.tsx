@@ -8,6 +8,8 @@ import SyncIcon from 'assets/images/svg/SyncIcon.svg'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import { SPECIES_TOUR_TARGETS } from 'src/utils/tour/manageSpeciesTour'
 
 interface Props {
   backPress: () => void
@@ -69,10 +71,12 @@ const SpeciesSearchHeader = (props: Props) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backArrowCon} onPress={backPress}>
-        <BackIcon onPress={backPress} />
-      </TouchableOpacity>
-      <View style={styles.searchBarMain}>
+      <TourTarget id={SPECIES_TOUR_TARGETS.SEARCH_BACK}>
+        <TouchableOpacity style={styles.backArrowCon} onPress={backPress}>
+          <BackIcon onPress={backPress} />
+        </TouchableOpacity>
+      </TourTarget>
+      <TourTarget id={SPECIES_TOUR_TARGETS.SEARCH_INPUT} style={styles.searchBarMain}>
         <View
           style={{
             flexDirection: 'row',
@@ -105,7 +109,7 @@ const SpeciesSearchHeader = (props: Props) => {
             []
           )}
         </View>
-      </View>
+      </TourTarget>
       <TouchableOpacity onPress={() => { toggleSyncModal(true) }}>
         <SyncIcon width={20} height={20} />
       </TouchableOpacity>

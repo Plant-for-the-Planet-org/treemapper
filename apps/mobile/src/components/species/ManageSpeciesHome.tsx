@@ -14,6 +14,9 @@ import { getUserAllSpeceis, getUserProjectSpecies, getUserSpecies } from 'src/ap
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import { RootState } from 'src/store'
 import { RefreshControl } from 'react-native'
+import useManageSpeciesTour from 'src/hooks/useManageSpeciesTour'
+import { SPECIES_TOUR_STEPS } from 'src/utils/tour/manageSpeciesTour'
+import { useTourAction } from 'src/hooks/useTourController'
 
 
 const cardSize = scaleSize(60)
@@ -41,6 +44,7 @@ const ManageSpeciesHome = (props: Props) => {
   const { addUserSpecies } = useManageScientificSpecies()
   const { isLoggedIn, userProjectSpecies } = useSelector((state: RootState) => state.appState)
   const { currentProject } = useSelector((state: RootState) => state.projectState)
+  const { advanceIfOn } = useManageSpeciesTour()
   const showProjectFilter = isLoggedIn && !!currentProject.projectId
 
   useEffect(() => {
@@ -52,6 +56,11 @@ const ManageSpeciesHome = (props: Props) => {
   const handleNav = () => {
     navigation.navigate('SpeciesSearch', { manageSpecies: isManageSpecies })
   }
+
+  // The walkthrough's first step lets the tap fall through to the search bar,
+  // but a near-miss on the backdrop should open it too: one control, one
+  // decision. Lending the real handler keeps the route params in one place.
+  useTourAction(SPECIES_TOUR_STEPS.SEARCH, handleNav)
 
 
   const syncUserSpecies = async () => {
@@ -88,15 +97,25 @@ const ManageSpeciesHome = (props: Props) => {
     toggleFavSpecies(item, false)
   }
 
-  const renderSpecieCard = (item: IScientificSpecies, onlyProjectSpecies: boolean) => {
+  const renderSpecieCard = (item: IScientificSpecies, onlyProjectSpecies: boolean, index: number) => {
     return (
       <SpecieCard
         item={item}
         onPressSpecies={() => { handleSpeciesPress(item, onlyProjectSpecies) }}
         actionName={''}
         onlyProjectSpecies={onlyProjectSpecies}
+        // The walkthrough points at the top card, so only that one registers as
+        // a tour target. Target ids are unique per screen.
+        isTourTarget={index === 0}
         handleRemoveFavorite={handleRemoveFav} isSelectSpecies={false} />
     )
+  }
+
+  // Flipping the switch is what the walkthrough's filter step asks for, so the
+  // act itself moves the tour on. Outside the tour this is a no-op.
+  const handleToggleProjectSpecies = (value: boolean) => {
+    setOnlyProjectSpecies(value)
+    advanceIfOn(SPECIES_TOUR_STEPS.FILTER)
   }
 
   const displayedSpecies = showProjectFilter && onlyProjectSpecies
@@ -106,14 +125,14 @@ const ManageSpeciesHome = (props: Props) => {
   return (
     <FlashList
       data={displayedSpecies}
-      renderItem={({ item }) => renderSpecieCard(item, onlyProjectSpecies)}
+      renderItem={({ item, index }) => renderSpecieCard(item, onlyProjectSpecies, index)}
       estimatedItemSize={cardSize}
       ListHeaderComponent={
         <ManageSpeciesHeader
           openSearchModal={handleNav}
           showProjectFilter={showProjectFilter}
           onlyProjectSpecies={onlyProjectSpecies}
-          onToggleProjectSpecies={setOnlyProjectSpecies}
+          onToggleProjectSpecies={handleToggleProjectSpecies}
           isFetching={loading}
         />
       }

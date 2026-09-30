@@ -17,6 +17,7 @@ import { PLOT_SHAPE } from 'src/types/type/app.type'
 import UserlocationMarker from 'src/components/map/UserlocationMarker'
 import NewDimensionModal from 'src/components/monitoringPlot/NewDimensionModal'
 import i18next from 'src/locales/index'
+import { usePlotTourScreen } from 'src/hooks/useMonitoringPlotTour'
 
 
 const CreatePlotMapView = () => {
@@ -37,6 +38,10 @@ const CreatePlotMapView = () => {
     const [plantedTrees, setPlantedTrees] = useState<PlantedPlotSpecies[]>([])
     const toast = useToast()
     const [showDimensionModal, setShowDimensionModal] = useState(false)
+    // The tour only ever reaches this screen in its create mode; the marking
+    // and edit modes are past the last step it owns, so the sync is a no-op
+    // there rather than something to gate on.
+    usePlotTourScreen('plotMap')
 
     useEffect(() => {
         getPlotDetails()

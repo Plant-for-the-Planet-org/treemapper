@@ -61,6 +61,7 @@ export type RootStackParamList = {
   DeleteAccount: undefined
   CreateProject: undefined
   Guide: undefined
+  GuidedTours: undefined
   Notification: undefined
   NotificationDetail: NotificationDetailView
   Language: undefined

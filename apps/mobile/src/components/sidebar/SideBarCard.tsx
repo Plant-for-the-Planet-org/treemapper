@@ -19,7 +19,6 @@ import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 interface Props {
   item: SideDrawerItem
   onPressFeedback?: () => void
-  onPressTour?: () => void
   onPressAnalyticsConsent?: () => void
   onPressRate?: () => void
 }
@@ -48,10 +47,6 @@ const SideBarCard = (props: Props) => {
     }
     if (key === 'feedback') {
       props.onPressFeedback?.()
-      return
-    }
-    if (key === 'intervention_tour') {
-      props.onPressTour?.()
       return
     }
     if (key === 'analytics_consent') {

@@ -4,16 +4,23 @@ import PinkHeart from 'assets/images/svg/PinkHeart.svg'
 import GreyHeart from 'assets/images/svg/GreyHeart.svg'
 import { Typography, Colors } from 'src/utils/constants'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import { SPECIES_TOUR_TARGETS } from 'src/utils/tour/manageSpeciesTour'
 
 interface Props {
   item: IScientificSpecies
   toggleFavSpecies: (item: IScientificSpecies, status: boolean) => void
   handleCard: (item: IScientificSpecies, status: boolean) => void
   hideFav?: boolean
+  /**
+   * Marks this row's heart as the one the Manage Species walkthrough points
+   * at. Only the first result sets it, because target ids are unique.
+   */
+  isTourTarget?: boolean
 }
 
 const SpeciesSearchCard = (props: Props) => {
-  const { item, toggleFavSpecies, handleCard, hideFav } = props
+  const { item, toggleFavSpecies, handleCard, hideFav, isTourTarget } = props
   const handleIconPress = () => {
     toggleFavSpecies(item, !item.isUserSpecies)
   }
@@ -25,9 +32,17 @@ const SpeciesSearchCard = (props: Props) => {
       <View style={styles.wrapper}>
         <Text style={styles.scientificName}>{item.scientificName}</Text>
         <View style={styles.divider} />
-        {!hideFav && <TouchableOpacity style={styles.iconWrapper} onPress={handleIconPress}>
-          {item.isUserSpecies ? <PinkHeart /> : <GreyHeart />}
-        </TouchableOpacity>}
+        {!hideFav && (isTourTarget ? (
+          <TourTarget id={SPECIES_TOUR_TARGETS.SEARCH_FAVOURITE}>
+            <TouchableOpacity style={styles.iconWrapper} onPress={handleIconPress}>
+              {item.isUserSpecies ? <PinkHeart /> : <GreyHeart />}
+            </TouchableOpacity>
+          </TourTarget>
+        ) : (
+          <TouchableOpacity style={styles.iconWrapper} onPress={handleIconPress}>
+            {item.isUserSpecies ? <PinkHeart /> : <GreyHeart />}
+          </TouchableOpacity>
+        ))}
       </View>
     </TouchableOpacity>
   )
