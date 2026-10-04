@@ -318,7 +318,7 @@ export function CreateProjectUI() {
     const [agreeTerms, setAgreeTerms] = useState(true);
     const [finalGeoJSON, setFinalGeoJSON] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState({});
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const router = useRouter()
     const SelectedProject = useProjectStore(state => state.selectedProject);
     const { accessToken } = useToken();
@@ -375,7 +375,7 @@ export function CreateProjectUI() {
     };
 
     const validateForm = () => {
-        const newErrors = {};
+        const newErrors: Record<string, string> = {};
 
         if (!formData.projectName.trim()) {
             newErrors.projectName = 'Site name is required';

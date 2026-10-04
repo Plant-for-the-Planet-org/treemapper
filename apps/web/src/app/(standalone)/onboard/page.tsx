@@ -60,19 +60,21 @@ const Onboarding = () => {
 
     setLoading(true)
     try {
+      const organizationName = allData.organizationName || '';
+      const role = allData.role || '';
+      const primaryGoal = allData.primaryGoal || '';
+
       const payload = {
         projectName: allData.projectName,
         devMode: allData.selectedPlan === 'trial',
         forestCloud: allData.selectedPlan === 'public',
-        organizationName: allData.organizationName || '',
-        role: allData.role || '',
-        primaryGoal: allData.primaryGoal || '',
+        organizationName,
+        role,
+        primaryGoal,
         requestedDemo: Boolean(allData.wantsDemo && allData.requestedDemo),
+        // The survey is optional. An entirely empty one is recorded as skipped.
+        skip: organizationName === '' && role === '' && primaryGoal === '',
       };
-
-      payload.skip = payload.organizationName === '' &&
-        payload.role === '' &&
-        payload.primaryGoal === '';
 
       const resp = await startOnboarding(accessToken, payload)
       if (resp.statusCode !== 200 && resp.statusCode !== 201) {

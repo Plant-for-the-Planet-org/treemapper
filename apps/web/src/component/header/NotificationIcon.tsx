@@ -97,7 +97,7 @@ const NotificationsPanel = ({ variant = 'header' }: { variant?: 'header' | 'side
   const getTimeAgo = (dateString) => {
     const now = new Date();
     const past = new Date(dateString);
-    const diffInMinutes = Math.floor((now - past) / (1000 * 60));
+    const diffInMinutes = Math.floor((now.getTime() - past.getTime()) / (1000 * 60));
 
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes} min ago`;

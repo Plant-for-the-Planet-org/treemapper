@@ -27,6 +27,30 @@ import { DeleteModal } from './components/DeleteModal';
 import { SpeciesRequestModal } from './components/SpeciesRequestModal';
 import { cdnUrl } from '@/lib/cdn';
 
+// The species edit/add form is a loose bag: it is seeded by spreading a
+// scientific-species search hit or a saved project species, both of which come
+// back untyped from the API. The named fields below are the ones this screen
+// and `SpeciesForm` actually read, so a rename on either side is caught; the
+// index signature keeps the spread legal without pretending we know the rest.
+interface SpeciesEditForm {
+  uid?: string;
+  projectSpeciesUid?: string;
+  scientificName?: string;
+  speciesName?: string;
+  commonName?: string;
+  description?: string;
+  image?: string | ArrayBuffer | null;
+  habitat?: string;
+  height?: string;
+  hasFlowersOrFruits?: string;
+  bloomingSeason?: string;
+  favourite?: boolean;
+  isNativeSpecies?: boolean;
+  disabled?: boolean;
+  updatedAt?: string;
+  [key: string]: unknown;
+}
+
 const SpeciesManagementDashboard = () => {
   const [scientificSpecies, setScientificSpecies] = useState([]);
   const [unknownSpecies, setUnknownSpecies] = useState([]);
@@ -34,7 +58,7 @@ const SpeciesManagementDashboard = () => {
   const [selectedSpecies, setSelectedSpecies] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isAddingNew, setIsAddingNew] = useState(false);
-  const [editForm, setEditForm] = useState({});
+  const [editForm, setEditForm] = useState<SpeciesEditForm>({});
   const [speciesSearchTerm, setSpeciesSearchTerm] = useState('');
   const [isSearchingSpecies, setIsSearchingSpecies] = useState(false);
   const [searchResults, setSearchResults] = useState([]);

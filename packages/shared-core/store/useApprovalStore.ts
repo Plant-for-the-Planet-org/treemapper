@@ -74,7 +74,8 @@ const useApprovalStore = create<ApprovalStore>((set) => ({
           : approval
       ),
       selectedApproval:
-        state.selectedApproval?.interventionId === updatedApproval.interventionId
+        state.selectedApproval && 'interventionId' in state.selectedApproval &&
+        state.selectedApproval.interventionId === updatedApproval.interventionId
           ? updatedApproval
           : state.selectedApproval,
     })),

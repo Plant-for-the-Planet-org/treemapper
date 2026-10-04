@@ -17,7 +17,7 @@ export const Button = ({
   variant?: 'default' | 'destructive' | 'outline' | 'ghost' | 'primary';
   size?: 'default' | 'sm' | 'lg';
   className?: string;
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
 }) => {

@@ -94,7 +94,7 @@ interface UserInfo {
   image?: string;
 }
 
-interface Intervention {
+type Intervention = {
   id: string | number;
   uid: string;
   hid: string;

@@ -192,7 +192,7 @@ export const SiteDetails = ({
                     <AvatarFallback>{initials(m.displayName)}</AvatarFallback>
                   </Avatar>
                 ))}
-                {remaining > 0 && <AvatarGroupCount size="sm">+{remaining}</AvatarGroupCount>}
+                {remaining > 0 && <AvatarGroupCount>+{remaining}</AvatarGroupCount>}
               </AvatarGroup>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {visibleMembers.map((m: any) => m.displayName).filter(Boolean).join(', ')}

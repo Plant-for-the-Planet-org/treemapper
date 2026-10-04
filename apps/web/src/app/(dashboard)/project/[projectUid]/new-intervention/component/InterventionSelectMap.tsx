@@ -222,7 +222,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
 
   // Polygon data as GeoJSON for drawing mode
   const drawingPolygonGeoJSON = {
-    type: 'Polygon',
+    type: 'Polygon' as const,
     coordinates: [
       polygonPoints.length >= 3
         ? [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
@@ -259,7 +259,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
     
     // Create polygon GeoJSON for area calculation
     const completedPolygonGeoJSON = {
-      type: 'Polygon',
+      type: 'Polygon' as const,
       coordinates: [
         [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
       ]
@@ -385,7 +385,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
           if (newPoints.length >= 3) {
             try {
               const tempPolygon = {
-                type: 'Polygon',
+                type: 'Polygon' as const,
                 coordinates: [
                   [...newPoints.map(p => [p.longitude, p.latitude]), [newPoints[0].longitude, newPoints[0].latitude]]
                 ]

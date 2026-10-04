@@ -191,7 +191,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
 
   // Polygon data as GeoJSON for drawing mode
   const drawingPolygonGeoJSON = {
-    type: 'Polygon',
+    type: 'Polygon' as const,
     coordinates: [
       polygonPoints.length >= 3
         ? [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
@@ -255,7 +255,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
         if (polygonPoints.length >= 3 && isNearFirstPoint(lngLat, polygonPoints[0])) {
           // Auto-complete the polygon
           const completedPolygonGeoJSON = {
-            type: 'Polygon',
+            type: 'Polygon' as const,
             coordinates: [
               [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
             ]

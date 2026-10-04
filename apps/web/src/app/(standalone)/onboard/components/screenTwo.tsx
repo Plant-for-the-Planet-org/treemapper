@@ -17,7 +17,7 @@ export const ScreenTwo = ({ onNext, onBack, loading }) => {
     primaryGoal: ''
   });
 
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const roleOptions = [
     'Forest Manager',

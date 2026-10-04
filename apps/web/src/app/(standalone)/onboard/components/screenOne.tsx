@@ -15,7 +15,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, isExistingUser, lo
     projectName: '',
     selectedPlan: ''
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const plans = [
     {
       id: 'public',

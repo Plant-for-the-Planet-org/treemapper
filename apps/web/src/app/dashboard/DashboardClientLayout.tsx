@@ -110,8 +110,8 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
 
 
   const updateAvater = async () => {
-    if (User && !User.impersonated && !User.image && user.picture) {
-      await updateUserAvatar(accessToken, { avatarUrl: user.picture, firstName: user.name || '' })
+    if (User && !User.impersonated && !User.image && user.image) {
+      await updateUserAvatar(accessToken, { avatarUrl: user.image, firstName: user.name || '' })
     }
   }
 

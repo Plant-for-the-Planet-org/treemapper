@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import Map, { Source, Layer } from 'react-map-gl/maplibre';
+import Map, { Source, Layer, type MapRef } from 'react-map-gl/maplibre';
 import { AlertTriangle } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as turf from '@turf/turf';
@@ -33,7 +33,7 @@ const MapComponent = ({
 }) => {
   const [mapError, setMapError] = useState(null);
   const [isSatellite, setIsSatellite] = useState(false);
-  const mapRef = useRef();
+  const mapRef = useRef<MapRef>(null);
 
   useEffect(() => {
    handleFly()
@@ -75,7 +75,7 @@ const MapComponent = ({
   // Layer styles
   const polygonLayer = {
     id: 'polygon-fill',
-    type: 'fill',
+    type: 'fill' as const,
     paint: {
       'fill-color': '#007A49',
       'fill-opacity': 0.4
@@ -84,7 +84,7 @@ const MapComponent = ({
 
   const polygonOutlineLayer = {
     id: 'polygon-outline',
-    type: 'line',
+    type: 'line' as const,
     paint: {
       'line-color': '#007A49',
       'line-width': 3

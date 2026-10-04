@@ -246,7 +246,7 @@ const OwnershipTransferModal = ({
         try {
             // const results = await getMyProjectMember(accessToken, term.trim());
             return;
-            setSearchResults(results.data);
+            // setSearchResults(results.data);
         } catch (error) {
             console.error('Search failed:', error);
             setError('Failed to search users. Please try again.');
@@ -452,7 +452,7 @@ const OwnershipTransferModal = ({
                                 <Checkbox
                                     id="notify-new"
                                     checked={notifyNewOwner}
-                                    onCheckedChange={setNotifyNewOwner}
+                                    onCheckedChange={(checked) => setNotifyNewOwner(checked === true)}
                                 />
                                 <label htmlFor="notify-new" className="flex items-center space-x-2 text-sm cursor-pointer">
                                     <Bell className="h-4 w-4 text-gray-500" />
@@ -463,7 +463,7 @@ const OwnershipTransferModal = ({
                                 <Checkbox
                                     id="notify-old"
                                     checked={notifyOldOwner}
-                                    onCheckedChange={setNotifyOldOwner}
+                                    onCheckedChange={(checked) => setNotifyOldOwner(checked === true)}
                                 />
                                 <label htmlFor="notify-old" className="flex items-center space-x-2 text-sm cursor-pointer">
                                     <Bell className="h-4 w-4 text-gray-500" />
