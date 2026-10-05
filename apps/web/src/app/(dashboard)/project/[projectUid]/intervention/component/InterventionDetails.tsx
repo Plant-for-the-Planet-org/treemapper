@@ -40,6 +40,13 @@ import SatelliteCountModal from './SatelliteCountModal';
 import { useSatelliteCount } from '@/lib/satellite-count/useSatelliteCount';
 import { extractPolygon } from '@/lib/satellite-count/mercator';
 
+// Satellite Count is off in the UI. The feature is complete and still wired up
+// below, but it talks to the tree-count analysis service
+// (NEXT_PUBLIC_TREE_ANALYSIS_API_URL) which is not deployed, and a reviewed
+// count is only saved to the browser's localStorage. Flip this to true to bring
+// the button, the status line and the modal back; nothing else needs changing.
+const SHOW_SATELLITE_COUNT = false;
+
 interface Site {
   id: string | number;
   name: string;
@@ -214,7 +221,7 @@ export const InterventionDetails = ({
   // the user can close the modal while the backend is counting.
   const hasPolygon = useMemo(() => !!extractPolygon(intervention.originalGeometry), [intervention.originalGeometry]);
   const satellite = useSatelliteCount(intervention.uid, () => {
-    if (!showSatelliteCount) {
+    if (SHOW_SATELLITE_COUNT && !showSatelliteCount) {
       toast.success(`Satellite count for ${intervention.hid} is ready to review`, {
         onClick: () => setShowSatelliteCount(true),
       });
@@ -361,7 +368,7 @@ export const InterventionDetails = ({
                   <><CloudAlert className="h-3 w-3" /> Not synced</>
                 )}
               </Badge>
-              {hasPolygon && (
+              {SHOW_SATELLITE_COUNT && hasPolygon && (
                 <Button variant="outline" size="sm" onClick={() => setShowSatelliteCount(true)}>
                   {satelliteRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Satellite className="h-4 w-4" />}
                   Satellite Count
@@ -407,7 +414,7 @@ export const InterventionDetails = ({
                 <span className="text-muted-foreground">Sample Trees</span>
               </span>
             )}
-            {(satellite.review || satellite.pending) && (
+            {SHOW_SATELLITE_COUNT && (satellite.review || satellite.pending) && (
               <button
                 type="button"
                 onClick={() => setShowSatelliteCount(true)}
@@ -645,7 +652,7 @@ export const InterventionDetails = ({
       </Dialog>
 
       {/* Satellite Count */}
-      {hasPolygon && (
+      {SHOW_SATELLITE_COUNT && hasPolygon && (
         <SatelliteCountModal
           open={showSatelliteCount}
           onOpenChange={setShowSatelliteCount}
