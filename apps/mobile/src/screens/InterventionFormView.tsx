@@ -40,7 +40,6 @@ import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interfa
 import { markTourSeen, updateNewIntervention, registerRatingEvent } from 'src/store/slice/appStateSlice'
 import i18next from 'i18next'
 import { TourTarget, useTourGuide } from '@wrack/react-native-tour-guide'
-import useInterventionTour from 'src/hooks/useInterventionTour'
 import { getRandomPointInPolygon } from 'src/utils/helpers/generatePointInPolygon'
 import CustomDatePicker from 'src/components/common/CustomDatePicker'
 import bbox from '@turf/bbox'
@@ -72,8 +71,10 @@ const InterventionFormView = () => {
   const UserType = useSelector(
     (state: RootState) => state.userState.type
   )
-  const { startTour } = useTourGuide()
-  const { isTourRunning: walkthroughRunning } = useInterventionTour()
+  // `isActive` is any tour, not one in particular. Every walkthrough that
+  // reaches this screen passes straight through it, so the test is "is a tour
+  // running", not "is that one running" -- see the note on the effect below.
+  const { startTour, isActive: tourRunning } = useTourGuide()
   const seenTours = useSelector((state: RootState) => state.appState.seenTours)
 
   const isTpoUser = true
@@ -97,11 +98,12 @@ const InterventionFormView = () => {
   // the tour on each of those instead of once when the form first mounts.
   const tourStartedRef = React.useRef(false)
   useEffect(() => {
-    // The Multiple Trees walkthrough passes straight through this screen
-    // (skipForm replaces it before it paints). Starting this hint then would
-    // swap the walkthrough out for a one-step tour on a screen the user never
-    // sees, and the walkthrough would be gone with no way back.
-    if (!registerForm || seenTours['intervention-type-picker'] || tourStartedRef.current || walkthroughRunning) {
+    // The Single Tree and Multiple Trees walkthroughs pass straight through
+    // this screen (skipForm replaces it before it paints). Starting this hint
+    // then would swap the walkthrough out for a one-step tour on a screen the
+    // user never sees -- the library keeps one active tour -- and the
+    // walkthrough would be gone with no way back.
+    if (!registerForm || seenTours['intervention-type-picker'] || tourStartedRef.current || tourRunning) {
       return
     }
     tourStartedRef.current = true
@@ -118,7 +120,7 @@ const InterventionFormView = () => {
         dispatch(markTourSeen('intervention-type-picker'))
       },
     })
-  }, [registerForm, walkthroughRunning])
+  }, [registerForm, tourRunning])
 
 
 

@@ -8,12 +8,22 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import i18next from 'src/locales/index'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import useOfflineMapTour from 'src/hooks/useOfflineMapTour'
+import { useTourAction } from 'src/hooks/useTourController'
+import { OFFLINE_TOUR_STEPS, OFFLINE_TOUR_TARGETS } from 'src/utils/tour/offlineMapTour'
 
 const OfflineMapHeader = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const { advanceIfOn } = useOfflineMapTour()
   const addNewMap = () => {
+    advanceIfOn(OFFLINE_TOUR_STEPS.ADD)
     navigation.navigate('OfflineMapSelection')
   }
+
+  // This button is the only thing the step asks for, so a press anywhere on
+  // the backdrop runs it too.
+  useTourAction(OFFLINE_TOUR_STEPS.ADD, addNewMap)
   return (
     <View style={styles.container}>
       <View style={styles.backdrop}>
@@ -23,10 +33,12 @@ const OfflineMapHeader = () => {
       <Text style={styles.note}>
         {i18next.t('label.add_area_note')}
       </Text>
-      <TouchableOpacity style={styles.btnContainer} onPress={addNewMap}>
-        <AddIcon style={styles.btnIcon} fill={Colors.WHITE} />
-        <Text style={styles.btnLabel}>{i18next.t("label.add_area")}</Text>
-      </TouchableOpacity>
+      <TourTarget id={OFFLINE_TOUR_TARGETS.ADD}>
+        <TouchableOpacity style={styles.btnContainer} onPress={addNewMap}>
+          <AddIcon style={styles.btnIcon} fill={Colors.WHITE} />
+          <Text style={styles.btnLabel}>{i18next.t("label.add_area")}</Text>
+        </TouchableOpacity>
+      </TourTarget>
     </View>
   )
 }

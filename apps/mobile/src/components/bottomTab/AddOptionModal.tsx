@@ -39,6 +39,8 @@ import useMonitoringPlotTour from 'src/hooks/useMonitoringPlotTour'
 import { PLOT_TOUR_STEPS, PLOT_TOUR_TARGETS } from 'src/utils/tour/monitoringPlotTour'
 import useCreateSiteTour from 'src/hooks/useCreateSiteTour'
 import { SITE_TOUR_STEPS, SITE_TOUR_TARGETS } from 'src/utils/tour/createSiteTour'
+import useMultiTreeTour from 'src/hooks/useMultiTreeTour'
+import { MULTI_TOUR_STEPS, MULTI_TOUR_TARGETS } from 'src/utils/tour/multiTreeTour'
 
 
 interface Props {
@@ -58,6 +60,7 @@ const AddOptionModal = (props: Props) => {
   const { advanceIfOn } = useInterventionTour()
   const { advanceIfOn: advancePlotTour } = useMonitoringPlotTour()
   const { advanceIfOn: advanceSiteTour } = useCreateSiteTour()
+  const { advanceIfOn: advanceMultiTreeTour } = useMultiTreeTour()
 
   const handleSingleTree = () => {
     if (!checkWhetherProjectIsSelected()) {
@@ -97,6 +100,22 @@ const AddOptionModal = (props: Props) => {
 
   // Same reason as the rows above: unreachable by touch from the overlay.
   useTourAction(SITE_TOUR_STEPS.OPTION, handleProjectSites)
+
+  const handleMultipleTrees = () => {
+    if (!checkWhetherProjectIsSelected()) {
+      return
+    }
+    // No pre-navigation location fetch here (see the single tree note above):
+    // the marker screen acquires location itself on mount.
+    navigation.navigate('InterventionForm', {
+      id: 'multi-tree-registration',
+    })
+    props.setVisible(false)
+    advanceMultiTreeTour(MULTI_TOUR_STEPS.OPTION)
+  }
+
+  // Same reason as the rows above: unreachable by touch from the overlay.
+  useTourAction(MULTI_TOUR_STEPS.OPTION, handleMultipleTrees)
 
 
 
@@ -174,16 +193,8 @@ const AddOptionModal = (props: Props) => {
       svgIcon: <MultipleTreeIcon width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.multiple_trees'),
       coming_soon: false,
-      onPress: () => {
-        if (checkWhetherProjectIsSelected()) {
-          // No pre-navigation location fetch here (see single-tree note above):
-          // the marker screen acquires location itself on mount.
-          navigation.navigate('InterventionForm', {
-            id: 'multi-tree-registration',
-          })
-          props.setVisible(false)
-        }
-      },
+      tourTargetId: MULTI_TOUR_TARGETS.ADD_OPTION,
+      onPress: handleMultipleTrees,
       disabled: false,
     },
   ]

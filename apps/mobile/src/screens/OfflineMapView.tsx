@@ -5,8 +5,10 @@ import OfflineMapHeader from 'src/components/offlineMap/OfflineMapHeader'
 import OfflineMapList from 'src/components/offlineMap/OfflineMapList'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
+import { useOfflineTourScreen } from 'src/hooks/useOfflineMapTour'
 
 const OfflineMapView = () => {
+  useOfflineTourScreen('offlineMaps')
   return (
     <SafeAreaView style={styles.container}>
       <Header label="Offline Maps" />

@@ -53,6 +53,12 @@ const useProjectManagement = () => {
             purpose: properties.purpose,
             intensity: properties.intensity || 0,
             frequency: properties.revisionPeriodicityLevel || 'low',
+            // A server that does not send these leaves the role unknown
+            // rather than guessed. See the schema note.
+            role: properties.role || '',
+            extra_permissions: Array.isArray(properties.extraPermissions)
+              ? properties.extraPermissions
+              : [],
           }
 
           realm.create(

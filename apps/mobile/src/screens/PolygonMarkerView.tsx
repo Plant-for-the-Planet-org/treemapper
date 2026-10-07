@@ -14,12 +14,14 @@ import { InterventionData } from 'src/types/interface/slice.interface'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { StatusBar } from 'expo-status-bar'
+import { useMultiTreeTourScreen } from 'src/hooks/useMultiTreeTour'
 
 const PolygonMarker = () => {
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [interventionData, setInterventionData] = useState<InterventionData | null>(null)
   const route = useRoute<RouteProp<RootStackParamList, 'PolygonMarker'>>()
   const realm = useRealm()
+  useMultiTreeTourScreen('polygonMarker')
 
   const interventionID = route.params?.id ?? '';
 

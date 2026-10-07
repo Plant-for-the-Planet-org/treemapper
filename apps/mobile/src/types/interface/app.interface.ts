@@ -46,7 +46,12 @@ export interface ProjectInterface{
   purpose: string,
   intensity: number,
   frequency: string
+  // The signed-in user's membership on this project. UX gate only.
+  role?: ProjectRole
+  extra_permissions?: string[]
 }
+
+export type ProjectRole = 'owner' | 'admin' | 'contributor' | 'observer'
 
 export interface CarouselInterventionData{
   image: string
@@ -76,6 +81,12 @@ export interface IAdditionalDetailsForm{
   elements: FormElement[],
   title: string,
   description: string,
+  // Set once the form has been pushed up to a project's Forms. See the
+  // AdditonalDetailsForm schema.
+  migrated_form_id?: string,
+  migrated_project_id?: string,
+  migrated_project_name?: string,
+  migrated_at?: string,
 }
 
 export type MapDraftKind = 'POLYGON' | 'TRACK' | 'SITE'

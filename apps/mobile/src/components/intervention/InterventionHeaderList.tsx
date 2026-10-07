@@ -3,7 +3,6 @@ import {
   StyleSheet,
   TextStyle,
   TouchableOpacity,
-  View,
   Text
 } from 'react-native'
 import React, { useEffect, useState } from 'react'
@@ -14,6 +13,8 @@ import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import { SYNC_TOUR_TARGETS } from 'src/utils/tour/syncTour'
 
 interface Props {
   selectedLabel: string
@@ -67,7 +68,7 @@ const InterventionHeaderList = (props: Props) => {
     )
   }
   return (
-    <View>
+    <TourTarget id={SYNC_TOUR_TARGETS.FILTER}>
       <FlatList
         data={headerData}
         renderItem={({ item }) => headerChip(item)}
@@ -75,7 +76,7 @@ const InterventionHeaderList = (props: Props) => {
         contentContainerStyle={styles.container}
         showsHorizontalScrollIndicator={false}
       />
-    </View>
+    </TourTarget>
   )
 }
 

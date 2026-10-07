@@ -9,11 +9,16 @@ import { Colors } from 'src/utils/constants'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import InterventionHeader from 'src/components/intervention/InterventionHeader'
+import { useSyncTourScreen } from 'src/hooks/useSyncTour'
 
 const InterventionView = () => {
   const [selectedLabel, setSelectedLabel] = useState('all')
   const [allIntervention, setAllIntervention] = useState<InterventionData[] | any[]>([])
   const { intervention_updated, dataMigrated } = useSelector((state: RootState) => state.appState)
+
+  // Releases the sync walkthrough's "open the Interventions tab" step: the two
+  // steps after it live on this screen.
+  useSyncTourScreen('interventionList')
 
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true)

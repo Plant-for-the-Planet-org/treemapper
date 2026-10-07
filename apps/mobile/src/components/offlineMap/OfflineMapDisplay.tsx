@@ -17,6 +17,10 @@ import SatelliteIconWrapper from '../map/SatelliteIconWrapper'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import { usePostHog } from 'posthog-react-native'
 import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import useOfflineMapTour from 'src/hooks/useOfflineMapTour'
+import { useTourAction } from 'src/hooks/useTourController'
+import { OFFLINE_TOUR_STEPS, OFFLINE_TOUR_TARGETS } from 'src/utils/tour/offlineMapTour'
 
 
 
@@ -41,6 +45,7 @@ const OfflineMapDisplay = () => {
   )
 
   const { createNewOfflineMap } = useOfflineMapManager()
+  const { advanceIfOn } = useOfflineMapTour()
   const posthog = usePostHog()
 
 
@@ -84,6 +89,10 @@ const OfflineMapDisplay = () => {
   }
 
   const onPressDownloadArea = async () => {
+    // Last step of the walkthrough, so this closes the tour rather than
+    // advancing it. It has to close here: the download runs behind a
+    // full-screen loader modal that the inline overlay cannot draw over.
+    advanceIfOn(OFFLINE_TOUR_STEPS.SAVE)
     setIsLoaderShow(true);
     try {
       const coords = await mapRef.current.getCenter();
@@ -109,10 +118,16 @@ const OfflineMapDisplay = () => {
 
 
 
+  // The button is the only thing the step asks for, so a press anywhere on
+  // the backdrop runs it too.
+  useTourAction(OFFLINE_TOUR_STEPS.SAVE, onPressDownloadArea)
+
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
-        <View style={styles.mapStyle}>
+        {/* The tour wraps the map so the user can pan and zoom inside the
+            spotlight: what gets saved is whatever the map is showing. */}
+        <TourTarget id={OFFLINE_TOUR_TARGETS.MAP} style={styles.mapStyle}>
           <Map ref={mapRef} style={styles.mainMapStyle}
             logo={false}
             compassPosition={{ bottom: scaleSize(200), right: scaleSize(26) }}
@@ -124,13 +139,14 @@ const OfflineMapDisplay = () => {
             <UserLocation heading minDisplacement={1} />
           </Map>
           <SatelliteIconWrapper bottom={20} />
-        </View>
-        <CustomButton
-          label="Save Area"
-          containerStyle={styles.btnContainer}
-          pressHandler={onPressDownloadArea}
-          showDown
-        />
+        </TourTarget>
+        <TourTarget id={OFFLINE_TOUR_TARGETS.SAVE} style={styles.btnContainer}>
+          <CustomButton
+            label="Save Area"
+            pressHandler={onPressDownloadArea}
+            showDown
+          />
+        </TourTarget>
       </View>
       <LoaderModal isLoaderShow={isLoaderShow} areaName={areaName} />
     </View>

@@ -52,6 +52,8 @@ import PlannedTreeEditView from './PlannedTreeEditView'
 import PlannedTreeLocationView from './PlannedTreeLocationView'
 import FormsView from './FormsView'
 import FormDetailView from './FormDetailView'
+import LegacyFormsView from './LegacyFormsView'
+import LegacyFormSyncView from './LegacyFormSyncView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -112,4 +114,6 @@ export default {
   PlannedTreeLocation: PlannedTreeLocationView,
   Forms: FormsView,
   FormDetail: FormDetailView,
+  LegacyForms: LegacyFormsView,
+  LegacyFormSync: LegacyFormSyncView,
 }

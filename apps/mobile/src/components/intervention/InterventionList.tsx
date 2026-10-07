@@ -103,13 +103,14 @@ return (
     <DeleteModal isVisible={editModal !== null} toggleModal={setEditModal} removeFavSpecie={handleEdit} headerLabel={'Edit Intervention'} noteLabel={'Do you want to edit intervention.'} primeLabel={'Edit'} secondaryLabel={'Cancel'} extra={editModal} secondaryHandler={closeAllModals} />
     <FlashList
       data={interventionData}
-      renderItem={({ item }) => (
+      renderItem={({ item, index }) => (
         <InterventionCard
           item={item}
           key={item.intervention_id}
           openIntervention={showInfoModal}
           deleteHandler={showDeleteModal}
           openEditModal={openEditModal}
+          isTourTarget={index === 0}
         />
       )}
       estimatedItemSize={100}

@@ -7,6 +7,8 @@ import PlotTabIcon from 'assets/images/svg/PlotTabIcon.svg'
 import * as Colors from 'src/utils/constants/colors'
 import { Typography } from 'src/utils/constants'
 import { SCALE_26 } from 'src/utils/constants/spacing'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import { SYNC_TOUR_TARGETS } from 'src/utils/tour/syncTour'
 
 interface Props {
   label: string
@@ -18,7 +20,7 @@ interface Props {
 const BottomTabIcon = (props: Props) => {
   const { label, index } = props
   const { width } = useWindowDimensions()
-  return (
+  const content = (
     <View
       style={[styles.container, { width: width / 4, borderTopLeftRadius: index === 0 ? 10 : 0, }]}>
       <View style={styles.iconWrapper}>
@@ -53,6 +55,15 @@ const BottomTabIcon = (props: Props) => {
       </Text>
     </View>
   )
+
+  // The sync walkthrough asks the user to change tab here. The icon is drawn
+  // inside the tab's own button, so an interactive step lets the tap fall
+  // straight through to it -- nothing is navigated on the user's behalf.
+  if (index === 1) {
+    return <TourTarget id={SYNC_TOUR_TARGETS.TAB}>{content}</TourTarget>
+  }
+
+  return content
 }
 
 export default BottomTabIcon

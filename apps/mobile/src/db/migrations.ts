@@ -94,6 +94,13 @@ export const runRealmMigrations = ({
     // backfill: the reason is written when a record is converted or an upload
     // fails, and a record stored before this picks one up the next time it is
     // pulled from the server.
+
+    // v32: AdditionalDetailsForm gained the migrated_* fields and Projects
+    // gained role / extra_permissions. Both default to empty, which is the
+    // right answer for every existing row: no local form has been pushed to a
+    // project yet, and the role arrives with the next projects fetch. The same
+    // version stopped deleting Additional Data on launch, so nothing is wiped
+    // here either; the definitions are what users are being offered to sync.
   } catch (error) {
     Bugsnag.notify(error as Error)
   }

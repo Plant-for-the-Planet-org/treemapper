@@ -28,6 +28,8 @@ import i18next from 'i18next'
 import { TourTarget } from '@wrack/react-native-tour-guide'
 import useInterventionTour, { useTourAction, useTourStage } from 'src/hooks/useInterventionTour'
 import { TOUR_TARGETS, TOUR_STEPS } from 'src/utils/tour/interventionTour'
+import useMultiTreeTour, { useMultiTreeTourScreen } from 'src/hooks/useMultiTreeTour'
+import { MULTI_TOUR_STEPS } from 'src/utils/tour/multiTreeTour'
 
 
 
@@ -46,9 +48,15 @@ const TotalTreesView = () => {
   const toast = useToast()
   const [showSampleTreeModal, setShowSampleTreeModal] = useState(false)
   const { advanceIfOn, suspendTour } = useInterventionTour()
+  const { advanceIfOn: advanceMultiTreeTour } = useMultiTreeTour()
   useTourStage('totalTrees')
+  useMultiTreeTourScreen('totalTrees')
   // Tapping anywhere on this tour step continues, same as the button.
   useTourAction(TOUR_STEPS.REVIEW_SPECIES, () => navigationToNext())
+  // Same for the Multiple Trees walkthrough, where this is the last step: the
+  // sample tree question that follows is a modal the inline overlay cannot
+  // draw over, so the tour ends here rather than waiting behind it.
+  useTourAction(MULTI_TOUR_STEPS.TREES, () => navigationToNext())
 
   const goBack = () => {
     if (isEditTrees) {
@@ -65,6 +73,7 @@ const TotalTreesView = () => {
   )
   const navigationToNext = async () => {
     advanceIfOn(TOUR_STEPS.REVIEW_SPECIES)
+    advanceMultiTreeTour(MULTI_TOUR_STEPS.TREES)
     // DynamicForm sits between here and the review screen. For a single tree it
     // has no fields, so it renders nothing and resets straight through -- but
     // it is still a screen the walkthrough does not cover, so hide the overlay

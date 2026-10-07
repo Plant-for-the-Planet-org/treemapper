@@ -27,6 +27,8 @@ import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTim
 import useLogManagement from 'src/hooks/realm/useLogManagement';
 import { usePostHog } from 'posthog-react-native';
 import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics';
+import { TourTarget } from '@wrack/react-native-tour-guide';
+import { SYNC_TOUR_TARGETS } from 'src/utils/tour/syncTour';
 
 interface Props {
     isLoggedIn: boolean
@@ -682,9 +684,15 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
                 <UnSyncIcon width={20} height={20} />
                 <Text style={styles.label}>{lastSyncDate ? formatRelativeTimeCustom(lastSyncDate) : i18next.t("label.sync_data")}{interventionData.length ? ` • ${interventionData.length} left` : ""}</Text>
             </Pressable>
-            <TouchableOpacity style={styles.infoIconWrapper} onPress={() => setShowSyncModal(true)}>
-                <InfoIcon width={18} height={18} />
-            </TouchableOpacity>
+            {/* Only this state carries the walkthrough's target for the info
+                icon. The tour is blocked unless something is waiting to upload,
+                so this is the tile it will meet; if a sync starts underneath it
+                the step simply loses its target and centres itself. */}
+            <TourTarget id={SYNC_TOUR_TARGETS.INFO}>
+                <TouchableOpacity style={styles.infoIconWrapper} onPress={() => setShowSyncModal(true)}>
+                    <InfoIcon width={18} height={18} />
+                </TouchableOpacity>
+            </TourTarget>
         </View>
     )
 
@@ -705,9 +713,15 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         return null
     }
 
+    const tile = renderTile()
+
     return (
         <View>
-            {renderTile()}
+            {/* The wrapper sits outside renderTile so the walkthrough's target
+                survives the tile changing between its three states. There is
+                nothing to point at when the tile is gone entirely, which is
+                why the tour entry is blocked in that case. */}
+            {tile ? <TourTarget id={SYNC_TOUR_TARGETS.TILE}>{tile}</TourTarget> : null}
             {renderSyncModal()}
         </View>
     )

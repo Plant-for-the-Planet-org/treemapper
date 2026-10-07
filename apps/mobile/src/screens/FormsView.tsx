@@ -18,6 +18,7 @@ import { Colors, Typography } from 'src/utils/constants'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { ProjectFormData } from 'src/types/interface/projectForm.interface'
+import { IAdditionalDetailsForm } from 'src/types/interface/app.interface'
 import { RootState } from 'src/store'
 import useFormsData from 'src/hooks/realm/useFormsData'
 import { getProjectForms } from 'src/api/api.fetch'
@@ -35,6 +36,15 @@ const FormsView = () => {
     RealmSchema.ProjectForm,
     (collection) => collection.filtered('project_id == $0', projectId),
     [projectId],
+  )
+
+  // Forms this device still holds from the retired Additional Data builder.
+  // They are device-wide rather than per project, so the banner shows on every
+  // project until each one has been synced. This screen is where somebody
+  // looking for "the form I made" ends up, so the way back to it belongs here.
+  const pendingLegacyForms = useQuery<IAdditionalDetailsForm>(
+    RealmSchema.AdditionalDetailsForm,
+    (collection) => collection.filtered('migrated_at == ""'),
   )
 
   const syncForms = async () => {
@@ -74,6 +84,26 @@ const FormsView = () => {
     </TouchableOpacity>
   )
 
+  const renderLegacyBanner = () => {
+    if (pendingLegacyForms.length === 0) return null
+    const count = pendingLegacyForms.length
+    return (
+      <TouchableOpacity
+        style={styles.banner}
+        onPress={() => navigation.navigate('LegacyForms')}
+      >
+        <Text style={styles.bannerTitle}>
+          {count} form{count === 1 ? '' : 's'} built offline on this device
+        </Text>
+        <Text style={styles.bannerText}>
+          Forms made in the old Additional Data screen stay on this phone. Sync
+          them to a project to keep using them.
+        </Text>
+        <Text style={styles.bannerAction}>Review and sync</Text>
+      </TouchableOpacity>
+    )
+  }
+
   const renderEmpty = () => {
     if (loading) return null
     return (
@@ -100,6 +130,7 @@ const FormsView = () => {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
+        ListHeaderComponent={renderLegacyBanner()}
         ListEmptyComponent={renderEmpty}
         showsVerticalScrollIndicator={false}
       />
@@ -121,6 +152,34 @@ const styles = StyleSheet.create({
   listContent: {
     paddingVertical: 12,
     flexGrow: 1,
+  },
+  banner: {
+    width: '90%',
+    alignSelf: 'center',
+    backgroundColor: Colors.BACKDROP_COLOR,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.GRAY_LIGHT,
+    padding: 16,
+    marginBottom: 16,
+  },
+  bannerTitle: {
+    fontSize: 15,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.TEXT_COLOR,
+  },
+  bannerText: {
+    fontSize: 13,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    color: Colors.TEXT_LIGHT,
+    marginTop: 6,
+    lineHeight: 19,
+  },
+  bannerAction: {
+    fontSize: 13,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.NEW_PRIMARY,
+    marginTop: 10,
   },
   card: {
     width: '90%',

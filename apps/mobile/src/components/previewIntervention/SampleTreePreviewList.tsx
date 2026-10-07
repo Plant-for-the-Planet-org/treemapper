@@ -24,6 +24,10 @@ import { convertMeasurements } from 'src/utils/constants/measurements'
 import { updateFilePath } from 'src/utils/helpers/fileSystemHelper'
 import { legacyCdnUrl, v3CdnUrl } from 'src/utils/cdnUrl'
 import FallbackImage from '../common/FallbackImage'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import useRemeasureTour from 'src/hooks/useRemeasureTour'
+import { useTourAction } from 'src/hooks/useTourController'
+import { REMEASURE_TOUR_STEPS, REMEASURE_TOUR_TARGETS } from 'src/utils/tour/remeasureTour'
 
 interface Props {
   sampleTress: SampleTree[]
@@ -42,6 +46,22 @@ const SampleTreePreviewList = (props: Props) => {
   const Country = country
   const { deleteSampleTreeIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const { advanceIfOn } = useRemeasureTour()
+
+  // Only a tree that is alive and already uploaded carries a measure icon, so
+  // the walkthrough points at the first one that has it rather than at the
+  // first card. A <TourTarget> id has to be unique on screen, which is the
+  // other half of the same rule.
+  const tourTreeIndex = (() => {
+    for (let index = 0; index < sampleTress.length; index++) {
+      const tree = sampleTress[index]
+      if (tree.is_alive && tree.status === 'SYNCED') {
+        return index
+      }
+    }
+    return -1
+  })()
+  const tourTreeId = tourTreeIndex >= 0 ? sampleTress[tourTreeIndex].tree_id : ''
 
   const deleteTreeDetails = async (id: string) => {
     await deleteSampleTreeIntervention(id, interventionId)
@@ -65,8 +85,17 @@ const SampleTreePreviewList = (props: Props) => {
   }
 
   const remeasurement = async (id: string) => {
+    advanceIfOn(REMEASURE_TOUR_STEPS.TREE)
     navigation.navigate("TreeRemeasurement", { interventionId: interventionId, treeId: id })
   }
+
+  // The card carries several icons, so a press on the backdrop is ambiguous.
+  // Opening the measure form is what the step asks for.
+  useTourAction(REMEASURE_TOUR_STEPS.TREE, () => {
+    if (tourTreeId) {
+      remeasurement(tourTreeId)
+    }
+  })
   const isNonISUCountry: boolean = nonISUCountries.includes(Country);
 
 
@@ -96,11 +125,23 @@ const SampleTreePreviewList = (props: Props) => {
             }}>
               <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity> : null}
-            {(details.is_alive && details.status === 'SYNCED')? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
-              remeasurement(details.tree_id)
-            }}>
-              <RemeasurementIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
-            </TouchableOpacity> : null}
+            {(details.is_alive && details.status === 'SYNCED') ? (
+              i === tourTreeIndex ? (
+                <TourTarget id={REMEASURE_TOUR_TARGETS.TREE}>
+                  <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
+                    remeasurement(details.tree_id)
+                  }}>
+                    <RemeasurementIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
+                  </TouchableOpacity>
+                </TourTarget>
+              ) : (
+                <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
+                  remeasurement(details.tree_id)
+                }}>
+                  <RemeasurementIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
+                </TouchableOpacity>
+              )
+            ) : null}
             {status !== 'INITIALIZED' ? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
               viewTreeDetails(details.tree_id)
             }}>

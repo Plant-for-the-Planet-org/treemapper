@@ -35,6 +35,9 @@ export const postUrlNewApi = {
   submitFeedback: `${mobileBaseUrl}/mobile/feedback`,
   monitoringPlot: `${mobileBaseUrl}/monitoring-plots/projects`,
   plotGroup: `${mobileBaseUrl}/monitoring-plots/projects`,
+  // Same project-scoped forms API the web dashboard writes to. Used to push a
+  // form built offline with the retired Additional Data builder into a project.
+  createProjectForm: `${mobileBaseUrl}/projects`,
 };
 
 export const getUrlMobileApi = {

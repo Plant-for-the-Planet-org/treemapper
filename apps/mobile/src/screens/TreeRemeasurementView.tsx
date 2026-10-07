@@ -35,6 +35,9 @@ import useLocationPermission from 'src/hooks/useLocationPermission'
 import { point } from '@turf/helpers';
 import distance from '@turf/distance';
 import * as ExpoImage from 'expo-image'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import useRemeasureTour, { useRemeasureTourScreen } from 'src/hooks/useRemeasureTour'
+import { REMEASURE_TOUR_STEPS, REMEASURE_TOUR_TARGETS } from 'src/utils/tour/remeasureTour'
 
 const PredefineReasons: Array<{
     label: string
@@ -103,6 +106,8 @@ const TreeRemeasurementView = () => {
     // The 20 m proximity gate below is only meaningful against a live fix, and
     // this screen has no map to keep one running.
     useLocationPermission({ track: true })
+    const { advanceIfOn, suspendTour } = useRemeasureTour()
+    useRemeasureTourScreen('remeasure')
     useEffect(() => {
         if (treeId) {
             const treeData = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
@@ -239,6 +244,10 @@ const TreeRemeasurementView = () => {
         const newID = uuid()
         setImageId(newID)
         setLoading(false)
+        // The camera is a screen the walkthrough does not cover, so hide the
+        // overlay rather than leave it pointing at a button on a screen the
+        // user has left. Coming back here resumes it on the same step.
+        suspendTour()
         navigation.navigate('TakePicture', {
             id: newID,
             screen: 'REMEASUREMENT_IMAGE',
@@ -345,6 +354,11 @@ const TreeRemeasurementView = () => {
         }
         const result = await finalResult(param)
         if (result) {
+            // Last step of the walkthrough, so this closes the tour rather than
+            // advancing it. Placed after the write succeeds: a measurement held
+            // back by validation or the proximity alert returns above, and the
+            // tour should still be pointing at the button.
+            advanceIfOn(REMEASURE_TOUR_STEPS.SAVE)
             setTimeout(async () => {
                 await checkAndUpdatePlantHistory(interventionId)
             }, 300);
@@ -401,11 +415,13 @@ const TreeRemeasurementView = () => {
                     showAnimationDuration={200}
                     style={styles.container}>
                     <View style={styles.wrapper}>
-                        <PlaceHolderSwitch
-                            description={'This tree is still alive'}
-                            selectHandler={setIsAlive}
-                            value={isAlive}
-                        />
+                        <TourTarget id={REMEASURE_TOUR_TARGETS.ALIVE} style={styles.tourFill}>
+                            <PlaceHolderSwitch
+                                description={'This tree is still alive'}
+                                selectHandler={setIsAlive}
+                                value={isAlive}
+                            />
+                        </TourTarget>
                         {isAlive ? <>
                             {!!imageUri && <View style={styles.imageWrapper}><View style={styles.imageContainer}>
                                 <ExpoImage.Image
@@ -423,6 +439,7 @@ const TreeRemeasurementView = () => {
                                     </TouchableOpacity>
                                 </View>
                             </View></View>}
+                            <TourTarget id={REMEASURE_TOUR_TARGETS.MEASURE} style={styles.tourFill}>
                             <View style={styles.inputWrapper}>
                                 <OutlinedTextInput
                                     placeholder={i18next.t('label.select_species_height')}
@@ -454,7 +471,8 @@ const TreeRemeasurementView = () => {
                                     keyboardType={'default'}
                                     defaultValue={comment}
                                     trailingText={''} errMsg={''} />
-                            </View></> :
+                            </View>
+                            </TourTarget></> :
                             <>
                                 <CustomDropDownPicker
                                     label={'Reason'}
@@ -493,13 +511,14 @@ const TreeRemeasurementView = () => {
                     labelStyle={styles.skipText}
                     pressHandler={() => { setShowSkipModal(true) }}
                 />}
-                <CustomButton
-                    label={!isAlive ? "Save" : imageURL()}
-                    containerStyle={styles.btnContainer}
-                    pressHandler={validateData}
-                    loading={loading}
-                    disable={loading}
-                />
+                <TourTarget id={REMEASURE_TOUR_TARGETS.SAVE} style={styles.btnContainer}>
+                    <CustomButton
+                        label={!isAlive ? "Save" : imageURL()}
+                        pressHandler={validateData}
+                        loading={loading}
+                        disable={loading}
+                    />
+                </TourTarget>
             </View>
             <AlertModal
                 visible={showAccuracyModal}
@@ -528,6 +547,14 @@ const styles = StyleSheet.create({
     },
     inputWrapper: {
         width: '95%',
+    },
+    // TourTarget wraps its children in a plain View, and the form is laid out
+    // with percentage widths inside a centred column. Without a width of its
+    // own that wrapper sizes to its content, and a child asking for 95% of it
+    // has nothing to measure against.
+    tourFill: {
+        width: '100%',
+        alignItems: 'center',
     },
     footer: {
         width: "100%",

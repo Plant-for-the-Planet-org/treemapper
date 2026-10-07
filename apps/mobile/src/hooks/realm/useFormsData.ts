@@ -57,6 +57,39 @@ const useFormsData = () => {
     [realm],
   )
 
+  // Caches one form the device just created, without the stale sweep above.
+  // Used after a legacy Additional Data form is pushed to a project: the server
+  // has already answered with the stored form, so the list can show it without
+  // waiting for the next full fetch, which may be a long way off on a device
+  // that goes straight back offline.
+  const cacheProjectForm = useCallback(
+    async (projectId: string, form: ServerForm): Promise<boolean> => {
+      try {
+        realm.write(() => {
+          const mapped: ProjectFormData = {
+            id: form.id,
+            name: form.name || '',
+            description: form.description || '',
+            project_id: projectId,
+            status: form.status || 'published',
+            site_assignment: form.siteAssignment || 'all',
+            intervention_assignment: form.interventionAssignment || 'all',
+            site_ids: form.siteIds || [],
+            intervention_types: form.interventionTypes || [],
+            sections: JSON.stringify(form.sections || []),
+            created_at: form.createdAt || '',
+            updated_at: form.updatedAt || '',
+          }
+          realm.create(RealmSchema.ProjectForm, mapped, Realm.UpdateMode.Modified)
+        })
+        return true
+      } catch (error) {
+        return false
+      }
+    },
+    [realm],
+  )
+
   const saveFormPrefill = useCallback(
     async (formId: string, values: FormValues): Promise<boolean> => {
       try {
@@ -89,7 +122,7 @@ const useFormsData = () => {
     [realm],
   )
 
-  return { upsertProjectForms, saveFormPrefill, getFormPrefill }
+  return { upsertProjectForms, cacheProjectForm, saveFormPrefill, getFormPrefill }
 }
 
 export default useFormsData

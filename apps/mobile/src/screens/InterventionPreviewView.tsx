@@ -49,6 +49,7 @@ import { convertDateToTimestamp } from 'src/utils/helpers/appHelper/dataAndTimeH
 import { TourTarget } from '@wrack/react-native-tour-guide'
 import useInterventionTour, { useTourAction, useTourStage } from 'src/hooks/useInterventionTour'
 import { TOUR_TARGETS, TOUR_STEPS } from 'src/utils/tour/interventionTour'
+import { useRemeasureTourScreen } from 'src/hooks/useRemeasureTour'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -70,6 +71,9 @@ const InterventionPreviewView = () => {
   const { saveIntervention, updateInterventionMetaData, resetIntervention, addNewIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
   useTourStage('interventionPreview')
+  // The remeasurement walkthrough opens on this screen, on a tree the
+  // catalogue has already picked.
+  useRemeasureTourScreen('interventionPreview')
   const { advanceIfOn } = useInterventionTour()
   // Tapping anywhere on this tour step saves, same as the button. Its own
   // guards (project assigned, required forms completed) still run first.

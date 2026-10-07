@@ -5,8 +5,10 @@ import OfflineMapDisplay from 'src/components/offlineMap/OfflineMapDisplay'
 import OfflineSelectionMapHeader from 'src/components/offlineMap/OfflineSelectionMapHeader'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
+import { useOfflineTourScreen } from 'src/hooks/useOfflineMapTour'
 
 const OfflineMapSelectionView = () => {
+  useOfflineTourScreen('areaSelection')
   return (
     <SafeAreaView style={styles.container}>
       <Header label="Confirm Area Selection" />

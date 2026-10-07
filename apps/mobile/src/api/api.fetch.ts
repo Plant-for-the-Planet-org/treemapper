@@ -151,6 +151,15 @@ export const getProjectForms = async (projectUid: string) => {
 };
 
 
+// Creates a form on a project. Owner/admin, or a member holding the
+// `manage_form` extra permission; the server decides and answers 403 otherwise.
+export const createProjectForm = async (projectUid: string, params: any) => {
+  const uri = `${postUrlNewApi.createProjectForm}/${projectUid}/forms`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+
 // Main function to get image as base64 (from your code)
 const getImageAsBase64 = async (fileUri: string): Promise<string> => {
   try {

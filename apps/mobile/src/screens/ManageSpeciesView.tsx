@@ -31,6 +31,7 @@ import { TourTarget } from '@wrack/react-native-tour-guide'
 import { useTourStage } from 'src/hooks/useInterventionTour'
 import { TOUR_TARGETS } from 'src/utils/tour/interventionTour'
 import { useSpeciesTourScreen } from 'src/hooks/useManageSpeciesTour'
+import { useMultiTreeTourScreen } from 'src/hooks/useMultiTreeTour'
 
 
 const ManageSpeciesView = () => {
@@ -64,6 +65,9 @@ const ManageSpeciesView = () => {
   // in that mode; in the capture flow this screen belongs to the intervention
   // walkthrough above.
   useSpeciesTourScreen('manageSpecies', Boolean(isManageSpecies))
+  // The Multiple Trees walkthrough passes through this screen on its way to
+  // the species total. Its steps are a different list, so it gets its own sync.
+  useMultiTreeTourScreen('manageSpecies')
   useEffect(() => {
     const InterventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
     if (InterventionData) {

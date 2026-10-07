@@ -520,7 +520,7 @@ web or server. Expo 55 / RN 0.83, bare workflow (checked-in `android/` and
 `ios/`), app version in `app.json` (3.0.6), bundle id `org.pftp.treemapper`.
 
 - **Realm is the primary store, not a cache.** `src/db/schema/` (~40 object
-  schemas) is the local model; `schemaVersion` is **28** in
+  schemas) is the local model; `schemaVersion` is **32** in
   `src/db/RealmProvider.tsx`, and `src/db/migrations.ts` holds the hand-written
   migrations (v24, v27 both backfill a new `sync_status`). Bumping a schema
   means bumping that version. `appRealm` is a module-level singleton so
@@ -567,11 +567,26 @@ web or server. Expo 55 / RN 0.83, bare workflow (checked-in `android/` and
   Extra fields come from `ProjectForm`, defined on the web dashboard.
   The screen and component files still sit on disk unreferenced, and the route
   names stay in `RootStackParamList` so they compile -- navigating to one now
-  fails at runtime. `db/legacyAdditionalDataCleanup.ts` wipes the definitions a
-  device created in an older build; it runs against `appRealm` on launch rather
-  than as a migration, because `appRealm` opens with no migration handler and so
-  beats `RealmProvider`'s `onMigration` to the file. Answers already captured on
-  an intervention (`Intervention.form_data`) are left alone and still upload.
+  fails at runtime. Answers already captured on an intervention
+  (`Intervention.form_data`) are left alone and still upload.
+- **The definitions an older build created are kept, and offered for sync.** A
+  device that used the builder still holds its forms in
+  `RealmSchema.AdditionalDetailsForm`, and nothing deletes them: an earlier
+  launch-time wipe (`db/legacyAdditionalDataCleanup.ts`) was removed before it
+  reached a release, because those forms are the only copy their author has.
+  `LegacyFormsView` lists them, `LegacyFormSyncView` pushes one into a
+  project's Forms, and `FormsView` carries the banner that leads there. The
+  write is the ordinary `POST /projects/:uid/forms` the dashboard uses, so
+  there is no migration endpoint and the usual owner/admin-or-`manage_form`
+  rule applies; the form is created **published**. `utils/helpers/formHelper/
+  legacyFormConverter.ts` does the mapping and is lossy on purpose: `HEADING`
+  becomes a section boundary, `GAP` has no target and is dropped, `YES_NO`
+  becomes a two-option radio, and the old `key` is gone because a form answer
+  is now keyed by `slugifyLabel(field.label)`. It returns every dropped element
+  so the review screen can name them. A synced row is stamped with
+  `migrated_at` / `migrated_form_id` and stays as history. The metadata tab's
+  key/value rows are deliberately left where they are: they were default values,
+  not a form, and that job belongs to the per-intervention metadata card now.
 - **Extra data is added per intervention, from the review screen.** The two
   cards on `InterventionPreviewView` (`InterventionAdditionalData` and
   `InterventionMetaData`) each carry an Add button that opens
@@ -587,21 +602,30 @@ web or server. Expo 55 / RN 0.83, bare workflow (checked-in `android/` and
   typed here (`elementType: 'metaData'`); private form answers stay with the
   form that collected them rather than being repeated on every preview.
 - **Guided tours: add one in two files.** `@wrack/react-native-tour-guide`
-  drives four walkthroughs -- Single Tree, Manage Species, Monitoring Plot and
-  Create Site -- all listed on the "Show me how" screen (`GuidedToursView`),
+  drives eight walkthroughs -- Single Tree, Multiple Trees, Manage Species,
+  Monitoring Plot, Create Site, Remeasure a Tree, Upload/Fix Required and
+  Offline Maps -- all listed on the "Show me how" screen (`GuidedToursView`),
   which the side drawer opens. That screen knows about no individual tour: it renders
   `hooks/useTourCatalog.ts` and calls each entry's own `begin`, which navigates
   to the screen the first spotlight sits on. An entry can also set
   `blockedReason` and the row greys out, which is how the plot and site tours
   refuse to start with no project rather than stalling halfway. A new tour is its
   steps under `utils/tour/` plus one catalogue entry; the screen and the drawer
-  stay untouched. The machinery all
-  three share is `hooks/useTourController.ts`. Three rules the library enforces
-  the hard way: an `interactive` step needs
+  stay untouched. The machinery they all
+  share is `hooks/useTourController.ts`. Five rules the library and the layout
+  enforce the hard way: an `interactive` step needs
   `overlayMode: 'inline'` or the overlay swallows the tap; a `<TourTarget>` id
   must be unique on screen, so only the first row of a list ever registers one;
-  and a step that hides Next *and* gates on `completed` leaves Skip as the only
-  exit if its target never mounts. A tour spanning screens cannot count
+  a step that hides Next *and* gates on `completed` leaves Skip as the only
+  exit if its target never mounts; a `<TourTarget>` renders a plain `View`, so
+  wrapping a child with a percentage width inside a centred column needs the
+  width put on the wrapper (`tourFill` in `ManageSpeciesView`,
+  `TreeRemeasurementView`, `InterventionCard`); and only one tour is active at
+  a time, which is why the one-step hint in `InterventionFormView` is guarded
+  on `useTourGuide().isActive` -- starting it during a walkthrough would
+  replace it with no way back. A tour that teaches existing data rather than
+  creating some (upload, remeasurement) sets `blockedReason` from a Realm count
+  instead of starting and stalling. A tour spanning screens cannot count
   `nextStep()` calls, because the user can always press back -- each screen
   declares the steps it owns and the tour re-syncs forward on focus.
 - 7 languages under `src/locales/languages` (de, en, es, fr, it, mg, pt-BR) --

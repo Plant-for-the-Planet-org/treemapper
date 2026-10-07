@@ -30,6 +30,10 @@ import SiteMapSource from './SiteMapSource'
 import useMapDraft from 'src/hooks/realm/useMapDraft'
 import { usePostHog } from 'posthog-react-native'
 import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import useMultiTreeTour from 'src/hooks/useMultiTreeTour'
+import { useTourAction } from 'src/hooks/useTourController'
+import { MULTI_TOUR_STEPS, MULTI_TOUR_TARGETS } from 'src/utils/tour/multiTreeTour'
 
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -75,6 +79,7 @@ const PolygonMarkerMap = (props: Props) => {
   )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updateInterventionLocation } = useInterventionManagement()
+  const { advanceIfOn: advanceMultiTreeTour } = useMultiTreeTour()
   const posthog = usePostHog()
   const { saveDraft, readDraft, clearOwnerDrafts } = useMapDraft()
   const toast = useToast();
@@ -153,6 +158,16 @@ const PolygonMarkerMap = (props: Props) => {
       setLatestCoords(currentPosition)
     }
   }, [currentPosition])
+
+  // The walkthrough's "mark the corners" step is released by the third corner,
+  // not the first: the Complete footer the next step points at only exists once
+  // a polygon is possible. A restored draft arrives already complete, which
+  // skips the step, and that is right.
+  useEffect(() => {
+    if (polygonComplete) {
+      advanceMultiTreeTour(MULTI_TOUR_STEPS.MARK)
+    }
+  }, [polygonComplete, advanceMultiTreeTour])
 
   const handleCameraView = () => {
     if (cameraRef?.current) {
@@ -345,12 +360,18 @@ const PolygonMarkerMap = (props: Props) => {
       intervention_key,
       capture_mode: 'manual',
     })
+    advanceMultiTreeTour(MULTI_TOUR_STEPS.COMPLETE)
     if (species_required) {
       navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
     } else {
       navigation.navigate('DynamicForm', { id: form_id })
     }
   }
+
+  // Continue (another corner) sits in the same spotlight as Complete, so the
+  // only ambiguous press on that step is the backdrop. Closing the shape is
+  // what the step asks for.
+  useTourAction(MULTI_TOUR_STEPS.COMPLETE, makeComplete)
 
   const proceedTrackComplete = async () => {
     // setCoordinates([...finalCoordinates])
@@ -468,6 +489,10 @@ const PolygonMarkerMap = (props: Props) => {
         trackingPaused={trackingState === 'pause'}
 
       /> : null}
+      {/* The tour wraps the map so the user can still pan inside the spotlight,
+          and every button on this screen is drawn over the map, so one hole
+          here covers Mark Point, Continue and Complete too. */}
+      <TourTarget id={MULTI_TOUR_TARGETS.MAP} style={styles.mapWrapper}>
       <View style={styles.mapWrapper}>
       <Map
         style={styles.map}
@@ -510,10 +535,11 @@ const PolygonMarkerMap = (props: Props) => {
           the map actually records from B onwards. */}
       {!isTracking && <ActiveMarkerIcon />}
       </View>
+      </TourTarget>
       <SatelliteIconWrapper bottom={isTracking ? 120 : 0} />
       <MapZoomScale mapRef={mapRef} position="top-left" padTop={coordinates.length > 0?70:20}/>
       {polygonComplete && (
-        <View style={styles.btnFooter}>
+        <TourTarget id={MULTI_TOUR_TARGETS.FOOTER} style={styles.btnFooter}>
           <CustomButton
             label="Complete"
             containerStyle={styles.btnWrapper}
@@ -528,7 +554,7 @@ const PolygonMarkerMap = (props: Props) => {
             wrapperStyle={styles.opaqueWrapper}
             labelStyle={styles.normalLabel}
           />
-        </View>
+        </TourTarget>
       )}
       {!polygonComplete && coordinates.length === 1 && !isTracking ? (
         <View style={styles.btnFooterTwo}>

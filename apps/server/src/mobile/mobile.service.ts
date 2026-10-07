@@ -1026,12 +1026,18 @@ export class MobileService {
       }, {} as Record<number, SiteResponse[]>);
 
       // Rest of your mapping logic remains the same...
-      const response: any[] = userProjects.map(({ project: proj }) => ({
+      const response: any[] = userProjects.map(({ project: proj, projectMember: pm }) => ({
         id: proj.uid,
         geometry: proj.originalGeometry,
         properties: {
           id: proj.uid,
           uid: proj.uid,
+          // The caller's own membership on this project. Mobile mirrors the
+          // role/permission rule of ProjectPermissionsGuard with it, so a
+          // write it cannot make (creating a form, for example) is hidden
+          // instead of failing with a 403 after the user has done the work.
+          role: pm.projectRole,
+          extraPermissions: pm.extraPermissions ?? [],
           createdById: proj.createdById,
           workspaceId: proj.workspaceId,
           slug: proj.slug,

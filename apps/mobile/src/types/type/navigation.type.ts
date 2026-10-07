@@ -70,6 +70,14 @@ export type RootStackParamList = {
   PlannedTreeLocation: PlannedTreeLocationView
   Forms: undefined
   FormDetail: FormDetailView
+  // Forms left on the device by the retired Additional Data builder, and the
+  // screen that pushes one into a project's Forms.
+  LegacyForms: undefined
+  LegacyFormSync: LegacyFormSyncView
+}
+
+type LegacyFormSyncView = {
+  formId: string
 }
 
 type FormDetailView = {

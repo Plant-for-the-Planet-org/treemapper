@@ -17,17 +17,25 @@ import BinIcon from 'assets/images/svg/BinIcon.svg'
 import ExportArrows from 'assets/images/svg/ExportArrow.svg'
 import { exportAllInterventionData } from 'src/utils/helpers/fileManagementHelper'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
+import { TourTarget } from '@wrack/react-native-tour-guide'
+import { SYNC_TOUR_TARGETS } from 'src/utils/tour/syncTour'
 
 interface Props {
   item: InterventionData
   openIntervention: (item: InterventionData) => void
   deleteHandler: (item: InterventionData) => void
   openEditModal: (item: InterventionData) => void
+  /**
+   * Only the first row of the list sets this. A <TourTarget> id has to be
+   * unique on screen, so a wrapper on every card would be one registration per
+   * row fighting over the same id.
+   */
+  isTourTarget?: boolean
 }
 const OVERSWIPE_DIST = 20;
 
 const InterventionCard = (props: Props) => {
-  const { item, openIntervention } = props
+  const { item, openIntervention, isTourTarget } = props
   const handleIntervention = () => {
     const finalItem = { ...JSON.parse(JSON.stringify(item)) }
     openIntervention({ ...finalItem })
@@ -62,7 +70,7 @@ const InterventionCard = (props: Props) => {
     </View></View>
   }
 
-  return (
+  const card = (
     <SwipeableItem
       key={item.intervention_id}
       item={item}
@@ -109,11 +117,23 @@ const InterventionCard = (props: Props) => {
       </Pressable>
     </SwipeableItem>
   )
+
+  if (!isTourTarget) {
+    return card
+  }
+
+  return <TourTarget id={SYNC_TOUR_TARGETS.CARD} style={styles.tourFill}>{card}</TourTarget>
 }
 
 export default InterventionCard
 
 const styles = StyleSheet.create({
+  // TourTarget wraps its children in a plain View, and the card below asks for
+  // 100% of its parent. Without a width of its own that wrapper would size to
+  // its content and the card would have nothing to measure against.
+  tourFill: {
+    width: '100%',
+  },
   container: {
     width: '100%',
     height: 100,

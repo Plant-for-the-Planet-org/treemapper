@@ -67,6 +67,8 @@ const RootNavigator = () => {
       <Stack.Screen name="PlannedTreeLocation" component={Screens.PlannedTreeLocation} />
       <Stack.Screen name="Forms" component={Screens.Forms} />
       <Stack.Screen name="FormDetail" component={Screens.FormDetail} />
+      <Stack.Screen name="LegacyForms" component={Screens.LegacyForms} />
+      <Stack.Screen name="LegacyFormSync" component={Screens.LegacyFormSync} />
       <Stack.Screen
         name="HomeSideDrawer"
         component={Screens.HomeSideDrawer}
