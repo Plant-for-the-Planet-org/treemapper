@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.NEW_PRIMARY + '1A'
   },
   sampleTreeLabel: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
     color: Colors.NEW_PRIMARY,
     marginRight: 5

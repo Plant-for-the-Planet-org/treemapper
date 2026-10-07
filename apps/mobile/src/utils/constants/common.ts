@@ -21,8 +21,8 @@ export const bottomInputContainer: ViewStyle = {
 
 export const bottomInputLabel: TextStyle = {
   fontFamily: Typography.FONT_FAMILY_REGULAR,
-  fontSize: 18,
-  lineHeight: 30,
+  fontSize: Typography.FONT_SIZE_18,
+  lineHeight: Typography.LINE_HEIGHT_30,
   color: Colors.TEXT_COLOR,
   marginRight: 10,
   paddingRight: 10,
@@ -30,7 +30,7 @@ export const bottomInputLabel: TextStyle = {
 
 export const bottomInputText: TextStyle = {
   fontFamily: Typography.FONT_FAMILY_REGULAR,
-  fontSize: 20,
+  fontSize: Typography.FONT_SIZE_20,
   color: Colors.TEXT_COLOR,
   fontWeight: Typography.FONT_WEIGHT_MEDIUM,
   flex: 1,

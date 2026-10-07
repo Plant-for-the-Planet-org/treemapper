@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
         paddingRight: 10,
         paddingBottom: 10,
         paddingLeft: 0,
-        fontSize: 16, fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        fontSize: Typography.FONT_SIZE_16, fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR
     },
 })

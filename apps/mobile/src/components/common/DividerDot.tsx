@@ -27,6 +27,6 @@ const styles = StyleSheet.create({
     },
     dot: {
         fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
-        lineHeight:15
+        lineHeight: Typography.LINE_HEIGHT_15
     }
 })

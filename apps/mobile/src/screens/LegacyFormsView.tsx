@@ -124,10 +124,10 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   noteText: {
-    fontSize: 13,
+    fontSize: Typography.FONT_SIZE_13,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
-    lineHeight: 19,
+    lineHeight: Typography.LINE_HEIGHT_19,
   },
   card: {
     width: '90%',
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     flex: 1,
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
   },
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.NEW_PRIMARY,
   },
   chipText: {
-    fontSize: 11,
+    fontSize: Typography.FONT_SIZE_11,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
   },
@@ -169,19 +169,19 @@ const styles = StyleSheet.create({
     color: Colors.WHITE,
   },
   cardDesc: {
-    fontSize: 13,
+    fontSize: Typography.FONT_SIZE_13,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_LIGHT,
     marginTop: 6,
   },
   cardMeta: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_LIGHT,
     marginTop: 8,
   },
   cardSynced: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.NEW_PRIMARY,
     marginTop: 6,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     marginTop: 60,
   },
   emptyText: {
-    fontSize: 15,
+    fontSize: Typography.FONT_SIZE_15,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_LIGHT,
     textAlign: 'center',

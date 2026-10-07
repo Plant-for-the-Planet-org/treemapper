@@ -3,7 +3,7 @@ import {
   TouchableOpacity,
   View,
   Text,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native'
 import Animated, {
   useAnimatedStyle,
@@ -131,6 +131,9 @@ const AddOptionModal = (props: Props) => {
     opacity: opacity.value,
   }))
   const toast = useToast()
+  // Read live rather than at module load, so the menu is still two thirds of
+  // the screen after a rotation.
+  const { width: windowWidth } = useWindowDimensions()
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
@@ -238,6 +241,7 @@ const AddOptionModal = (props: Props) => {
     <Animated.View
       style={[
         styles.container,
+        { width: windowWidth / 1.5 },
         animatedStyles,
       ]}>
       <Animated.View style={{ zIndex: 10 }}><>
@@ -273,7 +277,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 12,
     elevation: 4,
-    width: Dimensions.get('window').width / 1.5,
     zIndex: 2,
   },
   addButtonOptionWrap: {
@@ -321,12 +324,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10
   },
   projectLabel: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.NEW_PRIMARY,
   },
   projectName: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   divider: {

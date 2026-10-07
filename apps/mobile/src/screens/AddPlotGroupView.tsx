@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
         height: '100%',
     },
     emptyLabel: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT,
         width: '100%',

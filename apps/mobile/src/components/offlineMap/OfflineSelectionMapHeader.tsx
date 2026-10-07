@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR,
     fontSize: scaleFont(16),
-    lineHeight: 20,
+    lineHeight: Typography.LINE_HEIGHT_20,
     textAlign: 'center',
   },
   btnContainer: {

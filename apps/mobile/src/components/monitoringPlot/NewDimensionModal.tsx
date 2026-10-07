@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { Colors, Typography } from 'src/utils/constants'
+import { Colors, Mixins, Typography } from 'src/utils/constants'
 import Modal from 'react-native-modal'
 import CustomTextInput from '../common/CustomTextInput'
 import CustomButton from '../common/CustomButton'
@@ -112,12 +112,13 @@ const styles = StyleSheet.create({
     },
     sectionWrapper: {
         width: '90%',
+        maxWidth: Mixins.MAX_DIALOG_WIDTH,
         paddingVertical: 20,
         backgroundColor: Colors.WHITE,
         borderRadius: 8
     },
     header: {
-        fontSize: 20,
+        fontSize: Typography.FONT_SIZE_20,
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.TEXT_COLOR,
         marginLeft: 20,

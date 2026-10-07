@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     borderRadius: 8
   },
   emptyLabel: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR
   },
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     zIndex: 1
   },
   label: {
-    fontSize: 18,
+    fontSize: Typography.FONT_SIZE_18,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.WHITE,
     textAlign: 'center'

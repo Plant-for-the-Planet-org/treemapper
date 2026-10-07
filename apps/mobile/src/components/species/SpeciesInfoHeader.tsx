@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     color: Colors.BLACK,
   },
   toastLabel: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: FONT_FAMILY_REGULAR,
     color: Colors.DARK_TEXT
   },

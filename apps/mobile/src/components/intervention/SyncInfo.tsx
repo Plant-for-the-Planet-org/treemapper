@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     },
     textLabel:{
         width:'90%',
-        fontSize:14,
+        fontSize: Typography.FONT_SIZE_14,
         fontFamily:Typography.FONT_FAMILY_SEMI_BOLD,
         color:Colors.WHITE,
         paddingVertical:10,

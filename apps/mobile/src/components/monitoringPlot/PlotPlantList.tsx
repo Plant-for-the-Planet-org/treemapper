@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     emptyLabel: {
         color: Colors.TEXT_LIGHT,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-        fontSize: 15
+        fontSize: Typography.FONT_SIZE_15
     }
 })
 

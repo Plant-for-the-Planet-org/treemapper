@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   },
   chipLabel: {
     color: Colors.NEW_PRIMARY,
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     letterSpacing: 0.5
   }

@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   description: {
     width: '90%',
     alignSelf: 'center',
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_LIGHT,
     marginVertical: 10,
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     width: '90%',
     alignSelf: 'center',
-    fontSize: 18,
+    fontSize: Typography.FONT_SIZE_18,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR,
     marginTop: 10,
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   sectionDesc: {
     width: '90%',
     alignSelf: 'center',
-    fontSize: 13,
+    fontSize: Typography.FONT_SIZE_13,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_LIGHT,
     marginBottom: 4,
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_LIGHT,
   },

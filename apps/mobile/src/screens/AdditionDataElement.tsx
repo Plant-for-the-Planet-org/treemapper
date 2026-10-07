@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
   },
   header: {
-    fontSize: 22,
+    fontSize: Typography.FONT_SIZE_22,
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
     color: Colors.DARK_TEXT_COLOR,
     marginLeft: 20,
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   placeHolder: {
-    fontSize: 22,
+    fontSize: Typography.FONT_SIZE_22,
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
     color: Colors.DARK_TEXT_COLOR,
     marginLeft: 20,
@@ -475,14 +475,14 @@ const styles = StyleSheet.create({
     height: 100,
   },
   dropDownOption: {
-    fontSize: 18,
+    fontSize: Typography.FONT_SIZE_18,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginLeft: 20,
     marginTop: 20,
   },
   addDropDown: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.NEW_PRIMARY,
     marginLeft: 20,
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   deletable: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: 'tomato',
     marginHorizontal: 10,
@@ -517,13 +517,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   keyLabel: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginVertical: 10,
   },
   keyValue: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     width: '90%',

@@ -321,14 +321,14 @@ const styles = StyleSheet.create({
   },
   treeBannerText: {
     marginLeft: 8,
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.WHITE,
   },
   treeBannerSubText: {
     marginLeft: 8,
     marginTop: 2,
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.WHITE,
   },
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
   },
@@ -355,14 +355,14 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   errorText: {
-    fontSize: 18,
+    fontSize: Typography.FONT_SIZE_18,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     textAlign: 'center',
     marginBottom: 8,
   },
   errorSubText: {
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
     textAlign: 'center',
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   highlightLabelPreview: {
-    fontSize: 18,
+    fontSize: Typography.FONT_SIZE_18,
     fontWeight: '400',
     color: Colors.PRIMARY_DARK,
   },

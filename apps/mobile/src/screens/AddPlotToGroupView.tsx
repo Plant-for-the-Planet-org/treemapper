@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     emptyLabel: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_LIGHT,
         width: '100%',
@@ -180,13 +180,13 @@ const styles = StyleSheet.create({
         flex: 14,
     },
     cardholder: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
         letterSpacing: 0.4
     },
     cardLabel: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT,
         letterSpacing: 0.4

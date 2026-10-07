@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT,
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         paddingHorizontal: 20,
     },
     imageWrapper: {
@@ -224,12 +224,12 @@ const styles = StyleSheet.create({
     cardHeader: {
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.DARK_TEXT_COLOR,
-        fontSize: 18,
+        fontSize: Typography.FONT_SIZE_18,
     },
     cardLabel: {
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_LIGHT,
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         letterSpacing: 0.2
     }
 })

@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.GRAY_LIGHT,
   },
   keyLabel: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginVertical: 10,
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   inputWrapper: {
-    fontSize: 18,
+    fontSize: Typography.FONT_SIZE_18,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginLeft: 10,
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   headerLabel: {
-    fontSize: 22,
+    fontSize: Typography.FONT_SIZE_22,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR,
     marginLeft: 20,
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     marginLeft: 20,
   },
   footerLabel: {
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
   },
@@ -275,23 +275,23 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   deletable: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: 'tomato',
     marginHorizontal: 10,
   },
   placeholderStyle: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     paddingHorizontal: 3,
     color: Colors.TEXT_COLOR,
   },
   selectedTextStyle: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
   },
   itemTextStyle: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
   },

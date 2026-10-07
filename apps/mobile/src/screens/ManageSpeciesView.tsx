@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     marginRight: 10
   },
   label: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginLeft: 8

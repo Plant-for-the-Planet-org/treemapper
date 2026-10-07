@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   heading: {
-    fontSize: 18,
+    fontSize: Typography.FONT_SIZE_18,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR,
     marginBottom: 10,
@@ -85,12 +85,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   name: {
-    fontSize: 15,
+    fontSize: Typography.FONT_SIZE_15,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
   },
   status: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     marginTop: 4,
   },
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.NEW_PRIMARY,
   },
   buttonText: {
-    fontSize: 13,
+    fontSize: Typography.FONT_SIZE_13,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.WHITE,
   },

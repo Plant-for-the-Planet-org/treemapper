@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     },
     headerNote: {
         fontFamily: Typography.FONT_FAMILY_BOLD,
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         color: Colors.DARK_TEXT_COLOR,
         marginVertical: 20
     },
@@ -108,23 +108,23 @@ const styles = StyleSheet.create({
         paddingTop: 20
     },
     h2Label: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_COLOR,
         letterSpacing: 0.2
     },
     h1Label: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.DARK_TEXT_COLOR,
         letterSpacing: 0.2
     },
     h3Label: {
-        fontSize: 15,
+        fontSize: Typography.FONT_SIZE_15,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_COLOR,
         letterSpacing: 0.2,
-        lineHeight: 24,
+        lineHeight: Typography.LINE_HEIGHT_24,
         marginLeft: 5
     },
     divider: {

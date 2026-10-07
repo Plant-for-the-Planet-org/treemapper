@@ -215,13 +215,13 @@ const styles = StyleSheet.create({
     marginVertical: 10
   },
   cardLabel: {
-    fontSize: 20,
+    fontSize: Typography.FONT_SIZE_20,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginLeft: '5%'
   },
   syncedHint: {
-    fontSize: 15,
+    fontSize: Typography.FONT_SIZE_15,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
     marginLeft: '5%',
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   emptyLabel: {
-    fontSize: 22,
+    fontSize: Typography.FONT_SIZE_22,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.NEW_PRIMARY,
     marginRight: 10

@@ -12,7 +12,6 @@ import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import i18next from 'src/locales/index'
 import { SafeAreaView } from 'react-native-safe-area-context'
-
 const ActivityLogsView = () => {
     const [loading, setLoading] = useState(false)
 

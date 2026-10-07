@@ -2,7 +2,7 @@ import React, {memo} from 'react'
 import {View, Text, StyleSheet} from 'react-native'
 import Modal from 'react-native-modal'
 import FlatButton from './FlatButton'
-import {Colors, Typography} from 'src/utils/constants'
+import {Colors, Mixins, Typography} from 'src/utils/constants'
 
 interface IAlertModalProps {
   visible: boolean
@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
   },
   subContainer: {
     width: '90%',
+    maxWidth: Mixins.MAX_DIALOG_WIDTH,
     backgroundColor: Colors.WHITE,
     borderRadius: 10,
     padding: 20,

@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import Modal from 'react-native-modal'
-import { Colors, Typography } from 'src/utils/constants'
+import { Colors, Mixins, Typography } from 'src/utils/constants'
 import FolderIcon from 'assets/images/svg/FolderIcon.svg'
 import i18next from 'src/locales/index'
 
@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
     },
     sectionWrapper: {
         width: '80%',
+        maxWidth: Mixins.MAX_DIALOG_WIDTH,
         position: 'absolute',
         backgroundColor: Colors.WHITE,
         borderRadius: 20,

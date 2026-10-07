@@ -217,6 +217,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.DARK_TEXT_COLOR,
-    lineHeight: 18,
+    lineHeight: Typography.LINE_HEIGHT_18,
   },
 })

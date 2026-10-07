@@ -85,6 +85,6 @@ const styles = StyleSheet.create({
   stagingLabel: {
     color: Colors.WHITE,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: 20
+    fontSize: Typography.FONT_SIZE_20
   }
 })

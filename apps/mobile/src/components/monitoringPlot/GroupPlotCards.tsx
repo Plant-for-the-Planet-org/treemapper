@@ -88,22 +88,22 @@ const styles = StyleSheet.create({
         marginHorizontal: 10
     },
     idLabel: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.DARK_TEXT_COLOR
     },
     dateLabel: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.DARK_TEXT_COLOR
     },
     plantedLabel: {
-        fontSize: 13,
+        fontSize: Typography.FONT_SIZE_13,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT
     },
     speciesLabel: {
-        fontSize: 10,
+        fontSize: Typography.FONT_SIZE_10,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT
     },
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     plotTitle: {
-        fontSize: 10,
+        fontSize: Typography.FONT_SIZE_10,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.DARK_TEXT
     }

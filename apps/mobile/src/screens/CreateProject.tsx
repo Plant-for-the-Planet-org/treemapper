@@ -21,8 +21,8 @@ import { useDispatch } from 'react-redux';
 import { useToast } from 'react-native-toast-notifications';
 import { useNavigation } from '@react-navigation/native';
 import { updateRefetchProject } from 'src/store/slice/appStateSlice';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Typography } from 'src/utils/constants'
 const CreateProjectScreen = () => {
     const [workspace, setWorkspace] = useState('');
     const [projectName, setProjectName] = useState('');
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         flex: 1,
-        fontSize: 18,
+        fontSize: Typography.FONT_SIZE_18,
         fontWeight: '600',
         color: '#1A1A1A',
         textAlign: 'center',
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     label: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontWeight: '600',
         color: '#1A1A1A',
         marginBottom: 8,
@@ -377,11 +377,11 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     dropdownText: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         color: '#1A1A1A',
     },
     placeholderText: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         color: '#999999',
     },
     arrowIcon: {
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
         borderColor: '#E0E0E0',
         borderRadius: 12,
         paddingHorizontal: 16,
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         color: '#1A1A1A',
         backgroundColor: '#FFFFFF',
     },
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
         borderColor: '#FF4444',
     },
     errorText: {
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         color: '#FF4444',
         marginTop: 6,
         marginLeft: 4,
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
         // Animation can be added here
     },
     createButtonText: {
-        fontSize: 17,
+        fontSize: Typography.FONT_SIZE_17,
         fontWeight: '600',
         color: '#FFFFFF',
     },

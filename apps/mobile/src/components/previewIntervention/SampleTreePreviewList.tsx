@@ -1,7 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
-import { scaleSize } from 'src/utils/constants/mixins'
 import { SampleTree } from 'src/types/interface/slice.interface'
 import WidthIcon from 'assets/images/svg/WidthIcon.svg'
 import HeightIcon from 'assets/images/svg/HeightIcon.svg'
@@ -226,7 +225,7 @@ const styles = StyleSheet.create({
   },
   header: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: scaleSize(18),
+    fontSize: Typography.FONT_SIZE_18,
     color: Colors.TEXT_COLOR,
     marginBottom: 5,
     width: '100%',
@@ -294,32 +293,32 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: scaleSize(14),
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_LIGHT,
     marginLeft: 20,
   },
   valueLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
     marginLeft: 20,
   },
   speciesName: {
     fontFamily: Typography.FONT_FAMILY_ITALIC,
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
     marginLeft: 20,
   },
   iconTitle: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: scaleSize(13),
+    fontSize: Typography.FONT_SIZE_13,
     color: Colors.TEXT_LIGHT,
     marginLeft: 20,
     marginBottom: 5,
   },
   iconLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: scaleSize(16),
+    fontSize: Typography.FONT_SIZE_16,
     color: Colors.TEXT_COLOR,
   },
   deleteWrapper: {

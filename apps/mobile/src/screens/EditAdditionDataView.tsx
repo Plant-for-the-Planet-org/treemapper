@@ -12,7 +12,6 @@ import { FormElement } from 'src/types/interface/form.interface'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { SafeAreaView } from 'react-native-safe-area-context'
-
 const EditAdditionData = () => {
   const [formElements, setFormElements] = useState<FormElement[]>([])
   const route = useRoute<RouteProp<RootStackParamList, 'EditAdditionData'>>()

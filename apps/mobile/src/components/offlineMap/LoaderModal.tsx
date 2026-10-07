@@ -27,7 +27,7 @@ export default LoaderModal
 
 const styles = StyleSheet.create({
     areaName: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         textAlign: 'center',
         color:Colors.TEXT_COLOR,
         fontFamily:Typography.FONT_FAMILY_SEMI_BOLD

@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
         width: '90%',
     },
     label: {
-        fontSize: 22,
+        fontSize: Typography.FONT_SIZE_22,
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.TEXT_COLOR
     }

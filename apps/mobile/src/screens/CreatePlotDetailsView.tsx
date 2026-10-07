@@ -243,7 +243,7 @@ const CreatePlotDetailsView = () => {
                     hideFadeIn
                 />
             </TourTarget>
-        </SafeAreaView >
+        </SafeAreaView>
     )
 }
 

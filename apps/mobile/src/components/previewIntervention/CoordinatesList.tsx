@@ -2,7 +2,6 @@ import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React from 'react'
 import CtaArrow from 'assets/images/svg/CtaArrow.svg'
 import { Colors, Typography } from 'src/utils/constants'
-import { scaleSize } from 'src/utils/constants/mixins'
 import CopyIcon from 'assets/images/svg/CopyIcon.svg'
 import * as Clipboard from 'expo-clipboard';
 import { useToast } from "react-native-toast-notifications";
@@ -104,13 +103,13 @@ const styles = StyleSheet.create({
   },
   coordinateTitle: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     color: Colors.TEXT_COLOR,
     marginBottom: 5,
   },
   coordinatesLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: scaleSize(12),
+    fontSize: Typography.FONT_SIZE_12,
     color: Colors.TEXT_COLOR,
     letterSpacing: 0.2,
   },

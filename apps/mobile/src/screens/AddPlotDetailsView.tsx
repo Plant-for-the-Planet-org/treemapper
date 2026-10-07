@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     width: '98%'
   },
   note: {
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_ITALIC,
     color: Colors.TEXT_LIGHT,
     marginLeft: '5%',

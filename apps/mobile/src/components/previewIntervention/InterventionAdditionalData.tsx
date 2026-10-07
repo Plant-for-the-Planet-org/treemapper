@@ -1,7 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
-import { scaleSize } from 'src/utils/constants/mixins'
 import { FormElement } from 'src/types/interface/form.interface'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -119,7 +118,7 @@ const styles = StyleSheet.create({
   },
   addLabel: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: scaleSize(14),
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.NEW_PRIMARY,
   },
   container: {
@@ -153,13 +152,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: scaleSize(14),
+    fontSize: Typography.FONT_SIZE_14,
     marginBottom: 5,
     color: Colors.TEXT_COLOR,
   },
   title: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: scaleSize(16),
+    fontSize: Typography.FONT_SIZE_16,
     marginBottom: 5,
     marginVertical: 5,
     marginLeft: 20,
@@ -167,13 +166,13 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: scaleSize(14),
+    fontSize: Typography.FONT_SIZE_14,
     marginLeft: 5,
     color: Colors.TEXT_COLOR,
   },
   headerLabel: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: scaleSize(20),
+    fontSize: Typography.FONT_SIZE_20,
     color: Colors.TEXT_COLOR,
   },
   editWrapper: {

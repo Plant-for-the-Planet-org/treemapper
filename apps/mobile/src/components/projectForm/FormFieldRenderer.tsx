@@ -233,23 +233,23 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   label: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
   },
   required: {
     color: Colors.ALERT,
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
   },
   help: {
-    fontSize: 13,
+    fontSize: Typography.FONT_SIZE_13,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_LIGHT,
     marginTop: 4,
   },
   error: {
-    fontSize: 13,
+    fontSize: Typography.FONT_SIZE_13,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.ALERT,
     marginTop: 4,
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   optionLabel: {
-    fontSize: 15,
+    fontSize: Typography.FONT_SIZE_15,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
     marginLeft: 12,
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   dateText: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.DARK_TEXT_COLOR,
   },

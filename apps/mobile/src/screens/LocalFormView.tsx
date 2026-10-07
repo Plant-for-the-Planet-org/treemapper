@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     height: '100%'
   },
   pageLabel: {
-    fontSize: 22,
+    fontSize: Typography.FONT_SIZE_22,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR,
     marginLeft: 20

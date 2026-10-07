@@ -18,6 +18,7 @@ import { acceptEmailInvite, acceptLinkInvite, getMobileInviteStatus, getMobileIn
 import { updateProjectState, updateCurrentProject } from 'src/store/slice/projectStateSlice';
 import useProjectManagement from 'src/hooks/realm/useProjectManagement';
 
+import { Typography } from 'src/utils/constants'
 type InviteStatus = 'pending' | 'accepted' | 'declined' | 'expired' | 'discarded';
 
 interface InviteData {
@@ -465,17 +466,17 @@ const styles = StyleSheet.create({
     borderColor: '#E8F5EC',
   },
   title: {
-    fontSize: 26,
+    fontSize: Typography.FONT_SIZE_26,
     fontWeight: '700',
     color: '#1A1A1A',
     textAlign: 'center',
     marginBottom: 12,
   },
   description: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     color: '#666666',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: Typography.LINE_HEIGHT_24,
     marginBottom: 24,
     paddingHorizontal: 4,
   },
@@ -483,7 +484,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   codeLabel: {
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     color: '#666666',
     marginBottom: 8,
     fontWeight: '500',
@@ -496,7 +497,7 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   codeText: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     color: '#1A1A1A',
     fontFamily: 'monospace',
     textAlign: 'center',
@@ -513,9 +514,9 @@ const styles = StyleSheet.create({
   },
   errorText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     color: '#D32F2F',
-    lineHeight: 20,
+    lineHeight: Typography.LINE_HEIGHT_20,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -534,7 +535,7 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   declineButtonText: {
-    fontSize: 17,
+    fontSize: Typography.FONT_SIZE_17,
     fontWeight: '600',
     color: '#666666',
   },
@@ -565,7 +566,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   acceptButtonText: {
-    fontSize: 17,
+    fontSize: Typography.FONT_SIZE_17,
     fontWeight: '600',
     color: '#FFFFFF',
   },
@@ -576,7 +577,7 @@ const styles = StyleSheet.create({
     paddingVertical: 80,
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     color: '#666666',
     marginTop: 16,
     fontWeight: '500',
@@ -590,11 +591,11 @@ const styles = StyleSheet.create({
     borderColor: '#FFE0B2',
   },
   statusMessage: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     color: '#E65100',
     textAlign: 'center',
     fontWeight: '600',
-    lineHeight: 22,
+    lineHeight: Typography.LINE_HEIGHT_22,
   },
   projectContainer: {
     backgroundColor: '#F0F9F5',
@@ -605,7 +606,7 @@ const styles = StyleSheet.create({
     borderColor: '#E8F5EC',
   },
   projectLabel: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     color: '#666666',
     marginBottom: 4,
     fontWeight: '500',
@@ -613,7 +614,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   projectName: {
-    fontSize: 20,
+    fontSize: Typography.FONT_SIZE_20,
     fontWeight: '700',
     color: '#007A49',
     marginBottom: 4,
@@ -622,9 +623,9 @@ const styles = StyleSheet.create({
     maxHeight: 120,
   },
   projectDescription: {
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     color: '#666666',
-    lineHeight: 20,
+    lineHeight: Typography.LINE_HEIGHT_20,
   },
   metaContainer: {
     marginBottom: 24,
@@ -640,13 +641,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   metaLabel: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     color: '#999999',
     marginBottom: 2,
     fontWeight: '500',
   },
   metaValue: {
-    fontSize: 15,
+    fontSize: Typography.FONT_SIZE_15,
     color: '#1A1A1A',
     fontWeight: '600',
   },
@@ -668,7 +669,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   retryButtonText: {
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     color: '#007A49',
     fontWeight: '600',
   },
@@ -685,9 +686,9 @@ const styles = StyleSheet.create({
   },
   successText: {
     flex: 1,
-    fontSize: 15,
+    fontSize: Typography.FONT_SIZE_15,
     color: '#2E7D32',
-    lineHeight: 22,
+    lineHeight: Typography.LINE_HEIGHT_22,
     fontWeight: '600',
   },
 });

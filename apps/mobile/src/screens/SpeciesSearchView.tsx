@@ -1,6 +1,6 @@
 import { StyleSheet, Text, } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { Colors } from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 import SpeciesSearchHeader from 'src/components/species/SpeciesSearchHeader'
 import EmptySpeciesSearchList from 'src/components/species/EmptySpeciesSearchList'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
   },
   toastLabel: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: FONT_FAMILY_REGULAR,
     color: Colors.DARK_TEXT
   },

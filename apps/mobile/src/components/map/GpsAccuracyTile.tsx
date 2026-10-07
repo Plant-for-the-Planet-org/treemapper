@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   boldText: {
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: 16
+    fontSize: Typography.FONT_SIZE_16
   },
   lightText: {
     color: Colors.TEXT_COLOR,

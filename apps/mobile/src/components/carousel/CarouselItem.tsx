@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10
   },
   nextButtonLabel: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.WHITE
   },
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10
   },
   deadBadgeLabel: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR
   }

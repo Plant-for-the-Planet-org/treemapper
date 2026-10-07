@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.WHITE
     },
     headerLabel: {
-        fontSize: 28,
+        fontSize: Typography.FONT_SIZE_28,
         fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
         color: Colors.DARK_TEXT_COLOR,
         marginLeft: 20,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
         marginRight: 10
     },
     deletable: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: 'tomato',
         marginHorizontal: 10,

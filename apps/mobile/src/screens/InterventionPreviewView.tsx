@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.GRAY_LIGHT + '1A'
   },
   versionNote: {
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_LIGHT,
     width: '100%',
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     marginVertical: 20
   },
   label: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginLeft: 8
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
   },
   editText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: 20,
+    fontSize: Typography.FONT_SIZE_20,
     color: Colors.TEXT_COLOR
   },
   rightWrapper: {

@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5
   },
   incompleteTagLabel: {
-    fontSize: 8,
+    fontSize: Typography.FONT_SIZE_8,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
   },
   projectAssignWrapper: {
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5
   },
   projectLabel: {
-    fontSize: 8,
+    fontSize: Typography.FONT_SIZE_8,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.WHITE
   },

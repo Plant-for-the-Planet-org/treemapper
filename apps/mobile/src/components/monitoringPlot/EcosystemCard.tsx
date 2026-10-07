@@ -105,22 +105,22 @@ const styles = StyleSheet.create({
         marginLeft: 10
     },
     idLabel: {
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.DARK_TEXT_COLOR
     },
     dateLabel: {
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.DARK_TEXT_COLOR
     },
     plantedLabel: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT
     },
     speciesLabel: {
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         fontFamily: Typography.FONT_FAMILY_ITALIC,
         color: Colors.TEXT_COLOR
     },

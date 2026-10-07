@@ -147,12 +147,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.NEW_PRIMARY + '1A'
   },
   menuLabel: {
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
   },
   deleteLable: {
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: 'tomato',
   },

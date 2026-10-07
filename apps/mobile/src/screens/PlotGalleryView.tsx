@@ -220,13 +220,13 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     emptyTitle: {
-        fontSize: 18,
+        fontSize: Typography.FONT_SIZE_18,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.DARK_TEXT_COLOR,
         marginBottom: 8,
     },
     emptySubtitle: {
-        fontSize: 13,
+        fontSize: Typography.FONT_SIZE_13,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT,
         textAlign: 'center',
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
         right: 0,
     },
     addButtonLabel: {
-        fontSize: 15,
+        fontSize: Typography.FONT_SIZE_15,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.WHITE,
     },
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
     },
     dateText: {
-        fontSize: 11,
+        fontSize: Typography.FONT_SIZE_11,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.WHITE,
     },

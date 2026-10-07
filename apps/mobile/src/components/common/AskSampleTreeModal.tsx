@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import Modal from 'react-native-modal'
-import { Colors, Typography } from 'src/utils/constants'
+import { Colors, Mixins, Typography } from 'src/utils/constants'
 import PinkHeart from 'assets/images/svg/InfoIcon.svg'
 import FlatButton from '../common/FlatButton'
 
@@ -62,6 +62,7 @@ const styles = StyleSheet.create({
     },
     subContainerTree: {
         width: '90%',
+        maxWidth: Mixins.MAX_DIALOG_WIDTH,
         backgroundColor: Colors.WHITE,
         borderRadius: 10,
         padding: 20,

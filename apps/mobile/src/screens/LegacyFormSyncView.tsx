@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   sectionLabel: {
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginTop: 20,
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
   },
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.NEW_PRIMARY,
   },
   segmentText: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
   },
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.NEW_PRIMARY,
   },
   chipText: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
   },
@@ -473,23 +473,23 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   previewSectionTitle: {
-    fontSize: 13,
+    fontSize: Typography.FONT_SIZE_13,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginBottom: 6,
   },
   previewField: {
-    fontSize: 13,
+    fontSize: Typography.FONT_SIZE_13,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
     paddingVertical: 3,
   },
   previewFieldType: {
-    fontSize: 11,
+    fontSize: Typography.FONT_SIZE_11,
     color: Colors.TEXT_LIGHT,
   },
   previewRequired: {
-    fontSize: 11,
+    fontSize: Typography.FONT_SIZE_11,
     color: Colors.NEW_PRIMARY,
   },
   warning: {
@@ -499,23 +499,23 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   warningTitle: {
-    fontSize: 13,
+    fontSize: Typography.FONT_SIZE_13,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginBottom: 6,
   },
   warningItem: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_LIGHT,
     paddingVertical: 2,
   },
   helperText: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_LIGHT,
     marginTop: 14,
-    lineHeight: 18,
+    lineHeight: Typography.LINE_HEIGHT_18,
   },
   buttonWrap: {
     marginTop: 24,
@@ -533,10 +533,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   emptyText: {
-    fontSize: 15,
+    fontSize: Typography.FONT_SIZE_15,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_LIGHT,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: Typography.LINE_HEIGHT_22,
   },
 })

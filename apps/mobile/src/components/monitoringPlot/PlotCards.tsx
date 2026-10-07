@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#FCF4DB"
     },
     chipLabel: {
-        fontSize: 10,
+        fontSize: Typography.FONT_SIZE_10,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         letterSpacing: 0.2,
         paddingHorizontal: 10,
@@ -134,14 +134,14 @@ const styles = StyleSheet.create({
         color: "#F39F53"
     },
     fixReasonLabel: {
-        fontSize: 11,
+        fontSize: Typography.FONT_SIZE_11,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.ALERT,
-        lineHeight: 15,
+        lineHeight: Typography.LINE_HEIGHT_15,
         paddingRight: 40,
     },
     fixChipLabel: {
-        fontSize: 10,
+        fontSize: Typography.FONT_SIZE_10,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         letterSpacing: 0.2,
         paddingHorizontal: 10,
@@ -158,23 +158,23 @@ const styles = StyleSheet.create({
         marginLeft: 10
     },
     idLabel: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.DARK_TEXT_COLOR
     },
     dateLabel: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT
     },
     plantedLabel: {
-        fontSize: 11,
+        fontSize: Typography.FONT_SIZE_11,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT,
         letterSpacing: 0.2
     },
     speciesLabel: {
-        fontSize: 10,
+        fontSize: Typography.FONT_SIZE_10,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT
     },
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 12
     },
     plotTitle: {
-        fontSize: 10,
+        fontSize: Typography.FONT_SIZE_10,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.DARK_TEXT
     },

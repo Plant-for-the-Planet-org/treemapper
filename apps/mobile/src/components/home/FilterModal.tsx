@@ -230,12 +230,12 @@ const styles = StyleSheet.create({
     alignItems:'center'
   },
   headerLabel: {
-    fontSize: 21,
+    fontSize: Typography.FONT_SIZE_21,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR,
   },
   cardLabel: {
-    fontSize: 15,
+    fontSize: Typography.FONT_SIZE_15,
     marginHorizontal: 10,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.DARK_TEXT,

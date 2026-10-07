@@ -420,12 +420,12 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     highlightLabelSite: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         color: Colors.PRIMARY_DARK,
         fontFamily: Typography.FONT_FAMILY_BOLD
     },
     normalLabelSite: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         color: Colors.WHITE,
         textAlign: 'center',
         fontFamily: Typography.FONT_FAMILY_BOLD
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
         zIndex: 10
     },
     undoLabelSite: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         marginRight: 5,
         color: Colors.TEXT_LIGHT,

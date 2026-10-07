@@ -164,19 +164,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   bannerTitle: {
-    fontSize: 15,
+    fontSize: Typography.FONT_SIZE_15,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
   },
   bannerText: {
-    fontSize: 13,
+    fontSize: Typography.FONT_SIZE_13,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_LIGHT,
     marginTop: 6,
-    lineHeight: 19,
+    lineHeight: Typography.LINE_HEIGHT_19,
   },
   bannerAction: {
-    fontSize: 13,
+    fontSize: Typography.FONT_SIZE_13,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.NEW_PRIMARY,
     marginTop: 10,
@@ -192,12 +192,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
   },
   cardDesc: {
-    fontSize: 13,
+    fontSize: Typography.FONT_SIZE_13,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_LIGHT,
     marginTop: 6,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     marginTop: 60,
   },
   emptyText: {
-    fontSize: 15,
+    fontSize: Typography.FONT_SIZE_15,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_LIGHT,
     textAlign: 'center',

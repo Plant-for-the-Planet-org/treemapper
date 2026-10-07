@@ -149,13 +149,13 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: scaleFont(12),
     color: Colors.DARK_TEXT_COLOR,
-    lineHeight: 17,
+    lineHeight: Typography.LINE_HEIGHT_17,
   },
   blockedReason: {
     marginTop: 2,
     fontFamily: Typography.FONT_FAMILY_ITALIC,
     fontSize: scaleFont(12),
     color: Colors.TEXT_LIGHT,
-    lineHeight: 17,
+    lineHeight: Typography.LINE_HEIGHT_17,
   },
 })

@@ -2,7 +2,6 @@ import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'reac
 import React, { useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import { convertDateToTimestamp, timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
-import { scaleSize } from 'src/utils/constants/mixins'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import turfArea from '@turf/area';
 import { convertArea } from '@turf/helpers'
@@ -268,14 +267,14 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: scaleSize(14),
+    fontSize: Typography.FONT_SIZE_14,
     marginBottom: 5,
     color: Colors.TEXT_LIGHT,
     marginRight: 10
   },
   cardLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: scaleSize(14),
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
   },
   cardDateLabel: {
@@ -297,7 +296,7 @@ const styles = StyleSheet.create({
   },
   haLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: scaleSize(16),
+    fontSize: Typography.FONT_SIZE_16,
     color: Colors.DARK_TEXT_COLOR,
   },
   plantedSpeciesContainer: {
@@ -312,12 +311,12 @@ const styles = StyleSheet.create({
   },
   plantedAlias: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: scaleSize(16),
+    fontSize: Typography.FONT_SIZE_16,
     color: Colors.DARK_TEXT_COLOR,
   },
   plantedSPeciesLabel: {
     fontFamily: Typography.FONT_FAMILY_ITALIC,
-    fontSize: scaleSize(14),
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
     paddingBottom: 10,
   },
@@ -351,12 +350,12 @@ const styles = StyleSheet.create({
   },
   datePickerCancel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: scaleSize(16),
+    fontSize: Typography.FONT_SIZE_16,
     color: Colors.TEXT_LIGHT,
   },
   datePickerSave: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: scaleSize(16),
+    fontSize: Typography.FONT_SIZE_16,
     color: Colors.PRIMARY_DARK,
   },
   deleteWrapperIcon: {

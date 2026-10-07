@@ -540,7 +540,7 @@ const ReviewTreeDetails = () => {
                 secondaryBtnText={i18next.t('label.continue')}
                 onPressSecondaryBtn={handleRatioSecondary}
             />
-        </SafeAreaView >
+        </SafeAreaView>
     )
 }
 export default ReviewTreeDetails
@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.WHITE
     },
     measureLabel: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
 
     },
@@ -605,12 +605,12 @@ const styles = StyleSheet.create({
     },
     title: {
         fontFamily: Typography.FONT_FAMILY_BOLD,
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         color: Colors.TEXT_COLOR,
     },
     header: {
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-        fontSize: 18,
+        fontSize: Typography.FONT_SIZE_18,
         color: Colors.TEXT_COLOR,
         marginLeft: 20,
         marginTop: 10,
@@ -618,7 +618,7 @@ const styles = StyleSheet.create({
     },
     historyLabel: {
         width: "100%",
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_BOLD,
         marginLeft: 20,
         color: Colors.TEXT_COLOR
@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
     },
     speciesName: {
         fontFamily: Typography.FONT_FAMILY_ITALIC,
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         color: Colors.TEXT_COLOR,
     },
     iconWrapper: {
@@ -670,7 +670,7 @@ const styles = StyleSheet.create({
     deceasedLabel: {
         color: Colors.NEW_PRIMARY,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         paddingLeft: 10
     },
     borderWrapper: {
@@ -709,12 +709,12 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     highlightLabel: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontWeight: '400',
         color: Colors.PRIMARY_DARK,
     },
     normalLabel: {
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         fontWeight: '400',
         color: Colors.WHITE,
         textAlign: 'center',

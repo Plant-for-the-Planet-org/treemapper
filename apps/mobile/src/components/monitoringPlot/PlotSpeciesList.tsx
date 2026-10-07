@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     headerLabel: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.DARK_TEXT
     },
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 50
     },
     emptyLabel: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_COLOR,
         textAlign: 'center'
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
         paddingBottom: 10,
         paddingLeft: 0,
         backgroundColor: '#fff',
-        fontSize: 16, fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        fontSize: Typography.FONT_SIZE_16, fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR
     },
 })

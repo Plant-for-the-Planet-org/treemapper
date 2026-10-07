@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import Modal from 'react-native-modal'
-import { Colors, Typography } from 'src/utils/constants'
+import { Colors, Mixins, Typography } from 'src/utils/constants'
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { INTERVENTION_FILTER } from 'src/types/type/app.type';
 import { TouchableOpacity } from '@gorhom/bottom-sheet';
@@ -94,6 +94,7 @@ const styles = StyleSheet.create({
     },
     sectionWrapper: {
         width: '80%',
+        maxWidth: Mixins.MAX_DIALOG_WIDTH,
         position: 'absolute',
         backgroundColor: Colors.WHITE,
         borderRadius: 20,
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     tileLabel: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.TEXT_COLOR
     },

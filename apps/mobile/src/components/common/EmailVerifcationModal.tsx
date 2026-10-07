@@ -9,6 +9,7 @@ import {
 import Modal from 'react-native-modal';
 import { Ionicons } from '@expo/vector-icons';
 
+import { Typography } from 'src/utils/constants'
 const { width } = Dimensions.get('window');
 
 const EmailVerificationModal = ({
@@ -129,17 +130,17 @@ const styles = StyleSheet.create({
     borderColor: '#E8F5EC',
   },
   title: {
-    fontSize: 24,
+    fontSize: Typography.FONT_SIZE_24,
     fontWeight: '700',
     color: '#1A1A1A',
     textAlign: 'center',
     marginBottom: 16,
   },
   description: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     color: '#666666',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: Typography.LINE_HEIGHT_24,
     marginBottom: 32,
     paddingHorizontal: 8,
   },
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   resendButtonText: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontWeight: '600',
     color: '#007A49',
   },
@@ -169,12 +170,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#007A49',
   },
   okayButtonText: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontWeight: '600',
     color: '#FFFFFF',
   },
   helperText: {
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     color: '#999999',
     textAlign: 'center',
     fontStyle: 'italic',

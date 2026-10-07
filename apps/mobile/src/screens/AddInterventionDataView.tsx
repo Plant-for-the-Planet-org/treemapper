@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
   },
   headerLabel: {
-    fontSize: 28,
+    fontSize: Typography.FONT_SIZE_28,
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
     color: Colors.DARK_TEXT_COLOR,
     marginLeft: 20,

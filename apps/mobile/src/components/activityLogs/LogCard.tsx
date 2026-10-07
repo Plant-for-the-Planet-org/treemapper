@@ -28,11 +28,11 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap'
     },
     timeLabel: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.DARK_TEXT_COLOR,
         marginHorizontal: 10,
-        lineHeight: 20
+        lineHeight: Typography.LINE_HEIGHT_20
     }
 
 })

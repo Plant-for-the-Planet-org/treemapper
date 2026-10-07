@@ -2,7 +2,6 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 import React, { useEffect, useState } from 'react'
 import { useRealm } from '@realm/react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { Inventory } from 'src/types/interface/slice.interface'
 import { Typography } from 'src/utils/constants'
@@ -85,7 +84,7 @@ const styles = StyleSheet.create({
   },
   labelText: {
     color: "red",
-    fontSize: 20,
+    fontSize: Typography.FONT_SIZE_20,
     marginTop: 20,
     flex: 1
   },

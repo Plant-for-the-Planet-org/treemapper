@@ -4,7 +4,6 @@ import { InterventionData } from 'src/types/interface/slice.interface'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import PreviewMap from '../map/PreviewMap'
 import { Colors, Typography } from 'src/utils/constants'
-import { scaleSize } from 'src/utils/constants/mixins'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -62,7 +61,7 @@ const styles = StyleSheet.create({
     marginLeft: '5%',
     marginVertical: 10,
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: scaleSize(18),
+    fontSize: Typography.FONT_SIZE_18,
     color: Colors.TEXT_COLOR,
     marginBottom: 20,
   },

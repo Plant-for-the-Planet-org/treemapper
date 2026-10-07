@@ -88,24 +88,24 @@ const styles = StyleSheet.create({
     top: 8,
     zIndex: 1,
     paddingHorizontal: 6,
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.BLACK,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   placeholderStyle: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     paddingHorizontal: 3,
     color:Colors.DARK_TEXT,
   },
   selectedTextStyle: {
-    fontSize: 18,
+    fontSize: Typography.FONT_SIZE_18,
     color:Colors.DARK_TEXT,
     paddingHorizontal:5,
     fontFamily: Typography.FONT_FAMILY_BOLD,
   },
   itemTextStyle: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR
   },
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   },
   inputSearchStyle: {
     height: 40,
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
   },
   listContainer: {
     borderRadius: 12,

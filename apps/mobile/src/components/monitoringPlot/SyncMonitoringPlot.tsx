@@ -9,7 +9,7 @@ import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg'
 import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg'
 import RefreshIcon from 'assets/images/svg/RefreshIcon.svg'
 import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg'
-import { Colors, Typography } from 'src/utils/constants'
+import { Colors, Mixins, Typography } from 'src/utils/constants'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot } from 'src/types/interface/slice.interface'
 import { FIX_REQUIRED } from 'src/types/type/app.type'
@@ -865,7 +865,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     label: {
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
         marginLeft: 8,
@@ -882,6 +882,7 @@ const styles = StyleSheet.create({
     },
     modalCard: {
         width: '85%',
+        maxWidth: Mixins.MAX_DIALOG_WIDTH,
         maxHeight: '70%',
         backgroundColor: Colors.WHITE,
         borderRadius: 16,
@@ -894,17 +895,17 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     modalTitle: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
     },
     modalClose: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         color: Colors.GRAY_LIGHTEST,
         paddingHorizontal: 4,
     },
     modalSubtitle: {
-        fontSize: 13,
+        fontSize: Typography.FONT_SIZE_13,
         color: Colors.GRAY_LIGHTEST,
         marginBottom: 12,
     },
@@ -915,12 +916,12 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     progressText: {
-        fontSize: 13,
+        fontSize: Typography.FONT_SIZE_13,
         color: Colors.GRAY_LIGHTEST,
         flex: 1,
     },
     errorBadge: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         color: Colors.WHITE,
         backgroundColor: Colors.ALERT,
         paddingHorizontal: 8,
@@ -938,7 +939,7 @@ const styles = StyleSheet.create({
         borderBottomColor: Colors.GRAY_MEDIUM,
     },
     statusDot: {
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         width: 22,
         color: Colors.GRAY_LIGHTEST,
     },
@@ -953,12 +954,12 @@ const styles = StyleSheet.create({
     },
     statusLabel: {
         flex: 1,
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
     },
     uploadingTag: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         color: Colors.PRIMARY,
     },
     quarantinedRow: {
@@ -971,15 +972,15 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.NEW_PRIMARY,
     },
     fixButtonLabel: {
-        fontSize: 11,
+        fontSize: Typography.FONT_SIZE_11,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.WHITE,
     },
     fixReasonText: {
-        fontSize: 11,
+        fontSize: Typography.FONT_SIZE_11,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT,
-        lineHeight: 15,
+        lineHeight: Typography.LINE_HEIGHT_15,
         paddingLeft: 22,
         paddingRight: 6,
         paddingBottom: 6,
@@ -992,7 +993,7 @@ const styles = StyleSheet.create({
         borderColor: Colors.GRAY_LIGHT,
     },
     lastRunTitle: {
-        fontSize: 11,
+        fontSize: Typography.FONT_SIZE_11,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_LIGHT,
         letterSpacing: 0.4,
@@ -1000,11 +1001,11 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     needsFixTag: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         color: Colors.ALERT,
     },
     countBadge: {
-        fontSize: 13,
+        fontSize: Typography.FONT_SIZE_13,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.WHITE,
         backgroundColor: Colors.PRIMARY,
@@ -1016,7 +1017,7 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     hintText: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         color: Colors.GRAY_LIGHTEST,
         marginTop: 12,
         textAlign: 'center',

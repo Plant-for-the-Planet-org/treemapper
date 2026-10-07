@@ -61,12 +61,12 @@ const styles = StyleSheet.create({
     headerLabel: {
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.DARK_TEXT_COLOR,
-        fontSize: 20
+        fontSize: Typography.FONT_SIZE_20
     },
     noteLabel: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_COLOR,
-        fontSize: 15
+        fontSize: Typography.FONT_SIZE_15
     },
     rightContainer: {
         width: 40,

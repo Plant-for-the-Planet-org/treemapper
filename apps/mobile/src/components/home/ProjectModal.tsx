@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
     marginLeft: 10
   },
   cardLabel: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     marginHorizontal: 10,
   },
   divider: {
@@ -549,14 +549,14 @@ const styles = StyleSheet.create({
   },
   projectLabel: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     marginHorizontal: 20,
     color: Colors.DARK_TEXT,
     marginVertical: 10,
   },
   addNewSite: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.NEW_PRIMARY,
     marginRight: 5
   },
@@ -582,7 +582,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5
   },
   siteCardLabel: {
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.DARK_TEXT_COLOR,
     paddingHorizontal: 10
@@ -612,12 +612,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   emptyStateMessage: {
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.DARK_TEXT_COLOR,
     textAlign: 'center',
     marginBottom: 30,
-    lineHeight: 20,
+    lineHeight: Typography.LINE_HEIGHT_20,
   },
   createButton: {
     backgroundColor: Colors.NEW_PRIMARY,
@@ -631,7 +631,7 @@ const styles = StyleSheet.create({
   },
   createButtonText: {
     color: Colors.WHITE,
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     marginLeft: 8,
   },

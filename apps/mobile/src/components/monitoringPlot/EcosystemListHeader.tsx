@@ -115,6 +115,6 @@ const styles = StyleSheet.create({
         borderWidth: 1
     },
     sectionHeader: {
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
     },
 })

@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
         marginBottom: 10
     },
     noteLabel: {
-        fontSize: 18,
+        fontSize: Typography.FONT_SIZE_18,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
         width: '70%',
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     label: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD
     },
 })

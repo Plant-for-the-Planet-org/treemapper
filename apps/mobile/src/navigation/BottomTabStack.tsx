@@ -1,92 +1,61 @@
 import * as React from 'react'
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import {
+  BottomTabBarProps,
+  createBottomTabNavigator,
+} from '@react-navigation/bottom-tabs'
 import { BottomTabParamList } from 'src/types/type/navigation.type'
 import Screens from 'src/screens'
-import BottomTabIcon from 'src/components/bottomTab/BottomTabIcon'
-import { StyleSheet } from 'react-native'
-import AddBottomTabIcon from 'src/components/bottomTab/AddBottomTabIcon'
+import BottomTabBar from 'src/components/bottomTab/BottomTabBar'
 import { useTranslation } from 'react-i18next'
 
 const BottomTabStack = createBottomTabNavigator<BottomTabParamList>()
 
+// "Add" is a button, not a destination. It stays registered so the tab bar
+// gets a fourth slot of its own width; nothing ever navigates to it.
 const Blank = () => {
   return null
 }
 
 const BottomStack = () => {
   const { t } = useTranslation()
-  const mapIcon = ({ focused }) => {
-    return <BottomTabIcon label={t('label.map')} index={0} isFocused={focused} />
-  }
-  const interventionIcon = ({ focused }) => {
-    return (
-      <BottomTabIcon
-        label={t('label.interventions')}
-        index={1}
-        isFocused={focused}
-      />
-    )
-  }
-  const plotIcon = ({ focused }) => {
-    return (
-      <BottomTabIcon label={t('label.plots')} index={2} isFocused={focused} />
-    )
-  }
-  const addIcon = () => {
-    return <AddBottomTabIcon />
-  }
+
+  // The whole bar is drawn by one component now -- shape, icons and the "+"
+  // button all read the same geometry, so nothing can drift apart on a
+  // different screen size. See components/bottomTab/tabBarGeometry.ts.
+  const renderTabBar = (tabBarProps: BottomTabBarProps) => (
+    <BottomTabBar {...tabBarProps} />
+  )
+
   return (
     <BottomTabStack.Navigator
       backBehavior="none"
       initialRouteName="Map"
+      tabBar={renderTabBar}
       screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: { ...styles.container },
       }}>
       <BottomTabStack.Screen
         name="Map"
         component={Screens.HomeMapView}
-        options={{
-          tabBarIcon: mapIcon,
-        }}
+        options={{ tabBarLabel: t('label.map') }}
       />
       <BottomTabStack.Screen
         name="Interventions"
         component={Screens.Interventions}
-        options={{
-          tabBarIcon: interventionIcon,
-        }}
+        options={{ tabBarLabel: t('label.interventions') }}
       />
       <BottomTabStack.Screen
         name="Plots"
         component={Screens.PlotView}
-        options={{
-          tabBarIcon: plotIcon
-        }}
+        options={{ tabBarLabel: t('label.plots') }}
       />
       <BottomTabStack.Screen
         name="Add"
         component={Blank}
-        options={{
-          tabBarButton: addIcon,
-        }}
+        options={{ tabBarLabel: t('label.add') }}
       />
     </BottomTabStack.Navigator>
   )
 }
 
 export default BottomStack
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'transparent',
-    margin: 0,
-    padding: 0,
-    borderTopWidth: 0,
-    position: 'absolute',
-    elevation: 0,
-    width: '100%',
-    height: 100,
-  },
-})

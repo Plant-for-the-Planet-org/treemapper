@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
     },
     skipText: {
         color: Colors.NEW_PRIMARY,
-        fontSize: 18,
+        fontSize: Typography.FONT_SIZE_18,
         fontFamily: Typography.FONT_FAMILY_REGULAR
     },
     btnContainer: {

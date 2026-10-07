@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
-import { scaleSize } from 'src/utils/constants/mixins'
 import { FormElement } from 'src/types/interface/form.interface'
 
 interface Props {
@@ -66,13 +65,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: scaleSize(14),
+    fontSize: Typography.FONT_SIZE_14,
     marginBottom: 5,
     color: Colors.TEXT_LIGHT,
   },
   cardLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: scaleSize(14),
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
   },
 })

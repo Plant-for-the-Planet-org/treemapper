@@ -1,6 +1,6 @@
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useMemo, useRef, useState } from 'react'
-import { Colors, Typography } from 'src/utils/constants'
+import { Colors, Mixins, Typography } from 'src/utils/constants'
 import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg';
 import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
 import RefreshIcon from 'assets/images/svg/RefreshIcon.svg';
@@ -744,7 +744,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     label: {
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
         marginLeft: 8
@@ -761,6 +761,7 @@ const styles = StyleSheet.create({
     },
     modalCard: {
         width: '85%',
+        maxWidth: Mixins.MAX_DIALOG_WIDTH,
         maxHeight: '70%',
         backgroundColor: Colors.WHITE,
         borderRadius: 16,
@@ -773,17 +774,17 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     modalTitle: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
     },
     modalClose: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         color: Colors.GRAY_LIGHTEST,
         paddingHorizontal: 4,
     },
     modalSubtitle: {
-        fontSize: 13,
+        fontSize: Typography.FONT_SIZE_13,
         color: Colors.GRAY_LIGHTEST,
         marginBottom: 12,
     },
@@ -794,12 +795,12 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     progressText: {
-        fontSize: 13,
+        fontSize: Typography.FONT_SIZE_13,
         color: Colors.GRAY_LIGHTEST,
         flex: 1,
     },
     errorBadge: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         color: Colors.WHITE,
         backgroundColor: Colors.ALERT,
         paddingHorizontal: 8,
@@ -817,7 +818,7 @@ const styles = StyleSheet.create({
         borderBottomColor: Colors.GRAY_MEDIUM,
     },
     statusDot: {
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         width: 22,
         color: Colors.GRAY_LIGHTEST,
     },
@@ -832,16 +833,16 @@ const styles = StyleSheet.create({
     },
     statusLabel: {
         flex: 1,
-        fontSize: 14,
+        fontSize: Typography.FONT_SIZE_14,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
     },
     uploadingTag: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         color: Colors.PRIMARY,
     },
     needsFixTag: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         color: Colors.ALERT,
     },
     attentionBox: {
@@ -851,18 +852,18 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.ALERT + '14',
     },
     attentionTitle: {
-        fontSize: 13,
+        fontSize: Typography.FONT_SIZE_13,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.ALERT,
         marginBottom: 4,
     },
     attentionText: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         color: Colors.TEXT_COLOR,
-        lineHeight: 17,
+        lineHeight: Typography.LINE_HEIGHT_17,
     },
     countBadge: {
-        fontSize: 13,
+        fontSize: Typography.FONT_SIZE_13,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.WHITE,
         backgroundColor: Colors.PRIMARY,
@@ -874,7 +875,7 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     hintText: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         color: Colors.GRAY_LIGHTEST,
         marginTop: 12,
         textAlign: 'center',

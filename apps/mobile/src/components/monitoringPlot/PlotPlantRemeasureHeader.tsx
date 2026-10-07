@@ -67,17 +67,17 @@ const styles = StyleSheet.create({
     headerLabel: {
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.DARK_TEXT_COLOR,
-        fontSize: 20
+        fontSize: Typography.FONT_SIZE_20
     },
     highlight: {
         fontFamily: Typography.FONT_FAMILY_BOLD,
-        fontSize: 20,
+        fontSize: Typography.FONT_SIZE_20,
         color: Colors.NEW_PRIMARY
     },
     noteLabel: {
         fontFamily: Typography.FONT_FAMILY_ITALIC,
         color: Colors.TEXT_COLOR,
-        fontSize: 14
+        fontSize: Typography.FONT_SIZE_14
     },
     rightContainer: {
         width: 40,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
         height: 20
     },
     chipLabel: {
-        fontSize: 10,
+        fontSize: Typography.FONT_SIZE_10,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.WHITE,
         paddingHorizontal: 10,

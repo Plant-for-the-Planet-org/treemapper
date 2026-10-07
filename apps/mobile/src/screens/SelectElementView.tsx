@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import i18next from 'i18next';
 import React from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { Colors, Typography } from 'src/utils/constants';
 import Header from 'src/components/common/Header';

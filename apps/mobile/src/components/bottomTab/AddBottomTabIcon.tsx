@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, Dimensions, Pressable, Platform } from 'react-native'
-import React, { useState } from 'react'
+import { StyleSheet, Pressable, useWindowDimensions } from 'react-native'
+import React from 'react'
 import AddOptionModal from './AddOptionModal'
 import Animated, {
   useAnimatedStyle,
@@ -8,10 +8,8 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import AddTabIcon from 'assets/images/svg/AddTabIcon.svg'
-import { Colors, Typography } from 'src/utils/constants'
+import { Colors } from 'src/utils/constants'
 import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
-import { Svg, Defs, Rect, Mask, Circle } from 'react-native-svg';
-import i18next from 'i18next'
 import { TourTarget } from '@wrack/react-native-tour-guide'
 import useInterventionTour, { useTourAction } from 'src/hooks/useInterventionTour'
 import { TOUR_TARGETS, TOUR_STEPS } from 'src/utils/tour/interventionTour'
@@ -19,28 +17,24 @@ import useMonitoringPlotTour from 'src/hooks/useMonitoringPlotTour'
 import { PLOT_TOUR_STEPS } from 'src/utils/tour/monitoringPlotTour'
 import useCreateSiteTour from 'src/hooks/useCreateSiteTour'
 import { SITE_TOUR_STEPS } from 'src/utils/tour/createSiteTour'
-const windowWidth = Dimensions.get('window').width;
+import { TabBarGeometry } from './tabBarGeometry'
 
-const WrappedSvg = () => (
-  <View style={{
-    aspectRatio: 1, borderTopRightRadius: 5,
-    overflow: "hidden"
-  }}>
-    <Svg>
-      <Defs>
-        <Mask id="mask" x="0" y="0" height="100%" width="100%">
-          <Rect height="100%" width="100%" fill="#fff" />
-          <Circle r={windowWidth / 9} cx={windowWidth / 9} cy="-2 " />
-        </Mask>
-      </Defs>
-      <Rect height="100%" width="100%" fill="white" mask="url(#mask)" fill-opacity="0" />
-    </Svg>
-  </View>
-);
+interface Props {
+  geometry: TabBarGeometry
+  open: boolean
+  setOpen: (next: boolean) => void
+}
 
-
-const AddBottomTabIcon = () => {
-  const [open, setOpen] = useState(false)
+/**
+ * The floating "+" button and the menu it opens.
+ *
+ * It no longer draws any part of the bar. The bite it sits in belongs to
+ * `TabBarBackground`, and both read the same geometry, so the white ring is
+ * even on every screen instead of only on the one it was tuned for.
+ */
+const AddBottomTabIcon = (props: Props) => {
+  const { geometry, open, setOpen } = props
+  const { height: windowHeight } = useWindowDimensions()
   const { advanceIfOn } = useInterventionTour()
   // Three tours open with this button. Only one can be running, so all are
   // told and whichever is not on its own "+" step ignores it.
@@ -57,7 +51,7 @@ const AddBottomTabIcon = () => {
 
   const onAddPress = () => {
     ctaHaptic()
-    setOpen(prev => !prev)
+    setOpen(!open)
     advanceIfOn(TOUR_STEPS.ADD)
     advancePlotTour(PLOT_TOUR_STEPS.ADD)
     advanceSiteTour(SITE_TOUR_STEPS.ADD)
@@ -74,65 +68,63 @@ const AddBottomTabIcon = () => {
   useTourAction(TOUR_STEPS.ADD, openMenuForTour)
   useTourAction(PLOT_TOUR_STEPS.ADD, openMenuForTour)
   useTourAction(SITE_TOUR_STEPS.ADD, openMenuForTour)
+
   return (
-    <View style={{ flex: 1, justifyContent: "center" }}>
-      {open && <Pressable
-        onPress={() => { setOpen(false) }}
-        style={styles.bakDrop}
-      />}
-      <View style={{ width: windowWidth / 4, height: '100%', position: 'absolute' }}>
-        <WrappedSvg />
-      </View>
-      <TourTarget id={TOUR_TARGETS.ADD_BUTTON} style={styles.addIconContainer}>
+    <>
+      {open && (
         <Pressable
-          style={styles.addIconFill}
-          onPress={() => onAddPress()}>
-          <View style={styles.iconWrapper}>
-            <Animated.View style={[rotationStyle]}>
-              <AddTabIcon />
-            </Animated.View>
-          </View>
+          onPress={() => {
+            setOpen(false)
+          }}
+          style={[
+            styles.backdrop,
+            { top: -windowHeight, height: windowHeight + geometry.containerHeight },
+          ]}
+        />
+      )}
+      <TourTarget
+        id={TOUR_TARGETS.ADD_BUTTON}
+        style={[
+          styles.addIconContainer,
+          {
+            left: geometry.fabLeft,
+            top: geometry.fabTop,
+            width: geometry.fabDiameter,
+            height: geometry.fabDiameter,
+            borderRadius: geometry.fabRadius,
+          },
+        ]}>
+        <Pressable style={styles.addIconFill} onPress={onAddPress}>
+          <Animated.View style={rotationStyle}>
+            {/* Sized off the button rather than left at the asset's own
+                30dp, so the glyph keeps the same weight inside the circle
+                when the circle scales. */}
+            <AddTabIcon
+              width={geometry.fabGlyphSize}
+              height={geometry.fabGlyphSize}
+            />
+          </Animated.View>
           <AddOptionModal setVisible={setOpen} visible={open} />
         </Pressable>
       </TourTarget>
-      <View style={[styles.labelContainer, { marginTop: Platform.OS==='ios' ? '35%' : '24%' }]}>
-        <Text
-          style={[
-            styles.labelStyle,
-            { color: open ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT },
-          ]}>
-          {i18next.t("label.add")}
-        </Text>
-      </View>
-      <View style={styles.bottomBar}></View>
-    </View>
-  );
+    </>
+  )
 }
 
-export default AddBottomTabIcon;
-
+export default AddBottomTabIcon
 
 const styles = StyleSheet.create({
-  container: {
-    height: '100%',
-    backgroundColor: "white"
-  },
   addIconContainer: {
-    width: windowWidth / 5.5,
-    height: windowWidth / 5.5,
-    backgroundColor: Colors.WHITE,
-    borderRadius: windowWidth / 6,
-    justifyContent: 'center',
-    alignItems: "center",
     position: 'absolute',
-    top: -windowWidth / 10,
-    left: '8%',
+    backgroundColor: Colors.WHITE,
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: Colors.GRAY_DARK,
-    shadowOffset: { width: 2, height: 2 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 0.5,
-    zIndex:10
+    elevation: 4,
+    zIndex: 10,
   },
   addIconFill: {
     width: '100%',
@@ -140,33 +132,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  iconWrapper: {
-    // marginBottom:5
-  },
-  labelContainer: {
-    width: '100%',
-    paddingTop: '10%',
-  },
-  labelStyle: {
-    fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: 12,
-    textAlign: 'center',
-    paddingRight: '15%',
-  },
-  bottomBar: {
+  backdrop: {
     position: 'absolute',
-    bottom: -20,
-    height: 30,
-    width: '100%',
-    backgroundColor: 'white',
-    zIndex: -1
-  },
-  bakDrop: {
-    position: 'absolute',
+    left: 0,
+    right: 0,
     zIndex: 1,
-    width: Dimensions.get('screen').width,
-    height: Dimensions.get('screen').height+100,
-    top: -Dimensions.get('screen').height,
-    left: -Dimensions.get('screen').width + 100,
-  }
+  },
 })

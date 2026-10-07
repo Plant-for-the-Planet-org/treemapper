@@ -60,13 +60,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.BACKDROP_COLOR
   },
   header: {
-    fontSize: 18,
+    fontSize: Typography.FONT_SIZE_18,
     color: Colors.DARK_TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     marginBottom: 10
   },
   section: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     marginBottom: 10

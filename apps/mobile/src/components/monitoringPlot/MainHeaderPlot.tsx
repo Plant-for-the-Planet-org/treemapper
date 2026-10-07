@@ -90,13 +90,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row'
     },
     cardLabel: {
-        fontSize: 12,
+        fontSize: Typography.FONT_SIZE_12,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
         marginHorizontal: 5
     },
     cardNote: {
-        fontSize: 11,
+        fontSize: Typography.FONT_SIZE_11,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
         marginTop: 5

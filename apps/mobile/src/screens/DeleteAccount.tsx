@@ -137,14 +137,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: '5%'
   },
   header: {
-    fontSize: 18,
+    fontSize: Typography.FONT_SIZE_18,
     color: Colors.DARK_TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     marginBottom: 10,
     marginTop:20
   },
   section: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     marginBottom: 10

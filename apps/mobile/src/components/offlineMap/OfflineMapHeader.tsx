@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.BLACK,
     fontSize: scaleFont(14),
-    lineHeight: 20,
+    lineHeight: Typography.LINE_HEIGHT_20,
     textAlign: 'center',
   },
   btnContainer: {

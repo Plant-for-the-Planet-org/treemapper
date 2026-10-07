@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'red',
   },
   textLabel: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     marginLeft: 20,
     marginTop: 20,
     marginBottom: 10,
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   toastLabel: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: FONT_FAMILY_REGULAR,
     color: Colors.DARK_TEXT
   },

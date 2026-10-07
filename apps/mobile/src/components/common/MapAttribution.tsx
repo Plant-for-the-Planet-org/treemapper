@@ -75,14 +75,14 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 35
     },
     header: {
-        fontSize: 20,
+        fontSize: Typography.FONT_SIZE_20,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.DARK_TEXT,
         marginLeft: '5%',
         marginTop: '5%'
     },
     mapLabels: {
-        fontSize: 18,
+        fontSize: Typography.FONT_SIZE_18,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
         marginLeft: '5%',

@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native'
 import React from 'react'
 import Modal from 'react-native-modal'
-import { Colors } from 'src/utils/constants'
+import { Colors, Mixins } from 'src/utils/constants'
 import GpsAccuracyInfoContent from '../map/GpsAccuracyInfoContent'
 
 
@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
     },
     sectionWrapper: {
         width: '80%',
+        maxWidth: Mixins.MAX_DIALOG_WIDTH,
         position: 'absolute',
         backgroundColor: Colors.WHITE,
         borderRadius: 20,

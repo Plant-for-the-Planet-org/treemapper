@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyLabel: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
   },
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   addImageLabel: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
   },
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
   },
   valueLabel: {
@@ -541,7 +541,7 @@ const styles = StyleSheet.create({
   },
   speciesName: {
     fontFamily: Typography.FONT_FAMILY_ITALIC,
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     color: Colors.TEXT_COLOR,
     marginTop: 6,
   },
@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
   },
   distanceText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: 13,
+    fontSize: Typography.FONT_SIZE_13,
     color: Colors.TEXT_COLOR,
   },
   locationBtnRow: {
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
   },
   locationBtnLabel: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.WHITE,
   },
   btnContainer: {

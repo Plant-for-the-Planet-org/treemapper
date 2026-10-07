@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
         fontSize: scaleFont(12),
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_COLOR,
-        lineHeight: 20,
+        lineHeight: Typography.LINE_HEIGHT_20,
         textAlign: 'left'
     },
 })

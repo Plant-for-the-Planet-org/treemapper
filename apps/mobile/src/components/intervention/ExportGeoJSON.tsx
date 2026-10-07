@@ -3,7 +3,7 @@ import i18next from 'src/locales/index';
 import { convertInterventionDetailsToGeoJSON, convertTreeDetailsToGeoJSON } from 'src/utils/helpers/interventionHelper/convertDataToGeoJSON';
 import { shareJSONFile } from 'src/utils/helpers/fileManagementHelper';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors } from 'src/utils/constants';
+import { Colors, Typography } from 'src/utils/constants';
 import { FONT_FAMILY_BOLD } from 'src/utils/constants/typography';
 import ExportIcon from 'assets/images/svg/ExportJsonIcon.svg'
 
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
         elevation: 2
     },
     textStyle: {
-        fontSize: 18,
+        fontSize: Typography.FONT_SIZE_18,
         fontFamily: FONT_FAMILY_BOLD,
         color: Colors.DARK_TEXT_COLOR,
     },

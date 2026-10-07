@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     marginTop: 80
   },
   emptyHeaderLabel: {
-    fontSize: 18,
+    fontSize: Typography.FONT_SIZE_18,
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     width: '100%',
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     marginTop: 10
   },
   emptyLabel: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     marginTop: 10,

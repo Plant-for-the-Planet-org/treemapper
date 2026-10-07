@@ -57,13 +57,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 22,
+    fontSize: Typography.FONT_SIZE_22,
     color: Colors.BLACK,
     letterSpacing: 0.4,
     fontFamily: Typography.FONT_FAMILY_BOLD,
   },
   note: {
-    fontSize: 12,
+    fontSize: Typography.FONT_SIZE_12,
     color: Colors.TEXT_LIGHT,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     marginLeft: 2,

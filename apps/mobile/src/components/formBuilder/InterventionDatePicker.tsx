@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 3,
     backgroundColor: Colors.BACKDROP_COLOR,
-    fontSize: 14,
+    fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
     position: 'absolute',
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,

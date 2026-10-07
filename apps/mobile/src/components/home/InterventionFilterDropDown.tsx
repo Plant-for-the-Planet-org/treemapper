@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   tileLabel: {
-    fontSize: 16,
+    fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
     paddingLeft: 20

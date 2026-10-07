@@ -36,14 +36,14 @@ const styles = StyleSheet.create({
     labelWrapper: {
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.DARK_TEXT_COLOR,
-        fontSize: 20,
+        fontSize: Typography.FONT_SIZE_20,
         textAlign: 'center',
         marginBottom: 20
     },
     noteWrapper: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_COLOR,
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         textAlign: 'center'
     }
 })

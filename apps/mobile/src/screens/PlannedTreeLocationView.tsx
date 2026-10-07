@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   },
   distanceText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: 13,
+    fontSize: Typography.FONT_SIZE_13,
     color: Colors.TEXT_COLOR,
   },
   recenterBtn: {

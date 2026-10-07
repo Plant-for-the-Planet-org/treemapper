@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
         paddingBottom:5
     },
     cardLabel: {
-        fontSize: 16,
+        fontSize: Typography.FONT_SIZE_16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.DARK_TEXT_COLOR,
         marginHorizontal: 5
