@@ -2,7 +2,6 @@ import { useCallback, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import { useFocusEffect } from '@react-navigation/native'
 import { useTourGuide } from '@wrack/react-native-tour-guide'
-import i18next from 'i18next'
 
 import { RootState } from 'src/store'
 import {
@@ -11,7 +10,12 @@ import {
   buildSingleTreeTourSteps,
   type TourStage,
 } from 'src/utils/tour/interventionTour'
-import { useTourAction, useTourController } from 'src/hooks/useTourController'
+import { buildTourConfig } from 'src/utils/tour/tourConfig'
+import {
+  useTourAction,
+  useTourBackToPreviousScreen,
+  useTourController,
+} from 'src/hooks/useTourController'
 
 export { useTourAction }
 
@@ -29,20 +33,10 @@ const useInterventionTour = () => {
   const userType = useSelector((state: RootState) => state.userState.type)
 
   const startSingleTreeTour = useCallback(() => {
-    startTour(buildSingleTreeTourSteps(Boolean(currentProject), Boolean(userType)), {
-      tourId: SINGLE_TREE_TOUR_ID,
-      // Required by every `interactive` step: a Modal overlay swallows the
-      // touch before it reaches the button the spotlight is pointing at.
-      overlayMode: 'inline',
-      showProgressDots: true,
-      motion: 'morph',
-      // Layout settles after each navigation push; measuring before it does
-      // puts the spotlight on the previous screen's geometry.
-      waitForInteractions: true,
-      nextButtonText: i18next.t('label.tour_next'),
-      prevButtonText: i18next.t('label.tour_back'),
-      skipButtonText: i18next.t('label.tour_skip'),
-    })
+    startTour(
+      buildSingleTreeTourSteps(Boolean(currentProject), Boolean(userType)),
+      buildTourConfig(SINGLE_TREE_TOUR_ID),
+    )
   }, [startTour, currentProject, userType])
 
   return {
@@ -77,6 +71,10 @@ export const useTourStage = (stage: TourStage) => {
   )
   const { currentStep } = useTourGuide()
   const syncedRef = useRef(false)
+
+  // Back on the step a screen opens on leaves the screen. See
+  // `useTourBackToPreviousScreen`.
+  useTourBackToPreviousScreen(STAGE_ENTRY[stage])
 
   useFocusEffect(
     useCallback(() => {

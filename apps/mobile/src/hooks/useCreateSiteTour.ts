@@ -1,6 +1,5 @@
 import { useCallback } from 'react'
 import { useTourGuide } from '@wrack/react-native-tour-guide'
-import i18next from 'i18next'
 
 import {
   CREATE_SITE_TOUR_ID,
@@ -8,6 +7,7 @@ import {
   buildCreateSiteTourSteps,
   type SiteTourScreen,
 } from 'src/utils/tour/createSiteTour'
+import { buildTourConfig } from 'src/utils/tour/tourConfig'
 import { useTourController, useTourScreen } from 'src/hooks/useTourController'
 
 /**
@@ -20,18 +20,7 @@ const useCreateSiteTour = () => {
   const controller = useTourController(CREATE_SITE_TOUR_ID)
 
   const startCreateSiteTour = useCallback(() => {
-    startTour(buildCreateSiteTourSteps(), {
-      tourId: CREATE_SITE_TOUR_ID,
-      // Required by every `interactive` step: a Modal overlay swallows the
-      // touch before it reaches the control the spotlight is pointing at.
-      overlayMode: 'inline',
-      showProgressDots: true,
-      motion: 'morph',
-      waitForInteractions: true,
-      nextButtonText: i18next.t('label.tour_next'),
-      prevButtonText: i18next.t('label.tour_back'),
-      skipButtonText: i18next.t('label.tour_skip'),
-    })
+    startTour(buildCreateSiteTourSteps(), buildTourConfig(CREATE_SITE_TOUR_ID))
   }, [startTour])
 
   return {

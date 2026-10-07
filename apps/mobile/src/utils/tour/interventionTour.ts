@@ -114,11 +114,11 @@ export const buildSingleTreeTourSteps = (
     active: canPickProject && !hasProject,
     interactive: true,
     backdropBehavior: () => runTourAction(TOUR_STEPS.PROJECT),
-    // Gated rather than free-running: the rest of the tour writes to a project,
-    // so letting Next past this step would strand the user at the "+" menu,
-    // which silently refuses to open the flow without one.
-    completed: false,
-    hideNextButton: true,
+    // The step used to be gated (`completed: false`, no Next) because letting
+    // Next skip it would strand the user at the "+" menu, which silently
+    // refuses to open the flow without a project. Next now opens the picker
+    // instead of skipping, and the tour moves on when a project is chosen, so
+    // the gate has nothing left to protect.
     tooltipPosition: 'bottom',
     spotlightPadding: 8,
   },
@@ -129,8 +129,6 @@ export const buildSingleTreeTourSteps = (
     description: t('tour_add_desc'),
     interactive: true,
     backdropBehavior: () => runTourAction(TOUR_STEPS.ADD),
-    completed: false,
-    hideNextButton: true,
     tooltipPosition: 'top',
     spotlightPadding: 6,
   },
@@ -148,8 +146,6 @@ export const buildSingleTreeTourSteps = (
     // a near-miss should carry on rather than feel broken -- which is what a
     // dead tap looks like here, since the row cannot be pressed directly.
     backdropBehavior: () => runTourAction(TOUR_STEPS.SINGLE_TREE),
-    completed: false,
-    hideNextButton: true,
     tooltipPosition: 'top',
     spotlightPadding: 6,
   },
@@ -165,6 +161,10 @@ export const buildSingleTreeTourSteps = (
     interactive: true,
     completed: false,
     hideNextButton: true,
+    // No real Back: the step before this one points at a row in the add menu,
+    // which closed when the menu did. Leaving the screen would land the user on
+    // a spotlight with nothing under it.
+    hidePrevButton: true,
     tooltipPosition: 'bottom',
   },
   {
@@ -174,8 +174,6 @@ export const buildSingleTreeTourSteps = (
     description: t('tour_confirm_location_desc'),
     interactive: true,
     backdropBehavior: () => runTourAction(TOUR_STEPS.CONFIRM_LOCATION),
-    completed: false,
-    hideNextButton: true,
     tooltipPosition: 'top',
     spotlightPadding: 6,
   },
@@ -185,6 +183,10 @@ export const buildSingleTreeTourSteps = (
     title: t('tour_species_title'),
     description: t('tour_species_desc'),
     interactive: true,
+    // No real Back: the step before this one points at a control on the capture
+    // map, and the flow has left that map behind. Going back would re-enter it
+    // in a state the step no longer describes.
+    hidePrevButton: true,
     tooltipPosition: 'auto',
     spotlightPadding: 4,
   },
@@ -195,8 +197,6 @@ export const buildSingleTreeTourSteps = (
     description: t('tour_review_species_desc'),
     interactive: true,
     backdropBehavior: () => runTourAction(TOUR_STEPS.REVIEW_SPECIES),
-    completed: false,
-    hideNextButton: true,
     tooltipPosition: 'top',
     spotlightPadding: 6,
   },

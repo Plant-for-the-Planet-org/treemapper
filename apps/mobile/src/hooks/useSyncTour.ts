@@ -1,6 +1,5 @@
 import { useCallback } from 'react'
 import { useTourGuide } from '@wrack/react-native-tour-guide'
-import i18next from 'i18next'
 
 import {
   SYNC_TOUR_ID,
@@ -8,6 +7,7 @@ import {
   buildSyncTourSteps,
   type SyncTourScreen,
 } from 'src/utils/tour/syncTour'
+import { buildTourConfig } from 'src/utils/tour/tourConfig'
 import { useTourController, useTourScreen } from 'src/hooks/useTourController'
 
 /**
@@ -19,18 +19,7 @@ const useSyncTour = () => {
   const controller = useTourController(SYNC_TOUR_ID)
 
   const startSyncTour = useCallback(() => {
-    startTour(buildSyncTourSteps(), {
-      tourId: SYNC_TOUR_ID,
-      // Required by every `interactive` step: a Modal overlay swallows the
-      // touch before it reaches the control the spotlight is pointing at.
-      overlayMode: 'inline',
-      showProgressDots: true,
-      motion: 'morph',
-      waitForInteractions: true,
-      nextButtonText: i18next.t('label.tour_next'),
-      prevButtonText: i18next.t('label.tour_back'),
-      skipButtonText: i18next.t('label.tour_skip'),
-    })
+    startTour(buildSyncTourSteps(), buildTourConfig(SYNC_TOUR_ID))
   }, [startTour])
 
   return {

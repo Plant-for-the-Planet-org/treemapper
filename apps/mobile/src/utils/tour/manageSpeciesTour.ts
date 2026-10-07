@@ -124,7 +124,6 @@ export const buildManageSpeciesTourSteps = (showProjectFilter: boolean): TourSte
     // Advances itself the moment the search returns something (see
     // SpeciesSearchView), so the user is not asked to press Next over a
     // keyboard. Next stays available for anyone whose search finds nothing.
-    hidePrevButton: true,
     tooltipPosition: 'bottom',
     spotlightPadding: 6,
   },
@@ -186,7 +185,6 @@ export const buildManageSpeciesTourSteps = (showProjectFilter: boolean): TourSte
     title: t('species_tour_photo_title'),
     description: t('species_tour_photo_desc'),
     interactive: true,
-    hidePrevButton: true,
     tooltipPosition: 'auto',
     spotlightPadding: 6,
   },

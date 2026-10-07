@@ -17,6 +17,8 @@ import useMonitoringPlotTour from 'src/hooks/useMonitoringPlotTour'
 import { PLOT_TOUR_STEPS } from 'src/utils/tour/monitoringPlotTour'
 import useCreateSiteTour from 'src/hooks/useCreateSiteTour'
 import { SITE_TOUR_STEPS } from 'src/utils/tour/createSiteTour'
+import useMultiTreeTour from 'src/hooks/useMultiTreeTour'
+import { MULTI_TOUR_STEPS } from 'src/utils/tour/multiTreeTour'
 import { TabBarGeometry } from './tabBarGeometry'
 
 interface Props {
@@ -36,10 +38,11 @@ const AddBottomTabIcon = (props: Props) => {
   const { geometry, open, setOpen } = props
   const { height: windowHeight } = useWindowDimensions()
   const { advanceIfOn } = useInterventionTour()
-  // Three tours open with this button. Only one can be running, so all are
+  // Four tours open with this button. Only one can be running, so all are
   // told and whichever is not on its own "+" step ignores it.
   const { advanceIfOn: advancePlotTour } = useMonitoringPlotTour()
   const { advanceIfOn: advanceSiteTour } = useCreateSiteTour()
+  const { advanceIfOn: advanceMultiTreeTour } = useMultiTreeTour()
 
   const rotation = useDerivedValue(() => {
     return withTiming(open ? '135deg' : '0deg')
@@ -55,6 +58,7 @@ const AddBottomTabIcon = (props: Props) => {
     advanceIfOn(TOUR_STEPS.ADD)
     advancePlotTour(PLOT_TOUR_STEPS.ADD)
     advanceSiteTour(SITE_TOUR_STEPS.ADD)
+    advanceMultiTreeTour(MULTI_TOUR_STEPS.ADD)
   }
 
   // Tapping anywhere on this tour step opens the menu. Opens rather than
@@ -68,6 +72,7 @@ const AddBottomTabIcon = (props: Props) => {
   useTourAction(TOUR_STEPS.ADD, openMenuForTour)
   useTourAction(PLOT_TOUR_STEPS.ADD, openMenuForTour)
   useTourAction(SITE_TOUR_STEPS.ADD, openMenuForTour)
+  useTourAction(MULTI_TOUR_STEPS.ADD, openMenuForTour)
 
   return (
     <>

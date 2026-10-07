@@ -61,8 +61,6 @@ export const buildOfflineMapTourSteps = (): TourStep[] => [
     description: t('offline_tour_add_desc'),
     interactive: true,
     backdropBehavior: () => runTourAction(OFFLINE_TOUR_STEPS.ADD),
-    completed: false,
-    hideNextButton: true,
     tooltipPosition: 'top',
     spotlightPadding: 6,
   },
@@ -74,8 +72,6 @@ export const buildOfflineMapTourSteps = (): TourStep[] => [
     title: t('offline_tour_pan_title'),
     description: t('offline_tour_pan_desc'),
     interactive: true,
-    // Back would point at a button on the screen before this one.
-    hidePrevButton: true,
     tooltipPosition: 'bottom',
   },
   {

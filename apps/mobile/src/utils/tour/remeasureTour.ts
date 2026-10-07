@@ -71,8 +71,6 @@ export const buildRemeasureTourSteps = (): TourStep[] => [
     description: t('remeasure_tour_tree_desc'),
     interactive: true,
     backdropBehavior: () => runTourAction(REMEASURE_TOUR_STEPS.TREE),
-    completed: false,
-    hideNextButton: true,
     tooltipPosition: 'auto',
     spotlightPadding: 6,
   },
@@ -82,8 +80,6 @@ export const buildRemeasureTourSteps = (): TourStep[] => [
     title: t('remeasure_tour_alive_title'),
     description: t('remeasure_tour_alive_desc'),
     interactive: true,
-    // Back would point at a card on the screen before this one.
-    hidePrevButton: true,
     tooltipPosition: 'bottom',
     spotlightPadding: 4,
   },

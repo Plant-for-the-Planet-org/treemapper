@@ -1,6 +1,5 @@
 import { useCallback } from 'react'
 import { useTourGuide } from '@wrack/react-native-tour-guide'
-import i18next from 'i18next'
 
 import {
   OFFLINE_MAP_TOUR_ID,
@@ -8,6 +7,7 @@ import {
   buildOfflineMapTourSteps,
   type OfflineTourScreen,
 } from 'src/utils/tour/offlineMapTour'
+import { buildTourConfig } from 'src/utils/tour/tourConfig'
 import { useTourController, useTourScreen } from 'src/hooks/useTourController'
 
 /**
@@ -18,18 +18,7 @@ const useOfflineMapTour = () => {
   const controller = useTourController(OFFLINE_MAP_TOUR_ID)
 
   const startOfflineMapTour = useCallback(() => {
-    startTour(buildOfflineMapTourSteps(), {
-      tourId: OFFLINE_MAP_TOUR_ID,
-      // Required by every `interactive` step: a Modal overlay swallows the
-      // touch before it reaches the control the spotlight is pointing at.
-      overlayMode: 'inline',
-      showProgressDots: true,
-      motion: 'morph',
-      waitForInteractions: true,
-      nextButtonText: i18next.t('label.tour_next'),
-      prevButtonText: i18next.t('label.tour_back'),
-      skipButtonText: i18next.t('label.tour_skip'),
-    })
+    startTour(buildOfflineMapTourSteps(), buildTourConfig(OFFLINE_MAP_TOUR_ID))
   }, [startTour])
 
   return {

@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { useFocusEffect } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { useTourGuide } from '@wrack/react-native-tour-guide'
 
-import { clearTourAction, setTourAction } from 'src/utils/tour/tourActions'
+import {
+  clearTourAction,
+  clearTourBackAction,
+  setTourAction,
+  setTourBackAction,
+} from 'src/utils/tour/tourActions'
 
 /**
  * The half of a guided walkthrough that is the same whatever it teaches.
@@ -126,6 +131,11 @@ export const useTourScreen = (
   const { isTourRunning, isPaused, indexOfStep, goToStep, resumeTour, currentStep } =
     useTourController(tourId)
 
+  // The first step a screen owns is the step it was pushed onto, so Back there
+  // means leaving the screen. Steps further down the list are mid-screen and
+  // keep the plain step-back.
+  useTourBackToPreviousScreen(ownedStepIds[0])
+
   useFocusEffect(
     useCallback(() => {
       if (!enabled || !isTourRunning) {
@@ -159,17 +169,63 @@ export const useTourScreen = (
  * Lend a screen's own press handler to a tour step, for the steps the tour
  * drives itself rather than by letting the tap fall through the spotlight.
  * See the note on the registry in `utils/tour/tourActions.ts`.
- *
+ */
+export const useTourAction = (stepId: string, action: () => void) => {
+  useRegisteredTourAction(setTourAction, clearTourAction, stepId, action)
+}
+
+/**
+ * Lend a screen's own *back* handler to a tour step, so the tooltip's Back
+ * button leaves the screen instead of pointing the overlay at a control the
+ * user can no longer see. Register it only on the step a screen opens on, and
+ * only where leaving is reversible -- see `utils/tour/tourActions.ts`.
+ */
+export const useTourBackAction = (stepId: string, action: () => void) => {
+  useRegisteredTourAction(setTourBackAction, clearTourBackAction, stepId, action)
+}
+
+/**
  * The handler is read through a ref, so a step registered once still calls the
  * current closure rather than the one captured on mount.
  */
-export const useTourAction = (stepId: string, action: () => void) => {
+const useRegisteredTourAction = (
+  set: (stepId: string, action: () => void) => void,
+  clear: (stepId: string, action: () => void) => void,
+  stepId: string,
+  action: () => void,
+) => {
   const actionRef = useRef(action)
   actionRef.current = action
 
   useEffect(() => {
     const run = () => actionRef.current()
-    setTourAction(stepId, run)
-    return () => clearTourAction(stepId, run)
-  }, [stepId])
+    set(stepId, run)
+    return () => clear(stepId, run)
+  }, [set, clear, stepId])
+}
+
+/**
+ * Registers this screen's own back as the tour's Back handler for the step the
+ * screen opens on, so Back leaves the screen instead of pointing the overlay at
+ * a control the user can no longer see.
+ *
+ * Every screen in every tour uses the shared `Header`, whose back is a plain
+ * `goBack` with no screen-specific cleanup, which is why one hook covers all of
+ * them. A screen that grows a `backFunc` should register that instead.
+ *
+ * Registering is free on a step that keeps `hidePrevButton`: the handler is
+ * only ever reached through a button that step never draws. So which steps
+ * actually offer this is decided in the step definitions, not here.
+ */
+export const useTourBackToPreviousScreen = (stepId: string | undefined) => {
+  const navigation = useNavigation()
+
+  const goBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack()
+    }
+  }, [navigation])
+
+  // No step has an empty id, so a screen that owns none registers nothing.
+  useTourBackAction(stepId ?? '', goBack)
 }

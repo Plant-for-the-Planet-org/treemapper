@@ -104,8 +104,6 @@ export const buildMonitoringPlotTourSteps = (): TourStep[] => [
     description: t('plot_tour_add_desc'),
     interactive: true,
     backdropBehavior: () => runTourAction(PLOT_TOUR_STEPS.ADD),
-    completed: false,
-    hideNextButton: true,
     tooltipPosition: 'top',
     spotlightPadding: 6,
   },
@@ -124,8 +122,6 @@ export const buildMonitoringPlotTourSteps = (): TourStep[] => [
     // the only thing on screen, the step asks for exactly one decision, and a
     // dead tap is what a near-miss would otherwise feel like.
     backdropBehavior: () => runTourAction(PLOT_TOUR_STEPS.OPTION),
-    completed: false,
-    hideNextButton: true,
     tooltipPosition: 'top',
     spotlightPadding: 6,
   },
@@ -138,6 +134,9 @@ export const buildMonitoringPlotTourSteps = (): TourStep[] => [
     title: t('plot_tour_settings_title'),
     description: t('plot_tour_settings_desc'),
     interactive: true,
+    // No real Back: the step before this one points at a row in the add menu,
+    // which closed when the menu did. Leaving the screen would land the user on
+    // a spotlight with nothing under it.
     hidePrevButton: true,
     tooltipPosition: 'auto',
     spotlightPadding: 4,
@@ -149,8 +148,6 @@ export const buildMonitoringPlotTourSteps = (): TourStep[] => [
     description: t('plot_tour_continue_desc'),
     interactive: true,
     backdropBehavior: () => runTourAction(PLOT_TOUR_STEPS.SETTINGS_CONTINUE),
-    completed: false,
-    hideNextButton: true,
     tooltipPosition: 'top',
     spotlightPadding: 6,
   },
@@ -160,7 +157,6 @@ export const buildMonitoringPlotTourSteps = (): TourStep[] => [
     title: t('plot_tour_form_title'),
     description: t('plot_tour_form_desc'),
     interactive: true,
-    hidePrevButton: true,
     tooltipPosition: 'auto',
     spotlightPadding: 4,
   },
@@ -171,8 +167,6 @@ export const buildMonitoringPlotTourSteps = (): TourStep[] => [
     description: t('plot_tour_create_desc'),
     interactive: true,
     backdropBehavior: () => runTourAction(PLOT_TOUR_STEPS.CREATE),
-    completed: false,
-    hideNextButton: true,
     tooltipPosition: 'top',
     spotlightPadding: 6,
   },
@@ -185,7 +179,6 @@ export const buildMonitoringPlotTourSteps = (): TourStep[] => [
     // Released by pressing Select Center, which is inside this spotlight.
     completed: false,
     hideNextButton: true,
-    hidePrevButton: true,
     tooltipPosition: 'bottom',
   },
   {
@@ -195,8 +188,6 @@ export const buildMonitoringPlotTourSteps = (): TourStep[] => [
     description: t('plot_tour_confirm_desc'),
     interactive: true,
     backdropBehavior: () => runTourAction(PLOT_TOUR_STEPS.CONFIRM),
-    completed: false,
-    hideNextButton: true,
     tooltipPosition: 'top',
     spotlightPadding: 6,
   },

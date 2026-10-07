@@ -1,7 +1,6 @@
 import { useCallback } from 'react'
 import { useSelector } from 'react-redux'
 import { useTourGuide } from '@wrack/react-native-tour-guide'
-import i18next from 'i18next'
 
 import { RootState } from 'src/store'
 
@@ -11,6 +10,7 @@ import {
   buildMultiTreeTourSteps,
   type MultiTreeTourScreen,
 } from 'src/utils/tour/multiTreeTour'
+import { buildTourConfig } from 'src/utils/tour/tourConfig'
 import { useTourController, useTourScreen } from 'src/hooks/useTourController'
 
 /**
@@ -28,20 +28,10 @@ const useMultiTreeTour = () => {
   const userType = useSelector((state: RootState) => state.userState.type)
 
   const startMultiTreeTour = useCallback(() => {
-    startTour(buildMultiTreeTourSteps(Boolean(currentProject), Boolean(userType)), {
-      tourId: MULTI_TREE_TOUR_ID,
-      // Required by every `interactive` step: a Modal overlay swallows the
-      // touch before it reaches the control the spotlight is pointing at.
-      overlayMode: 'inline',
-      showProgressDots: true,
-      motion: 'morph',
-      // Layout settles after each navigation push; measuring before it does
-      // puts the spotlight on the previous screen's geometry.
-      waitForInteractions: true,
-      nextButtonText: i18next.t('label.tour_next'),
-      prevButtonText: i18next.t('label.tour_back'),
-      skipButtonText: i18next.t('label.tour_skip'),
-    })
+    startTour(
+      buildMultiTreeTourSteps(Boolean(currentProject), Boolean(userType)),
+      buildTourConfig(MULTI_TREE_TOUR_ID),
+    )
   }, [startTour, currentProject, userType])
 
   return {

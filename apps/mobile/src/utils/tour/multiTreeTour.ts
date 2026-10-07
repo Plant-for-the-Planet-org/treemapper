@@ -122,10 +122,9 @@ export const buildMultiTreeTourSteps = (
     active: canPickProject && !hasProject,
     interactive: true,
     backdropBehavior: () => runTourAction(MULTI_TOUR_STEPS.PROJECT),
-    // Gated: the rest of the tour writes to a project, and the add menu
-    // silently refuses to open the flow without one.
-    completed: false,
-    hideNextButton: true,
+    // Not gated: Next opens the picker rather than skipping the step, so the
+    // tour cannot reach the add menu without a project. See the same step in
+    // `interventionTour.ts`.
     tooltipPosition: 'bottom',
     spotlightPadding: 8,
   },
@@ -136,8 +135,6 @@ export const buildMultiTreeTourSteps = (
     description: t('multi_tour_add_desc'),
     interactive: true,
     backdropBehavior: () => runTourAction(MULTI_TOUR_STEPS.ADD),
-    completed: false,
-    hideNextButton: true,
     tooltipPosition: 'top',
     spotlightPadding: 6,
   },
@@ -152,8 +149,6 @@ export const buildMultiTreeTourSteps = (
     // tested down from the overlay never reaches the row.
     onSpotlightPress: () => runTourAction(MULTI_TOUR_STEPS.OPTION),
     backdropBehavior: () => runTourAction(MULTI_TOUR_STEPS.OPTION),
-    completed: false,
-    hideNextButton: true,
     tooltipPosition: 'top',
     spotlightPadding: 6,
   },
@@ -167,7 +162,9 @@ export const buildMultiTreeTourSteps = (
     // step points at first exists.
     completed: false,
     hideNextButton: true,
-    // Back would land on the add menu, which closed two screens ago.
+    // No real Back: the step before this one points at a row in the add menu,
+    // which closed when the menu did. Leaving the screen would land the user on
+    // a spotlight with nothing under it.
     hidePrevButton: true,
     tooltipPosition: 'bottom',
   },
@@ -178,8 +175,6 @@ export const buildMultiTreeTourSteps = (
     description: t('multi_tour_complete_desc'),
     interactive: true,
     backdropBehavior: () => runTourAction(MULTI_TOUR_STEPS.COMPLETE),
-    completed: false,
-    hideNextButton: true,
     hidePrevButton: true,
     tooltipPosition: 'top',
     spotlightPadding: 6,
@@ -190,6 +185,9 @@ export const buildMultiTreeTourSteps = (
     title: t('multi_tour_species_title'),
     description: t('multi_tour_species_desc'),
     interactive: true,
+    // No real Back: the step before this one points at a control on the capture
+    // map, and the flow has left that map behind. Going back would re-enter it
+    // in a state the step no longer describes.
     hidePrevButton: true,
     tooltipPosition: 'auto',
     spotlightPadding: 4,
@@ -201,7 +199,6 @@ export const buildMultiTreeTourSteps = (
     description: t('multi_tour_trees_desc'),
     interactive: true,
     backdropBehavior: () => runTourAction(MULTI_TOUR_STEPS.TREES),
-    hidePrevButton: true,
     tooltipPosition: 'top',
     spotlightPadding: 6,
   },
