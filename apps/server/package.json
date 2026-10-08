@@ -47,7 +47,7 @@
     "@nestjs/swagger": "11.4.4",
     "@turf/boolean-valid": "7.3.5",
     "@turf/invariant": "7.3.5",
-    "axios": "1.19.0",
+    "axios": "1.20.0",
     "cache-manager": "7.2.8",
     "class-transformer": "0.5.1",
     "class-validator": "0.14.4",
