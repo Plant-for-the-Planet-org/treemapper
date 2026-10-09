@@ -529,6 +529,16 @@ A project can publish a one-page, unauthenticated summary of its work at
   so a stored value cannot widen what is published. Individual tree
   coordinates are never served, and every theme prints that rule in a visible
   caption rather than only in code.
+- **A biodiversity claim needs a source.** `scientific_species.is_native`
+  defaults to `true` and `pollinator_friendly` to `false` on every row, and
+  the enrichment columns (`conservation_status`, `carbon_sequestration`,
+  `family`, `gbif_id`, `verified_at`) are empty across all ~60k rows. So
+  `loadSpecies` nulls every biodiversity field unless the row has provenance
+  (`verified_at`, `data_source` or `gbif_id`), and publishes
+  `totals.speciesAssessed`. Blocks drop the Native and Conservation columns,
+  the badges and the summary line when that count is zero, rather than
+  printing a column default as a finding. It is a gate, not a switch: enrich
+  the table with a source and the fields reappear on their own.
 - **Published records only**: the aggregate read goes through
   `publishedInterventionFilter` / `publishedSiteFilter` and
   `fieldInterventionsOnly`, so nothing pending or rejected and no monitoring
@@ -568,10 +578,17 @@ architecture is one data payload and four skins:
   take four plain strings, not the payload. An earlier version passed the
   whole copy object and serialised every heading on the page into the HTML,
   including ones its theme never rendered.
-- `/p/:slug/preview/:theme` renders any of the four for comparison. It is a
-  separate route rather than a `?theme=` parameter because reading a search
-  param would make the real page dynamic and give up its static cache. It is
-  `force-dynamic` and `noindex`.
+- **Previews are protected and live outside `/p/`.** `/preview/:projectUid/:theme`
+  renders any of the four themes, including for a page that is not published,
+  which is exactly why it must not be served by the open endpoint. It is a
+  client component so it can send the bearer token, and its data comes from
+  `GET /api/projects/:id/public-page/preview`, owner or admin behind
+  `ProjectPermissionsGuard`. It takes a project **uid**, not a slug, because
+  the guard resolves membership by uid. Unauthenticated, the server renders
+  only a spinner: no project name and no figures reach the HTML. `robots.ts`
+  disallows `/preview/` in production and the route sets its own `noindex`.
+  Do not move it back under `/p/`: that namespace is public and the preview
+  ignores the `enabled` flag.
 - `sites.geojson` and `data.json` route handlers re-serve exactly what the
   page was rendered from.
 
@@ -585,8 +602,8 @@ in front of a partner.
 (`settings/component/PublicPageSection.tsx`, owner or admin). The enable
 switch asks for confirmation and lists what becomes visible; theme and
 contributor names save immediately because neither publishes anything new.
-Each theme card links to its preview, which works whether or not the page is
-live.
+Each theme card links to its preview at `/preview/:projectUid/:theme`, which
+works whether or not the page is live.
 
 ## Mobile app architecture
 

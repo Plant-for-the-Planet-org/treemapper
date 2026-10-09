@@ -41,6 +41,7 @@ export const SAMPLE_PUBLIC_PAGE: PublicProjectPage = {
     hectares: 48.6,
     sites: 7,
     species: 22,
+    speciesAssessed: 22,
     nativeSpecies: 16,
     threatenedSpecies: 3,
     monitoringPlots: 6,

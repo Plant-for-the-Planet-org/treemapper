@@ -1592,3 +1592,17 @@ export const updatePublicPageSettings = async (
   const result = await fetchPatchCall(uri, payload, token);
   return result;
 };
+
+/**
+ * Page payload for a preview, ignoring whether the page is published.
+ *
+ * Owner or admin only, enforced by the server. This is why the preview screen
+ * lives at `/preview/:projectUid/:theme` and not under the public `/p/` path:
+ * it has to go through an authenticated call rather than the open read.
+ */
+export const getPublicPagePreview = async (token: string, prid: string, theme?: string) => {
+  const query = theme ? `?theme=${encodeURIComponent(theme)}` : '';
+  const uri = `${getUrlApi.publicPagePreview}/${prid}/public-page/preview${query}`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};

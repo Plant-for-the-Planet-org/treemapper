@@ -28,7 +28,8 @@ export interface Copy {
   monitoringSummary: (d: PublicProjectPage) => string
   monitoringNote: string
   speciesHeading: string
-  speciesSummary: (d: PublicProjectPage) => string
+  /** Null when no species carries sourced biodiversity data. */
+  speciesSummary: (d: PublicProjectPage) => string | null
   workHeading: string
   workOtherHeading: string
   timelineHeading: string
@@ -88,7 +89,9 @@ const FORMAL: Copy = {
     'Survival is counted on remeasured trees only. It is not estimated across the whole planting, and losses are included rather than removed from the total.',
   speciesHeading: 'Species planted',
   speciesSummary: (d) =>
-    `${fmtNum(d.totals.nativeSpecies)} of ${fmtNum(d.totals.species)} species are native. ${fmtNum(d.totals.threatenedSpecies)} carry an IUCN threatened status.`,
+    d.totals.speciesAssessed === 0
+      ? null
+      : `${fmtNum(d.totals.nativeSpecies)} of ${fmtNum(d.totals.speciesAssessed)} assessed species are native. ${fmtNum(d.totals.threatenedSpecies)} carry an IUCN threatened status.`,
   workHeading: 'What the work was',
   workOtherHeading: 'Work that plants no trees',
   timelineHeading: 'Trees recorded per quarter',
@@ -140,7 +143,9 @@ const WARM: Copy = {
     `${fmtNum(d.people.count)} people have walked these ${fmtNum(d.totals.sites)} sites with a phone in hand. Every tree was photographed and pinned where it stands. They go back and measure the same trees again, and record the ones that did not make it.`,
   speciesHeading: 'What is growing here',
   speciesSummary: (d) =>
-    `${fmtNum(d.totals.nativeSpecies)} of ${fmtNum(d.totals.species)} species are native to this ecoregion`,
+    d.totals.speciesAssessed === 0
+      ? null
+      : `${fmtNum(d.totals.nativeSpecies)} of ${fmtNum(d.totals.speciesAssessed)} assessed species are native to this ecoregion`,
   mapHeading: 'Where our work is',
   mapPrivacy: 'Site boundaries only. Exact tree positions stay private.',
   photosHeading: 'From the field',
@@ -181,7 +186,9 @@ const SIMPLE: Copy = {
     'We only count trees we went back to see. Trees that did not make it are counted too, because that is part of the story.',
   speciesHeading: 'Meet our trees',
   speciesSummary: (d) =>
-    `${fmtNum(d.totals.nativeSpecies)} of our ${fmtNum(d.totals.species)} kinds of tree grow here naturally`,
+    d.totals.speciesAssessed === 0
+      ? null
+      : `${fmtNum(d.totals.nativeSpecies)} of our ${fmtNum(d.totals.speciesAssessed)} checked kinds of tree grow here naturally`,
   workHeading: 'What we did',
   workOtherHeading: 'Other work we did',
   timelineHeading: 'Trees we planted over time',

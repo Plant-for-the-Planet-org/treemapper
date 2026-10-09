@@ -69,10 +69,10 @@ function earnedBadges(data: BlockProps['data']): Badge[] {
     })
   }
 
-  if (totals.species > 0 && totals.nativeSpecies / totals.species >= 0.5) {
+  if (totals.speciesAssessed > 0 && totals.nativeSpecies / totals.speciesAssessed >= 0.5) {
     badges.push({
       title: 'Mostly native',
-      detail: `${fmtNum(totals.nativeSpecies)} of ${fmtNum(totals.species)} species`,
+      detail: `${fmtNum(totals.nativeSpecies)} of ${fmtNum(totals.speciesAssessed)} assessed species`,
       tint: '#fdf1d4',
       icon: <StarIcon />,
     })

@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { and, countDistinct, desc, eq, isNotNull, isNull, ne, or, sql } from 'drizzle-orm';
+import { SQL, and, countDistinct, desc, eq, isNotNull, isNull, ne, or, sql } from 'drizzle-orm';
 import { PgColumn } from 'drizzle-orm/pg-core';
 import { DrizzleService } from '../database/drizzle.service';
 import { CacheService } from '../cache/cache.service';
@@ -18,6 +18,7 @@ import { fieldInterventionsOnly } from '../database/intervention-filters';
 import {
   PublicPagePhoto,
   PublicPageSettings,
+  PublicPageTheme,
   PublicProjectPage,
   resolvePublicPageSettings,
 } from './public-page.types';
@@ -53,13 +54,43 @@ export class PublicPageService {
     const cached = await this.cacheService.get<PublicProjectPage>(cacheKey);
     if (cached) return cached;
 
-    const projectRow = await this.loadProject(slugOrUid);
+    const projectRow = await this.loadProject(or(eq(project.slug, slugOrUid), eq(project.uid, slugOrUid)));
     const settings = resolvePublicPageSettings(projectRow.metadata);
 
     if (!settings.enabled) {
       throw new NotFoundException('Project not found');
     }
 
+    const page = await this.buildPage(projectRow, settings);
+    await this.cacheService.set(cacheKey, page, CACHE_TTL_SECONDS);
+    return page;
+  }
+
+  /**
+   * The same page, for someone who is allowed to see it before it is public.
+   *
+   * Two differences from `getPublicPage`, both deliberate: it ignores
+   * `enabled`, which is the whole point of a preview, and it is never cached,
+   * so an admin comparing themes is never shown a stale build. Access is the
+   * caller's problem: this is only reachable through the authenticated
+   * controller, behind `ProjectPermissionsGuard`.
+   */
+  async getPreview(projectId: number, themeOverride?: PublicPageTheme): Promise<PublicProjectPage> {
+    const projectRow = await this.loadProject(eq(project.id, projectId));
+    const stored = resolvePublicPageSettings(projectRow.metadata);
+    const settings = themeOverride ? { ...stored, theme: themeOverride } : stored;
+    return this.buildPage(projectRow, settings);
+  }
+
+  /**
+   * Assembles the payload. Every read is a separate query run in parallel: the
+   * aggregates do not share a shape, and one join wide enough for all of them
+   * would multiply rows before it could count them.
+   */
+  private async buildPage(
+    projectRow: Awaited<ReturnType<PublicPageService['loadProject']>>,
+    settings: PublicPageSettings,
+  ): Promise<PublicProjectPage> {
     const projectId = projectRow.id;
 
     const [
@@ -86,7 +117,7 @@ export class PublicPageService {
       this.countMonitoringPlots(projectId),
     ]);
 
-    const page: PublicProjectPage = {
+    return {
       theme: settings.theme,
       geoDetail: settings.geoDetail,
       snapshotAt: new Date().toISOString(),
@@ -115,6 +146,7 @@ export class PublicPageService {
         hectares: sites.hectares,
         sites: sites.features.length,
         species: species.distinctCount,
+        speciesAssessed: species.assessedCount,
         nativeSpecies: species.nativeCount,
         threatenedSpecies: species.threatenedCount,
         monitoringPlots: plots,
@@ -130,9 +162,6 @@ export class PublicPageService {
       photos,
       people: { count: people.count, members: people.members },
     };
-
-    await this.cacheService.set(cacheKey, page, CACHE_TTL_SECONDS);
-    return page;
   }
 
   /** Current settings for a project, filled out with defaults. */
@@ -199,10 +228,11 @@ export class PublicPageService {
   }
 
   /**
-   * Resolves the project by slug first, then by uid, so both
-   * `/p/rio-verde` and `/p/proj_abc123` reach the same page.
+   * Loads the project columns the page needs. Takes the match condition so the
+   * public read (by slug or uid) and the preview (by id) share one query and
+   * cannot select different columns.
    */
-  private async loadProject(slugOrUid: string) {
+  private async loadProject(match: SQL | undefined) {
     const rows = await this.drizzleService.db
       .select({
         id: project.id,
@@ -225,13 +255,7 @@ export class PublicPageService {
       })
       .from(project)
       .leftJoin(workspace, eq(project.workspaceId, workspace.id))
-      .where(
-        and(
-          or(eq(project.slug, slugOrUid), eq(project.uid, slugOrUid)),
-          isNull(project.deletedAt),
-          eq(project.isActive, true),
-        ),
-      )
+      .where(and(match, isNull(project.deletedAt), eq(project.isActive, true)))
       .limit(1);
 
     if (!rows.length) {
@@ -362,6 +386,9 @@ export class PublicPageService {
         pollinatorFriendly: scientificSpecies.pollinatorFriendly,
         conservationStatus: scientificSpecies.conservationStatus,
         image: scientificSpecies.image,
+        verifiedAt: scientificSpecies.verifiedAt,
+        dataSource: scientificSpecies.dataSource,
+        gbifId: scientificSpecies.gbifId,
       })
       .from(interventionSpecies)
       .innerJoin(intervention, eq(interventionSpecies.interventionId, intervention.id))
@@ -384,28 +411,50 @@ export class PublicPageService {
         scientificSpecies.pollinatorFriendly,
         scientificSpecies.conservationStatus,
         scientificSpecies.image,
+        scientificSpecies.verifiedAt,
+        scientificSpecies.dataSource,
+        scientificSpecies.gbifId,
       )
       .orderBy(desc(sql`COALESCE(SUM(${interventionSpecies.speciesCount}), 0)`));
 
-    const mapped = rows.map((row) => ({
-      uid: row.uid,
-      scientificName: row.scientificName,
-      commonName: row.commonName,
-      trees: Number(row.trees ?? 0),
-      isNative: row.isNative,
-      isEndangered: row.isEndangered,
-      pollinatorFriendly: row.pollinatorFriendly,
-      conservationStatus: row.conservationStatus,
-      image: row.image,
-    }));
+    // A species row only speaks for itself when something says where its
+    // biodiversity data came from. `is_native` defaults to true and
+    // `pollinator_friendly` defaults to false on every row in the table, so
+    // without this check the page prints a column default as a finding. That
+    // is the one claim a public page must never make: it sits next to the
+    // survival numbers that give the rest of it credibility.
+    //
+    // This is a gate, not a switch. Enrich the table with a source and these
+    // fields start appearing on their own.
+    const hasProvenance = (row: { verifiedAt: unknown; dataSource: unknown; gbifId: unknown }) =>
+      row.verifiedAt !== null || row.dataSource !== null || row.gbifId !== null;
+
+    const mapped = rows.map((row) => {
+      const sourced = hasProvenance(row);
+      return {
+        uid: row.uid,
+        scientificName: row.scientificName,
+        commonName: row.commonName,
+        trees: Number(row.trees ?? 0),
+        isNative: sourced ? row.isNative : null,
+        isEndangered: sourced ? row.isEndangered : null,
+        pollinatorFriendly: sourced ? row.pollinatorFriendly : null,
+        conservationStatus: sourced ? row.conservationStatus : null,
+        image: row.image,
+        sourced,
+      };
+    });
+
+    const assessedCount = mapped.filter((row) => row.sourced).length;
 
     // Threatened follows the IUCN categories that actually mean threatened.
     // `isEndangered` alone misses Vulnerable, which is most of what shows up here.
     const threatened = new Set(['vulnerable', 'endangered', 'critically_endangered', 'critically endangered']);
 
     return {
-      rows: mapped.slice(0, SPECIES_LIMIT),
+      rows: mapped.slice(0, SPECIES_LIMIT).map(({ sourced, ...species }) => species),
       distinctCount: mapped.length,
+      assessedCount,
       nativeCount: mapped.filter((row) => row.isNative === true).length,
       threatenedCount: mapped.filter(
         (row) =>

@@ -131,8 +131,9 @@ export const getUrlApi = {
   getWorkspaceSpeciesRequests: `${baseUrl}/species-requests/workspaces`,
   getWorkspaceSiteReviewQueue: `${baseUrl}/approval-board/workspaces`,
   projectApiKey: `${baseUrl}/projects`,
-  // Public project page settings (project-scoped)
+  // Public project page settings and preview (project-scoped)
   publicPageSettings: `${baseUrl}/projects`,
+  publicPagePreview: `${baseUrl}/projects`,
   // Monitoring plots (shared base for all verbs)
   monitoringPlots: `${baseUrl}/monitoring-plots`,
   // Forms (project-scoped; shared base for all verbs)

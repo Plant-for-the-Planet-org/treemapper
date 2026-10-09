@@ -41,6 +41,12 @@ export interface PublicPageTotals {
   hectares: number;
   sites: number;
   species: number;
+  /**
+   * How many species rows carry sourced biodiversity data. Zero means the
+   * native and conservation figures below say nothing, and the page must not
+   * print them. See `loadSpecies` for what counts as sourced.
+   */
+  speciesAssessed: number;
   nativeSpecies: number;
   threatenedSpecies: number;
   monitoringPlots: number;

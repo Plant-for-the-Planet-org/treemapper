@@ -16,6 +16,8 @@ export interface PublicPageTotals {
   hectares: number
   sites: number
   species: number
+  /** Species rows with sourced biodiversity data. Zero means do not print the two below. */
+  speciesAssessed: number
   nativeSpecies: number
   threatenedSpecies: number
   monitoringPlots: number

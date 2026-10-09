@@ -24,7 +24,10 @@ export function NumbersBlock({ data, copy, spec }: BlockProps) {
       totals.species > 0
         ? {
             value: fmtNum(totals.species),
-            label: `${copy.statLabels.species}, ${fmtNum(totals.nativeSpecies)} of them native here`,
+            label:
+              totals.speciesAssessed > 0
+                ? `${copy.statLabels.species}, ${fmtNum(totals.nativeSpecies)} of them native here`
+                : copy.statLabels.species,
           }
         : null,
       verification.total > 0
@@ -58,7 +61,9 @@ export function NumbersBlock({ data, copy, spec }: BlockProps) {
         value: fmtNum(totals.species),
         label: copy.statLabels.species,
         hint:
-          totals.nativeSpecies > 0 ? `${fmtNum(totals.nativeSpecies)} grow here naturally` : undefined,
+          totals.speciesAssessed > 0 && totals.nativeSpecies > 0
+            ? `${fmtNum(totals.nativeSpecies)} grow here naturally`
+            : undefined,
       },
       {
         value: fmtNum(data.monitoring.remeasured),

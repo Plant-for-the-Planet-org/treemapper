@@ -279,7 +279,7 @@ export const PublicPageSection = ({
                   </button>
                   <div className="border-t border-border px-4 py-2.5">
                     <a
-                      href={`${path}/preview/${theme.id}`}
+                      href={`/preview/${projectUid}/${theme.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
@@ -294,7 +294,8 @@ export const PublicPageSection = ({
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Previews work whether or not the page is live, and are never indexed.
+            Previews work whether or not the page is live. They are only visible to this
+            project&apos;s owners and admins, and are never indexed.
           </p>
         </div>
       </Card>

@@ -26,19 +26,24 @@ export function SpeciesBlock({ data, theme, copy, spec }: BlockProps) {
   }
 
   const variant = spec.variant ?? 'table'
+  // No species carries sourced biodiversity data, so the page says nothing
+  // about native status or conservation rather than rendering a column
+  // default as a finding. See `speciesAssessed` on the server.
+  const assessed = data.totals.speciesAssessed > 0
+  const summary = copy.speciesSummary ?? undefined
 
   return (
     <Section id="pp-species">
       <SectionHeading
         tone={theme.tone}
         title={copy.speciesHeading}
-        meta={theme.tone !== 'simple' ? copy.speciesSummary : undefined}
-        lead={theme.tone === 'simple' ? copy.speciesSummary : undefined}
+        meta={theme.tone !== 'simple' ? summary : undefined}
+        lead={theme.tone === 'simple' ? summary : undefined}
       />
       {variant === 'cards' ? (
-        <Cards data={data} simple={theme.tone === 'simple'} />
+        <Cards data={data} simple={theme.tone === 'simple'} assessed={assessed} />
       ) : (
-        <Table data={data} />
+        <Table data={data} assessed={assessed} />
       )}
     </Section>
   )
@@ -65,7 +70,7 @@ function Flags({ species, simple }: { species: PublicPageSpecies; simple?: boole
   )
 }
 
-function Table({ data }: { data: BlockProps['data'] }) {
+function Table({ data, assessed }: { data: BlockProps['data']; assessed: boolean }) {
   const shown = data.species.slice(0, 8)
   const rest = data.species.slice(8)
   const restTrees = rest.reduce((sum, row) => sum + row.trees, 0)
@@ -78,8 +83,8 @@ function Table({ data }: { data: BlockProps['data'] }) {
             <th style={{ width: '30%' }}>Scientific name</th>
             <th style={{ width: '26%' }}>Common name</th>
             <th style={{ textAlign: 'right' }}>Trees</th>
-            <th>Native</th>
-            <th>Conservation status</th>
+            {assessed ? <th>Native</th> : null}
+            {assessed ? <th>Conservation status</th> : null}
           </tr>
         </thead>
         <tbody>
@@ -90,23 +95,27 @@ function Table({ data }: { data: BlockProps['data'] }) {
               <td className="pp-num" style={{ textAlign: 'right' }}>
                 {fmtNum(species.trees)}
               </td>
-              <td>{species.isNative === null ? 'Unknown' : species.isNative ? 'Yes' : 'No'}</td>
-              <td>
-                {isThreatened(species.conservationStatus, species.isEndangered) ? (
-                  <Pill color={THREAT_COLOR}>
-                    {humanizeStatus(species.conservationStatus) ?? 'Threatened'}
-                  </Pill>
-                ) : (
-                  <span style={{ color: 'var(--pp-muted)' }}>
-                    {humanizeStatus(species.conservationStatus) ?? 'Not assessed'}
-                  </span>
-                )}
-              </td>
+              {assessed ? (
+                <td>{species.isNative === null ? 'Not assessed' : species.isNative ? 'Yes' : 'No'}</td>
+              ) : null}
+              {assessed ? (
+                <td>
+                  {isThreatened(species.conservationStatus, species.isEndangered) ? (
+                    <Pill color={THREAT_COLOR}>
+                      {humanizeStatus(species.conservationStatus) ?? 'Threatened'}
+                    </Pill>
+                  ) : (
+                    <span style={{ color: 'var(--pp-muted)' }}>
+                      {humanizeStatus(species.conservationStatus) ?? 'Not assessed'}
+                    </span>
+                  )}
+                </td>
+              ) : null}
             </tr>
           ))}
           {rest.length ? (
             <tr>
-              <td colSpan={5} className="text-[0.8125rem]" style={{ color: 'var(--pp-muted)' }}>
+              <td colSpan={assessed ? 5 : 3} className="text-[0.8125rem]" style={{ color: 'var(--pp-muted)' }}>
                 {fmtNum(rest.length)} more species, {fmtNum(restTrees)} trees.
               </td>
             </tr>
@@ -117,7 +126,7 @@ function Table({ data }: { data: BlockProps['data'] }) {
   )
 }
 
-function Cards({ data, simple }: { data: BlockProps['data']; simple: boolean }) {
+function Cards({ data, simple, assessed }: { data: BlockProps['data']; simple: boolean; assessed: boolean }) {
   const shown = data.species.slice(0, 5)
 
   return (
@@ -137,9 +146,11 @@ function Cards({ data, simple }: { data: BlockProps['data']; simple: boolean }) 
               {species.scientificName}
             </div>
           ) : null}
-          <div className="mt-2.5">
-            <Flags species={species} simple={simple} />
-          </div>
+          {assessed ? (
+            <div className="mt-2.5">
+              <Flags species={species} simple={simple} />
+            </div>
+          ) : null}
           <div className="mt-2.5 text-[0.8125rem]" style={{ color: 'var(--pp-muted)' }}>
             {fmtNum(species.trees)} trees
           </div>
