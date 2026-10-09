@@ -1,0 +1,112 @@
+/*
+ * Base styles for the public project page.
+ *
+ * Everything visual that is not a one-off lives in a `--pp-*` custom property
+ * set by the theme (see themes.ts); these classes only bind them. Two reasons
+ * this file exists rather than Tailwind classes alone:
+ *
+ *  - `--radius` is 0 globally in this app, so every shadcn corner is square.
+ *    The public page needs its own radius scale and must not inherit that one.
+ *  - Fonts are per theme, so `font-family` has to come from a variable rather
+ *    than a utility class.
+ */
+
+.pp-root {
+  background: var(--pp-bg);
+  color: var(--pp-ink);
+  font-family: var(--pp-font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.pp-display {
+  font-family: var(--pp-font-display);
+  font-weight: var(--pp-display-weight);
+  letter-spacing: var(--pp-display-tracking);
+  line-height: 1.05;
+}
+
+.pp-num {
+  font-family: var(--pp-font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+.pp-inverse {
+  background: var(--pp-inverse-bg);
+  color: var(--pp-inverse-ink);
+}
+
+.pp-link {
+  color: var(--pp-accent-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.pp-link:hover {
+  text-decoration-thickness: 2px;
+}
+
+.pp-inverse .pp-link {
+  color: var(--pp-inverse-ink);
+}
+
+/* Shared table skin. Each theme restyles it through the tokens only. */
+.pp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.pp-table th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--pp-muted);
+  padding: 0 1rem 0.625rem 0;
+  border-bottom: 1px solid var(--pp-ink);
+  white-space: nowrap;
+}
+
+.pp-table td {
+  padding: 0.6875rem 1rem 0.6875rem 0;
+  border-bottom: 1px solid var(--pp-line);
+  vertical-align: baseline;
+}
+
+.pp-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.pp-table tr[data-total] td {
+  border-top: 1px solid var(--pp-ink);
+  border-bottom: none;
+  font-weight: 600;
+  padding-top: 0.8125rem;
+}
+
+/*
+ * The Report theme is read on paper more often than the others. Drop the
+ * furniture that costs ink and says nothing, and let tables break across pages.
+ */
+@media print {
+  .pp-root {
+    background: #ffffff;
+  }
+
+  .pp-no-print {
+    display: none !important;
+  }
+
+  .pp-table {
+    page-break-inside: auto;
+  }
+
+  .pp-table tr {
+    page-break-inside: avoid;
+  }
+
+  .pp-section {
+    page-break-inside: avoid;
+  }
+}

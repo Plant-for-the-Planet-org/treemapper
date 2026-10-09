@@ -513,6 +513,81 @@ with real auth: confirming the 34 store readers against URL hydration, and the
 end-to-end runtime verify (deep links, invite join, not-found/no-access,
 impersonation exit).
 
+## Public project page
+
+A project can publish a one-page, unauthenticated summary of its work at
+`/p/:slug` (the project uid also resolves). Built on
+`feature/public-dashboard`.
+
+- **Opt in is explicit and off by default.** The switch is
+  `project.metadata.publicPage.enabled`, read through
+  `resolvePublicPageSettings` in
+  `apps/server/src/public-page/public-page.types.ts`. It is deliberately **not**
+  `project.isPublic`, which defaults to `true` on every row and would put every
+  project on the open internet on day one.
+- **Site polygons only.** `geoDetail` is pinned to `'site'` in the resolver,
+  so a stored value cannot widen what is published. Individual tree
+  coordinates are never served, and every theme prints that rule in a visible
+  caption rather than only in code.
+- **Published records only**: the aggregate read goes through
+  `publishedInterventionFilter` / `publishedSiteFilter` and
+  `fieldInterventionsOnly`, so nothing pending or rejected and no monitoring
+  plot reaches the page.
+- A project whose page is off answers the same 404 as one that does not
+  exist, so the endpoint cannot be used to enumerate private projects.
+- Contributor names and faces are withheld unless `showContributorNames` is
+  on **and** the user is not `isPrivate`. The server sends initials otherwise,
+  so the client cannot leak a name it was never given.
+
+**Server**: `apps/server/src/public-page/`. `GET /api/public-page/:slugOrUid`
+is `@Public()`, IP-rate-limited to 60/min, envelope-wrapped, cached 5 minutes.
+`GET`/`PATCH /api/projects/:id/public-page/settings` is owner-or-admin and
+merges into `metadata` rather than replacing it. The settings controller is
+separate from the public one on purpose: that class carries a class-level
+`@Public()`.
+
+**Web**: `apps/web/src/components/public-page/` plus `app/p/[slug]/`. The
+architecture is one data payload and four skins:
+
+- `themes.ts` is the whole theme system. A theme is a token set, an ordered
+  block list and a copy tone, nothing else. Adding a fifth theme is an entry
+  in `THEMES`, with no new markup.
+- `blocks/` holds the shared components. Every theme uses the same ones and
+  they branch only on `spec.variant` where the layout, not the styling,
+  genuinely differs. `blocks/index.ts` is the registry; themes name blocks by
+  id and never import one.
+- `copy.ts` holds the wording per tone (`formal` / `warm` / `simple`).
+  `resolveCopy` flattens it to plain strings before rendering: blocks do not
+  call functions, and functions cannot cross the server/client boundary
+  anyway.
+- Styling is `--pp-*` custom properties set on the page wrapper. The page must
+  not inherit the app's `--radius: 0` or its fonts, so it declares its own
+  scale and loads its own faces (`fonts.ts`), attaching only the variables the
+  chosen theme lists.
+- Only two client components: the map and the share buttons. The share buttons
+  take four plain strings, not the payload. An earlier version passed the
+  whole copy object and serialised every heading on the page into the HTML,
+  including ones its theme never rendered.
+- `/p/:slug/preview/:theme` renders any of the four for comparison. It is a
+  separate route rather than a `?theme=` parameter because reading a search
+  param would make the real page dynamic and give up its static cache. It is
+  `force-dynamic` and `noindex`.
+- `sites.geojson` and `data.json` route handlers re-serve exactly what the
+  page was rendered from.
+
+**Previewing without the backend**: set `PUBLIC_PAGE_SAMPLE=true` with
+`NODE_ENV=development` and `fetchPublicPage` returns the fixture in
+`components/public-page/sample.ts` instead of calling the API. Double gated so
+it cannot reach a deployed build. Every figure in it is invented; do not put it
+in front of a partner.
+
+**Turning it on**: project settings, "Public page" tab
+(`settings/component/PublicPageSection.tsx`, owner or admin). The enable
+switch asks for confirmation and lists what becomes visible; theme and
+contributor names save immediately because neither publishes anything new.
+Each theme card links to its preview, which works whether or not the page is
+live.
+
 ## Mobile app architecture
 
 `apps/mobile` is the largest workspace (~750 files) and shares nothing with

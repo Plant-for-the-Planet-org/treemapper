@@ -29,6 +29,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import PublicPageSection from './component/PublicPageSection'
 
 // ---------- Approval settings helpers ----------
 
@@ -692,6 +693,7 @@ const NAV_ITEMS = [
   { id: 'general', label: 'General settings', icon: Settings },
   { id: 'location', label: 'Location', icon: MapPin },
   { id: 'features', label: 'Features', icon: Shield },
+  { id: 'public-page', label: 'Public page', icon: Globe },
   { id: 'danger', label: 'Danger zone', icon: Trash2, danger: true },
 ]
 
@@ -989,6 +991,15 @@ const ProjectSettings = () => {
         return <LocationSettings handleLocationUpdate={handleLocationUpdate} existingGeoJSON={projectData.originalGeometry} loading={loading} canEdit={canEdit} />
       case 'features':
         return <FeaturesSettings projectData={projectData} handleToggleChange={handleToggleChange} handleApprovalSourceToggle={handleApprovalSourceToggle} handleSiteApprovalToggle={handleSiteApprovalToggle} handleSubmit={handleSubmit} loading={loading} canEdit={canEdit} projectUid={selectedProject?.uid} accessToken={accessToken} onApiToggle={handleApiToggle} />
+      case 'public-page':
+        return (
+          <PublicPageSection
+            accessToken={accessToken}
+            projectUid={selectedProject?.uid || ''}
+            projectSlug={projectData.slug}
+            canEdit={canEdit}
+          />
+        )
       case 'danger':
         return <DangerZone projectData={projectData} showDeleteConfirm={showDeleteConfirm} setShowDeleteConfirm={setShowDeleteConfirm} handleDeleteProject={handleDeleteProject} canEdit={canEdit} />
       default:

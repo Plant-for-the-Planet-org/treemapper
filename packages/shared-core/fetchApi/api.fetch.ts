@@ -1569,3 +1569,26 @@ export const patchTreematchContributionIgnore = async (
   const result = await fetchPatchCall(uri, { ignored, ...(ignored && reason ? { reason } : {}) }, token)
   return result
 }
+
+/**
+ * Public project page settings.
+ *
+ * Owner or admin only on the server. `enabled` is off on every project until
+ * someone turns it on here, so these two calls are the only way a project's
+ * work reaches a public URL.
+ */
+export const getPublicPageSettings = async (token: string, prid: string) => {
+  const uri = `${getUrlApi.publicPageSettings}/${prid}/public-page/settings`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+export const updatePublicPageSettings = async (
+  token: string,
+  prid: string,
+  payload: { enabled?: boolean; theme?: string; showContributorNames?: boolean },
+) => {
+  const uri = `${patchUrlApi.publicPageSettings}/${prid}/public-page/settings`;
+  const result = await fetchPatchCall(uri, payload, token);
+  return result;
+};

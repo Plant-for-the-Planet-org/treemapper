@@ -131,6 +131,8 @@ export const getUrlApi = {
   getWorkspaceSpeciesRequests: `${baseUrl}/species-requests/workspaces`,
   getWorkspaceSiteReviewQueue: `${baseUrl}/approval-board/workspaces`,
   projectApiKey: `${baseUrl}/projects`,
+  // Public project page settings (project-scoped)
+  publicPageSettings: `${baseUrl}/projects`,
   // Monitoring plots (shared base for all verbs)
   monitoringPlots: `${baseUrl}/monitoring-plots`,
   // Forms (project-scoped; shared base for all verbs)
@@ -159,6 +161,8 @@ export const patchUrlApi = {
   projectDeviceState: `${baseUrl}/projects`,
   // TreeMatch donation ignore flag (project-scoped)
   treematch: `${baseUrl}/treematch/projects`,
+  // Public project page settings (project-scoped)
+  publicPageSettings: `${baseUrl}/projects`,
 
 } as const;
 
