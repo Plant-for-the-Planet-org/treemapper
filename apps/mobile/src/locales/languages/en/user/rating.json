@@ -3,5 +3,6 @@
     "rating_prompt_title": "Enjoying TreeMapper?",
     "rating_prompt_body": "A quick rating helps more people find TreeMapper and helps us keep improving it. Would you like to rate the app?",
     "rating_prompt_love_it": "Rate the app",
-    "rating_prompt_not_really": "Not really"
+    "rating_prompt_not_really": "Not really",
+    "rating_store_unavailable": "Could not open the app store on this device"
 }

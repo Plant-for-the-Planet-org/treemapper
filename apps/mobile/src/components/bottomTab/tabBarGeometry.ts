@@ -2,9 +2,11 @@
  * Every number the bottom tab bar draws comes from this one file.
  *
  * The bar is a white shape with rounded top corners and a circular bite taken
- * out of the last tab, and the "+" button sits in that bite. The bite and the
- * button have to agree to the pixel on any screen, so they are derived
- * together here rather than guessed twice in two components.
+ * out of its top edge, and the "+" button sits in that bite with its centre on
+ * the bar's top edge. The bite is a little wider than the button, so a ring of
+ * map shows between the two. Bite and button have to agree to the pixel on any
+ * screen, so they are derived together here rather than guessed twice in two
+ * components.
  *
  * Sizes scale with window width against a 360dp base -- the same base the
  * repo's `scaleSize` uses -- but every one of them is clamped. A narrow phone
@@ -37,12 +39,12 @@ const LABEL_LINE_RATIO = 1.3
 /** The "+" glyph inside the floating button. */
 const FAB_GLYPH_RATIO = 0.47
 
-/** White ring left between the button and the edge of the bite. */
+/** Transparent ring left between the button and the edge of the bite. */
 const FAB_NOTCH_GAP = 7
-/** Keeps the bite off the bar's rounded right corner. */
-const FAB_EDGE_MARGIN = 8
-/** Room above the bite so the button's shadow is not clipped. */
-const FAB_SHADOW_HEADROOM = 4
+/** Keeps the whole bite on screen on a narrow phone. */
+const FAB_EDGE_MARGIN = 6
+/** Room above the button so its shadow is not clipped. */
+const FAB_SHADOW_HEADROOM = 6
 
 type Range = [min: number, max: number]
 
@@ -56,8 +58,8 @@ export interface TabBarGeometry {
   /** Top edge of the white bar, measured from the top of the container. */
   barTop: number
   /**
-   * How far the button had to be nudged off its tab's centre to keep the bite
-   * clear of the bar's right corner. Zero on anything wider than ~340dp; the
+   * How far the button had to be nudged off its tab's centre to keep it clear
+   * of the bar's right corner. Zero on anything wider than ~340dp; the
    * "Add" label shifts by the same amount so it stays under the button.
    */
   addLabelOffset: number
@@ -73,7 +75,7 @@ export interface TabBarGeometry {
   fabRadius: number
   /** The "+" glyph, sized off the button it sits in. */
   fabGlyphSize: number
-  /** Radius of the bite: button radius plus the white ring. */
+  /** Radius of the bite: button radius plus the transparent ring. */
   notchRadius: number
   fabCenterX: number
   fabCenterY: number
@@ -124,15 +126,6 @@ export function getTabBarGeometry({
   const fabRadius = fabDiameter / 2
   const notchRadius = fabRadius + FAB_NOTCH_GAP
 
-  // Centred on the last tab, pulled back if the bite would reach the corner.
-  // On a 320dp phone that is a nudge of a few dp; everywhere else it is nil.
-  const lastTabCenterX = tabWidth * (safeTabCount - 0.5)
-  const fabCenterX = clamp(
-    lastTabCenterX,
-    notchRadius + FAB_EDGE_MARGIN,
-    safeWidth - notchRadius - FAB_EDGE_MARGIN,
-  )
-
   // Tall enough for what it actually holds. A user on a large OS text size
   // gets a taller bar rather than a clipped label, and the `Math.max` keeps
   // the familiar 64dp on a stock phone where the parts already fit.
@@ -145,11 +138,39 @@ export function getTabBarGeometry({
   )
 
   const barHeight = contentHeight + inset
-  // Half the button stands above the bar, so the bar starts one bite radius
+
+  // Centred on the last tab, pulled back only if the bite would otherwise run
+  // off the screen. That is nil on every size in use; the button staying on
+  // its tab's centre, under its label, matters more than the corner below.
+  const lastTabCenterX = tabWidth * (safeTabCount - 0.5)
+  const fabCenterX = clamp(
+    lastTabCenterX,
+    notchRadius + FAB_EDGE_MARGIN,
+    safeWidth - notchRadius - FAB_EDGE_MARGIN,
+  )
+
+  // The bite sits close to the bar's right corner, and the two cannot share
+  // the same stretch of top edge: a corner that started before the bite ended
+  // would draw the edge backwards. So the corner gives way, down to square if
+  // it has to. Both corners use the value so the bar stays symmetrical.
+  const cornerRadius = round(
+    Math.max(
+      0,
+      Math.min(
+        scale(BASE_CORNER_RADIUS, CORNER_RADIUS_RANGE),
+        safeWidth / 2,
+        barHeight / 2,
+        safeWidth - fabCenterX - notchRadius,
+        fabCenterX - notchRadius,
+      ),
+    ),
+  )
+
+  // Half the button stands above the bar, so the bar starts one button radius
   // (plus shadow room) below the top of the container. That keeps the button
-  // and its bite inside the container, so the tab bar needs no negative
-  // offsets and nothing is drawn outside its parent.
-  const barTop = notchRadius + FAB_SHADOW_HEADROOM
+  // inside the container, so the tab bar needs no negative offsets and
+  // nothing is drawn outside its parent.
+  const barTop = fabRadius + FAB_SHADOW_HEADROOM
   const containerHeight = barTop + barHeight
   const fabCenterY = barTop
 
@@ -162,13 +183,7 @@ export function getTabBarGeometry({
     addLabelOffset: round(fabCenterX - lastTabCenterX),
     barHeight: round(barHeight),
     bottomInset: inset,
-    cornerRadius: round(
-      Math.min(
-        scale(BASE_CORNER_RADIUS, CORNER_RADIUS_RANGE),
-        safeWidth / 2,
-        barHeight / 2,
-      ),
-    ),
+    cornerRadius,
     iconSize,
     labelFontSize,
     labelGap: LABEL_GAP,
@@ -184,11 +199,16 @@ export function getTabBarGeometry({
 }
 
 /**
- * One path, two subpaths: the bar, then the bite wound as a full circle.
- * Rendered with `fillRule="evenodd"` the circle becomes a hole instead of a
- * shape painted on top, so the map shows through the ring at any size. The
- * part of the circle above the bar simply falls outside the first subpath and
- * paints nothing.
+ * One subpath: the bar, with the bite cut into its top edge.
+ *
+ * The bite is half a circle, dipping down into the bar from the top edge --
+ * not a whole circle. A whole one was the bug this replaced: as a second
+ * subpath under `fillRule="evenodd"` it read as a hole only where it
+ * overlapped the bar, while the half above the top edge lay inside a single
+ * subpath and painted as a white disc standing over the map.
+ *
+ * Because the cut stops at the top edge, everything above it is map, and the
+ * only white there is the button itself.
  */
 export function buildTabBarPath(geometry: TabBarGeometry): string {
   const {
@@ -197,26 +217,20 @@ export function buildTabBarPath(geometry: TabBarGeometry): string {
     containerHeight,
     cornerRadius: r,
     fabCenterX: cx,
-    fabCenterY: cy,
     notchRadius: nr,
   } = geometry
 
-  const bar = [
+  return [
     `M 0 ${round(barTop + r)}`,
     `A ${r} ${r} 0 0 1 ${r} ${barTop}`,
+    `H ${round(cx - nr)}`,
+    // sweep 0 bends the arc towards +y, so the bite dips into the bar
+    // instead of arching over it.
+    `A ${nr} ${nr} 0 0 0 ${round(cx + nr)} ${barTop}`,
     `H ${round(width - r)}`,
     `A ${r} ${r} 0 0 1 ${width} ${round(barTop + r)}`,
     `V ${containerHeight}`,
     `H 0`,
     'Z',
   ].join(' ')
-
-  const notch = [
-    `M ${round(cx - nr)} ${cy}`,
-    `A ${nr} ${nr} 0 1 0 ${round(cx + nr)} ${cy}`,
-    `A ${nr} ${nr} 0 1 0 ${round(cx - nr)} ${cy}`,
-    'Z',
-  ].join(' ')
-
-  return `${bar} ${notch}`
 }
