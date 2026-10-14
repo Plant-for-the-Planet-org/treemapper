@@ -11,6 +11,52 @@ export type PublicPageTheme = (typeof PUBLIC_PAGE_THEMES)[number]
 
 export type PublicPageGeoDetail = 'site' | 'fuzzed' | 'exact'
 
+/**
+ * Every block a page can be built from, in the order the editor offers them.
+ *
+ * This list is the contract, so it lives here rather than in `themes.ts`:
+ * the server validates a saved arrangement against the same names.
+ */
+export const PUBLIC_PAGE_BLOCK_IDS = [
+  'hero',
+  'anchorNav',
+  'numbers',
+  'verification',
+  'narrative',
+  'map',
+  'photos',
+  'species',
+  'monitoring',
+  'work',
+  'timeline',
+  'people',
+  'badges',
+  'text',
+  'detailSeam',
+  'data',
+  'share',
+  'footer',
+] as const
+export type PublicPageBlockId = (typeof PUBLIC_PAGE_BLOCK_IDS)[number]
+
+export type PublicPageSurface = 'base' | 'detail'
+
+export const PUBLIC_PAGE_MAX_BLOCKS = 40
+export const PUBLIC_PAGE_TEXT_HEADING_MAX = 120
+export const PUBLIC_PAGE_TEXT_BODY_MAX = 2000
+
+/** One block in a saved arrangement. `key` identifies the instance, not the kind. */
+export interface PublicPageBlock {
+  id: PublicPageBlockId
+  key: string
+  variant?: string
+  surface?: PublicPageSurface
+  /** Plain text, rendered as text nodes. Only the `text` block uses it. */
+  content?: { heading?: string; body?: string }
+}
+
+export type PublicPageLayouts = Partial<Record<PublicPageTheme, PublicPageBlock[]>>
+
 export interface PublicPageTotals {
   trees: number
   hectares: number
@@ -122,6 +168,8 @@ export interface PublicPageSiteFeature {
 export interface PublicProjectPage {
   theme: PublicPageTheme
   geoDetail: PublicPageGeoDetail
+  /** The project's saved arrangement for this theme, or null for the theme default. */
+  layout: PublicPageBlock[] | null
   snapshotAt: string
   project: PublicPageProject
   organization: PublicPageOrganization

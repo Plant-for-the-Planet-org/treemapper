@@ -16,11 +16,15 @@ import {
 import { publishedInterventionFilter, publishedSiteFilter } from '../approval-board/approval.util';
 import { fieldInterventionsOnly } from '../database/intervention-filters';
 import {
+  PUBLIC_PAGE_THEMES,
+  PublicPageBlock,
+  PublicPageLayouts,
   PublicPagePhoto,
   PublicPageSettings,
   PublicPageTheme,
   PublicProjectPage,
   resolvePublicPageSettings,
+  sanitizePublicPageBlocks,
 } from './public-page.types';
 import { PublicPageSettingsDto } from './dto/public-page-settings.dto';
 
@@ -120,6 +124,9 @@ export class PublicPageService {
     return {
       theme: settings.theme,
       geoDetail: settings.geoDetail,
+      // Only the arrangement for the theme being rendered. The other three are
+      // a dashboard concern and have no business on a public URL.
+      layout: settings.layouts[settings.theme] ?? null,
       snapshotAt: new Date().toISOString(),
       project: {
         uid: projectRow.uid,
@@ -205,6 +212,7 @@ export class PublicPageService {
       ...(changes.showContributorNames === undefined
         ? {}
         : { showContributorNames: changes.showContributorNames }),
+      layouts: mergeLayouts(current.layouts, changes.layouts),
     };
 
     const metadata = {
@@ -711,4 +719,40 @@ export class PublicPageService {
       .map((part) => part[0]?.toUpperCase() ?? '')
       .join('');
   }
+}
+
+/**
+ * Applies a partial layout change, one theme at a time.
+ *
+ * Three states per theme, and the difference matters: absent keeps what is
+ * stored, null clears the override so the theme falls back to its own default
+ * list, and an array replaces it. Replacing rather than merging is deliberate
+ * - an arrangement is an ordered whole, and there is no sensible way to merge
+ * two orders.
+ */
+function mergeLayouts(
+  current: PublicPageLayouts,
+  changes: Partial<Record<PublicPageTheme, PublicPageBlock[] | null | undefined>> | undefined,
+): PublicPageLayouts {
+  if (!changes) return current;
+
+  const next: PublicPageLayouts = { ...current };
+  for (const theme of PUBLIC_PAGE_THEMES) {
+    if (!(theme in changes)) continue;
+
+    const value = changes[theme];
+    if (value === null || value === undefined) {
+      delete next[theme];
+      continue;
+    }
+
+    // Sanitised on the way in as well as on the way out. Validation has
+    // already checked each field; this is what makes the keys unique and
+    // drops anything that got past as an empty shell.
+    const blocks = sanitizePublicPageBlocks(value);
+    if (blocks.length) next[theme] = blocks;
+    else delete next[theme];
+  }
+
+  return next;
 }

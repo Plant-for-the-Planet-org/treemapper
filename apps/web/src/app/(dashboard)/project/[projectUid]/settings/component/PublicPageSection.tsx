@@ -7,6 +7,7 @@ import {
   Copy,
   ExternalLink,
   Globe,
+  Layers,
   Loader2,
   Lock,
   Users,
@@ -284,7 +285,7 @@ export const PublicPageSection = ({
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
                     >
-                      Preview this theme
+                      Preview and arrange
                       <ExternalLink size={11} />
                     </a>
                   </div>
@@ -297,6 +298,19 @@ export const PublicPageSection = ({
             Previews work whether or not the page is live. They are only visible to this
             project&apos;s owners and admins, and are never indexed.
           </p>
+
+          <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/40 p-4">
+            <Layers size={14} className="mt-0.5 shrink-0 text-muted-foreground" />
+            <div className="space-y-1 text-xs text-muted-foreground">
+              <p className="font-medium text-foreground">Arrange the blocks yourself</p>
+              <p>
+                Open a preview and choose &quot;Arrange blocks&quot;. You can reorder what is on
+                the page, drop blocks you do not want, add ones the theme leaves out, and write
+                your own text. Each theme keeps its own arrangement, and a theme you never touch
+                keeps following its default.
+              </p>
+            </div>
+          </div>
         </div>
       </Card>
 

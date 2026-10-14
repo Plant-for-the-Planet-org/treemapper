@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { fetchPublicPage } from '@/components/public-page/fetch'
 import { fontClassName } from '@/components/public-page/fonts'
 import { fmtHectares, fmtNum, fmtTrees } from '@/components/public-page/format'
+import { resolveLayout } from '@/components/public-page/layout'
 import { PublicProjectPageView } from '@/components/public-page/PublicProjectPageView'
 import { resolveTheme } from '@/components/public-page/themes'
 
@@ -67,7 +68,17 @@ export default async function PublicProjectPage({ params }: PageProps) {
 
   const theme = resolveTheme(data.theme)
 
+  // The project's saved arrangement when it has one, the theme's own list
+  // when it does not. A project that never opened the editor keeps following
+  // the theme, so an improvement to a theme still reaches it.
+  const blocks = resolveLayout(theme, data.layout)
+
   return (
-    <PublicProjectPageView data={data} theme={theme} fontClassName={fontClassName(theme)} />
+    <PublicProjectPageView
+      data={data}
+      theme={theme}
+      blocks={blocks}
+      fontClassName={fontClassName(theme)}
+    />
   )
 }

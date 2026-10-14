@@ -10,6 +10,8 @@ import { PeopleBlock } from './PeopleBlock'
 import { PhotosBlock } from './PhotosBlock'
 import { ShareBlock } from './ShareBlock'
 import { SpeciesBlock } from './SpeciesBlock'
+import { TextBlock } from './TextBlock'
+import { TimelineBlock } from './TimelineBlock'
 import { VerificationBlock } from './VerificationBlock'
 import { WorkBlock } from './WorkBlock'
 import type { BlockComponent } from './types'
@@ -32,8 +34,10 @@ export const BLOCKS: Record<BlockId, BlockComponent> = {
   species: SpeciesBlock,
   monitoring: MonitoringBlock,
   work: WorkBlock,
+  timeline: TimelineBlock,
   people: PeopleBlock,
   badges: BadgesBlock,
+  text: TextBlock,
   detailSeam: DetailSeamBlock,
   data: DataBlock,
   share: ShareBlock,

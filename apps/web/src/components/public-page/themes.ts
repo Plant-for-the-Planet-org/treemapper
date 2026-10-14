@@ -1,4 +1,4 @@
-import type { PublicPageTheme } from './types'
+import type { PublicPageBlockId, PublicPageSurface, PublicPageTheme } from './types'
 
 /**
  * The theme system.
@@ -14,23 +14,11 @@ import type { PublicPageTheme } from './types'
 
 export type Tone = 'formal' | 'warm' | 'simple'
 
-export type BlockId =
-  | 'hero'
-  | 'anchorNav'
-  | 'numbers'
-  | 'verification'
-  | 'narrative'
-  | 'map'
-  | 'photos'
-  | 'species'
-  | 'monitoring'
-  | 'work'
-  | 'people'
-  | 'badges'
-  | 'detailSeam'
-  | 'data'
-  | 'share'
-  | 'footer'
+/**
+ * Block names come from the contract in `types.ts`, not from here, because a
+ * saved arrangement is validated against the same list on the server.
+ */
+export type BlockId = PublicPageBlockId
 
 export interface BlockSpec {
   id: BlockId
@@ -47,7 +35,12 @@ export interface BlockSpec {
    * blocks that share a surface into one band, which is how Full draws its
    * story half and its detail half on different grounds.
    */
-  surface?: 'base' | 'detail'
+  surface?: PublicPageSurface
+  /**
+   * Words the project wrote itself. Only the `text` block reads it, and only
+   * a saved arrangement can carry it: a theme default never has any.
+   */
+  content?: { heading?: string; body?: string }
 }
 
 export interface ThemeConfig {

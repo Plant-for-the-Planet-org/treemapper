@@ -15,6 +15,7 @@ import type { PublicProjectPage } from './types'
 export const SAMPLE_PUBLIC_PAGE: PublicProjectPage = {
   theme: 'full',
   geoDetail: 'site',
+  layout: null,
   snapshotAt: new Date().toISOString(),
   project: {
     uid: 'proj_sample',

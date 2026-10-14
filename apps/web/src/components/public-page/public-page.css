@@ -110,3 +110,17 @@
     page-break-inside: avoid;
   }
 }
+
+/*
+ * The layout editor's own furniture.
+ *
+ * A block's toolbar renders inside `.pp-root`, which sets the theme's body
+ * face on everything below it. Chrome in a theme's font reads as part of the
+ * page rather than as a control, and the Academy theme's rounded face makes
+ * that obvious. The editor is never part of a published page: this class
+ * exists only while someone is arranging one.
+ */
+.pp-editor-chrome {
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  letter-spacing: normal;
+}

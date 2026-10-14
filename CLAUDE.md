@@ -592,6 +592,43 @@ architecture is one data payload and four skins:
 - `sites.geojson` and `data.json` route handlers re-serve exactly what the
   page was rendered from.
 
+**Arranging the page.** A theme's block list is the default, not the ceiling. A
+project can save its own order per theme in
+`project.metadata.publicPage.layouts[theme]`; `resolveLayout` in
+`components/public-page/layout.ts` picks the saved list or falls back to the
+theme's own. Three rules hold it together:
+
+- **An override, never a copy.** A project that has arranged nothing stores
+  nothing and keeps following its theme as the theme improves. Saving an
+  arrangement that happens to match the theme *clears* the override rather than
+  pinning today's version of it (`matchesDefault` in `layout.ts`).
+- **Per theme.** A block's variant is a theme decision (`numbers` is `display`
+  in Story and `rules` in Report) and Full splits its blocks across two
+  surfaces, so one shared order could carry neither.
+- **Bad data falls back, it never blanks.** Both sides clean a stored layout
+  instead of trusting it: `sanitizePublicPageBlocks` on the server,
+  `resolveLayout` on the web. An unknown block id is dropped, a repeated key
+  reassigned, text trimmed to length, and a layout left with nothing in it is
+  discarded so the theme default renders.
+
+The editor **is** the preview (`components/public-page/editor/`), reached from
+`/preview/:projectUid/:theme`. `PublicProjectPageView` takes an optional
+`blocks` list and a `wrapBlock` callback, and that pair is the entire seam: the
+editor puts a toolbar around each real block rather than drawing a stand-in, so
+what is arranged is the page a visitor gets. Two things in there are
+deliberate and will look like omissions. Nothing moves during a drag -- these
+blocks are hundreds of pixels tall, so a drop line marks the landing place and
+the page reflows once, on drop -- and a block's own content takes no pointer
+events while editing, or the map pans under the cursor and links navigate
+away mid-drag. Saving `layouts: { <theme>: null }` resets that theme.
+
+Two blocks exist for arranging rather than for any theme default: `timeline`
+(the quarterly chart, which the Work block still shows inline in its `split`
+variant through a shared `TimelineChart`, so there is one copy of it) and
+`text`, the only block whose words a person types. That text is plain, rendered
+as text nodes, length-capped by the server, and travels *inside* the layout, so
+there is no second place page copy can live.
+
 **Previewing without the backend**: set `PUBLIC_PAGE_SAMPLE=true` with
 `NODE_ENV=development` and `fetchPublicPage` returns the fixture in
 `components/public-page/sample.ts` instead of calling the API. Double gated so
@@ -603,7 +640,8 @@ in front of a partner.
 switch asks for confirmation and lists what becomes visible; theme and
 contributor names save immediately because neither publishes anything new.
 Each theme card links to its preview at `/preview/:projectUid/:theme`, which
-works whether or not the page is live.
+works whether or not the page is live and is also where the blocks are
+arranged.
 
 ## Mobile app architecture
 

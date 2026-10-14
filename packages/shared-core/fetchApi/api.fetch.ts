@@ -1577,16 +1577,35 @@ export const patchTreematchContributionIgnore = async (
  * someone turns it on here, so these two calls are the only way a project's
  * work reaches a public URL.
  */
+/** One block in a saved public page arrangement. Mirrors the server DTO. */
+export interface PublicPageLayoutBlock {
+  id: string;
+  key: string;
+  variant?: string;
+  surface?: 'base' | 'detail';
+  content?: { heading?: string; body?: string };
+}
+
 export const getPublicPageSettings = async (token: string, prid: string) => {
   const uri = `${getUrlApi.publicPageSettings}/${prid}/public-page/settings`;
   const result = await fetchGetCall(uri, token);
   return result;
 };
 
+/**
+ * `layouts` is a partial, keyed by theme. A theme left out keeps what is
+ * stored; a theme sent as `null` drops the override and goes back to that
+ * theme's own block list.
+ */
 export const updatePublicPageSettings = async (
   token: string,
   prid: string,
-  payload: { enabled?: boolean; theme?: string; showContributorNames?: boolean },
+  payload: {
+    enabled?: boolean;
+    theme?: string;
+    showContributorNames?: boolean;
+    layouts?: Record<string, PublicPageLayoutBlock[] | null>;
+  },
 ) => {
   const uri = `${patchUrlApi.publicPageSettings}/${prid}/public-page/settings`;
   const result = await fetchPatchCall(uri, payload, token);

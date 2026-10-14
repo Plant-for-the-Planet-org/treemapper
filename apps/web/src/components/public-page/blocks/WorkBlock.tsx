@@ -1,5 +1,6 @@
 import { fmtNum, fmtTrees, humanizeType } from '../format'
 import { EmptyNote, Kicker, Section } from '../primitives'
+import { TimelineChart } from './TimelineBlock'
 import type { BlockProps } from './types'
 
 /** Three steps of the accent, so the stacked bar reads without a legend lookup. */
@@ -12,10 +13,21 @@ const SHADES = ['var(--pp-accent)', '#5d9b77', '#a8c7b4']
  * this is restoration rather than tree counting, so the types that planted
  * nothing (fire patrol, fencing, invasive removal) are listed rather than
  * dropped for being zero.
+ *
+ * `variant: 'mix'` drops the timeline and lets the mix run full width, for a
+ * page that places the Timeline block somewhere else of its own.
  */
-export function WorkBlock({ data, copy }: BlockProps) {
+export function WorkBlock({ data, copy, spec }: BlockProps) {
   const { planting, other } = data.work
   if (!planting.length && !other.length) return null
+
+  if (spec.variant === 'mix') {
+    return (
+      <Section>
+        <Mix planting={planting} other={other} copy={copy} />
+      </Section>
+    )
+  }
 
   return (
     <Section>
@@ -24,7 +36,7 @@ export function WorkBlock({ data, copy }: BlockProps) {
           <Mix planting={planting} other={other} copy={copy} />
         </div>
         <div className="min-w-0 flex-[999_1_28rem]">
-          <Timeline data={data} copy={copy} />
+          <TimelineChart data={data} copy={copy} />
         </div>
       </div>
     </Section>
@@ -113,65 +125,6 @@ function Mix({
           </div>
         </>
       ) : null}
-    </div>
-  )
-}
-
-function Timeline({ data, copy }: { data: BlockProps['data']; copy: BlockProps['copy'] }) {
-  // Last four years of quarters keeps the bars wide enough to read on a phone.
-  const points = data.timeline.slice(-16)
-  if (!points.length) return null
-
-  const peak = points.reduce((max, point) => Math.max(max, point.trees), 0)
-  if (peak <= 0) return null
-
-  // One label per year rather than per quarter, weighted by how many quarters
-  // of that year are actually in view.
-  const years: Array<{ year: number; count: number }> = []
-  for (const point of points) {
-    const last = years[years.length - 1]
-    if (last && last.year === point.year) last.count += 1
-    else years.push({ year: point.year, count: 1 })
-  }
-
-  return (
-    <div>
-      <h3 className="m-0 mb-6">
-        <Kicker>{copy.timelineHeading}</Kicker>
-      </h3>
-
-      <div
-        className="flex h-[184px] items-end gap-2.5"
-        style={{ borderBottom: '1px solid var(--pp-ink)' }}
-      >
-        {points.map((point) => (
-          <div
-            key={point.period}
-            className="flex-1"
-            style={{
-              height: `${Math.max(2, (point.trees / peak) * 100)}%`,
-              background: 'var(--pp-accent)',
-            }}
-            title={`${point.period}: ${fmtTrees(point.trees)} trees`}
-          />
-        ))}
-      </div>
-
-      <div className="mt-2 flex gap-2.5">
-        {years.map((year) => (
-          <span
-            key={year.year}
-            className="pp-num text-[0.6875rem]"
-            style={{ flex: year.count, color: 'var(--pp-muted)' }}
-          >
-            {year.year}
-          </span>
-        ))}
-      </div>
-
-      <p className="mt-3.5 mb-0 text-xs" style={{ color: 'var(--pp-muted)' }}>
-        {copy.timelineNote} Peak quarter was {fmtTrees(peak)} trees.
-      </p>
     </div>
   )
 }

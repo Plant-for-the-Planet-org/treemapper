@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { Loader2, Lock } from 'lucide-react'
 import { getPublicPagePreview } from '@shared-core/fetchApi/api.fetch'
 import { useAccessToken } from '@/hooks/useAccessToken'
+import { LayoutEditor } from '@/components/public-page/editor/LayoutEditor'
 import { fontClassName } from '@/components/public-page/fonts'
-import { PublicProjectPageView } from '@/components/public-page/PublicProjectPageView'
-import { THEMES, resolveTheme } from '@/components/public-page/themes'
+import { resolveTheme } from '@/components/public-page/themes'
 import { PUBLIC_PAGE_THEMES } from '@/components/public-page/types'
 import type { PublicProjectPage } from '@/components/public-page/types'
 
@@ -23,6 +23,10 @@ import type { PublicProjectPage } from '@/components/public-page/types'
  *
  * It takes a project **uid**, not a slug, because the permission guard
  * resolves membership by uid.
+ *
+ * This is also where a page is arranged. `LayoutEditor` turns the same
+ * rendered preview into an editor, so blocks are moved on the page itself
+ * rather than in a list of names somewhere else.
  */
 export default function PublicPagePreview({
   params,
@@ -102,37 +106,16 @@ export default function PublicPagePreview({
   const theme = resolveTheme(requested)
 
   return (
-    <>
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 bg-[#15201b] px-6 py-3 text-[0.8125rem] text-[#f4f6f4]">
-        <span className="font-semibold">Theme preview</span>
-        <nav className="flex flex-wrap gap-2" aria-label="Themes">
-          {Object.values(THEMES).map((option) => {
-            const active = option.id === theme.id
-            return (
-              <Link
-                key={option.id}
-                href={`/preview/${projectUid}/${option.id}`}
-                className="inline-flex min-h-[36px] items-center rounded-full px-3.5 py-1.5 no-underline"
-                style={
-                  active
-                    ? { background: '#f4f6f4', color: '#15201b', fontWeight: 600 }
-                    : { border: '1px solid #3b4c43', color: '#cfdbd1' }
-                }
-              >
-                {option.label}
-                {option.id === data.theme ? ' (live)' : ''}
-              </Link>
-            )
-          })}
-        </nav>
-        <span className="ml-auto flex items-center gap-1.5 text-[#9fb0a4]">
-          <Lock size={12} />
-          Only visible to you. Not indexed.
-        </span>
-      </div>
-
-      <PublicProjectPageView data={data} theme={theme} fontClassName={fontClassName(theme)} />
-    </>
+    <LayoutEditor
+      // Remounted per theme, so an arrangement in progress can never be
+      // carried over onto a theme it was not made for.
+      key={theme.id}
+      data={data}
+      theme={theme}
+      projectUid={projectUid}
+      accessToken={accessToken as string}
+      fontClassName={fontClassName(theme)}
+    />
   )
 }
 
