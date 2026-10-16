@@ -1,11 +1,11 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test'
 
 // The test layers and the reasons behind these settings are in
 // docs/e2e-testing-plan.md.
 
-const isCI = !!process.env.CI;
-const port = Number(process.env.E2E_PORT ?? 3000);
-const baseURL = `http://localhost:${port}`;
+const isCI = !!process.env.CI
+const port = Number(process.env.E2E_PORT ?? 3000)
+const baseURL = `http://localhost:${port}`
 
 export default defineConfig({
   // Layer 1 (mocked API). Layer 2 (full stack) gets its own folder and project.
@@ -31,9 +31,6 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        // After the device spread, which brings its own 1280x720. The sidebar
-        // opens by default at 1280px or wider.
-        viewport: { width: 1440, height: 900 },
       },
     },
   ],
@@ -60,4 +57,4 @@ export default defineConfig({
       NEXT_TELEMETRY_DISABLED: '1',
     },
   },
-});
+})
