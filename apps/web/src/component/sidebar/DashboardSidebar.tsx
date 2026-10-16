@@ -450,7 +450,10 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
               */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors">
+                  <button
+                    aria-label="Account menu"
+                    className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
+                  >
                     <Settings size={14} />
                   </button>
                 </DropdownMenuTrigger>
