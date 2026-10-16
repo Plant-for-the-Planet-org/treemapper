@@ -1,0 +1,101 @@
+import type { Page, Route } from '@playwright/test';
+
+import { fakeJwt } from './auth';
+
+// Same host as lib/auth/auth0-config.ts. Nothing in Layer 1 reaches it.
+export const AUTH0_ORIGIN = 'https://accounts.plant-for-the-planet.org';
+
+export const E2E_AUTH_CODE = 'e2e-auth-code';
+
+export interface Auth0Stub {
+  /** Every /authorize request, silent (`prompt=none`) and interactive, in order. */
+  authorizeRequests: URL[];
+  /** The JSON bodies posted to /oauth/token. */
+  tokenRequests: Record<string, string>[];
+  logoutRequests: URL[];
+  /** Any other Auth0 request. The fixture fails the test if this is not empty. */
+  unexpected: string[];
+  /** What /oauth/token hands back. Change it before the login starts. */
+  accessToken: string;
+}
+
+function redirect(route: Route, location: string) {
+  return route.fulfill({ status: 302, headers: { location } });
+}
+
+// The token exchange is a cross-origin fetch, so the browser needs these.
+function corsHeaders(route: Route): Record<string, string> {
+  return {
+    'access-control-allow-origin': route.request().headers().origin ?? '*',
+    'access-control-allow-methods': 'POST, OPTIONS',
+    'access-control-allow-headers': 'content-type',
+  };
+}
+
+// Plays the part of Auth0 so the app's own side of the handshake runs for real:
+// the authorize params, the /api/auth/callback route, /redirecting, the token
+// exchange and the logout return trip.
+export async function stubAuth0(page: Page): Promise<Auth0Stub> {
+  const stub: Auth0Stub = {
+    authorizeRequests: [],
+    tokenRequests: [],
+    logoutRequests: [],
+    unexpected: [],
+    accessToken: fakeJwt(),
+  };
+
+  await page.route(`${AUTH0_ORIGIN}/**`, async route => {
+    const request = route.request();
+    const url = new URL(request.url());
+
+    if (url.pathname === '/authorize') {
+      stub.authorizeRequests.push(url);
+
+      const back = new URL(url.searchParams.get('redirect_uri') ?? '/');
+      if (url.searchParams.get('prompt') === 'none') {
+        // What Auth0 answers a silent login when there is no session.
+        back.searchParams.set('error', 'login_required');
+        back.searchParams.set('error_description', 'Login required');
+      } else {
+        back.searchParams.set('code', E2E_AUTH_CODE);
+      }
+      const state = url.searchParams.get('state');
+      if (state) back.searchParams.set('state', state);
+
+      return redirect(route, back.toString());
+    }
+
+    if (url.pathname === '/oauth/token') {
+      if (request.method() === 'OPTIONS') {
+        return route.fulfill({ status: 204, headers: corsHeaders(route) });
+      }
+
+      stub.tokenRequests.push(request.postDataJSON());
+      return route.fulfill({
+        status: 200,
+        headers: corsHeaders(route),
+        json: {
+          access_token: stub.accessToken,
+          id_token: fakeJwt(),
+          expires_in: 3600,
+          token_type: 'Bearer',
+          scope: 'openid profile email',
+        },
+      });
+    }
+
+    if (url.pathname === '/v2/logout') {
+      stub.logoutRequests.push(url);
+
+      const returnTo = url.searchParams.get('returnTo');
+      return returnTo
+        ? redirect(route, returnTo)
+        : route.fulfill({ status: 200, body: 'OK' });
+    }
+
+    stub.unexpected.push(`${request.method()} ${url.pathname}`);
+    return route.abort();
+  });
+
+  return stub;
+}
