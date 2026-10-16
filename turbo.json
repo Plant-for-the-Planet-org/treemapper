@@ -19,6 +19,13 @@
     },
     "type-check": {
       "outputs": []
+    },
+    "test": {
+      "outputs": []
+    },
+    "test:e2e": {
+      "cache": false,
+      "passThroughEnv": ["CI", "E2E_PORT", "PLAYWRIGHT_*"]
     }
   },
   "globalEnv": ["NODE_ENV"],
