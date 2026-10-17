@@ -54,7 +54,7 @@
     "dotenv": "16.6.1",
     "drizzle-orm": "0.45.2",
     "fastify": "5.8.5",
-    "handlebars": "4.7.9",
+    "handlebars": "4.7.10",
     "jwks-rsa": "3.2.2",
     "nodemailer": "9.0.5",
     "passport": "0.7.0",
