@@ -25,6 +25,7 @@ import getUserLocation from 'src/utils/helpers/getUserLocation'
 import getDistanceBetween, { formatDistance } from 'src/utils/helpers/getDistanceBetween'
 import { useToast } from 'react-native-toast-notifications'
 import SatelliteIconWrapper from 'src/components/map/SatelliteIconWrapper'
+import GarminGpsButton from 'src/components/map/GarminGpsButton'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import MapPin from 'assets/images/svg/MapPin.svg'
 import UserLocationIcon from 'assets/images/svg/UserLocationIcon.svg'
@@ -164,6 +165,16 @@ const PlannedTreeLocationView = () => {
     }
   }
 
+  // A watch fix is an explicit placement, same as the recenter button, so it
+  // moves the pin and reframes. The toast says where it came from, because
+  // after this the coordinate is indistinguishable from a tapped one.
+  const handleGarminFix = (coords: [number, number]) => {
+    userPanned.current = false
+    setSelectedCoordinate(coords)
+    frameBoth(coords, userCoord)
+    toast.show('Tree location set from the watch')
+  }
+
   const confirmLocation = async () => {
     if (!selectedCoordinate || selectedCoordinate[0] === 0) {
       toast.show('Please tap the tree location on the map')
@@ -223,6 +234,11 @@ const PlannedTreeLocationView = () => {
           </View>
         )}
         <SatelliteIconWrapper low />
+        <GarminGpsButton
+          onFix={handleGarminFix}
+          origin={userCoord ?? null}
+          bottom={240}
+        />
         <TouchableOpacity style={styles.undoBtn} onPress={undoLocation}>
           <UndoIcon width={SCALE_20} height={SCALE_20} />
         </TouchableOpacity>

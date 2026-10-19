@@ -8,6 +8,46 @@
  * device that has told us it is fully synced.
  */
 
+/**
+ * Mirrors DeviceSyncSnapshot on the server. The device reports it with every
+ * app open, so it is a snapshot of that moment, not a live figure.
+ *
+ * `queued` sums to `pendingInterventions`: the same uploadable backlog split by
+ * where each record stopped. `drafts` and `fixRequired` sit outside it, and the
+ * difference matters to whoever reads this screen. Queued work clears itself
+ * once the phone has a connection, so a push nudge is worth sending. A draft
+ * needs the person to finish it, and a fix-required record needs the person to
+ * correct it. Neither moves because an admin pressed a button.
+ */
+export interface SyncSnapshot {
+  drafts: number
+  fixRequired: number
+  queued: {
+    dataUpload: number
+    sampleTree: number
+    treeImage: number
+    remeasurement: number
+    other: number
+  }
+  oldestPendingAt: string | null
+}
+
+/**
+ * One error from the device's own activity log, as the phone reported it on
+ * its last app open.
+ *
+ * Capped at 20 and replaced in full each time, so this is what is wrong with
+ * the device now, not a searchable history. An error that has scrolled past
+ * twenty newer ones is gone from here and still on the phone, where the app's
+ * Activity Logs screen and its share button reach it.
+ */
+export interface DeviceErrorLog {
+  at: string
+  type: string
+  status: string | null
+  message: string
+}
+
 export type Platform = 'ios' | 'android'
 export type NetworkType = 'wifi' | 'cellular' | 'offline'
 export type Priority = 'normal' | 'high'
@@ -40,6 +80,13 @@ export interface Device {
   networkType: NetworkType | string | null
   pendingInterventions: number | null
   pendingTrees: number | null
+  // Null on a device running an app build from before this shipped. Those
+  // devices still report the two counters above, so the pane falls back to
+  // them rather than showing nothing.
+  syncSnapshot: SyncSnapshot | null
+  // Null means the app build does not report errors. An empty array means it
+  // reported and had none, which is good news and must read differently.
+  recentErrors: DeviceErrorLog[] | null
   lastSyncAt: string | null
   lastActiveAt: string | null
   createdAt: string
@@ -55,7 +102,12 @@ export interface FleetStats {
   ios: number
   android: number
   needsUpdate: number
+  // Uploadable work queued across the fleet. Unchanged in meaning: the two
+  // counts below are separate precisely so this one keeps meaning "a sync
+  // will clear this".
   pendingSync: number
+  draftsPending: number
+  fixRequired: number
 }
 
 export interface ProjectDevicesResponse {

@@ -623,6 +623,60 @@ export const notifications = pgTable('notifications', {
     sql`retry_count >= 0 AND retry_count <= 10`),
 }));
 
+// Breakdown of the unsynced field work sitting on a device, reported with the
+// device registration on every app open.
+//
+// One jsonb column rather than a column per bucket: the sync state machine on
+// the phone keeps gaining statuses (the remeasurement ones arrived after the
+// first three), and nothing here is ever queried inside Postgres -- the
+// dashboard reads the object whole.
+//
+// It deliberately does NOT repeat `pendingInterventions` or `pendingTrees`.
+// Those two columns stay the single source for "uploadable work queued", which
+// is what the fleet stat and the update nudge are built on. `queued` below is
+// that same number split by where each record stopped.
+export interface DeviceSyncSnapshot {
+  // Started in the field and never finished, so the app does not even try to
+  // upload them. Invisible to a project owner before this existed.
+  drafts: number;
+  // Quarantined: the server rejected the payload, and the record will not
+  // retry until someone edits it on the phone. A push nudge cannot clear
+  // these, which is why they are counted apart from the queue.
+  fixRequired: number;
+  // The uploadable queue, split by status. Sums to pendingInterventions.
+  queued: {
+    dataUpload: number;
+    sampleTree: number;
+    treeImage: number;
+    remeasurement: number;
+    // A status this server build does not recognise. Keeps the sum honest
+    // when a newer app reports something we have no bucket for yet.
+    other: number;
+  };
+  // Intervention date of the oldest record counted above, ISO 8601. Null when
+  // the device has nothing unsynced. This is what turns "14 queued" into "14
+  // queued since March".
+  oldestPendingAt: string | null;
+}
+
+// One error from a device's on-device activity log, as the dashboard shows it.
+//
+// A projection of the mobile Realm row, not a copy: `logStack` is dropped
+// because the call sites fill it with `JSON.stringify(error)`, which yields
+// `{}` for a JS Error, and `referenceId` means nothing outside the app.
+//
+// This is not a log pipeline and must not become one. The device sends its
+// newest errors on every app open and the whole list is replaced, so there is
+// no history, nothing to paginate and nothing to prune. If error history over
+// time is ever needed, that is a table of its own with an ingest endpoint and
+// a retention policy, not this column growing.
+export interface DeviceErrorLog {
+  at: string;
+  type: string;
+  status: string | null;
+  message: string;
+}
+
 // One row per physical device (deviceId is the client-generated id stored on
 // the device). On app open the mobile app upserts this row: if the same
 // deviceId logs in as a different user, ownership (userId) is reassigned.
@@ -664,6 +718,15 @@ export const userDevice = pgTable('user_device', {
   // Field data recorded on the device but not yet uploaded.
   pendingInterventions: integer('pending_interventions'),
   pendingTrees: integer('pending_trees'),
+  // Per-status breakdown of the same backlog, including the drafts and
+  // quarantined records the two counters above leave out. Null means the
+  // device runs an app build that predates this field, which is not the same
+  // as a device reporting an empty backlog.
+  syncSnapshot: jsonb('sync_snapshot').$type<DeviceSyncSnapshot>(),
+  // The device's most recent errors, newest first, capped on both sides.
+  // Null means the app build does not report them; an empty array means it
+  // reported and had none.
+  recentErrors: jsonb('recent_errors').$type<DeviceErrorLog[]>(),
   lastSyncAt: timestamp('last_sync_at', { withTimezone: true }),
   lastActiveAt: timestamp('last_active_at', { withTimezone: true }).defaultNow().notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

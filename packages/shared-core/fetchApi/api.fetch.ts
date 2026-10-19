@@ -319,6 +319,18 @@ export const updateProjectDeviceState = async (
   return result
 }
 
+// Removes a device from the project's fleet. Soft delete on the server: if the
+// app is still installed, the next app open registers it again.
+export const deleteProjectDevice = async (
+  token: string,
+  projectId: string,
+  deviceUid: string,
+) => {
+  const uri = `${deleteUrlApi.projectDevice}/${encodeURIComponent(projectId)}/devices/${encodeURIComponent(deviceUid)}`
+  const result = await fetchDeleteCall(uri, token)
+  return result
+}
+
 export const getProjectAnalytics = async (token: string, id: string, pageSize?: number) => {
   const uri = `${getUrlApi.getProjectAnalytics}/${id}/leaderboard${pageSize ? `?pageSize=${pageSize}` : ''}`
   const result = await fetchGetCall(uri, token)

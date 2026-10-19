@@ -34,6 +34,8 @@ import { Colors } from 'src/utils/constants'
 import { TourTarget } from '@wrack/react-native-tour-guide'
 import useInterventionTour, { useTourAction } from 'src/hooks/useInterventionTour'
 import { TOUR_TARGETS, TOUR_STEPS } from 'src/utils/tour/interventionTour'
+import GarminGpsButton from './GarminGpsButton'
+import { scaleSize } from 'src/utils/constants/mixins'
 
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -277,6 +279,15 @@ const PointMarkerMap = (props: Props) => {
     }
   }
 
+  // A coordinate from the watch is already a surveyed point, so it goes
+  // straight to the pin. The camera follows it rather than the other way
+  // round: the user is looking at the map, and a pin that lands off screen
+  // reads as nothing having happened.
+  const handleGarminFix = (coords: [number, number]) => {
+    placePin(coords)
+    cameraRef.current?.easeTo({ center: coords, zoom: 18, duration: 600 })
+  }
+
   // Drop the pin exactly where the user taps. maplibre gives the tapped
   // geo coordinate as event.nativeEvent.lngLat ([lng, lat]).
   const handleMapPress = (event: { nativeEvent?: { lngLat?: [number, number] } }) => {
@@ -328,6 +339,15 @@ const PointMarkerMap = (props: Props) => {
         </Map>
       </TourTarget>
       <SatelliteIconWrapper low />
+      <GarminGpsButton
+        onFix={handleGarminFix}
+        origin={
+          currentUserLocation && currentUserLocation[0] !== 0
+            ? [currentUserLocation[0], currentUserLocation[1]]
+            : null
+        }
+        bottom={scaleSize(240)}
+      />
       {/* <MapZoomScale mapRef={mapRef} position="top-left" padTop={20} /> */}
       <TourTarget id={TOUR_TARGETS.POINT_CONFIRM} style={styles.btnContainer}>
         <CustomButton

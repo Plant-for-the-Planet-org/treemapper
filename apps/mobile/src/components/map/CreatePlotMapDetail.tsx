@@ -8,6 +8,7 @@ import CustomButton from '../common/CustomButton';
 import * as turf from '@turf/turf'
 import { PLOT_SHAPE } from 'src/types/type/app.type';
 import PlotShapeSource from './PlotShapeSource';
+import GarminGpsButton from './GarminGpsButton';
 import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement';
 import { Typography, Colors } from 'src/utils/constants';
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins';
@@ -142,8 +143,11 @@ const CreatePlotMapDetail = (props: Props) => {
     return circleGeoJSON.geometry.coordinates[0]
   }
 
-  const handleContinuePress = async () => {
-    const centerCoordinates = await mapRef.current.getCenter()
+  // The coordinate is a parameter so a watch fix can take the same path as
+  // the crosshair. Left out, it falls back to the map centre, which is what
+  // the on-screen button has always done.
+  const handleContinuePress = async (coordinate?: [number, number]) => {
+    const centerCoordinates = coordinate ?? (await mapRef.current.getCenter())
     let updatedCoords = []
     if (plot_shape === 'CIRCULAR') {
       updatedCoords = getCircularCoords(centerCoordinates)
@@ -161,8 +165,8 @@ const CreatePlotMapDetail = (props: Props) => {
   }
 
 
-  const setSampleMarker = async () => {
-    const centerCoordinates = await mapRef.current.getCenter()
+  const setSampleMarker = async (coordinate?: [number, number]) => {
+    const centerCoordinates = coordinate ?? (await mapRef.current.getCenter())
     const validMarker = isPointInPolygon(centerCoordinates, {
       "type": "Feature",
       "properties": {},
@@ -192,6 +196,18 @@ const CreatePlotMapDetail = (props: Props) => {
       return
     }
     navigation.replace("PlotDetails", { id: plotId })
+  }
+
+  // This screen marks two different things depending on how it was opened:
+  // the plot centre, or one plant inside an existing plot. The watch feeds
+  // whichever one is on screen.
+  const handleGarminFix = async (coords: [number, number]) => {
+    cameraRef.current?.easeTo({ center: coords, zoom: 18, duration: 600 })
+    if (isMarking) {
+      await setSampleMarker(coords)
+    } else {
+      await handleContinuePress(coords)
+    }
   }
 
   const continueForm = async () => {
@@ -302,6 +318,15 @@ const CreatePlotMapDetail = (props: Props) => {
         {plantedTrees.length > 0 && <PlotMarker sampleTreeData={plantedTrees} onMarkerPress={() => { }} />}
       </Map>
       </TourTarget>
+      <GarminGpsButton
+        onFix={handleGarminFix}
+        origin={
+          currentUserLocation && currentUserLocation[0] !== 0
+            ? [currentUserLocation[0], currentUserLocation[1]]
+            : null
+        }
+        bottom={scaleSize(240)}
+      />
       {showOrientationHint && (
         <View style={styles.orientationHint} pointerEvents="none">
           <View style={styles.orientationRow}>

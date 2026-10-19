@@ -1,8 +1,9 @@
 import { useEffect, useRef, useCallback } from 'react'
-import { Platform } from 'react-native'
+import { AppState, Platform } from 'react-native'
 import { OneSignal } from 'react-native-onesignal'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Bugsnag from '@bugsnag/expo'
+import { pruneActivityLogs } from 'src/db/activityLogCleanup'
 
 // Set once we have shown the OS notification prompt, so we never ask again.
 const NOTIFICATION_ASKED_KEY = 'notification-permission-asked'
@@ -88,6 +89,14 @@ const useAppStartup = (): UseAppStartupResult => {
         name: 'OneSignal',
         execute: initializeOneSignal,
       },
+      {
+        // Drops activity logs past the retention window. Synchronous Realm
+        // work, wrapped to fit the task signature.
+        name: 'ActivityLogCleanup',
+        execute: async () => {
+          pruneActivityLogs()
+        },
+      },
       // Add more startup tasks here as needed
       // Example:
       // {
@@ -112,6 +121,23 @@ const useAppStartup = (): UseAppStartupResult => {
   useEffect(() => {
     runStartupTasks()
   }, [runStartupTasks])
+
+  // Also prune when the app comes back to the foreground, not only on a cold
+  // start. A field phone can stay backgrounded for days at a time and still be
+  // "opened" every morning, so a cold-start-only sweep would let logs pile up
+  // on exactly the devices that write the most of them.
+  //
+  // Safe to run this often: pruneActivityLogs returns before opening a write
+  // transaction when nothing has aged out, which is the usual case.
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        pruneActivityLogs()
+      }
+    })
+
+    return () => subscription.remove()
+  }, [])
 
   return {
     isInitialized: isInitializedRef.current,

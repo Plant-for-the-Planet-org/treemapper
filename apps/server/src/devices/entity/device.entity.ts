@@ -1,5 +1,9 @@
 import { InferSelectModel } from 'drizzle-orm';
-import { userDevice } from '../../database/schema/index';
+import {
+  DeviceErrorLog,
+  DeviceSyncSnapshot,
+  userDevice,
+} from '../../database/schema/index';
 
 export type UserDevice = InferSelectModel<typeof userDevice>;
 
@@ -37,6 +41,14 @@ export interface ProjectDevice {
   networkType: string | null;
   pendingInterventions: number | null;
   pendingTrees: number | null;
+  // The same backlog split by status, plus the drafts and quarantined records
+  // the two counters above exclude. Null on a device whose app build predates
+  // the field; the dashboard shows the counters alone in that case.
+  syncSnapshot: DeviceSyncSnapshot | null;
+  // Newest first, capped at 20. Null means the app build does not report
+  // errors; an empty array means it reported and had none, which is a real
+  // answer and must not render the same way.
+  recentErrors: DeviceErrorLog[] | null;
   lastSyncAt: Date | string | null;
   lastActiveAt: Date | string | null;
   createdAt: Date | string;
@@ -60,7 +72,15 @@ export interface ProjectDeviceStats {
   needsUpdate: number;
   // Sum of pending interventions across the fleet. Devices that have not
   // reported telemetry contribute nothing.
+  //
+  // This stays strictly "uploadable work queued". The two counts below are
+  // separate because a push nudge fixes neither: a draft needs the person to
+  // finish it, and a quarantined record needs the person to correct it.
   pendingSync: number;
+  // Interventions started in the field and never completed, fleet-wide.
+  draftsPending: number;
+  // Interventions the server rejected, waiting on an edit, fleet-wide.
+  fixRequired: number;
 }
 
 export interface ProjectDevicesResponse {

@@ -8,11 +8,13 @@ import ActiveMarkerIcon from '../common/ActiveMarkerIcon'
 import LineMarker from './LineMarker'
 import AlphabetMarkers from './AlphabetMarkers'
 import { Colors, Typography } from 'src/utils/constants'
+import { scaleSize } from 'src/utils/constants/mixins'
 import distanceCalculator from 'src/utils/helpers/turfHelpers'
 import { useToast } from 'react-native-toast-notifications'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import SatelliteIconWrapper from './SatelliteIconWrapper'
+import GarminGpsButton from './GarminGpsButton'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import UserlocationMarker from './UserlocationMarker'
 import Icon from '@expo/vector-icons/FontAwesome5';
@@ -191,23 +193,41 @@ const SiteCreationMap = (props: Props) => {
         }
     }
 
+    // Everything a corner goes through once its coordinate is known. The
+    // crosshair reads the map centre, the watch reports where it actually is,
+    // and both land here so neither can skip the spacing rule or the draft.
+    // Typed as number[] rather than a tuple because getCenter() can hand back
+    // a short or empty array, and a tuple type would make the guard dead.
+    const commitCoordinate = async (coordinate: number[]) => {
+        if (!coordinate || coordinate.length < 2) {
+            return
+        }
+        const corner = coordinate as [number, number]
+        const checkValidDistance = await checkIsValidMarker(corner, [...coordinates])
+        setLineError(!checkValidDistance)
+        if (!checkValidDistance) {
+            errorHaptic()
+            return
+        }
+        const updatedCoordinates = [...coordinates, corner]
+        setCoordinates(updatedCoordinates)
+        restoredCoordsRef.current = []
+        saveDraft('SITE', draftOwnerRef.current, updatedCoordinates)
+        if (coordinates.length >= 2) {
+            setPolygonComplete(true)
+        }
+    }
+
     const onSelectLocation = async () => {
         const centerCoordinates = await mapRef.current.getCenter()
-        if (centerCoordinates.length !== 0) {
-            const checkValidDistance = await checkIsValidMarker(centerCoordinates, [...coordinates])
-            setLineError(!checkValidDistance)
-            if (!checkValidDistance) {
-                errorHaptic()
-                return
-            }
-            const updatedCoordinates = [...coordinates, centerCoordinates]
-            setCoordinates(updatedCoordinates)
-            restoredCoordsRef.current = []
-            saveDraft('SITE', draftOwnerRef.current, updatedCoordinates)
-            if (coordinates.length >= 2) {
-                setPolygonComplete(true)
-            }
-        }
+        await commitCoordinate(centerCoordinates)
+    }
+
+    // Place the corner where the watch says it is, then bring the map to it so
+    // the crosshair and the recorded corner agree on screen.
+    const handleGarminFix = async (coords: [number, number]) => {
+        cameraRef.current?.easeTo({ center: coords, zoom: 18, duration: 600 })
+        await commitCoordinate(coords)
     }
 
 
@@ -291,6 +311,15 @@ const SiteCreationMap = (props: Props) => {
             </Map>
             </TourTarget>
             <SatelliteIconWrapper />
+            <GarminGpsButton
+                onFix={handleGarminFix}
+                origin={
+                    currentUserLocation && currentUserLocation[0] !== 0
+                        ? [currentUserLocation[0], currentUserLocation[1]]
+                        : null
+                }
+                bottom={scaleSize(270)}
+            />
             {polygonComplete && (
                 <TourTarget id={SITE_TOUR_TARGETS.FOOTER} style={styles.btnFooterSite}>
                     <CustomButton

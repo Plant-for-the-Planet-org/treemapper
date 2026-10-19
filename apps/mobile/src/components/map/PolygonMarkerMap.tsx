@@ -19,6 +19,7 @@ import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelpe
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import SatelliteIconWrapper from './SatelliteIconWrapper'
+import GarminGpsButton from './GarminGpsButton'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import UserlocationMarker from './UserlocationMarker'
 import i18next from 'i18next'
@@ -256,31 +257,49 @@ const PolygonMarkerMap = (props: Props) => {
     }
   }
 
+  // Everything a corner goes through once its coordinate is known, whatever
+  // produced it. The crosshair reads the map centre; the watch reports where
+  // it actually is. Both land here so neither can skip the close-the-loop
+  // question or the 1 m rule.
+  // Typed as number[] rather than a tuple because getCenter() can hand back a
+  // short or empty array, and a tuple type would make the guard below dead.
+  const commitCoordinate = async (coordinate: number[]) => {
+    if (!coordinate || coordinate.length < 2 || coordinate[0] === 0) {
+      toast.show("Please click on location")
+      return
+    }
+    const corner = coordinate as [number, number]
+    // Walking back onto corner A is how a boundary ends, so a corner that lands
+    // on top of it is a question rather than a new corner. Below three corners
+    // there is no ring to close yet, and the 1 m rule handles the near miss.
+    if (coordinates.length >= 3 && isBackAtFirstCorner(corner)) {
+      setPendingCoordinate(corner)
+      setCloseLoopModal(true)
+      return
+    }
+    await addCoordinate(corner)
+  }
+
   const onSelectLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
     if (!centerCoordinates) {
       return
     }
-    if (centerCoordinates && centerCoordinates[0] === 0) {
-      toast.show("Please click on location")
-      return
-    }
+    // The crosshair records wherever the phone thinks it is, so a phone with
+    // no fix cannot place a corner. A watch fix is its own survey and is not
+    // held to this, which is why the check lives here and not in commit.
     if (currentUserLocation && currentUserLocation[0] === 0) {
       toast.show("Please click on location")
       return
     }
-    if (centerCoordinates.length === 0) {
-      return
-    }
-    // Walking back onto corner A is how a boundary ends, so a corner that lands
-    // on top of it is a question rather than a new corner. Below three corners
-    // there is no ring to close yet, and the 1 m rule handles the near miss.
-    if (coordinates.length >= 3 && isBackAtFirstCorner(centerCoordinates)) {
-      setPendingCoordinate(centerCoordinates as [number, number])
-      setCloseLoopModal(true)
-      return
-    }
-    await addCoordinate(centerCoordinates)
+    await commitCoordinate(centerCoordinates)
+  }
+
+  // Place the corner where the watch says it is, then bring the map to it so
+  // the crosshair and the recorded corner agree on screen.
+  const handleGarminFix = async (coords: [number, number]) => {
+    cameraRef.current?.easeTo({ center: coords, zoom: 18, duration: 600 })
+    await commitCoordinate(coords)
   }
 
   const isBackAtFirstCorner = (centerCoordinates: [number, number]) => {
@@ -537,6 +556,19 @@ const PolygonMarkerMap = (props: Props) => {
       </View>
       </TourTarget>
       <SatelliteIconWrapper bottom={isTracking ? 120 : 0} />
+      {/* Hidden while walking the boundary: tracking records a continuous path
+          from the phone, and a single watch point has nowhere to go in it. */}
+      {!isTracking && (
+        <GarminGpsButton
+          onFix={handleGarminFix}
+          origin={
+            currentUserLocation && currentUserLocation[0] !== 0
+              ? [currentUserLocation[0], currentUserLocation[1]]
+              : null
+          }
+          bottom={50}
+        />
+      )}
       <MapZoomScale mapRef={mapRef} position="top-left" padTop={coordinates.length > 0?70:20}/>
       {polygonComplete && (
         <TourTarget id={MULTI_TOUR_TARGETS.FOOTER} style={styles.btnFooter}>

@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProjectRoles } from '../projects/decorators/project-roles.decorator';
@@ -69,6 +78,26 @@ export class DevicesController {
       membership.projectId,
       deviceUid,
       dto.isActive,
+      userData.id,
+    );
+  }
+
+  @Delete(':deviceUid')
+  @ApiOperation({
+    summary: 'Remove a device from the fleet',
+    description:
+      'Soft-deletes the device and drops its push alias. Meant for rows left behind by a reinstall, which mint a new device id. If the app is still installed, opening it registers the same device again.',
+  })
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async removeDevice(
+    @Membership() membership: ProjectGuardResponse,
+    @Param('deviceUid') deviceUid: string,
+    @CurrentUser() userData: User,
+  ) {
+    return this.devicesService.removeDevice(
+      membership.projectId,
+      deviceUid,
       userData.id,
     );
   }

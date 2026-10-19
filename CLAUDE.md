@@ -88,8 +88,11 @@ Two things here are easy to assume wrong:
 
 One Postgres schema file, `apps/server/src/database/schema/index.ts` (~2200
 lines, 35 tables, 36 enums), is the source of truth. Migrations live in
-`apps/server/drizzle/migrations` (currently 0000-0008; `0008_mushy_blue_blade`
-adds the `user_device` telemetry columns).
+`apps/server/drizzle/migrations` (currently 0000-0011; `0008_mushy_blue_blade`
+adds the `user_device` telemetry columns, `0010_elite_deathstrike` adds
+`user_device.sync_snapshot` for the per-status breakdown of a device's
+unsynced field work, and `0011_tricky_jasper_sitwell` adds
+`user_device.recent_errors`).
 
 The spine is **workspace -> project -> site -> intervention -> tree ->
 tree_record**:
@@ -364,11 +367,38 @@ auto-upgrades anything.
   `--font-open-sans: var(--font-open-sans)`, so
   `body { font-family: var(--font-open-sans), Arial, ... }` falls through to
   Arial. The dashboard is not rendering Open Sans today.
-- **Two nav entries are switched off in `DashboardSidebar.tsx`.**
-  `const showTreeMatch = false` hides the whole "Matching" group, and the
-  Devices entry is commented out until migration `0008` is applied everywhere
-  (the page 500s without its `user_device` telemetry columns). Both pages and
-  their APIs still work by direct URL. Each is a one-line restore.
+- **One nav entry is switched off in `DashboardSidebar.tsx`.**
+  `const showTreeMatch = false` hides the whole "Matching" group. The page and
+  its API still work by direct URL, and it is a one-line restore. The Devices
+  entry was hidden the same way and is back as of 2026-10-16; it reads
+  `user_device` telemetry columns directly, so that page 500s on any
+  deployment missing migration `0008` or `0010`.
+- **`user_device.recent_errors` is a snapshot, not a log pipeline.** The app
+  sends its 20 newest error-level activity logs with each registration and the
+  column is replaced wholesale, so there is no history, nothing to paginate
+  and nothing to prune. Both the app (`deviceTelemetry.ts`) and the server
+  (`normalizeRecentErrors`) cap the count and the message length; the server's
+  caps are the ones that hold, because the payload is client-supplied. Error
+  history over time needs its own table with an ingest endpoint and a
+  retention policy, not this column growing.
+- **Mobile activity logs expire after 15 days.** `db/activityLogCleanup.ts`
+  drops anything older, on cold start (a task in `useAppStartup`) and again on
+  every foreground. It returns before opening a write transaction when nothing
+  has aged out, which is what makes the foreground call cheap. `deleteAllLogs`
+  in `hooks/realm/useLogManagement.ts` still has zero callers and is not what
+  does this. Note `addNewLog` hardcodes `appVersion: ''`, overwriting whatever
+  the caller passed, so every log row has an empty app version.
+- **Device rows are per install, not per phone.** The mobile `device-id` is a
+  uuid in AsyncStorage, which the OS destroys on uninstall and on Android's
+  "Clear data", so every reinstall registers a brand-new `user_device` row.
+  Three things keep the fleet honest, and they work together: the read side
+  only shows devices seen within `ACTIVE_WINDOW_DAYS` (60) in
+  `devices.service.ts`, registration retires the same user's earlier row for
+  the same model and OS (`retirePreviousInstall` in `users.service.ts`), and
+  admins can `DELETE /projects/:id/devices/:deviceUid`. All three are soft or
+  read-only -- a phone that is still installed re-registers the same row and
+  clears `deletedAt`, so nothing here is permanent. Do not read a device count
+  as a headcount.
 - **The web dashboard is effectively English-only.** `src/lib/i18n.ts` inlines
   a handful of login strings and nothing else, despite `i18next` /
   `react-i18next` being installed. Only `apps/mobile` has real translations
@@ -520,7 +550,7 @@ web or server. Expo 55 / RN 0.83, bare workflow (checked-in `android/` and
 `ios/`), app version in `app.json` (3.0.6), bundle id `org.pftp.treemapper`.
 
 - **Realm is the primary store, not a cache.** `src/db/schema/` (~40 object
-  schemas) is the local model; `schemaVersion` is **32** in
+  schemas) is the local model; `schemaVersion` is **29** in
   `src/db/RealmProvider.tsx`, and `src/db/migrations.ts` holds the hand-written
   migrations (v24, v27 both backfill a new `sync_status`). Bumping a schema
   means bumping that version. `appRealm` is a module-level singleton so
@@ -628,6 +658,54 @@ web or server. Expo 55 / RN 0.83, bare workflow (checked-in `android/` and
   instead of starting and stalling. A tour spanning screens cannot count
   `nextStep()` calls, because the user can always press back -- each screen
   declares the steps it owns and the tour re-syncs forward on focus.
+- **Garmin GPS: the JS half is built, the native half is not.** A Garmin
+  device tile sits on every map that captures a coordinate (`PointMarkerMap`,
+  `PolygonMarkerMap`, `SiteCreationMap`, `CreatePlotMapDetail`,
+  `PlannedTreeLocationView`), opens a modal and drops the point the watch
+  sends onto the marker. The watch app is published and its contract is
+  `PROTOCOL.md` in `Plant-for-the-Planet-org/treemapper-garmin`, which also
+  carries a working Kotlin reference (`android-demo/.../WatchLink.kt`).
+  `src/garmin/protocol.ts` mirrors that file; keep the two in step, and treat
+  the watch as fixed, because it is already in the store.
+  The constraint that shapes the whole flow is a platform limit:
+  `Position.enableLocationEvents()` is restricted to device apps and widgets,
+  so a Connect IQ background service cannot turn the receiver on and the watch
+  app must be in the **foreground** to give a fresh fix. The phone can launch
+  it remotely, but then pays the whole cold acquisition, which runs to tens of
+  seconds under canopy. That is why `useGarminFix` has two separate waiting
+  states (`waking`, `acquiring`) and shows live quality through both.
+  Three things are easy to get wrong here:
+  **the watch only speaks when spoken to** -- `ready` answers `hello` or
+  `ping` and is otherwise sent just once, at app start, so a phone that stops
+  pinging freezes its quality readout; **quality is an enum, not metres**
+  (0-4, no metric accuracy exists on Connect IQ) and the phone owns the policy,
+  so a point below 3 is offered with a warning rather than refused, because
+  under canopy 2 may be the best reading all day -- note the user-facing words
+  deliberately differ from Garmin's enum names, 3 reads "Good" and 4 reads
+  "Excellent" since both are fine to record on, and the mock never reports
+  below 3 unless its `poor` scenario is asked for by name; and **optional fields are
+  absent, not null**, so read a missing key as null.
+  `createGarminTransport` returns the native link if it exists, a mock in
+  development, and **null in a release build** -- the tile hides rather than
+  producing a coordinate that would be indistinguishable from a surveyed one.
+  `setMockScenario` in `src/garmin/mockTransport.ts` picks which failure to
+  rehearse, and `setMockDevice` sets the model the simulation claims to be
+  (default `GPSMAP H1i Plus`, Garmin's current flagship handheld). **Vocabulary
+  is split on purpose**: `protocol.ts` says "watch" wherever `PROTOCOL.md`
+  does and the wire value `src: "watch"` keeps that spelling because the
+  published Connect IQ app sends it, while everything a user reads says
+  "device" or "your Garmin" -- Connect IQ runs on handhelds as well as
+  watches, and handhelds are what field teams carry. Do not reconcile the two
+  by renaming the wire. The native module is specified in `src/garmin/nativeTransport.ts`:
+  Android is a local Expo module over
+  `com.garmin.connectiq:ciq-companion-app-sdk` from Maven Central, needing a
+  `<queries>` entry for `com.garmin.android.apps.connectmobile` (without it
+  the SDK cannot see Garmin Connect on Android 11+ and fails as "service
+  unavailable"); iOS needs a framework downloaded by hand from Garmin's
+  developer portal plus the Garmin Connect URL-scheme handoff, so it is not a
+  package install. Nothing is persisted today: the quality and the fact that a
+  point came from a watch are shown and then dropped, so after the fact a
+  Garmin coordinate looks exactly like a phone one.
 - 7 languages under `src/locales/languages` (de, en, es, fr, it, mg, pt-BR) --
   unlike web, which is English-only.
 - Crash reporting is Bugsnag; analytics is PostHog; push is OneSignal.

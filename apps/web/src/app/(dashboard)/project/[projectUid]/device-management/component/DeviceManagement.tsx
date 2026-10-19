@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Smartphone, Wifi, BellRing, RefreshCw, Send, LayoutGrid, ListFilter,
-  ArrowUpCircle, RefreshCcwDot, TriangleAlert, AlertCircle,
+  ArrowUpCircle, RefreshCcwDot, TriangleAlert, AlertCircle, Wrench, FileClock,
 } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { getProjectDevices } from '@shared-core/fetchApi/api.fetch'
@@ -30,12 +30,16 @@ const BRAND = '#007A49'
 const EMPTY_STATS: FleetStats = {
   total: 0, online: 0, notificationsEnabled: 0, inactive: 0,
   ios: 0, android: 0, needsUpdate: 0, pendingSync: 0,
+  draftsPending: 0, fixRequired: 0,
 }
 
 // A device is worth flagging when its storage is nearly full or it is sitting on
 // a lot of unuploaded work. Ordered by how much the user can do about it.
 const STORAGE_WARN_PCT = 85
 const PENDING_WARN_COUNT = 10
+// Drafts are normal in small numbers -- a capture half done over lunch is not
+// a problem. A pile of them means work nobody will ever see.
+const DRAFT_WARN_COUNT = 5
 
 // How many flagged devices the card lists before it stops. The count beside the
 // heading is the real total, not this.
@@ -121,10 +125,16 @@ const DeviceManagement = () => {
 
   const attention = useMemo(() => devices
     .map(d => {
+      // Quarantined records come first: they are the only entry here that
+      // cannot clear itself, however good the connection gets.
+      if ((d.syncSnapshot?.fixRequired ?? 0) > 0)
+        return { d, reason: `${d.syncSnapshot?.fixRequired} to fix`, icon: Wrench, cls: 'text-red-600' }
       if (d.needsUpdate)
         return { d, reason: 'Outdated app', icon: ArrowUpCircle, cls: 'text-blue-600' }
       if ((d.pendingInterventions ?? 0) >= PENDING_WARN_COUNT)
         return { d, reason: `${d.pendingInterventions} unsynced`, icon: RefreshCcwDot, cls: 'text-amber-600' }
+      if ((d.syncSnapshot?.drafts ?? 0) >= DRAFT_WARN_COUNT)
+        return { d, reason: `${d.syncSnapshot?.drafts} unfinished`, icon: FileClock, cls: 'text-amber-600' }
       if ((d.storageUsedPct ?? 0) >= STORAGE_WARN_PCT)
         return { d, reason: `Storage ${d.storageUsedPct}%`, icon: TriangleAlert, cls: 'text-amber-600' }
       return null
@@ -215,7 +225,11 @@ const DeviceManagement = () => {
 
         {/* OVERVIEW */}
         <TabsContent value="overview" className="min-h-0 overflow-y-auto space-y-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Three sync cards, not one total. "Pending sync" still means work
+              that a connection clears on its own, which is what the nudge
+              button acts on. The other two need the person holding the phone,
+              so merging them would make the headline unactionable. */}
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
             <StatCard title="Devices total" value={stats.total} loading={loading}
               subtitle={`${stats.ios} iOS · ${stats.android} Android`} icon={Smartphone} />
             <StatCard title="Online now" value={stats.online} loading={loading}
@@ -224,6 +238,10 @@ const DeviceManagement = () => {
               subtitle="Notifications enabled" icon={BellRing} />
             <StatCard title="Pending sync" value={stats.pendingSync} loading={loading}
               subtitle="Interventions queued" icon={RefreshCcwDot} />
+            <StatCard title="Needs fixing" value={stats.fixRequired} loading={loading}
+              subtitle="Rejected, waiting on an edit" icon={Wrench} />
+            <StatCard title="Drafts" value={stats.draftsPending} loading={loading}
+              subtitle="Started, never finished" icon={FileClock} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
