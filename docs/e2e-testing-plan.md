@@ -120,9 +120,13 @@ No analytics or error tracking is wired into the web app.
   test**, so new calls cannot slip by unnoticed or reach a real backend.
 - **Auth0:** stubbed, so the app's own side of the login runs for real: the
   `/authorize` params, `/api/auth/callback`, `/redirecting`, the token exchange
-  and the logout return trip. A silent login (`prompt=none`) gets
-  `error=login_required` at once, so no test waits the 5s timeout. Any Auth0
-  path the stub does not know fails the test.
+  and the logout return trip. The stub keeps an Auth0 session like the real
+  one: a `loggedIn` test starts with one, an interactive login starts one, and
+  `/v2/logout` ends it. A silent login (`prompt=none`) gets a code while there
+  is a session and `error=login_required` when there is not, both at once, so no
+  test waits the 5s timeout. This is what lets the logout test prove that a
+  reload stays logged out. Any Auth0 path the stub does not know fails the
+  test.
 - **Other hosts:** every other origin (map tiles, the CDN and the rest) is
   blocked and listed in `blockedHosts`. This does not fail the test.
 - **Test data:** small, made up and typed. Never copy real responses into the
@@ -224,7 +228,7 @@ stack), and **U** means it is better as a unit or integration test.
 | 10 | Sidebar and access per role | `DashboardSidebar`, `ProjectRoleGate` | Each role sees the right items | Client and server gates disagree today | Medium | M |
 | 11 | Session error screens | `DashboardClientLayout` | `email_not_verified` shows "Verify your email"; 5xx retries, then "Error Occurred" | Users get stuck here when it breaks | Medium | M (use `page.clock`) |
 | 12 | Switch project, stay on the same section | sidebar project switcher | `/project/<new>/<same section>` | Routing migration item | Medium | M |
-| 13 | Log out | `lib/logout.ts` | Token cleared; goes to Auth0 `/v2/logout` | Shared machines in the field | Medium | M. **Done** (`auth.spec.ts`) |
+| 13 | Log out | `lib/logout.ts` | Token cleared; goes to Auth0 `/v2/logout`; after a reload, Auth0 refuses the silent login, so you stay logged out | Shared machines in the field | Medium | M. **Done** (`auth.spec.ts`) |
 | 14 | Team: invite, change role, remove | `/team` | Server enforces roles | Access control | Medium | F |
 | 15 | Settings, species, approvals, forms, export | the matching pages | Edits save; export downloads | Breadth | Low-Med | F later. Approvals: use modal buttons, not drag and drop |
 | 16 | Workspace admin, impersonation and exit | `/workspace/*` | Banner shows; exit works | Superadmin only | Low-Med | F later |
@@ -356,6 +360,9 @@ real test depends on it.
    instead, which also fixes what screen readers announce.
 3. Decide how to handle tests that expose real bugs: fix first, or mark them
    `test.fail()` with a ticket. `auth.spec.ts` uses `test.fail()` for #1124.
+   A `test.fail()` test passes on any failure, so keep it to the one check
+   that shows the bug, and pair it with a normal test for everything else on
+   that page.
 
 **Why:** they cover the journeys every user goes through and the routing work
 that was never checked at runtime. They need no secrets and build the fixtures
@@ -496,11 +503,16 @@ browser so far.
 - **A logged-in user who opens `/login` is not sent on** (#1124). `LoginContent`
   only redirects once the user profile is in the store, and only
   `DashboardClientLayout` loads it, which `/login` is not under. `auth.spec.ts`
-  marks this test `test.fail()`.
+  marks the redirect test `test.fail()`. Since `test.fail()` passes on any
+  failure, a second, normal test covers the rest of the page: no crash, the
+  token is kept, no silent login and no unmocked call. It passes both before
+  and after the fix.
 - **Login callback errors show no message.** The callback sets
   `error=authentication_failed` (`app/api/auth/callback/route.ts`), but
   `AuthInitializer` checks for `auth_failed`. `/login` shows nothing for
-  `authentication_failed` or `no_code`.
+  `authentication_failed` or `no_code`. The fix will make `AuthInitializer`
+  strip `error` and `reason` from the URL, so the callback tests check where
+  the redirect went on the navigation response, not on the page URL.
 - **The user type does not match the API.** The sidebar reads `firstName` and
   `lastName`, but `UserInterface` declares `firstname` and `lastname`. Test data
   sets the camelCase names the sidebar reads.

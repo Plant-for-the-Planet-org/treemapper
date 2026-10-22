@@ -5,7 +5,7 @@ import { type Auth0Stub, stubAuth0 } from '../helpers/auth0';
 import { ApiMock } from './api-mock';
 
 interface Options {
-  /** Seed a fake token before the first page load. */
+  /** Seed a fake token and start the Auth0 stub with a session. */
   loggedIn: boolean;
 }
 
@@ -59,9 +59,10 @@ export const test = base.extend<Options & Fixtures>({
   ],
 
   auth0: [
-    async ({ page, blockedHosts }, use) => {
+    async ({ page, blockedHosts, loggedIn }, use) => {
       void blockedHosts;
-      const stub = await stubAuth0(page);
+      // A real logged-in user also has an Auth0 session, so give them one.
+      const stub = await stubAuth0(page, { session: loggedIn });
 
       await use(stub);
 

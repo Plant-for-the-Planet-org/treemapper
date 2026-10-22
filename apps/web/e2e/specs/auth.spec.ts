@@ -24,6 +24,28 @@ function storage(page: import('@playwright/test').Page) {
   }));
 }
 
+declare global {
+  interface Window {
+    __e2eTokenWrites: string[];
+  }
+}
+
+// Records every write of `access_token` the app makes. The auth store writes
+// the token when it takes one, so this is the signal that the app has read it.
+// Added after the `loggedIn` seed script, so the seed's own write is not counted.
+function watchTokenWrites(page: import('@playwright/test').Page) {
+  return page.addInitScript(() => {
+    window.__e2eTokenWrites = [];
+    const setItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key: string, value: string) {
+      if (this === window.localStorage && key === 'access_token') {
+        window.__e2eTokenWrites.push(value);
+      }
+      return setItem.call(this, key, value);
+    };
+  });
+}
+
 test.describe('no session', () => {
   test('a protected page sends you to login and keeps the return path', async ({
     page,
@@ -124,9 +146,17 @@ test.describe('login', () => {
 
   for (const { name, query, landsOn, shows } of callbackErrors) {
     test(`callback: ${name}`, async ({ page, auth0 }) => {
-      await page.goto(`/api/auth/callback${query}`);
+      const response = await page.goto(`/api/auth/callback${query}`);
 
-      await expect(page).toHaveURL(landsOn);
+      // Check where the callback redirected on the response, not with
+      // toHaveURL. Once /login loads it may tidy its query string with
+      // history.replaceState (AuthInitializer does that for `auth_failed`), and
+      // that changes the page URL but never the response URL.
+      expect(response!.request().redirectedFrom()?.url()).toContain(
+        '/api/auth/callback'
+      );
+      const target = new URL(response!.url());
+      expect(target.pathname + target.search).toBe(landsOn);
       await expect(page.getByRole(shows.role, { name: shows.name })).toBeVisible();
       expect(auth0.tokenRequests).toHaveLength(0);
       expect((await storage(page)).token).toBeNull();
@@ -137,11 +167,47 @@ test.describe('login', () => {
 test.describe('logged in', () => {
   test.use({ loggedIn: true });
 
+  test('opening login keeps the session and does not break', async ({
+    page,
+    api,
+    auth0,
+  }) => {
+    // The guard for the test below. That one is marked test.fail(), which
+    // turns every failure into a pass, so it cannot catch a crash or a lost
+    // token here. This one must pass both before and after #1124 is fixed.
+    mockSession(api);
+    mockSettingsPage(api);
+
+    const pageErrors: string[] = [];
+    page.on('pageerror', error => pageErrors.push(error.message));
+    await watchTokenWrites(page);
+
+    await page.goto(`/login?returnTo=${encodeURIComponent(DEEP_LINK)}`);
+
+    // The app has read the stored token and taken it: the auth store writes it
+    // back when it does. Without this wait, the checks below could run before
+    // the app has done anything at all.
+    await page.waitForFunction(() => window.__e2eTokenWrites.length > 0);
+
+    // Still on login while #1124 is open, on the deep link once it is fixed.
+    await expect(
+      page
+        .getByRole('button', { name: 'Continue with email' })
+        .or(page.getByRole('button', { name: 'Account menu' }))
+    ).toBeVisible();
+    expect((await storage(page)).token).not.toBeNull();
+    // The token was good, so the app had no reason to ask Auth0 for a new one.
+    expect(auth0.authorizeRequests).toHaveLength(0);
+    expect(pageErrors).toEqual([]);
+  });
+
   test('opening login sends you on to the return path', async ({ page, api }) => {
     // Known bug, issue #1124. LoginContent only sends you on once the user profile is in
     // the store, and only DashboardClientLayout loads it, which /login is not
     // under. So a cold load of /login with a valid token stays on /login.
     // Remove this line when it is fixed; the test then has to pass.
+    // test.fail() passes on any failure, so this test checks the redirect
+    // only. The test above covers everything else on this page.
     test.fail(true, 'logged-in user is not sent on from /login');
 
     mockSession(api);
@@ -178,8 +244,23 @@ test.describe('logged in', () => {
     );
     expect((await storage(page)).token).toBeNull();
 
-    // A reload must not log you back in.
+    // A reload must not log you back in. With no token, the app asks Auth0 for
+    // a silent login. The test started with an Auth0 session, so this is
+    // refused only if the logout really ended it.
+    const silentBefore = auth0.silentAnswers.length;
+    const exchangesBefore = auth0.tokenRequests.length;
+
     await page.reload();
+
+    // Wait for the silent login to finish: its hidden iframe is removed once
+    // Auth0 has answered.
+    await expect
+      .poll(() => auth0.silentAnswers.length)
+      .toBeGreaterThan(silentBefore);
+    await expect(page.locator('iframe')).toHaveCount(0);
+
+    expect(auth0.silentAnswers.slice(silentBefore)).toEqual(['login_required']);
+    expect(auth0.tokenRequests).toHaveLength(exchangesBefore);
     await expect(page).toHaveURL(/\/login/);
     await expect(
       page.getByRole('button', { name: 'Continue with email' })
