@@ -280,8 +280,8 @@ apps/web/
 
 The tests live inside `apps/web` so they can reuse the `@/` and
 `@shared-core/` import paths, with one pinned dev dependency
-(`@playwright/test`). Install the browser with `yarn playwright install
-chromium` from `apps/web`.
+(`@playwright/test`). Which browser to install differs locally and in CI: see
+"Running locally and in CI".
 
 Config notes:
 
@@ -304,16 +304,21 @@ Config notes:
 
 ## Running locally and in CI
 
-- **Locally:** run `yarn test:e2e` from `apps/web`, or `yarn web:e2e` from the
-  repo root. Add `--ui` to debug.
+- **Locally:** first install the browser once with `yarn playwright install
+  chromium` from `apps/web`. This installs full Chromium as well as the headless
+  shell, so headed runs (`--headed`) and debugging (`--debug`, `--ui`) work.
+  Then run `yarn test:e2e` from `apps/web`, or `yarn web:e2e` from the repo
+  root.
 - **CI (Layer 1):** `.github/workflows/e2e.yml`, on pull requests, pushes to
   `develop` and manual runs. A new commit cancels the older run of the same pull
   request; `develop` runs always finish.
   1. Node from `.nvmrc`, Yarn cache, `yarn install --frozen-lockfile
      --ignore-scripts`. No dependency runs code at install time, and none of
      their install scripts are needed for the web app.
-  2. Install the Chromium headless shell only, cached by Playwright version. On
-     a cache hit, the system libraries are still installed.
+  2. `yarn playwright install --with-deps --only-shell chromium`: the Chromium
+     headless shell only, cached by Playwright version. CI runs headless and
+     never debugs, so full Chromium is not needed. On a cache hit, the system
+     libraries are still installed.
   3. `yarn test:e2e`. With `CI` set, the config builds the app and serves it with
      `next start`.
   4. Upload the report and traces only when a test fails.
