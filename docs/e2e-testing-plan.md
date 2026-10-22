@@ -2,8 +2,10 @@
 
 Plan for adding browser end-to-end tests to the web dashboard (`apps/web`).
 
-**Status:** proposed 2026-10-15. Nothing is implemented yet. See
-[Open questions](#open-questions) before starting Phase 4.
+**Status:** in progress. Proposed 2026-10-15. Phase 1 is done, and so is step 1
+of Phase 3 (the `e2e.yml` workflow). Phase 2 has started: `auth.spec.ts` covers
+test 1 below, plus login and logout. See [Open questions](#open-questions)
+before starting Phase 4.
 
 Findings come from reading the code, not from running the app. **Confirmed**
 means it was read in the code. **Inferred** means it follows from the code but
@@ -23,7 +25,8 @@ has not been checked in a browser.
     layer is blocked on the Auth0 questions below.
 - Keep the suite small. Logic such as form validation and payload builders
   belongs in unit tests, not E2E.
-- There is no CI in this repo today, so the E2E workflow would be the first one.
+- The E2E workflow (`.github/workflows/e2e.yml`) is the first CI workflow in
+  this repo.
 
 ---
 

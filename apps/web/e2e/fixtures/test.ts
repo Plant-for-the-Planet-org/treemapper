@@ -46,10 +46,10 @@ export const test = base.extend<Options & Fixtures>({
   ],
 
   api: [
-    async ({ page, blockedHosts }, use) => {
+    async ({ page, baseURL, blockedHosts }, use) => {
       void blockedHosts;
       const api = new ApiMock();
-      await api.install(page);
+      await api.install(page, new URL(baseURL!).origin);
 
       await use(api);
 

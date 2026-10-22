@@ -413,6 +413,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
+                  aria-label="Account menu"
                   className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center hover:bg-green-600 transition-colors overflow-hidden"
                   title={userName}
                 >

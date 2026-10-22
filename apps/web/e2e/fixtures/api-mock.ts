@@ -78,8 +78,12 @@ export class ApiMock {
     );
   }
 
-  async install(page: Page) {
-    await page.route(`**${API_PREFIX}**`, async route => {
+  /**
+   * `origin` is the app's own. Without it the route would also match another
+   * host's /api/server/ path and mock it ahead of the `blockedHosts` guard.
+   */
+  async install(page: Page, origin: string) {
+    await page.route(`${origin}${API_PREFIX}**`, async route => {
       const request = route.request();
       const url = new URL(request.url());
       const path = url.pathname.slice(
