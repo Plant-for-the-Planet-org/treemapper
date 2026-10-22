@@ -43,9 +43,13 @@ jobs:
           node-version-file: .nvmrc
           cache: yarn
 
+      # --ignore-scripts: no dependency gets to run code at install time. None of
+      # the install scripts in the tree are needed to build or test the web app
+      # (they are telemetry, banners, or mobile/server only). If one ever is,
+      # run that package's script by name in its own step instead.
       - name: Install dependencies
         working-directory: .
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile --ignore-scripts
 
       # Browsers are tied to the Playwright version, so that is the cache key.
       - name: Get Playwright version
@@ -65,13 +69,13 @@ jobs:
 
       - name: Install Chromium headless shell
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps --only-shell chromium
+        run: yarn playwright install --with-deps --only-shell chromium
 
       # The cache holds the browser only. The system libraries it needs still
       # have to be installed on every fresh runner.
       - name: Install Chromium system deps
         if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
+        run: yarn playwright install-deps chromium
 
       # With CI set (GitHub sets it), playwright.config.ts builds the app and
       # serves it with `next start`, using dummy env values. No .env needed.
