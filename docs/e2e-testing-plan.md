@@ -4,8 +4,9 @@ Plan for adding browser end-to-end tests to the web dashboard (`apps/web`).
 
 **Status:** in progress. Proposed 2026-10-15. Phase 1 is done, and so is step 1
 of Phase 3 (the `e2e.yml` workflow). Phase 2 has started: `auth.spec.ts` covers
-test 1 below, plus login and logout. See [Open questions](#open-questions)
-before starting Phase 4.
+test 1 below, the full login round trip, the login callback errors and logout
+(scenarios 1 and 13). See [Open questions](#open-questions) before starting
+Phase 4.
 
 Findings come from reading the code, not from running the app. **Confirmed**
 means it was read in the code. **Inferred** means it follows from the code but
@@ -112,11 +113,18 @@ No analytics or error tracking is wired into the web app.
 
 - **Auth:** an unsigned, fake JWT with a future `exp`, set in
   `localStorage.access_token` with `addInitScript` before app code runs. The
-  server never sees it.
-- **API:** `page.route('**/api/server/**')` serves typed test data in the
-  server envelope. Any call without a mock **fails the test**, so new calls
-  cannot slip by unnoticed.
-- **External hosts:** block or stub Auth0, the map tile hosts and the CDN.
+  server never sees it. The token is seeded once per tab, on the app origin
+  and in the top frame only, so a reload after logout stays logged out.
+- **API:** `page.route('<app origin>/api/server/**')` serves typed test data in
+  the server envelope. Any call without a mock gets a 501 and **fails the
+  test**, so new calls cannot slip by unnoticed or reach a real backend.
+- **Auth0:** stubbed, so the app's own side of the login runs for real: the
+  `/authorize` params, `/api/auth/callback`, `/redirecting`, the token exchange
+  and the logout return trip. A silent login (`prompt=none`) gets
+  `error=login_required` at once, so no test waits the 5s timeout. Any Auth0
+  path the stub does not know fails the test.
+- **Other hosts:** every other origin (map tiles, the CDN and the rest) is
+  blocked and listed in `blockedHosts`. This does not fail the test.
 - **Test data:** small, made up and typed. Never copy real responses into the
   repo: it is public.
 
@@ -185,8 +193,8 @@ read. Test the page around the map, and unit test the GeoJSON logic.
 
 ### Browser settings
 
-- Desktop Chromium, viewport 1440x900. The sidebar opens by default at 1280px
-  or wider.
+- Desktop Chromium with the "Desktop Chrome" preset viewport, 1280x720. The
+  sidebar opens by default at 1280px or wider, so do not go narrower.
 - `locale: 'en-US'` and `timezoneId: 'UTC'`. Many dates are formatted with the
   browser locale (`toLocaleString()` with no locale argument).
 - No mobile emulation at first. On a mobile user agent, `MobileAppRedirect`
@@ -203,7 +211,8 @@ stack), and **U** means it is better as a unit or integration test.
 
 | # | Flow | Pages / components | Expected outcome | Why | Priority | Fit |
 |---|---|---|---|---|---|---|
-| 1 | Open a protected page with no session | any route, `DashboardClientLayout`, `login/components/LoginContent.tsx` | Redirect to `/login?returnTo=...`; login starts PKCE with the right parameters | The login gate runs in the browser only | High | M |
+| 1 | Open a protected page with no session | any route, `DashboardClientLayout`, `login/components/LoginContent.tsx` | Redirect to `/login?returnTo=...`; login starts PKCE with the right parameters | The login gate runs in the browser only | High | M. **Done** (`auth.spec.ts`) |
+| 1b | Login callback errors | `GET /api/auth/callback`, `/login` | Unverified email opens the verify dialog; other errors go back to login with no token | Users get stuck here when it breaks | Medium | M. **Done** (`auth.spec.ts`) |
 | 2 | Returning user opens the app | `/`, project layout, `Overview` | Lands on `/project/<main>/overview`; sidebar and stats show | Every visit goes through this | High | M, plus one F smoke test |
 | 3 | Open a shared deep link | `(dashboard)/project/[projectUid]/layout.tsx` | The right project loads; an unknown uid shows "Project not found" | Unchecked runtime item in `URL-ROUTING-MIGRATION.md` | High | M |
 | 4 | Use an old `/dashboard/*` bookmark | `component/LegacyProjectRedirect.tsx` | Goes to `/project/<uid>/...`; invite query string is kept | Real bookmarks; likely broken (see Known issues) | High | M |
@@ -215,7 +224,7 @@ stack), and **U** means it is better as a unit or integration test.
 | 10 | Sidebar and access per role | `DashboardSidebar`, `ProjectRoleGate` | Each role sees the right items | Client and server gates disagree today | Medium | M |
 | 11 | Session error screens | `DashboardClientLayout` | `email_not_verified` shows "Verify your email"; 5xx retries, then "Error Occurred" | Users get stuck here when it breaks | Medium | M (use `page.clock`) |
 | 12 | Switch project, stay on the same section | sidebar project switcher | `/project/<new>/<same section>` | Routing migration item | Medium | M |
-| 13 | Log out | `lib/logout.ts` | Token cleared; goes to Auth0 `/v2/logout` | Shared machines in the field | Medium | M |
+| 13 | Log out | `lib/logout.ts` | Token cleared; goes to Auth0 `/v2/logout` | Shared machines in the field | Medium | M. **Done** (`auth.spec.ts`) |
 | 14 | Team: invite, change role, remove | `/team` | Server enforces roles | Access control | Medium | F |
 | 15 | Settings, species, approvals, forms, export | the matching pages | Edits save; export downloads | Breadth | Low-Med | F later. Approvals: use modal buttons, not drag and drop |
 | 16 | Workspace admin, impersonation and exit | `/workspace/*` | Banner shows; exit works | Superadmin only | Low-Med | F later |
@@ -238,45 +247,55 @@ What exists (confirmed):
 
 | Gap | What it means for Playwright |
 |---|---|
-| No CI; no `.github/` folder on `develop` | The E2E workflow is the first workflow |
-| Root `yarn test` runs `turbo test`, but `turbo.json` has no `test` task | Add `test` and `test:e2e` tasks |
+| No CI; no `.github/` folder on `develop` | **Fixed:** `e2e.yml` is the first workflow |
+| Root `yarn test` runs `turbo test`, but `turbo.json` has no `test` task | **Fixed:** `test` and `test:e2e` tasks added; the failing placeholder `test` script in `shared-core` was removed |
 | No `data-testid` in `apps/web` | Find elements by role, label and text; add test ids only where needed |
 | `next lint` no longer exists in Next 16 | `yarn lint` is broken for web; separate cleanup |
 | No server `.env.example`, no docker-compose, no seed script | Needed for Layer 2 |
 | Repo pins Node 22.x with `engine-strict=true` | Use Node 22 (`.nvmrc`), or `yarn add` will refuse |
-| `.gitignore` lacks `test-results/`, `playwright-report/`, `blob-report/`, saved login state | Add these before the first run. Saved login state holds tokens, and the repo is public |
+| `.gitignore` lacks `test-results/`, `playwright-report/`, `blob-report/`, saved login state | **Fixed.** Saved login state (`.auth/`) holds tokens, and the repo is public |
+| Nothing type-checks the e2e code: `next.config.ts` sets `ignoreBuildErrors: true`, and web has no `type-check` script | A type error in a spec or fixture only shows up when that code runs. Type-check by hand for now |
 
 ---
 
-## Proposed layout and config
+## Layout and config
 
 ```
 apps/web/
   playwright.config.ts
   e2e/
     fixtures/
-      test.ts        # extended test: authedPage, role, api
+      test.ts        # extended test: `loggedIn` option, plus blockedHosts,
+                     # api and auth0 (all auto, so every spec gets the guards)
       api-mock.ts    # route handler; fails on any unmocked call
-      data/          # made-up users, projects, workspaces
+      data/
+        session.ts   # made-up user, project, workspace; mockSession(api)
     helpers/
       auth.ts        # fake JWT builder, localStorage seeding
+      auth0.ts       # Auth0 stub: /authorize, /oauth/token, /v2/logout
       envelope.ts    # ok(data) / fail(status, code) helpers
     specs/           # Layer 1
-    fullstack/       # Layer 2, separate Playwright project, opt in
+    fullstack/       # Layer 2, separate Playwright project, opt in (not yet)
 ```
 
 The tests live inside `apps/web` so they can reuse the `@/` and
 `@shared-core/` import paths, with one pinned dev dependency
-(`@playwright/test`). Browsers are installed with `npx playwright install`.
+(`@playwright/test`). Install the browser with `yarn playwright install
+chromium` from `apps/web`.
 
 Config notes:
 
 - `webServer` runs from `apps/web`, never from the repo root (see `CLAUDE.md`).
   - **CI:** `next build && next start`. Dev mode compiles each page on first
     visit, which is slow and flaky.
-  - **Locally:** `reuseExistingServer: true`, so a running `npm run dev` is reused.
-- The build needs `NEXT_PUBLIC_AUTH0_CLIENT_ID` set (a dummy value is fine for
-  Layer 1), or the login button throws.
+  - **Locally:** `reuseExistingServer: true`, so a running `npm run dev` is
+    reused, with its own `.env`. Next allows one `next dev` per folder, so set
+    `E2E_PORT` to that server's port (default 3000).
+- When Playwright starts the server itself, it sets dummy env values: a fake
+  `NEXT_PUBLIC_AUTH0_CLIENT_ID` (without one the login button throws), and
+  `NEXT_PUBLIC_BACKEND_API=false` so a call that slips past the mocks goes to a
+  local server, never to `dev.treemapper.app`. A reused dev server keeps its own
+  values, so there the fail-on-unmocked check is the only guard.
 - No retries locally, 2 in CI. Record a trace on the first retry and a
   screenshot on failure.
 - Never wait for "network idle". The overview polls every 30s, so it never goes idle.
@@ -285,12 +304,22 @@ Config notes:
 
 ## Running locally and in CI
 
-- **Locally:** run `npx playwright test` from `apps/web`. Add `--ui` to debug.
-- **CI (Layer 1):** GitHub Actions on pull requests and pushes to `develop`.
-  1. Node 22, Yarn cache, `yarn install --frozen-lockfile`.
-  2. Cache the Playwright browsers.
-  3. Build the web app and run the tests.
+- **Locally:** run `yarn test:e2e` from `apps/web`, or `yarn web:e2e` from the
+  repo root. Add `--ui` to debug.
+- **CI (Layer 1):** `.github/workflows/e2e.yml`, on pull requests, pushes to
+  `develop` and manual runs. A new commit cancels the older run of the same pull
+  request; `develop` runs always finish.
+  1. Node from `.nvmrc`, Yarn cache, `yarn install --frozen-lockfile
+     --ignore-scripts`. No dependency runs code at install time, and none of
+     their install scripts are needed for the web app.
+  2. Install the Chromium headless shell only, cached by Playwright version. On
+     a cache hit, the system libraries are still installed.
+  3. `yarn test:e2e`. With `CI` set, the config builds the app and serves it with
+     `next start`.
   4. Upload the report and traces only when a test fails.
+
+  Actions are pinned to commit SHAs. The token is read-only, and the workflow
+  uses `pull_request`, never `pull_request_target`, so it is safe for forks.
 - **CI (Layer 2):** a PostGIS service container. Runs only on pushes to
   `develop` or nightly, because pull requests from forks get no secrets.
 - **Staging or preview:** none exist. A nightly read-only smoke test against
@@ -308,7 +337,8 @@ Config notes:
 3. Add the config, fixtures, helpers and made-up data.
 4. Add the `.gitignore` entries, a `test:e2e` script, and a turbo task (fix the
    root `test` task too).
-5. Add one trivial test: `/login` renders.
+5. Add one trivial test: `/login` renders. (Not kept on its own: the
+   `auth.spec.ts` tests cover it.)
 
 **Why:** prove the harness boots the app and blocks external hosts before any
 real test depends on it.
@@ -316,9 +346,11 @@ real test depends on it.
 ### Phase 2: the most valuable tests
 
 1. Write the five tests below, all Layer 1.
-2. Add a `data-testid` only where role and label locators are unclear.
+2. Add a `data-testid` only where role and label locators are unclear. So far
+   none was needed: the sidebar account menu got `aria-label="Account menu"`
+   instead, which also fixes what screen readers announce.
 3. Decide how to handle tests that expose real bugs: fix first, or mark them
-   `test.fail()` with a ticket.
+   `test.fail()` with a ticket. `auth.spec.ts` uses `test.fail()` for #1124.
 
 **Why:** they cover the journeys every user goes through and the routing work
 that was never checked at runtime. They need no secrets and build the fixtures
@@ -353,24 +385,38 @@ All five use Layer 1.
 
 ### 1. A user with no session is sent to login, and the return path is kept
 
+**Done** in `auth.spec.ts`, as two tests. The Auth0 stub answers the silent
+login at once, so neither waits the 5s timeout.
+
+**1a. No session**
+
 - **Preconditions:** no token.
-  - Stub the Auth0 `/authorize` request so the silent-login iframe ends
-    quickly. Whether this works still needs checking; without it, every run
-    waits the full 5s timeout.
-- **Steps:**
-  1. Open `/project/p_demo/settings?tab=features`.
-  2. Click "Continue with email".
+- **Steps:** open `/project/p_main/settings?tab=features`.
 - **Assert:**
-  - The URL is `/login?returnTo=%2Fproject%2Fp_demo%2Fsettings%3Ftab%3Dfeatures`
+  - The URL is `/login?returnTo=%2Fproject%2Fp_main%2Fsettings%3Ftab%3Dfeatures`
     (path and query, URI-encoded; confirmed in `DashboardClientLayout`).
-  - The click requests `accounts.plant-for-the-planet.org/authorize` with:
+  - The app tried one silent login (`prompt=none`) first.
+  - No token is stored.
+
+**1b. Full login round trip**
+
+The stubbed Auth0 is followed, not caught, so the app's own
+`/api/auth/callback`, `/redirecting` and token exchange all run.
+
+- **Steps:** open the same deep link, then click "Continue with email".
+- **Assert:**
+  - The test ends back on the deep link, logged in.
+  - The `/authorize` request has:
     - `response_type=code`
     - `code_challenge_method=S256`
     - `audience=urn:plant-for-the-planet`
+    - `scope=openid profile email`
     - `redirect_uri=<origin>/api/auth/callback`
-
-    Catch the request; do not follow it.
-  - `sessionStorage.pkce_code_verifier` is set.
+    - a `state`
+  - The token exchange sends a `code_verifier` whose SHA-256 matches the
+    `code_challenge`. This is the check PKCE exists for.
+  - The new token is stored and sent as the bearer token, and the PKCE verifier
+    and `state` are cleared from `sessionStorage`.
 
 ### 2. A returning user lands on their main project
 
@@ -439,8 +485,20 @@ All five use Layer 1.
 
 ## Known issues the tests are expected to surface
 
-All are confirmed in the code and not yet seen in a browser.
+All are confirmed in the code. Only #1124 (the first) has been seen in a
+browser so far.
 
+- **A logged-in user who opens `/login` is not sent on** (#1124). `LoginContent`
+  only redirects once the user profile is in the store, and only
+  `DashboardClientLayout` loads it, which `/login` is not under. `auth.spec.ts`
+  marks this test `test.fail()`.
+- **Login callback errors show no message.** The callback sets
+  `error=authentication_failed` (`app/api/auth/callback/route.ts`), but
+  `AuthInitializer` checks for `auth_failed`. `/login` shows nothing for
+  `authentication_failed` or `no_code`.
+- **The user type does not match the API.** The sidebar reads `firstName` and
+  `lastName`, but `UserInterface` declares `firstname` and `lastname`. Test data
+  sets the camelCase names the sidebar reads.
 - **Legacy `/dashboard/*` links show a spinner forever on a cold load.**
   `app/dashboard/layout.tsx` only passes its children through.
   `LegacyProjectRedirect` waits for store values that only
@@ -475,10 +533,11 @@ All are confirmed in the code and not yet seen in a browser.
      separate test client?
 
    Without this, Layer 2 must drive the Universal Login page, which is fragile.
-2. **CI:** is GitHub Actions fine as this repo's first workflow? Who owns it,
-   and what is the policy on Actions secrets for a public repo?
+2. **CI:** `e2e.yml` is now this repo's first workflow. Who owns it, and what
+   is the policy on Actions secrets for a public repo?
 3. **Known bugs:** should they be fixed before the tests land, or should the
-   tests land as `test.fail()` with tickets?
+   tests land as `test.fail()` with tickets? #1124 went the `test.fail()` way;
+   the rest are still open.
 4. **Roles:** what should observers and contributors see? Role tests need the
    intended behaviour first.
 5. **Browsers:** which browsers do dashboard users use? There is no analytics
@@ -490,12 +549,17 @@ All are confirmed in the code and not yet seen in a browser.
 
 ## Rules of thumb for writing tests
 
+- **Imports:** import `test` and `expect` from `e2e/fixtures/test`, not from
+  `@playwright/test`. That is how every spec gets the API, Auth0 and host
+  guards.
 - **Locators:** prefer `getByRole`, `getByLabel` and visible text. shadcn
   components carry useful roles and `data-slot` attributes. Add a `data-testid`
   only when those are unclear.
 - **Waiting:** wait for elements or URLs, never for `networkidle`.
-- **Mocks:** wrap responses in the server envelope, and set `statusCode` in the
-  body too.
+- **Mocks:** build responses with `ok()` and `fail()` from
+  `helpers/envelope.ts`. They set `statusCode` in the body, and the mock sends
+  the same value as the HTTP status. The newest handler wins, so a test can
+  override a default from `mockSession`.
 - **Maps:** do not check what is drawn on the map canvas. Check the controls
   and panels around it.
 - **Invite links:** `POST /projects/:id/invites` returns the invite token in its
