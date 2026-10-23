@@ -1,12 +1,21 @@
 import { createHash } from 'node:crypto';
 
 import type { ApiMock } from '../fixtures/api-mock';
-import { MAIN_PROJECT, mockSession } from '../fixtures/data/session';
+import { MAIN_PROJECT, USER, mockSession } from '../fixtures/data/session';
 import { expect, test } from '../fixtures/test';
-import { E2E_AUTH_CODE } from '../helpers/auth0';
-import { ok } from '../helpers/envelope';
+import { E2E_EMAIL, fakeJwt, seedToken } from '../helpers/auth';
+import { AUTH0_ORIGIN, E2E_AUTH_CODE } from '../helpers/auth0';
+import { fail, ok } from '../helpers/envelope';
 
 const DEEP_LINK = `/project/${MAIN_PROJECT.uid}/settings?tab=features`;
+
+// Return paths that point off the app. `/\` is on the list because browsers
+// read it as `//`.
+const EVIL_PATHS = ['//evil.example', 'https://evil.example', '/\\evil.example'];
+
+function sha256(value: string) {
+  return createHash('sha256').update(value).digest('base64url');
+}
 
 // Settings is only the page these tests land on; these are its own loads.
 function mockSettingsPage(api: ApiMock) {
@@ -64,6 +73,149 @@ test.describe('no session', () => {
     ).toEqual(['none']);
     expect((await storage(page)).token).toBeNull();
   });
+
+  // isTokenExpired counts the last 30s before `exp` as expired already.
+  const staleTokens = [
+    { name: 'an expired token', expiresIn: -60 },
+    { name: 'a token that expires within 30s', expiresIn: 10 },
+  ];
+
+  for (const { name, expiresIn } of staleTokens) {
+    test(`${name} is cleared and you are sent to login`, async ({
+      page,
+      api,
+      auth0,
+      baseURL,
+    }) => {
+      await seedToken(page, {
+        origin: new URL(baseURL!).origin,
+        token: fakeJwt({ exp: Math.floor(Date.now() / 1000) + expiresIn }),
+      });
+
+      await page.goto(DEEP_LINK);
+
+      await expect(page).toHaveURL(`/login?returnTo=${encodeURIComponent(DEEP_LINK)}`);
+      // The stored token was dropped, so the app asked Auth0 instead.
+      expect(auth0.silentAnswers).toEqual(['login_required']);
+      expect((await storage(page)).token).toBeNull();
+      // And it never sent the stale token to the API.
+      expect(api.calls).toEqual([]);
+    });
+  }
+});
+
+test.describe('silent login', () => {
+  test('an Auth0 session logs you in with no click', async ({
+    page,
+    api,
+    auth0,
+  }) => {
+    mockSession(api);
+    mockSettingsPage(api);
+    // Auth0 still has a session, but this tab has no token: a new tab, or
+    // localStorage cleared.
+    auth0.session = true;
+
+    await page.goto(DEEP_LINK);
+
+    await expect(page.getByRole('button', { name: 'Account menu' })).toBeVisible();
+    await expect(page).toHaveURL(DEEP_LINK);
+
+    // One silent login, answered with a code, and no login page.
+    expect(
+      auth0.authorizeRequests.map(url => url.searchParams.get('prompt'))
+    ).toEqual(['none']);
+    expect(auth0.silentAnswers).toEqual(['code']);
+    const silent = auth0.authorizeRequests[0].searchParams;
+    expect(silent.get('code_challenge_method')).toBe('S256');
+
+    // The hidden iframe's code was exchanged with the verifier the app kept in
+    // memory, the one behind the silent challenge.
+    expect(auth0.tokenRequests).toHaveLength(1);
+    const exchange = auth0.tokenRequests[0];
+    expect(exchange).toMatchObject({
+      grant_type: 'authorization_code',
+      code: E2E_AUTH_CODE,
+      redirect_uri: silent.get('redirect_uri'),
+    });
+    expect(sha256(exchange.code_verifier)).toBe(silent.get('code_challenge'));
+
+    // The verifier never touched storage, and the new token is stored and used.
+    const after = await storage(page);
+    expect(after.session).not.toHaveProperty('pkce_code_verifier');
+    expect(after.token).toBe(auth0.accessToken);
+    expect(
+      api.callsTo('GET', 'users/me')[0].request.headers().authorization
+    ).toBe(`Bearer ${auth0.accessToken}`);
+    // The iframe is gone once it has answered.
+    await expect(page.locator('iframe')).toHaveCount(0);
+  });
+});
+
+// getSafeRedirectPath guards both places a return path comes from a URL: the
+// `returnTo` on /login, which becomes the OAuth state, and the `redirectTo` on
+// /redirecting after logout. Each must fall back to `/` for another site.
+test.describe('open redirect', () => {
+  const loginCases = [
+    // The control: proves the check below reads the value the app saved.
+    { returnTo: DEEP_LINK, saved: DEEP_LINK },
+    ...EVIL_PATHS.map(returnTo => ({ returnTo, saved: '/' })),
+  ];
+
+  for (const { returnTo, saved } of loginCases) {
+    test(`login saves returnTo=${returnTo} as ${saved}`, async ({
+      page,
+      auth0,
+    }) => {
+      let state: string | null = null;
+
+      // Newest route wins, so this runs ahead of the Auth0 stub. It stops the
+      // login here: a 204 cancels the navigation and leaves the browser on
+      // /login, where the saved state can be read. Finishing at `/` would need
+      // the overview's mocks, and /redirecting goes to the saved state without
+      // checking it again, so the saved value is the one that counts.
+      await page.route(
+        url => url.origin === AUTH0_ORIGIN && url.pathname === '/authorize',
+        route => {
+          const url = new URL(route.request().url());
+          if (url.searchParams.get('prompt') === 'none') return route.fallback();
+
+          state = url.searchParams.get('state');
+          return route.fulfill({ status: 204 });
+        }
+      );
+
+      await page.goto(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+      // Let the silent login on page load finish before starting a real one.
+      await expect.poll(() => auth0.silentAnswers).toEqual(['login_required']);
+      await page.getByRole('button', { name: 'Continue with email' }).click();
+
+      await expect.poll(() => state).toBeTruthy();
+      expect((await storage(page)).session[`oauth_state_${state}`]).toBe(saved);
+    });
+  }
+
+  for (const redirectTo of EVIL_PATHS) {
+    test(`logout return ignores redirectTo=${redirectTo}`, async ({
+      page,
+      blockedHosts,
+      baseURL,
+    }) => {
+      await page.goto(
+        `/redirecting?logoutSuccess=true&redirectTo=${encodeURIComponent(redirectTo)}`
+      );
+
+      // It falls back to `/` on the app. With no session, `/` then goes on to
+      // login, but only after a silent login the app allows 5s for, so do not
+      // wait for that: either page counts.
+      await expect(page).toHaveURL(
+        url =>
+          url.origin === new URL(baseURL!).origin &&
+          (url.pathname === '/' || url.pathname === '/login')
+      );
+      expect(blockedHosts.filter(host => host.includes('evil.example'))).toEqual([]);
+    });
+  }
 });
 
 test.describe('login', () => {
@@ -107,9 +259,7 @@ test.describe('login', () => {
       client_id: authorize.get('client_id'),
       redirect_uri: authorize.get('redirect_uri'),
     });
-    expect(
-      createHash('sha256').update(exchange.code_verifier).digest('base64url')
-    ).toBe(authorize.get('code_challenge'));
+    expect(sha256(exchange.code_verifier)).toBe(authorize.get('code_challenge'));
 
     // The new token is stored and used, and the one-time login values are gone.
     const after = await storage(page);
@@ -266,5 +416,84 @@ test.describe('logged in', () => {
       page.getByRole('button', { name: 'Continue with email' })
     ).toBeVisible();
     expect((await storage(page)).token).toBeNull();
+  });
+
+  test('logging out while impersonating ends the impersonation first', async ({
+    page,
+    api,
+    auth0,
+  }) => {
+    mockSession(api);
+    mockSettingsPage(api);
+    api.get('users/me', ok({ ...USER, impersonated: true }));
+    // How many Auth0 logouts had happened when the exit call came in.
+    const logoutsAtExit: number[] = [];
+    api.put('workspace/impersonate/exit', () => {
+      logoutsAtExit.push(auth0.logoutRequests.length);
+      return ok(null);
+    });
+
+    await page.goto(`/project/${MAIN_PROJECT.uid}/settings`);
+    await expect(page.getByText(`Impersonating ${E2E_EMAIL}`)).toBeVisible();
+    const { token } = await storage(page);
+
+    await page.getByRole('button', { name: 'Account menu' }).click();
+    await page.getByRole('menuitem', { name: 'Logout' }).click();
+    await expect(page).toHaveURL('/login?returnTo=%2F');
+
+    // Without the exit, the server would resume the impersonation at the
+    // admin's next login. It has to happen before the token is gone.
+    const exits = api.callsTo('PUT', 'workspace/impersonate/exit');
+    expect(exits).toHaveLength(1);
+    expect(exits[0].request.headers().authorization).toBe(`Bearer ${token}`);
+    expect(logoutsAtExit).toEqual([0]);
+    expect(auth0.logoutRequests).toHaveLength(1);
+  });
+
+  test('a failed impersonation exit does not block logout', async ({
+    page,
+    api,
+    auth0,
+  }) => {
+    mockSession(api);
+    mockSettingsPage(api);
+    api.get('users/me', ok({ ...USER, impersonated: true }));
+    api.put('workspace/impersonate/exit', fail(500));
+
+    await page.goto(`/project/${MAIN_PROJECT.uid}/settings`);
+    await page.getByRole('button', { name: 'Account menu' }).click();
+    await page.getByRole('menuitem', { name: 'Logout' }).click();
+
+    await expect(page).toHaveURL('/login?returnTo=%2F');
+    expect(api.callsTo('PUT', 'workspace/impersonate/exit')).toHaveLength(1);
+    expect(auth0.logoutRequests).toHaveLength(1);
+    expect((await storage(page)).token).toBeNull();
+  });
+
+  test.describe('narrow screen', () => {
+    // Below 1280px the sidebar starts collapsed to icons, and the account menu
+    // is a different button.
+    test.use({ viewport: { width: 1024, height: 720 } });
+
+    test('the collapsed sidebar menu logs you out', async ({
+      page,
+      api,
+      auth0,
+    }) => {
+      mockSession(api);
+      mockSettingsPage(api);
+
+      await page.goto(`/project/${MAIN_PROJECT.uid}/settings`);
+
+      // Only the collapsed button carries the user's name as its title.
+      const accountMenu = page.getByRole('button', { name: 'Account menu' });
+      await expect(accountMenu).toHaveAttribute('title', USER.name);
+      await accountMenu.click();
+      await page.getByRole('menuitem', { name: 'Logout' }).click();
+
+      await expect(page).toHaveURL('/login?returnTo=%2F');
+      expect(auth0.logoutRequests).toHaveLength(1);
+      expect((await storage(page)).token).toBeNull();
+    });
   });
 });

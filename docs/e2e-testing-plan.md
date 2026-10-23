@@ -6,7 +6,9 @@ Plan for adding browser end-to-end tests to the web dashboard (`apps/web`).
 of Phase 3 (the `e2e.yml` workflow). Phase 2 has started: `auth.spec.ts` covers
 test 1 below, the full login round trip, the login callback errors and logout
 (scenarios 1 and 13). See [Open questions](#open-questions) before starting
-Phase 4.
+Phase 4. It also covers silent login, expired tokens, open redirects through
+`returnTo` and `redirectTo`, logout from the collapsed sidebar, and logout while
+impersonating.
 
 Findings come from reading the code, not from running the app. **Confirmed**
 means it was read in the code. **Inferred** means it follows from the code but

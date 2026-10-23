@@ -45,7 +45,8 @@ function corsHeaders(route: Route): Record<string, string> {
 //
 // `session` starts the stub with an Auth0 session, for a test that begins
 // logged in. Silent logins are answered from it, so a logout that fails to end
-// the session shows up as a silent login that succeeds.
+// the session shows up as a silent login that succeeds. A test that wants an
+// Auth0 session but no stored token sets `auth0.session = true` itself.
 export async function stubAuth0(
   page: Page,
   { session = false }: { session?: boolean } = {}
