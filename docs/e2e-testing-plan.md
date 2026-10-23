@@ -130,7 +130,9 @@ No analytics or error tracking is wired into the web app.
   reload stays logged out. Any Auth0 path the stub does not know fails the
   test.
 - **Other hosts:** every other origin (map tiles, the CDN and the rest) is
-  blocked and listed in `blockedHosts`. This does not fail the test.
+  blocked and listed in `blockedHosts`. This does not fail the test, unless the
+  path starts with `/api/`: the app only calls its own API, so an endpoint sent
+  to another host fails the test even though the API mock never sees it.
 - **Test data:** small, made up and typed. Never copy real responses into the
   repo: it is public.
 
@@ -316,6 +318,13 @@ Config notes:
   shell, so headed runs (`--headed`) and debugging (`--debug`, `--ui`) work.
   Then run `yarn test:e2e` from `apps/web`, or `yarn web:e2e` from the repo
   root.
+  - Against a reused `next dev` server, add `--workers=1`. Dev mode compiles and
+    hydrates slowly, and with 4 workers the auth tests can miss their 5s
+    waits. `CI=1 E2E_PORT=3100 yarn test:e2e` runs the CI way instead (a
+    production build on its own port) and is the fair check before a push.
+  - The fixture hides Next's dev tools button (`nextjs-portal`). In dev it
+    sits in the bottom-left corner, on top of the collapsed sidebar's account
+    button.
 - **CI (Layer 1):** `.github/workflows/e2e.yml`, on pull requests, pushes to
   `develop` and manual runs. A new commit cancels the older run of the same pull
   request; `develop` runs always finish.
