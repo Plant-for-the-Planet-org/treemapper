@@ -10,7 +10,10 @@ interface Options {
 }
 
 interface Fixtures {
-  /** Hosts outside the app that a test tried to reach. Blocked, not failed. */
+  /**
+   * Hosts outside the app that a test tried to reach. Blocked, not failed,
+   * unless the path is under /api/.
+   */
   blockedHosts: string[];
   api: ApiMock;
   auth0: Auth0Stub;
@@ -29,18 +32,30 @@ export const test = base.extend<Options & Fixtures>({
     async ({ page, baseURL }, use) => {
       const appOrigin = new URL(baseURL!).origin;
       const blocked: string[] = [];
+      const offOriginApiCalls: string[] = [];
 
       // Map tiles, the image CDN and anything else external. Maps are drawn on
       // a WebGL canvas that tests do not read, so nothing is lost.
       await page.route('**/*', route => {
-        const { origin } = new URL(route.request().url());
+        const request = route.request();
+        const { origin, pathname } = new URL(request.url());
         if (origin === appOrigin) return route.fallback();
 
         if (!blocked.includes(origin)) blocked.push(origin);
+        // The app only ever calls its own /api/. An API path on another host
+        // means one endpoint stopped going through the app, which the API mock
+        // never sees, so fail on it rather than just blocking it.
+        if (pathname.startsWith('/api/')) {
+          offOriginApiCalls.push(`${request.method()} ${origin}${pathname}`);
+        }
         return route.abort('blockedbyclient');
       });
 
       await use(blocked);
+
+      expect(offOriginApiCalls, 'API calls to a host other than the app').toEqual(
+        []
+      );
     },
     { auto: true },
   ],
