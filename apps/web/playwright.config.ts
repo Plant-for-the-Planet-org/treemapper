@@ -23,7 +23,9 @@ export default defineConfig({
     // Many dates are formatted with the browser locale and no explicit locale.
     locale: 'en-US',
     timezoneId: 'UTC',
-    trace: 'on-first-retry',
+    // Trace the first attempt and keep it only if it fails. For a flaky test
+    // that is the failing run; `on-first-retry` kept the retry, which passed.
+    trace: 'retain-on-first-failure',
     screenshot: 'only-on-failure',
   },
   projects: [

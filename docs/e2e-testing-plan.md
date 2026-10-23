@@ -300,8 +300,9 @@ Config notes:
   `NEXT_PUBLIC_BACKEND_API=false` so a call that slips past the mocks goes to a
   local server, never to `dev.treemapper.app`. A reused dev server keeps its own
   values, so there the fail-on-unmocked check is the only guard.
-- No retries locally, 2 in CI. Record a trace on the first retry and a
-  screenshot on failure.
+- No retries locally, 2 in CI. Trace the first attempt and keep it only if it
+  fails (`retain-on-first-failure`), and take a screenshot on failure. For a
+  flaky test that keeps the failing run, not the retry that passed.
 - Never wait for "network idle". The overview polls every 30s, so it never goes idle.
 
 ---
@@ -325,7 +326,9 @@ Config notes:
      libraries are still installed.
   3. `yarn test:e2e`. With `CI` set, the config builds the app and serves it with
      `next start`.
-  4. Upload the report and traces only when a test fails.
+  4. Upload the report and traces on every run that was not cancelled, kept 14
+     days. A test that passes on retry leaves the job green, so this is the
+     only record of a flake, and the evidence for "two weeks of stable runs".
 
   Actions are pinned to commit SHAs. The token is read-only, and the workflow
   uses `pull_request`, never `pull_request_target`, so it is safe for forks.

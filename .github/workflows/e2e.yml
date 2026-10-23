@@ -82,8 +82,11 @@ jobs:
       - name: Run E2E tests
         run: yarn test:e2e
 
+      # Upload on success too. A test that fails and then passes on retry
+      # leaves the job green, and its trace is the only record of the flake.
+      # The 14 days cover the "two weeks of stable runs" check in the plan.
       - name: Upload report and traces
-        if: failure()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-report-${{ github.run_attempt }}
