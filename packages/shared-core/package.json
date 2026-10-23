@@ -14,9 +14,6 @@
       "require": "./index.js"
     }
   },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "dependencies": {
     "zustand": "5.0.14"
   }

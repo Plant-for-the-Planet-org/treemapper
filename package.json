@@ -26,6 +26,7 @@
     "web:dev": "turbo dev --filter=web",
     "web:build": "turbo build --filter=web",
     "web:start": "turbo start --filter=web",
+    "web:e2e": "turbo test:e2e --filter=web",
     "server:dev": "turbo dev --filter=server",
     "server:build": "turbo build --filter=server",
     "server:start": "turbo start --filter=server",
