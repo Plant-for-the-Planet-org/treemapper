@@ -39,15 +39,21 @@ declare global {
   }
 }
 
-// Records every write of `access_token` the app makes. The auth store writes
-// the token when it takes one, so this is the signal that the app has read it.
-// Added after the `loggedIn` seed script, so the seed's own write is not counted.
+// Records every write of `access_token` over a token that is already stored.
+// The auth store writes the stored token back when it takes one, so this is
+// the signal that the app has read it. The `loggedIn` seed writes into an
+// empty slot, so it is never counted. That holds whichever script runs first:
+// Playwright does not fix the order of init scripts.
 function watchTokenWrites(page: import('@playwright/test').Page) {
   return page.addInitScript(() => {
     window.__e2eTokenWrites = [];
     const setItem = Storage.prototype.setItem;
     Storage.prototype.setItem = function (key: string, value: string) {
-      if (this === window.localStorage && key === 'access_token') {
+      if (
+        this === window.localStorage &&
+        key === 'access_token' &&
+        this.getItem(key) !== null
+      ) {
         window.__e2eTokenWrites.push(value);
       }
       return setItem.call(this, key, value);
