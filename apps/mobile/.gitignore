@@ -39,5 +39,11 @@ yarn-error.*
 notes.txt
 
 .vscode
-android/
-ios/
+
+# The prebuild output, and only that. The leading slash is load-bearing:
+# without it these patterns match a folder called android/ or ios/ at ANY
+# depth, which silently swallowed the native source of the local Expo module
+# in modules/treemapper-garmin/android/ -- committed nothing, broke nobody
+# else's build, and gave no warning.
+/android/
+/ios/

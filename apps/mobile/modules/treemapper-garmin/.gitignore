@@ -1,0 +1,7 @@
+# Build output for this module. The app's own android/ and ios/ are ignored
+# wholesale at the project root; these cannot be, because the source next to
+# them has to be committed. ios/vendor/ is deliberately NOT ignored: the
+# Connect IQ xcframework is checked in.
+android/build/
+android/.cxx/
+android/.gradle/

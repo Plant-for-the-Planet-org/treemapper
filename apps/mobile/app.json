@@ -77,7 +77,8 @@
         {}
       ],
       "expo-image",
-      "./plugins/withCameraCompatOptOut"
+      "./plugins/withCameraCompatOptOut",
+      "./modules/treemapper-garmin/app.plugin.js"
     ],
     "ios": {
       "supportsTablet": true,

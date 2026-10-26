@@ -17,6 +17,8 @@ import store, { RootState } from 'src/store'
 import { Colors, Typography } from 'src/utils/constants'
 import { SCALE_20 } from 'src/utils/constants/spacing'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { GarminPoint } from 'src/garmin'
+import { recordGarminFixMetaData } from 'src/utils/helpers/interventionHelper/garminMetaData'
 import useLocationPermission from 'src/hooks/useLocationPermission'
 import { useObject } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
@@ -43,7 +45,8 @@ const PlannedTreeLocationView = () => {
   const tree = useObject<SampleTree>(RealmSchema.TreeDetail, treeId)
   const currentUserLocation = useSelector((state: RootState) => state.gpsState.user_location)
   const mainMapView = useSelector((state: RootState) => state.displayMapState.mainMapView)
-  const { updatePlannedTreeLocation } = useInterventionManagement()
+  const { updatePlannedTreeLocation, addInterventionMetadataEntry } =
+    useInterventionManagement()
   const { userCurrentLocation } = useLocationPermission()
 
   const [showInfoModal, setShowInfoModal] = useState(false)
@@ -59,6 +62,12 @@ const PlannedTreeLocationView = () => {
   const framed = useRef(false)
   // Set true once the user pans/zooms the map themselves -> stop auto-framing.
   const userPanned = useRef(false)
+
+  // Set while the pin is standing on a Garmin fix, cleared by anything that
+  // moves it. It decides one thing at save time: whether the phone's own
+  // accuracy may be written against this coordinate. It may not, because the
+  // phone did not measure it.
+  const fromGarmin = useRef(false)
 
   const userCoord: [number, number] | null =
     currentUserLocation && currentUserLocation[0] !== 0
@@ -136,6 +145,7 @@ const PlannedTreeLocationView = () => {
       return
     }
     // A tap is precise placement -- move the pin but do not yank the camera.
+    fromGarmin.current = false
     setSelectedCoordinate(coords)
     toast.show('Tree location updated')
   }
@@ -147,6 +157,7 @@ const PlannedTreeLocationView = () => {
       return
     }
     const coord = initialCoordinate.current
+    fromGarmin.current = false
     setSelectedCoordinate(coord)
     frameBoth(coord, userCoord)
     toast.show('Location reset')
@@ -160,19 +171,36 @@ const PlannedTreeLocationView = () => {
     const loc = store.getState().gpsState.user_location
     if (loc && loc[0] !== 0) {
       const coord: [number, number] = [loc[0], loc[1]]
+      fromGarmin.current = false
       setSelectedCoordinate(coord)
       frameBoth(coord, coord)
     }
   }
 
-  // A watch fix is an explicit placement, same as the recenter button, so it
+  // A Garmin fix is an explicit placement, same as the recenter button, so it
   // moves the pin and reframes. The toast says where it came from, because
   // after this the coordinate is indistinguishable from a tapped one.
-  const handleGarminFix = (coords: [number, number]) => {
+  const handleGarminFix = (
+    coords: [number, number],
+    point: GarminPoint,
+    deviceName: string | null,
+  ) => {
     userPanned.current = false
+    fromGarmin.current = true
     setSelectedCoordinate(coords)
     frameBoth(coords, userCoord)
-    toast.show('Tree location set from the watch')
+    toast.show(
+      deviceName
+        ? `Tree location set from ${deviceName}`
+        : 'Tree location set from your Garmin',
+    )
+    // Not awaited: the pin is placed and the person is ready to confirm.
+    void recordGarminFixMetaData(
+      interventionId,
+      point,
+      deviceName,
+      addInterventionMetadataEntry,
+    )
   }
 
   const confirmLocation = async () => {
@@ -180,7 +208,13 @@ const PlannedTreeLocationView = () => {
       toast.show('Please tap the tree location on the map')
       return
     }
-    const { accuracy } = getUserLocation()
+    // The phone's accuracy belongs only to a coordinate the phone measured.
+    // Writing it against a Garmin fix would put a metre radius on a position
+    // the phone never saw, and Connect IQ has no metre figure to put there
+    // instead: it reports a five-step quality enum and nothing else. So the
+    // field is left as it was, and the quality is recorded in the
+    // intervention's private metadata by handleGarminFix.
+    const accuracy = fromGarmin.current ? undefined : getUserLocation().accuracy
     await updatePlannedTreeLocation(interventionId, treeId, selectedCoordinate[0], selectedCoordinate[1], accuracy)
     navigation.goBack()
   }

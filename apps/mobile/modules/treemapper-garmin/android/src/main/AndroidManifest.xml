@@ -1,0 +1,28 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      Android 11 and later hide other installed packages by default. The Connect
+      IQ SDK reaches the device THROUGH Garmin Connect Mobile, so without this
+      the SDK cannot see it and initialisation fails with a confusing
+      "service unavailable" rather than anything the user can act on.
+
+      It is declared here as well as in the app config plugin so the module is
+      self-contained: a manifest merge from a library is additive, and the two
+      identical entries collapse into one.
+    -->
+    <queries>
+        <package android:name="com.garmin.android.apps.connectmobile" />
+    </queries>
+
+    <!--
+      Bluetooth itself is Garmin Connect Mobile's job; it holds the radio
+      permissions and does the bonding. These are declared because some SDK
+      paths query adapter state. TreeMapper never scans or bonds on its own.
+    -->
+    <uses-permission android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+</manifest>

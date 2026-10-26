@@ -1,9 +1,17 @@
 import { createMockTransport } from './mockTransport'
-import { createNativeTransport, hasNativeGarminLink } from './nativeTransport'
+import {
+  createNativeTransport,
+  hasNativeGarminLink,
+} from './nativeTransport'
 import { GarminTransport, GarminTransportOptions } from './transport'
 
 export * from './protocol'
 export * from './transport'
+export {
+  setGarminTetheredMode,
+  getGarminTetheredMode,
+  hasNativeGarminLink,
+} from './nativeTransport'
 export {
   setMockScenario,
   getMockScenario,

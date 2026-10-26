@@ -19,6 +19,8 @@ import {
 } from 'src/utils/helpers/turfHelpers'
 import MapMarkers from './MapMarkers'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { GarminPoint } from 'src/garmin'
+import { recordGarminFixMetaData } from 'src/utils/helpers/interventionHelper/garminMetaData'
 import { useToast } from 'react-native-toast-notifications'
 import getUserLocation from 'src/utils/helpers/getUserLocation'
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
@@ -74,7 +76,8 @@ const PointMarkerMap = (props: Props) => {
   const mainMapView = useSelector(
     (state: RootState) => state.displayMapState.mainMapView
   )
-  const { updateInterventionLocation } = useInterventionManagement()
+  const { updateInterventionLocation, addInterventionMetadataEntry } =
+    useInterventionManagement()
   const dispatch = useDispatch()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const toast = useToast()
@@ -283,9 +286,22 @@ const PointMarkerMap = (props: Props) => {
   // straight to the pin. The camera follows it rather than the other way
   // round: the user is looking at the map, and a pin that lands off screen
   // reads as nothing having happened.
-  const handleGarminFix = (coords: [number, number]) => {
+  const handleGarminFix = (
+    coords: [number, number],
+    point: GarminPoint,
+    deviceName: string | null,
+  ) => {
     placePin(coords)
     cameraRef.current?.easeTo({ center: coords, zoom: 18, duration: 600 })
+    // Not awaited. The pin is already placed and the person is already moving
+    // on; a metadata write is bookkeeping and must not sit in front of them.
+    // The hook logs its own failures.
+    void recordGarminFixMetaData(
+      form_id,
+      point,
+      deviceName,
+      addInterventionMetadataEntry,
+    )
   }
 
   // Drop the pin exactly where the user taps. maplibre gives the tapped

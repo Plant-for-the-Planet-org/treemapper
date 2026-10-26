@@ -17,6 +17,8 @@ import distanceCalculator, { checkIsValidPolygonMarker } from 'src/utils/helpers
 import { useToast } from 'react-native-toast-notifications'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { GarminPoint } from 'src/garmin'
+import { recordGarminFixMetaData } from 'src/utils/helpers/interventionHelper/garminMetaData'
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import SatelliteIconWrapper from './SatelliteIconWrapper'
 import GarminGpsButton from './GarminGpsButton'
@@ -79,7 +81,8 @@ const PolygonMarkerMap = (props: Props) => {
     (state: RootState) => state.userState.type,
   )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const { updateInterventionLocation } = useInterventionManagement()
+  const { updateInterventionLocation, addInterventionMetadataEntry } =
+    useInterventionManagement()
   const { advanceIfOn: advanceMultiTreeTour } = useMultiTreeTour()
   const posthog = usePostHog()
   const { saveDraft, readDraft, clearOwnerDrafts } = useMapDraft()
@@ -295,11 +298,25 @@ const PolygonMarkerMap = (props: Props) => {
     await commitCoordinate(centerCoordinates)
   }
 
-  // Place the corner where the watch says it is, then bring the map to it so
+  // Place the corner where the Garmin says it is, then bring the map to it so
   // the crosshair and the recorded corner agree on screen.
-  const handleGarminFix = async (coords: [number, number]) => {
+  //
+  // The metadata entry records the last corner taken this way, not every one
+  // of them: it answers whether a handheld was used, not which corners came
+  // from it. See `recordGarminFixMetaData`.
+  const handleGarminFix = async (
+    coords: [number, number],
+    point: GarminPoint,
+    deviceName: string | null,
+  ) => {
     cameraRef.current?.easeTo({ center: coords, zoom: 18, duration: 600 })
     await commitCoordinate(coords)
+    void recordGarminFixMetaData(
+      form_id,
+      point,
+      deviceName,
+      addInterventionMetadataEntry,
+    )
   }
 
   const isBackAtFirstCorner = (centerCoordinates: [number, number]) => {

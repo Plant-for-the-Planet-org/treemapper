@@ -1,19 +1,27 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { StyleSheet, TouchableOpacity } from 'react-native'
 import GarminDeviceIcon from 'assets/images/svg/GarminDeviceIcon.svg'
 import { Colors } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { GarminPoint, isGarminAvailable } from 'src/garmin'
-import useGarminFix from 'src/hooks/useGarminFix'
-import GarminFixModal from './GarminFixModal'
+import useGarminStream from 'src/hooks/useGarminStream'
+import GarminStreamModal from './GarminStreamModal'
 
 interface Props {
   /**
-   * Called with the point the device sent, as [lng, lat] to match maplibre and
-   * the GeoJSON this app stores, plus the raw point for anything the screen
-   * wants to say about quality.
+   * Called with the position the user chose, as [lng, lat] to match maplibre
+   * and the GeoJSON this app stores, plus the raw point and the device it came
+   * from.
+   *
+   * A screen that saves to an intervention is expected to record that
+   * provenance, because once the coordinate is stored it is indistinguishable
+   * from a tapped one. See `recordGarminFixMetaData`.
    */
-  onFix: (coordinates: [number, number], point: GarminPoint) => void
+  onFix: (
+    coordinates: [number, number],
+    point: GarminPoint,
+    deviceName: string | null,
+  ) => void
   /** Distance from the bottom of the map, so it stacks with the other tiles. */
   bottom?: number
   /** Where the user is, [lng, lat]. Used by the development mock only. */
@@ -21,54 +29,46 @@ interface Props {
   disabled?: boolean
 }
 
-/** Long enough to read the coordinate that landed, short enough to not nag. */
-const CLOSE_DELAY_MS = 900
-
 /**
  * The Garmin entry point, drawn on every map that asks for a coordinate.
  *
- * It renders nothing at all when there is no way to reach a device, rather than
- * showing a button that explains itself only after being pressed. On a release
- * build that means it is invisible until the native Connect IQ module ships.
+ * It renders nothing at all when there is no way to reach a device, rather
+ * than showing a button that explains itself only after being pressed. Both
+ * platforms have a native link now, so in a release build that means a phone
+ * whose build simply does not carry the module.
+ *
+ * The device streams its position on its own once the modal has greeted it, so
+ * nothing here asks for a point. The modal shows what is arriving and this
+ * component records whichever position was on screen when the user said so.
+ * Closing straight after is deliberate: the stream costs the device's radio
+ * every second, and leaving it running behind a dismissed modal would spend
+ * battery on a screen nobody is reading.
  */
 const GarminGpsButton = (props: Props) => {
   const { onFix, bottom, origin, disabled } = props
   const [visible, setVisible] = useState(false)
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const handlePoint = useCallback(
-    (point: GarminPoint) => {
-      onFix([point.longitude, point.latitude], point)
-      closeTimer.current = setTimeout(() => setVisible(false), CLOSE_DELAY_MS)
-    },
-    [onFix],
-  )
-
-  const { state, start, stop, retry, askForPoint, installWatchApp } =
-    useGarminFix({ origin, onPoint: handlePoint })
-
-  useEffect(
-    () => () => {
-      if (closeTimer.current) {
-        clearTimeout(closeTimer.current)
-      }
-    },
-    [],
-  )
+  const { state, start, stop, retry, retune, installWatchApp, chooseDevice } =
+    useGarminStream({ origin })
 
   const open = () => {
     setVisible(true)
     start()
   }
 
-  const close = () => {
-    if (closeTimer.current) {
-      clearTimeout(closeTimer.current)
-      closeTimer.current = null
-    }
+  const close = useCallback(() => {
     setVisible(false)
     stop()
-  }
+  }, [stop])
+
+  const usePoint = useCallback(() => {
+    const point = state.point
+    if (!point) {
+      return
+    }
+    onFix([point.longitude, point.latitude], point, state.deviceName)
+    close()
+  }, [close, onFix, state.deviceName, state.point])
 
   if (!isGarminAvailable()) {
     return null
@@ -90,13 +90,15 @@ const GarminGpsButton = (props: Props) => {
         onPress={open}>
         <GarminDeviceIcon width={22} height={22} fill={Colors.DARK_TEXT} />
       </TouchableOpacity>
-      <GarminFixModal
+      <GarminStreamModal
         visible={visible}
         state={state}
         onClose={close}
-        onTakePoint={askForPoint}
+        onUsePoint={usePoint}
         onRetry={retry}
+        onRetune={retune}
         onInstallWatchApp={installWatchApp}
+        onChooseDevice={chooseDevice}
       />
     </>
   )
