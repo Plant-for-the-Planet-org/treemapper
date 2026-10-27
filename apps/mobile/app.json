@@ -19,7 +19,8 @@
       [
         "onesignal-expo-plugin",
         {
-          "mode": "development"
+          "mode": "development",
+          "iPhoneDeploymentTarget": "15.1"
         }
       ],
       "@maplibre/maplibre-react-native",
@@ -78,7 +79,13 @@
       ],
       "expo-image",
       "./plugins/withCameraCompatOptOut",
-      "./modules/treemapper-garmin/app.plugin.js"
+      "./modules/treemapper-garmin/app.plugin.js",
+      [
+        "./plugins/withPodDeploymentTarget",
+        {
+          "deploymentTarget": "15.1"
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": true,
