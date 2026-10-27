@@ -10,11 +10,16 @@ interface Props {
   stopAutoFocus?: boolean
   low?: boolean
   high?: boolean
+  // Fires on every press, next to the fix request. A screen that has stopped
+  // reacting to every GPS tick needs this to tell a deliberate re-centre from
+  // the ~1 Hz fixes the shared watch delivers anyway: the dispatched fix looks
+  // identical in both cases.
+  onLocate?: () => void
 }
 const windowWidth = Dimensions.get('window').width;
 
 const UserlocationMarker = (props: Props) => {
-  const { stopAutoFocus, low, high } = props
+  const { stopAutoFocus, low, high, onLocate } = props
   // This marker is rendered on every screen that captures or shows a position,
   // so holding the shared watch here keeps the fix converging (and the accuracy
   // readout live) exactly where it matters, without tracking in the background.
@@ -27,10 +32,15 @@ const UserlocationMarker = (props: Props) => {
     }
   }, [stopAutoFocus])
 
+  const handlePress = () => {
+    onLocate?.()
+    userCurrentLocation()
+  }
+
   const isHigh = high ? windowWidth / 2.2 : windowWidth / 2.8
   return (
-    <TouchableOpacity style={[styles.container, { bottom: low ? windowWidth / 2.4 : isHigh }]} onPress={userCurrentLocation}>
-      <UserLocationIcon width={SCALE_20} height={SCALE_20} onPress={userCurrentLocation} />
+    <TouchableOpacity style={[styles.container, { bottom: low ? windowWidth / 2.4 : isHigh }]} onPress={handlePress}>
+      <UserLocationIcon width={SCALE_20} height={SCALE_20} onPress={handlePress} />
     </TouchableOpacity>
   )
 }

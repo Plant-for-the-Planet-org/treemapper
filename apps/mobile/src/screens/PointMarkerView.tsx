@@ -18,6 +18,10 @@ import { useTourStage } from 'src/hooks/useInterventionTour'
 
 const PointMarkerView = () => {
   const [showInfoModal, setShowInfoModal] = useState(false)
+  // The locate button sits beside the map rather than inside it, so a press
+  // reaches the map as a bump of this counter. The map follows the GPS only
+  // on its first fix, so without this the button would have nothing to say.
+  const [recenterRequest, setRecenterRequest] = useState(0)
 
   const route = useRoute<RouteProp<RootStackParamList, 'PointMarker'>>()
 
@@ -48,9 +52,9 @@ const PointMarkerView = () => {
         label={"Select Location"}
         rightComponent={<GpsAccuracyTile showModalInfo={setShowInfoModal} />}
       />
-      <PointMarkerMap interventionKey={interventionData.intervention_key} form_id={interventionData.form_id || interventionData.intervention_id} tree_details={interventionData.sample_trees} siteId={interventionData.site_id} />
+      <PointMarkerMap interventionKey={interventionData.intervention_key} form_id={interventionData.form_id || interventionData.intervention_id} tree_details={interventionData.sample_trees} siteId={interventionData.site_id} recenterRequest={recenterRequest} />
       <InfoModal isVisible={showInfoModal} toggleModal={setShowInfoModal} />
-      <UserlocationMarker stopAutoFocus />
+      <UserlocationMarker stopAutoFocus onLocate={() => setRecenterRequest(n => n + 1)} />
       <LocationPermissionModal/>
     </SafeAreaView>
   )

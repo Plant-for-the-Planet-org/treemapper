@@ -48,14 +48,21 @@ interface Props {
   interventionKey: INTERVENTION_TYPE
   tree_details: SampleTree[]
   siteId?: string
+  // Bumped by the locate button in PointMarkerView. Any change means
+  // "put me back on my own position", which is the only thing that moves the
+  // camera and the pin once the first fix has landed.
+  recenterRequest?: number
 }
 
 const PointMarkerMap = (props: Props) => {
-  const { tree_details, interventionKey, form_id, siteId } = props
+  const { tree_details, interventionKey, form_id, siteId, recenterRequest = 0 } = props
   const [geoJSON, setGeoJSON] = useState(null)
   const [alertModal, setAlertModal] = useState(false)
   const [outOfBoundary, setOutOfBoundary] = useState(false)
-  const [loading, setLoading] = useState(true)
+  // Covers the Realm write in onSelectLocation only. It used to track camera
+  // movement instead, which is what left the button spinning forever: see the
+  // note on the first-fix effect below.
+  const [submitting, setSubmitting] = useState(false)
   const [selectedCoordinate, setSelectedCoordinate] = useState<[number, number] | null>(null)
   const { advanceIfOn } = useInterventionTour()
 
@@ -99,16 +106,39 @@ const PointMarkerMap = (props: Props) => {
   }, [MapBounds])
 
 
-  // Pressing the GPS button updates currentUserLocation (via redux). When it
-  // does, re-center the camera AND drop the pin on the user's GPS position.
+  // Centre on the user and drop the pin once, on the first usable fix.
+  //
+  // This used to run on every change of currentUserLocation, which the shared
+  // GPS watch dispatches about once a second (useLocationPermission keeps
+  // distanceInterval at 0 on purpose, so a user standing still still gets
+  // updates). Each run started a 1000ms easeTo, so a new camera animation
+  // began before the previous one ended and the map was never still:
+  // onRegionIsChanging held the old `loading` flag true forever and the
+  // confirm button spun and stayed disabled. The same run also re-placed the
+  // pin, so a location the user tapped was overwritten within a second.
+  //
+  // After the first fix the camera and the pin belong to the user. The locate
+  // button is the way back, through recenterRequest below.
+  const hasAutoPlacedRef = useRef(false)
+
   useEffect(() => {
-    if (mapRender) {
-      handleCamera2()
-    }
-    if (currentUserLocation && currentUserLocation[0] !== 0) {
-      placePin([currentUserLocation[0], currentUserLocation[1]])
-    }
-  }, [currentUserLocation])
+    if (hasAutoPlacedRef.current || !mapRender) return
+    if (!currentUserLocation || currentUserLocation[0] === 0) return
+    hasAutoPlacedRef.current = true
+    handleCamera2()
+    placePin([currentUserLocation[0], currentUserLocation[1]])
+  }, [currentUserLocation, mapRender])
+
+
+  // An explicit press of the locate button: re-centre and move the pin, which
+  // is what the button always did, except now only when it is pressed.
+  useEffect(() => {
+    if (!recenterRequest) return
+    if (!currentUserLocation || currentUserLocation[0] === 0) return
+    hasAutoPlacedRef.current = true
+    handleCamera2()
+    placePin([currentUserLocation[0], currentUserLocation[1]])
+  }, [recenterRequest])
 
 
   // The sample tree loop pops back to this screen rather than mounting a fresh
@@ -120,6 +150,9 @@ const PointMarkerMap = (props: Props) => {
     useCallback(() => {
       setSelectedCoordinate(null)
       setOutOfBoundary(false)
+      // Let the next tree in the loop get its own auto-centre and pin from the
+      // next fix, which is at most a second away while this screen is mounted.
+      hasAutoPlacedRef.current = false
     }, [])
   )
 
@@ -183,6 +216,7 @@ const PointMarkerMap = (props: Props) => {
 
 
   const onSelectLocation = async () => {
+    if (submitting) return
     if (!selectedCoordinate || selectedCoordinate[0] === 0) {
       toast.show("Please tap your location on the map")
       return
@@ -196,7 +230,9 @@ const PointMarkerMap = (props: Props) => {
       dispatch(updateSampleTreeCoordinates([selectedCoordinate]))
     } else {
       const { coordinates } = makeInterventionGeoJson('Point', [selectedCoordinate], '')
+      setSubmitting(true)
       const result = await updateInterventionLocation(form_id, { type: 'Point', coordinates: coordinates }, false)
+      setSubmitting(false)
       if (!result) {
         errorHaptic()
         toast.show("Error occurred while updating intervention location")
@@ -249,16 +285,11 @@ const PointMarkerMap = (props: Props) => {
   }
 
 
-  const handleDrag = async () => {
-    setLoading(false)
-  }
-
   // Place the pin at an exact geo coordinate and run boundary validation.
   // The Marker (anchor="bottom") sits its tip on this exact point, so what
   // the user sees is what gets saved. Shared by tap and GPS-button flows.
   const placePin = (coords: [number, number]) => {
     setSelectedCoordinate(coords)
-    setLoading(false)
     if (has_sample_trees && geoJSON) {
       const validMarker = isPointInPolygon(coords, geoJSON)
       const validSampleTree = handleMarkerValidation(coords)
@@ -322,12 +353,8 @@ const PointMarkerMap = (props: Props) => {
           ref={mapRef}
           logo={false}
           attribution={false}
-          onRegionDidChange={handleDrag}
           onPress={handleMapPress}
           onDidFinishLoadingMap={!mapRender ? handleCameraViewChange : null}
-          onRegionIsChanging={() => {
-            setLoading(true)
-          }}
           mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
           <Camera ref={cameraRef} maxZoom={18} />
           <UserLocation heading minDisplacement={1} />
@@ -369,8 +396,8 @@ const PointMarkerMap = (props: Props) => {
         <CustomButton
           label={i18next.t('label.tree_map_marking_btn')}
           pressHandler={checkForAccuracy}
-          loading={loading}
-          disable={loading || outOfBoundary || !selectedCoordinate}
+          loading={submitting}
+          disable={submitting || outOfBoundary || !selectedCoordinate}
         />
       </TourTarget>
       <AlertModal
