@@ -36,8 +36,14 @@ Pod::Spec.new do |s|
     'SWIFT_COMPILATION_MODE' => 'wholemodule'
   }
 
-  # Only this folder. A recursive glob would pull in the vendored framework's
-  # own headers and compile them twice.
+  # Only this folder, and no exclude_files.
+  #
+  # The glob is already flat, so the vendored framework's own headers are out
+  # of reach and cannot be compiled twice. Do not "tidy" this by adding
+  # `s.exclude_files = 'vendor/**/*'`: CocoaPods applies exclude_files to every
+  # file attribute, not just source_files, so that pattern also removes
+  # vendor/ConnectIQ.xcframework from vendored_frameworks. The pod then
+  # installs with no framework search path at all and GarminLink.swift fails
+  # with "No such module 'ConnectIQ'".
   s.source_files = '*.{h,m,mm,swift}'
-  s.exclude_files = 'vendor/**/*'
 end

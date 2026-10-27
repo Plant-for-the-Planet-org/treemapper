@@ -242,10 +242,10 @@ final class GarminLink: NSObject {
       emitBlocked("unsupported", "SDK not initialised")
       return
     }
-    log("-> showConnectIQDeviceSelection")
+    log("-> showDeviceSelection")
     // This backgrounds TreeMapper and may suspend it. The answer comes back
     // through `handleOpen`, possibly after a cold start.
-    ConnectIQ.sharedInstance().showConnectIQDeviceSelection()
+    ConnectIQ.sharedInstance().showDeviceSelection()
   }
 
   /**
@@ -312,7 +312,7 @@ final class GarminLink: NSObject {
     device = chosen
     let app = IQApp(
       uuid: UUID(uuidString: Self.watchAppUuid),
-      storeUuid: UUID(uuidString: Self.storeUuid),
+      store: UUID(uuidString: Self.storeUuid),
       device: chosen
     )
     self.app = app
@@ -329,8 +329,9 @@ final class GarminLink: NSObject {
     let status = ConnectIQ.sharedInstance().getDeviceStatus(chosen)
     let connected = status == .connected
     lastConnected = connected
-    log("device: \(chosen.friendlyName) (\(label(for: status)))")
-    emitDevice(name: chosen.friendlyName, connected: connected)
+    let name = chosen.friendlyName ?? "Garmin"
+    log("device: \(name) (\(label(for: status)))")
+    emitDevice(name: name, connected: connected)
 
     if !connected {
       // Paired and remembered, but not reachable this second. Keep the
@@ -437,7 +438,7 @@ final class GarminLink: NSObject {
     ConnectIQ.sharedInstance().openAppRequest(app) { [weak self] result in
       // Already running and prompt-not-displayed both mean the app is up,
       // which is the outcome this call wanted. Nothing to do but say so.
-      self?.log("   openAppRequest: \(NSStringFromSendMessageResult(result))")
+      self?.log("   openAppRequest: \(NSStringFromSendMessageResult(result) ?? "?")")
     }
   }
 
@@ -451,8 +452,8 @@ final class GarminLink: NSObject {
       log("cannot open the store: no device")
       return
     }
-    log("-> showConnectIQStore")
-    ConnectIQ.sharedInstance().showConnectIQStore(for: app)
+    log("-> showStore")
+    ConnectIQ.sharedInstance().showStore(for: app)
   }
 
   // ---- messages --------------------------------------------------------
@@ -489,7 +490,7 @@ final class GarminLink: NSObject {
       to: app,
       progress: nil,
       completion: { [weak self] result in
-        self?.log("   send \(label): \(NSStringFromSendMessageResult(result))")
+        self?.log("   send \(label): \(NSStringFromSendMessageResult(result) ?? "?")")
       }
     )
   }
