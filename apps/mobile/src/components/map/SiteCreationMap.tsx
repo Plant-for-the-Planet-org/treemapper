@@ -45,7 +45,14 @@ interface Props {
 
 const SiteCreationMap = (props: Props) => {
     const { setGeometry, close, projectBounds, projectId } = props
-    const [loadingSite, setLoadingSite] = useState(true)
+    // Covers the corner commit only. It used to track camera movement instead,
+    // which is what left the button disabled forever: see the note on the
+    // first-fix effect below.
+    const [submitting, setSubmitting] = useState(false)
+    // Bumped by the locate button. Any change means "put me back on my own
+    // position", which is the only thing that moves the camera to the user
+    // once the first fix has landed.
+    const [recenterRequest, setRecenterRequest] = useState(0)
     const [lineError, setLineError] = useState(false)
     const [coordinates, setCoordinates] = useState<[number, number][]>([])
     const [polygonComplete, setPolygonComplete] = useState(false)
@@ -122,9 +129,35 @@ const SiteCreationMap = (props: Props) => {
     }, [polygonComplete, advanceIfOn])
 
 
+    // Centre on the user once, on the first usable fix.
+    //
+    // This used to run on every change of currentUserLocation, which the shared
+    // GPS watch dispatches about once a second (useLocationPermission keeps
+    // distanceInterval at 0 on purpose, so a user standing still still gets
+    // updates). Each run started a 1000ms easeTo, so a new camera animation
+    // began before the previous one ended and the map was never still:
+    // onRegionIsChanging held loadingSite true forever and the mark-point
+    // button stayed disabled for the whole session.
+    //
+    // After the first fix the camera belongs to the user. The locate button is
+    // the way back, through recenterRequest below.
+    const hasAutoCenteredRef = useRef(false)
+
     useEffect(() => {
+        if (hasAutoCenteredRef.current) return
+        if (!currentUserLocation || currentUserLocation[0] === 0) return
+        hasAutoCenteredRef.current = true
         handleCamera()
     }, [currentUserLocation])
+
+    // An explicit press of the locate button. Unlike the automatic centring it
+    // overrides a restored boundary's framing, because the user asked for it.
+    useEffect(() => {
+        if (!recenterRequest) return
+        if (!currentUserLocation || currentUserLocation[0] === 0) return
+        hasAutoCenteredRef.current = true
+        handleCamera(true)
+    }, [recenterRequest])
 
     const handleCameraViewChange = () => {
         // Restored points win over the project bounds: the user needs to see
@@ -167,10 +200,14 @@ const SiteCreationMap = (props: Props) => {
         }
     }
 
-    const handleCamera = () => {
+    const handleCamera = (force = false) => {
         // Recentring would undo the framing of a restored boundary, so hold the
-        // view until the user marks or undoes a point.
-        if (restoredCoordsRef.current.length > 0) {
+        // view until the user marks or undoes a point. A deliberate press of
+        // the locate button passes force and is honoured either way.
+        if (!force && restoredCoordsRef.current.length > 0) {
+            return
+        }
+        if (!currentUserLocation || currentUserLocation[0] === 0) {
             return
         }
         if (cameraRef?.current) {
@@ -219,8 +256,14 @@ const SiteCreationMap = (props: Props) => {
     }
 
     const onSelectLocation = async () => {
-        const centerCoordinates = await mapRef.current.getCenter()
-        await commitCoordinate(centerCoordinates)
+        if (submitting) return
+        setSubmitting(true)
+        try {
+            const centerCoordinates = await mapRef.current.getCenter()
+            await commitCoordinate(centerCoordinates)
+        } finally {
+            setSubmitting(false)
+        }
     }
 
     // Place the corner where the watch says it is, then bring the map to it so
@@ -273,8 +316,10 @@ const SiteCreationMap = (props: Props) => {
 
 
 
+    // Panning away from a rejected corner clears the error, which is what
+    // re-enables the button. It no longer touches any loading flag: camera
+    // movement is not work the user is waiting on.
     const onRegionDidChange = async () => {
-        setLoadingSite(false)
         setLineError(false)
     }
 
@@ -299,9 +344,6 @@ const SiteCreationMap = (props: Props) => {
                 logo={false}
                 onDidFinishLoadingMap={handleCameraViewChange}
                 onRegionDidChange={onRegionDidChange}
-                onRegionIsChanging={() => {
-                    setLoadingSite(true)
-                }}
                 attribution={false}
                 mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
                 <Camera ref={cameraRef} />
@@ -343,12 +385,12 @@ const SiteCreationMap = (props: Props) => {
                     label={`${i18next.t('label.select_location_continue')}`}
                     containerStyle={styles.btnContainerSite}
                     pressHandler={onSelectLocation}
-                    disable={loadingSite || lineError}
-                    loading={loadingSite}
+                    disable={submitting || lineError}
+                    loading={submitting}
                 />
             )}
             <ActiveMarkerIcon />
-            <UserlocationMarker stopAutoFocus />
+            <UserlocationMarker stopAutoFocus onLocate={() => setRecenterRequest(n => n + 1)} />
         </View>
     )
 }

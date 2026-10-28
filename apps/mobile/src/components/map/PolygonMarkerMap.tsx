@@ -63,7 +63,14 @@ const PolygonMarkerMap = (props: Props) => {
     id: 'A',
     index: 0,
   })
-  const [loading, setLoading] = useState(true)
+  // Covers the corner commit only. It used to track camera movement instead,
+  // which is what left the button disabled forever: see the note on the
+  // first-fix effect below.
+  const [submitting, setSubmitting] = useState(false)
+  // Bumped by the locate button. Any change means "put me back on my own
+  // position", which is the only thing that moves the camera to the user once
+  // the first fix has landed.
+  const [recenterRequest, setRecenterRequest] = useState(0)
   const [trackerModal, setTrackerModal] = useState(false)
   const [closeLoopModal, setCloseLoopModal] = useState(false)
   const [pendingCoordinate, setPendingCoordinate] = useState<[number, number] | null>(null)
@@ -149,13 +156,38 @@ const PolygonMarkerMap = (props: Props) => {
   }, [MapBounds])
 
 
+  // Centre on the user once, on the first usable fix.
+  //
+  // This used to run on every change of currentUserLocation, which the shared
+  // GPS watch dispatches about once a second (useLocationPermission keeps
+  // distanceInterval at 0 on purpose, so a user standing still still gets
+  // updates). Each run started a 1000ms easeTo, so a new camera animation
+  // began before the previous one ended and the map was never still:
+  // onRegionIsChanging held `loading` true forever and Mark Point stayed
+  // disabled for the whole session.
+  //
+  // After the first fix the camera belongs to the user. The locate button is
+  // the way back, through recenterRequest below.
+  const hasAutoCenteredRef = useRef(false)
+
   useEffect(() => {
+    if (hasAutoCenteredRef.current || !mapRender) return
     // Recentring on the user would throw away the framing of a restored
     // boundary, so hold the view until they mark or undo a point.
-    if (mapRender && restoredCoordsRef.current.length === 0) {
-      handleCamera2()
-    }
-  }, [currentUserLocation])
+    if (restoredCoordsRef.current.length > 0) return
+    if (!currentUserLocation || currentUserLocation[0] === 0) return
+    hasAutoCenteredRef.current = true
+    handleCamera2()
+  }, [currentUserLocation, mapRender])
+
+  // An explicit press of the locate button. Unlike the automatic centring it
+  // overrides a restored boundary's framing, because the user asked for it.
+  useEffect(() => {
+    if (!recenterRequest) return
+    if (!currentUserLocation || currentUserLocation[0] === 0) return
+    hasAutoCenteredRef.current = true
+    handleCamera2()
+  }, [recenterRequest])
 
   useEffect(() => {
     if (currentPosition) {
@@ -284,18 +316,24 @@ const PolygonMarkerMap = (props: Props) => {
   }
 
   const onSelectLocation = async () => {
-    const centerCoordinates = await mapRef.current.getCenter()
-    if (!centerCoordinates) {
-      return
+    if (submitting) return
+    setSubmitting(true)
+    try {
+      const centerCoordinates = await mapRef.current.getCenter()
+      if (!centerCoordinates) {
+        return
+      }
+      // The crosshair records wherever the phone thinks it is, so a phone with
+      // no fix cannot place a corner. A watch fix is its own survey and is not
+      // held to this, which is why the check lives here and not in commit.
+      if (currentUserLocation && currentUserLocation[0] === 0) {
+        toast.show("Please click on location")
+        return
+      }
+      await commitCoordinate(centerCoordinates)
+    } finally {
+      setSubmitting(false)
     }
-    // The crosshair records wherever the phone thinks it is, so a phone with
-    // no fix cannot place a corner. A watch fix is its own survey and is not
-    // held to this, which is why the check lives here and not in commit.
-    if (currentUserLocation && currentUserLocation[0] === 0) {
-      toast.show("Please click on location")
-      return
-    }
-    await commitCoordinate(centerCoordinates)
   }
 
   // Place the corner where the Garmin says it is, then bring the map to it so
@@ -479,8 +517,9 @@ const PolygonMarkerMap = (props: Props) => {
     }
   }
 
+  // Panning away from a rejected corner clears the error. It no longer touches
+  // any loading flag: camera movement is not work the user is waiting on.
   const onRegionDidChange = async () => {
-    setLoading(false)
     setLineError(false)
   }
 
@@ -536,9 +575,6 @@ const PolygonMarkerMap = (props: Props) => {
         logo={false}
         onDidFinishLoadingMap={!mapRender ? handleCameraView : null}
         onRegionDidChange={onRegionDidChange}
-        onRegionIsChanging={() => {
-          setLoading(true)
-        }}
         attribution={false}
         mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
         <Camera ref={cameraRef} trackUserLocation={trackingState === 'start' ? 'course' : undefined} />
@@ -618,8 +654,8 @@ const PolygonMarkerMap = (props: Props) => {
             label={`Mark Point`}
             containerStyle={styles.btnWrapper}
             pressHandler={onSelectLocation}
-            disable={loading || lineError}
-            loading={loading}
+            disable={submitting || lineError}
+            loading={submitting}
             wrapperStyle={styles.opaqueWrapper}
             labelStyle={styles.normalLabel}
           />
@@ -630,8 +666,8 @@ const PolygonMarkerMap = (props: Props) => {
           label={`${i18next.t('label.select_location_continue')}`}
           containerStyle={styles.btnContainer}
           pressHandler={onSelectLocation}
-          disable={loading || lineError}
-          loading={loading}
+          disable={submitting || lineError}
+          loading={submitting}
         />
       ) : null}
       {!polygonComplete && trackingState !== '' ? (
@@ -659,7 +695,7 @@ const PolygonMarkerMap = (props: Props) => {
           />
         </View>
       ) : null}
-      {!loading && !polygonComplete && coordinates.length === 0 && intervention_key === 'multi-tree-registration' ?
+      {!submitting && !polygonComplete && coordinates.length === 0 && intervention_key === 'multi-tree-registration' ?
         <CustomButton
           label={`${i18next.t('label.use_point_location')}`}
           containerStyle={styles.pointWrapper}
@@ -669,7 +705,7 @@ const PolygonMarkerMap = (props: Props) => {
           hideFadeIn
         /> : null
       }
-      {!isTracking && <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={true} />
+      {!isTracking && <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={true} onLocate={() => setRecenterRequest(n => n + 1)} />
       }
       <AlertModal
         visible={closeLoopModal}

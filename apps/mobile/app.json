@@ -2,7 +2,7 @@
   "expo": {
     "name": "TreeMapper",
     "slug": "treemapper",
-    "version": "3.0.6",
+    "version": "3.0.7",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -19,7 +19,7 @@
       [
         "onesignal-expo-plugin",
         {
-          "mode": "development",
+          "mode": "production",
           "iPhoneDeploymentTarget": "15.1"
         }
       ],
@@ -90,6 +90,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.pftp.treemapper",
+      "buildNumber": "307",
       "associatedDomains": [
         "applinks:dev.treemapper.app",
         "applinks:treemapper.app"
@@ -100,7 +101,7 @@
         "backgroundColor": "#F0F7EA"
       },
       "entitlements": {
-        "aps-environment": "development",
+        "aps-environment": "production",
         "com.apple.security.application-groups": [
           "group.org.pftp.treemapper.onesignal"
         ],
@@ -136,6 +137,7 @@
         "ACCESS_COARSE_LOCATION"
       ],
       "package": "org.pftp.treemapper",
+      "versionCode": 70,
       "intentFilters": [
         {
           "action": "VIEW",
