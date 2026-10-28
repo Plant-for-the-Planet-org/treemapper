@@ -79,6 +79,7 @@
       ],
       "expo-image",
       "./plugins/withCameraCompatOptOut",
+      "./plugins/withReleaseSigning",
       "./modules/treemapper-garmin/app.plugin.js",
       [
         "./plugins/withPodDeploymentTarget",
