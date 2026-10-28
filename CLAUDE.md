@@ -315,6 +315,41 @@ auto-upgrades anything.
   `expo prebuild --clean` does not help, because the bad file is rewritten
   during prebuild. Fix with `rm -rf android/build/generated/autolinking
   android/app/build/generated/autolinking`, then rebuild.
+- **iOS needs the UIScene life cycle, and SDK 55 ships none of its own.** An
+  app built against the iOS 27 SDK that still drives its window from
+  `UIApplicationDelegate` alone is killed by UIKit as the first scene connects:
+  `EXC_BREAKPOINT` inside
+  `_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`, with
+  `AppDelegate.main()` the only frame of ours and no JavaScript yet run, so it
+  reads like any launch crash and invites blame on whatever native dependency
+  changed last. iOS 26 only warned, so this starts the day Xcode is upgraded,
+  with no source change. Expo added `ios.enableSceneSupport`
+  (expo-build-properties) in SDK 57 and adopts scenes by default in 58, but
+  **no SDK 55 patch has any scene support at all** -- 55.0.32 contains no
+  `SceneDelegate`, no `UIWindowScene` and no manifest key. So
+  `plugins/withSceneLifecycle.js` writes both halves: the
+  `UIApplicationSceneManifest` and a real `SceneDelegate` appended to
+  `AppDelegate.swift`. A manifest on its own does **not** satisfy the check.
+  Delete the plugin whole on the SDK upgrade that brings the real thing.
+  Four things it has to carry across, each of which fails silently otherwise:
+  URL opens and universal links go to the scene now, so Auth0's sign-in
+  callback, the `applinks:` links and Garmin Connect's device-picker return
+  are forwarded back through the app delegate to keep the Expo subscribers
+  firing; the cold-start URL is written back into launch options, which is
+  where `RCTLinkingManager.getInitialURL` looks for it; the scene's window is
+  assigned to the app delegate too, because `expo-system-ui` reads
+  `UIApplication.shared.delegate?.window`; and the app delegate's
+  foreground/background methods are called by hand, since UIKit stops
+  delivering them once scenes exist. React Native's own `AppState` is safe
+  either way -- `RCTAppState` observes `NSNotificationCenter`, not the
+  delegate -- which is what keeps the sync queue and the activity-log cleanup
+  running on foreground.
+- **`expo prebuild` does not overwrite an existing `AppDelegate.swift`.** It
+  regenerates `ios/` but leaves native source files already on disk, so a
+  `withAppDelegate` plugin applies to whatever is there. That is why those
+  plugins must be idempotent (ours bails on a marker) and why testing one
+  against a stock template means restoring the file first, or
+  `prebuild --clean`.
 - `engines.node` is pinned in **both** the root manifest (`22.x.x`) and
   `apps/server` (`22.x`). On a machine running a newer Node, yarn 1 refuses
   every script in either -- so `yarn build`, `yarn web:dev`, `yarn lint` and
