@@ -14,7 +14,7 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import DisplayCurrentPolygonMarker from './DisplayCurrentPolygonMarker'
 import { Colors, Typography } from 'src/utils/constants'
 import distanceCalculator, { checkIsValidPolygonMarker } from 'src/utils/helpers/turfHelpers'
-import { useToast } from 'react-native-toast-notifications'
+import { useToast, ToastOptions } from 'react-native-toast-notifications'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { GarminPoint } from 'src/garmin'
@@ -49,6 +49,12 @@ const TRACK_SAVE_INTERVAL = 5000
 // surveyor walking back to close the ring rather than marking a new corner.
 const CLOSE_LOOP_RADIUS = 5
 
+// Why a corner was refused. A bare boolean used to cover both of these and
+// they are not the same thing: 'too_close' is the surveyor's to fix by moving
+// a step, 'error' is not theirs at all and telling them to move would send
+// them walking for no reason.
+type CornerCheck = 'ok' | 'too_close' | 'error'
+
 
 interface Props {
   species_required: boolean
@@ -73,6 +79,12 @@ const PolygonMarkerMap = (props: Props) => {
   const [recenterRequest, setRecenterRequest] = useState(0)
   const [trackerModal, setTrackerModal] = useState(false)
   const [closeLoopModal, setCloseLoopModal] = useState(false)
+  const [undoModal, setUndoModal] = useState(false)
+  // Why the last corner was refused, or null when nothing was. It drives a
+  // modal rather than a toast: a refused corner leaves the boundary one short
+  // and the surveyor walking on believing it landed, which is the same damage
+  // as losing one.
+  const [rejectReason, setRejectReason] = useState<CornerCheck | null>(null)
   const [pendingCoordinate, setPendingCoordinate] = useState<[number, number] | null>(null)
   const [lineError, setLineError] = useState(false)
   const [coordinates, setCoordinates] = useState<[number, number][]>([])
@@ -94,6 +106,19 @@ const PolygonMarkerMap = (props: Props) => {
   const posthog = usePostHog()
   const { saveDraft, readDraft, clearOwnerDrafts } = useMapDraft()
   const toast = useToast();
+
+  // One toast at a time on this screen.
+  //
+  // Corners are marked in quick succession, and the library stacks: a second
+  // message appears under the first rather than replacing it, so a few corners
+  // in a row left a column of cards sitting over the map the surveyor is
+  // walking. Clearing what is on screen first means the newest message is
+  // always the only one, and is always the one being read.
+  const showToast = (message: string, options?: ToastOptions) => {
+    toast.hideAll()
+    toast.show(message, options)
+  }
+
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
 
   const cameraRef = useRef<CameraRef>(null)
@@ -139,11 +164,11 @@ const PolygonMarkerMap = (props: Props) => {
       restoredCoordsRef.current = savedTrack
       setTrackSeed(savedTrack)
       setTrackingState('pause')
-      toast.show('Tracking restored, tap Resume to continue', { placement: 'top' })
+      showToast('Tracking restored, tap Resume to continue', { placement: 'top' })
       return
     }
     restoredCoordsRef.current = savedPoints
-    toast.show(`Restored ${savedPoints.length} marked ${savedPoints.length === 1 ? 'point' : 'points'}`, { placement: 'top' })
+    showToast(`Restored ${savedPoints.length} marked ${savedPoints.length === 1 ? 'point' : 'points'}`, { placement: 'top' })
   }, [])
 
   useEffect(() => {
@@ -277,9 +302,35 @@ const PolygonMarkerMap = (props: Props) => {
   }
 
 
+  // The letter the last marked corner is currently wearing.
+  //
+  // Corner labels are positional: AlphabetMarkers names each pin by its index,
+  // while the banner's "next corner" letter is a separate counter. So removing
+  // a corner renames nothing that came before it and shifts the next letter
+  // back by one, and the user sees a map that no longer matches the one they
+  // walked. Naming the letter in the prompt is the least this can do about
+  // that: it says which pin is about to go, in the only name the user has
+  // for it.
+  const lastCornerLabel =
+    coordinates.length > 0
+      ? String.fromCharCode(65 + coordinates.length - 1)
+      : ''
+
+  // Undo asks first. A corner is an hour of walking in a large area and this
+  // button sits a thumb's width under the GPS tile in the header, so a stray
+  // tap used to discard real work with nothing to say so afterwards and no way
+  // back. Reported from the field on 2026-11-02: a corner vanished mid survey
+  // and the next one took its letter, which is exactly this path.
   const handlePreviousPoint = () => {
+    if (coordinates.length === 0) {
+      return
+    }
+    setUndoModal(true)
+  }
+
+  const removeLastCorner = () => {
     const updatedCoordinates = [...coordinates];
-    updatedCoordinates.pop()
+    const removed = updatedCoordinates.pop()
     setCoordinates(updatedCoordinates)
     restoredCoordsRef.current = []
     saveDraft('POLYGON', form_id, updatedCoordinates)
@@ -290,6 +341,15 @@ const PolygonMarkerMap = (props: Props) => {
     if (updatedCoordinates.length <= 2) {
       setPolygonComplete(false)
     }
+    // Without this a removal left no trace at all, so the next corner simply
+    // re-reported a point_count already seen and the two were impossible to
+    // tell apart after the fact.
+    captureAnalyticsEvent(posthog, AnalyticsEvents.MAP_POLYGON_POINT_UNDONE, {
+      surface: 'intervention',
+      point_count: updatedCoordinates.length,
+      removed_label: removed ? lastCornerLabel : '',
+      intervention_key,
+    })
   }
 
   // Everything a corner goes through once its coordinate is known, whatever
@@ -300,7 +360,7 @@ const PolygonMarkerMap = (props: Props) => {
   // short or empty array, and a tuple type would make the guard below dead.
   const commitCoordinate = async (coordinate: number[]) => {
     if (!coordinate || coordinate.length < 2 || coordinate[0] === 0) {
-      toast.show("Please click on location")
+      showToast("Please click on location")
       return
     }
     const corner = coordinate as [number, number]
@@ -327,7 +387,7 @@ const PolygonMarkerMap = (props: Props) => {
       // no fix cannot place a corner. A watch fix is its own survey and is not
       // held to this, which is why the check lives here and not in commit.
       if (currentUserLocation && currentUserLocation[0] === 0) {
-        toast.show("Please click on location")
+        showToast("Please click on location")
         return
       }
       await commitCoordinate(centerCoordinates)
@@ -369,8 +429,18 @@ const PolygonMarkerMap = (props: Props) => {
   const addCoordinate = async (centerCoordinates: [number, number]) => {
     const checkValidDistance = await checkIsValidMarker(centerCoordinates, [...coordinates])
     setLineError(false)
-    if (!checkValidDistance) {
+    if (checkValidDistance !== 'ok') {
       errorHaptic()
+      // A modal, not a toast. A toast in sunlight is a toast nobody read, and
+      // the cost of missing it is a boundary that is quietly one corner short
+      // by the time anyone notices.
+      setRejectReason(checkValidDistance)
+      captureAnalyticsEvent(posthog, AnalyticsEvents.MAP_POLYGON_POINT_REJECTED, {
+        surface: 'intervention',
+        reason: checkValidDistance,
+        point_count: coordinates.length,
+        intervention_key,
+      })
       return
     }
     const updatedCoordinates = [...coordinates, centerCoordinates]
@@ -387,30 +457,30 @@ const PolygonMarkerMap = (props: Props) => {
       point_count: updatedCoordinates.length,
       intervention_key,
     })
-    toast.show("Point marked, move to other location", { placement: 'top' })
+    // 1s, not the provider's 5s default. This fires on every corner, and the
+    // surveyor is already walking to the next one by the time it lands, so a
+    // card that outlives the walk is just something covering the map.
+    showToast("Point marked, move to other location", { placement: 'top', duration: 1000 })
     if (coordinates.length >= 2) {
       setPolygonComplete(true)
     }
   }
 
 
-  const checkIsValidMarker = async (centerCoordinates: number[], coords: any) => {
+  // Reports why rather than just whether, and says nothing to the user itself.
+  // The caller owns the message, because it is the caller that knows a refusal
+  // here means the corner was not recorded at all.
+  const checkIsValidMarker = async (centerCoordinates: number[], coords: any): Promise<CornerCheck> => {
     try {
       for (const oneMarker of coords) {
         const isValid = await checkIsValidPolygonMarker(centerCoordinates, oneMarker);
         if (!isValid) {
-          toast.show("Points must be at least 1 meter apart. Please move to a different location.", {
-            type: "danger",
-            placement: "bottom",
-            duration: 3000,
-            animationType: "slide-in",
-          })
-          return false
+          return 'too_close'
         }
       }
-      return true;
+      return 'ok';
     } catch (error) {
-      return false
+      return 'error'
     }
   };
 
@@ -421,7 +491,7 @@ const PolygonMarkerMap = (props: Props) => {
     const result = await updateInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
     if (!result) {
       errorHaptic()
-      toast.show('Error occurred while updating location')
+      showToast('Error occurred while updating location')
       return
     }
     // The intervention owns the boundary now, so the recovery copy can go.
@@ -453,7 +523,7 @@ const PolygonMarkerMap = (props: Props) => {
     const result = await updateInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
     if (!result) {
       errorHaptic()
-      toast.show('Error occurred while updating location')
+      showToast('Error occurred while updating location')
       return
     }
     committedRef.current = true
@@ -478,10 +548,10 @@ const PolygonMarkerMap = (props: Props) => {
 
   const updateTrackState = () => {
     if (trackingState === 'start') {
-      toast.show("Tracking Paused", { placement: 'center', duration: 1000 })
+      showToast("Tracking Paused", { placement: 'center', duration: 1000 })
       setTrackingState("pause")
     } else {
-      toast.show("Tracking Resumed", { placement: 'center', duration: 1000 })
+      showToast("Tracking Resumed", { placement: 'center', duration: 1000 })
       setTrackingState("start")
     }
   }
@@ -492,11 +562,11 @@ const PolygonMarkerMap = (props: Props) => {
       return
     }
     if (centerCoordinates && centerCoordinates[0] === 0) {
-      toast.show("Please click on your location")
+      showToast("Please click on your location")
       return
     }
     if (currentUserLocation && currentUserLocation[0] === 0) {
-      toast.show("Please click on your location")
+      showToast("Please click on your location")
       return
     }
     if (centerCoordinates.length !== 0) {
@@ -504,7 +574,7 @@ const PolygonMarkerMap = (props: Props) => {
       const result = await updateInterventionLocation(form_id, { type: 'Point', coordinates: coordinates }, false)
       if (!result) {
         errorHaptic()
-        toast.show('Error occurred while updating location')
+        showToast('Error occurred while updating location')
         return
       }
       committedRef.current = true
@@ -619,10 +689,13 @@ const PolygonMarkerMap = (props: Props) => {
               ? [currentUserLocation[0], currentUserLocation[1]]
               : null
           }
-          bottom={50}
+          bottom={scaleSize(270)}
         />
       )}
-      <MapZoomScale mapRef={mapRef} position="top-left" padTop={coordinates.length > 0?70:20}/>
+      {/* padTop clears the corner banner, which only exists once a corner is
+          marked. Both values carry 5 points of air so the card does not sit
+          flush against what is above it. */}
+      <MapZoomScale mapRef={mapRef} position="top-left" padTop={coordinates.length > 0?80:25}/>
       {polygonComplete && (
         <TourTarget id={MULTI_TOUR_TARGETS.FOOTER} style={styles.btnFooter}>
           <CustomButton
@@ -727,6 +800,34 @@ const PolygonMarkerMap = (props: Props) => {
         }}
         showSecondaryButton={true}
       />
+      {/* Named, because "the last point" means nothing to somebody looking at
+          a map of lettered pins, and the letter is what they will be looking
+          for when they check the shape afterwards. */}
+      <AlertModal
+        visible={undoModal}
+        heading={`Remove corner ${lastCornerLabel}?`}
+        message={`Corner ${lastCornerLabel} is deleted and the next corner you mark takes its letter. This cannot be undone.`}
+        primaryBtnText={"Remove"}
+        secondaryBtnText={"Keep"}
+        onPressPrimaryBtn={() => {
+          setUndoModal(false)
+          removeLastCorner()
+        }}
+        onPressSecondaryBtn={() => setUndoModal(false)}
+        showSecondaryButton={true}
+      />
+      <AlertModal
+        visible={rejectReason !== null}
+        heading={rejectReason === 'error' ? "Corner not marked" : "Too close to another corner"}
+        message={
+          rejectReason === 'error'
+            ? "Something went wrong and this corner was not saved. Try marking it again."
+            : `Corners must be at least 1 m apart, so this one was not saved. Move a step and mark corner ${currentCoordinate.id} again.`
+        }
+        primaryBtnText={"OK"}
+        onPressPrimaryBtn={() => setRejectReason(null)}
+        showSecondaryButton={false}
+      />
       <AlertModal
         visible={trackerModal}
         heading={"Track your route"}
@@ -738,7 +839,7 @@ const PolygonMarkerMap = (props: Props) => {
           setTrackingState('start')
         }}
         onPressSecondaryBtn={() => {
-          toast.show("Tracking Started")
+          showToast("Tracking Started")
           setTrackerModal(false)
         }}
         showSecondaryButton={true}

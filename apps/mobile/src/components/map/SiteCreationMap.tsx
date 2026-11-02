@@ -26,12 +26,19 @@ import { TourTarget } from '@wrack/react-native-tour-guide'
 import useCreateSiteTour from 'src/hooks/useCreateSiteTour'
 import { useTourAction } from 'src/hooks/useTourController'
 import { SITE_TOUR_STEPS, SITE_TOUR_TARGETS } from 'src/utils/tour/createSiteTour'
+import AlertModal from '../common/AlertModal'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
 // Draft owner for a site drawn before a project was picked.
 const UNASSIGNED_OWNER = 'unassigned-site'
+
+// Why a corner was refused. Mirrors PolygonMarkerMap: 'too_close' is the
+// surveyor's to fix by moving a step, 'error' is not theirs at all.
+type CornerCheck = 'ok' | 'too_close' | 'error'
 
 
 interface Props {
@@ -56,6 +63,12 @@ const SiteCreationMap = (props: Props) => {
     const [lineError, setLineError] = useState(false)
     const [coordinates, setCoordinates] = useState<[number, number][]>([])
     const [polygonComplete, setPolygonComplete] = useState(false)
+    const [undoModal, setUndoModal] = useState(false)
+    // Why the last corner was refused, or null when nothing was. A modal
+    // rather than a toast, because a refused corner leaves the boundary one
+    // short and the surveyor walking on believing it landed.
+    const [rejectReason, setRejectReason] = useState<CornerCheck | null>(null)
+    const posthog = usePostHog()
     const currentUserLocation = useSelector(
         (state: RootState) => state.gpsState.user_location,
     )
@@ -219,15 +232,39 @@ const SiteCreationMap = (props: Props) => {
         }
     }
 
+    // The letter the last marked corner is currently wearing. AlphabetMarkers
+    // names each pin by its index, so this screen has no stored name for a
+    // corner either: removing one renames every pin after it.
+    const lastCornerLabel =
+        coordinates.length > 0
+            ? String.fromCharCode(65 + coordinates.length - 1)
+            : ''
+
+    // Undo asks first, as it does on the intervention boundary. A site is
+    // walked the same way and this button floats over the map with nothing
+    // around it, so a stray tap used to discard a corner silently and with no
+    // way back.
     const handlePreviousPoint = () => {
+        if (coordinates.length === 0) {
+            return
+        }
+        setUndoModal(true)
+    }
+
+    const removeLastCorner = () => {
         const updatedCoordinates = [...coordinates];
-        updatedCoordinates.pop()
+        const removed = updatedCoordinates.pop()
         setCoordinates(updatedCoordinates)
         restoredCoordsRef.current = []
         saveDraft('SITE', draftOwnerRef.current, updatedCoordinates)
         if (updatedCoordinates.length <= 2) {
             setPolygonComplete(false)
         }
+        captureAnalyticsEvent(posthog, AnalyticsEvents.MAP_POLYGON_POINT_UNDONE, {
+            surface: 'site',
+            point_count: updatedCoordinates.length,
+            removed_label: removed ? lastCornerLabel : '',
+        })
     }
 
     // Everything a corner goes through once its coordinate is known. The
@@ -241,9 +278,18 @@ const SiteCreationMap = (props: Props) => {
         }
         const corner = coordinate as [number, number]
         const checkValidDistance = await checkIsValidMarker(corner, [...coordinates])
-        setLineError(!checkValidDistance)
-        if (!checkValidDistance) {
+        setLineError(checkValidDistance !== 'ok')
+        if (checkValidDistance !== 'ok') {
             errorHaptic()
+            // A modal, not a toast. A toast in sunlight is a toast nobody
+            // read, and the cost of missing it is a site boundary that is
+            // quietly one corner short by the time anyone notices.
+            setRejectReason(checkValidDistance)
+            captureAnalyticsEvent(posthog, AnalyticsEvents.MAP_POLYGON_POINT_REJECTED, {
+                surface: 'site',
+                reason: checkValidDistance,
+                point_count: coordinates.length,
+            })
             return
         }
         const updatedCoordinates = [...coordinates, corner]
@@ -274,10 +320,16 @@ const SiteCreationMap = (props: Props) => {
     }
 
 
-    const checkIsValidMarker = async (centerCoordinates: number[], coords: any) => {
+    // Reports why rather than just whether, and says nothing to the user
+    // itself. The caller owns the message, because it is the caller that
+    // knows a refusal here means the corner was not recorded at all.
+    //
+    // It also stops at the first violation. It used to carry on through the
+    // whole list firing a toast and a haptic per offending corner, so marking
+    // on top of an existing point could buzz and stack several toasts for one
+    // press.
+    const checkIsValidMarker = async (centerCoordinates: number[], coords: any): Promise<CornerCheck> => {
         try {
-            let isValidMarkers = true;
-
             for (const oneMarker of coords) {
                 const distanceInMeters = distanceCalculator(
                     [centerCoordinates[1], centerCoordinates[0]],
@@ -285,19 +337,16 @@ const SiteCreationMap = (props: Props) => {
                     'meters',
                 );
                 if (distanceInMeters < 0.1) {
-                    errorHaptic()
-                    toast.show("Marker is close to previous point.", {
-                        type: "normal",
-                        placement: "bottom",
-                        duration: 2000,
-                        animationType: "slide-in",
-                    })
-                    isValidMarkers = false;
+                    return 'too_close'
                 }
             }
-            return isValidMarkers;
+            return 'ok';
         } catch (error) {
-            return true
+            // Changed 2026-11-02: this used to return true and accept the
+            // corner. A distance it could not measure is not a distance it
+            // checked, so accepting was the wrong default, and it is now the
+            // same refusal the intervention boundary already gave.
+            return 'error'
         }
 
     };
@@ -391,6 +440,34 @@ const SiteCreationMap = (props: Props) => {
             )}
             <ActiveMarkerIcon />
             <UserlocationMarker stopAutoFocus onLocate={() => setRecenterRequest(n => n + 1)} />
+            {/* Named, because "the last point" means nothing to somebody
+                looking at a map of lettered pins, and the letter is what they
+                will be looking for when they check the shape afterwards. */}
+            <AlertModal
+                visible={undoModal}
+                heading={`Remove corner ${lastCornerLabel}?`}
+                message={`Corner ${lastCornerLabel} is deleted and the next corner you mark takes its letter. This cannot be undone.`}
+                primaryBtnText={"Remove"}
+                secondaryBtnText={"Keep"}
+                onPressPrimaryBtn={() => {
+                    setUndoModal(false)
+                    removeLastCorner()
+                }}
+                onPressSecondaryBtn={() => setUndoModal(false)}
+                showSecondaryButton={true}
+            />
+            <AlertModal
+                visible={rejectReason !== null}
+                heading={rejectReason === 'error' ? "Corner not marked" : "Too close to another corner"}
+                message={
+                    rejectReason === 'error'
+                        ? "Something went wrong and this corner was not saved. Try marking it again."
+                        : "This corner sits on top of one you already marked, so it was not saved. Move a step and mark it again."
+                }
+                primaryBtnText={"OK"}
+                onPressPrimaryBtn={() => setRejectReason(null)}
+                showSecondaryButton={false}
+            />
         </View>
     )
 }
@@ -501,12 +578,15 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontFamily: Typography.FONT_FAMILY_BOLD
     },
+    // 44 points tall, the smallest target a thumb can be asked to hit
+    // reliably. It was 30, floating over the map with nothing around it, and
+    // it removed a corner on the first tap with no way back.
     undoButtonSite: {
-        height: 30,
+        minHeight: 44,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
+        justifyContent: 'center',
+        paddingHorizontal: 12,
         backgroundColor: Colors.WHITE,
         borderRadius: 10,
         borderWidth: 1,
@@ -521,6 +601,5 @@ const styles = StyleSheet.create({
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         marginRight: 5,
         color: Colors.TEXT_LIGHT,
-        marginBottom: 5
     }
 })
