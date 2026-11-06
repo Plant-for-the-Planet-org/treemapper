@@ -163,6 +163,12 @@ Opt in, and never part of `yarn test:e2e` or CI. The Playwright projects
   (gitignored), and every spec starts from it. A rejected password fails at
   once and is never retried, because Auth0 locks an account after repeated
   failures.
+- **The login is never recorded.** The `fullstack-setup` project sets
+  `trace`, `screenshot` and `video` to `off`. Checked on 2026-11-06: a trace of
+  the login keeps the typed password in plain text (in the `fill` action, the
+  page snapshot and the form post to Auth0), and the email in more places. Do
+  not pass `--trace on` to a Layer 2 run: the command line overrides the
+  project setting. To debug a failed login, run it with `--headed` instead.
 - **Credentials:** `E2E_USER_EMAIL` and `E2E_USER_PASSWORD` in
   `apps/web/.env.e2e`. It is gitignored (`.env*`), Next does not load it, and
   the config only reads it when `E2E_FULLSTACK` is set. The account needs a
@@ -414,8 +420,10 @@ Config notes:
     `"playwright.env": { "E2E_FULLSTACK": "1" }` to `.vscode/settings.json`
     (gitignored), reload, and tick `fullstack-setup` and `fullstack` under
     Projects.
-  - Traces and screenshots from these runs hold the real token and the test
-    email. They stay in the gitignored `test-results/`; do not share them.
+  - Traces and screenshots of the specs (not the login) hold the real bearer
+    token in every API request, and the test email. They stay in the
+    gitignored `test-results/` and `playwright-report/`. Never attach them to a
+    ticket, a PR or a chat.
 - **CI (Layer 1):** `.github/workflows/e2e.yml`, on pull requests, pushes to
   `develop` and manual runs. A new commit cancels the older run of the same pull
   request; `develop` runs always finish.
@@ -442,9 +450,25 @@ Config notes:
     [Layer 2](#layer-2-full-stack-a-few-smoke-tests);
   - a test user in that database that matches the Auth0 account;
   - an agreed policy for a real password as an Actions secret (open question 2);
-  - no trace or screenshot upload for Layer 2, or a scrubbed one. They hold the
-    bearer token and the test email, and the workflow uploads artifacts on
-    every run.
+  - **its own job, with no artifact upload.** Do not clean the artifacts
+    instead: the secrets sit in action titles, action values, the network log,
+    page snapshots and saved resources, and a cleaner that misses one fails
+    silently. Report results as text (the `github` and `list` reporters), and
+    debug a failure by rerunning it locally.
+
+  These rules are not optional, because `e2e.yml` uploads `playwright-report/`
+  and `test-results/` after every run, for 14 days, and anyone signed in to
+  GitHub can download a public repo's artifacts:
+  - **No Layer 2 in the existing job.** `playwright.config.ts` throws when `CI`
+    and `E2E_FULLSTACK` are both set. The Layer 2 job opts out by also setting
+    `E2E_FULLSTACK_CI_NO_ARTIFACTS=1`, which states that it uploads nothing.
+  - **A dedicated CI Auth0 user**, with no real data and in no real project, so
+    a leak does little harm. Not a developer's own test account.
+  - **The login is never traced** (see
+    [What exists today](#what-exists-today-local-only)). This already holds.
+  - Layer 1 uploads stay as they are: the token is a fake unsigned JWT, the
+    email is `example.com`, the data is made up, and Auth0 and all other hosts
+    are stubbed or blocked.
 - **Staging or preview:** none exist. A nightly read-only smoke test against
   `dev.treemapper.app` is optional and needs approval.
 
