@@ -40,11 +40,14 @@ setup(
 
     const appOrigin = new URL(baseURL!).origin
 
-    // 3 and 4. Reuse a saved token when it is still good.
-    const saved = await checkSavedToken(request, appOrigin, email)
-    setup.info().annotations.push({ type: 'auth', description: saved.reason })
-    if (saved.reusable) return
+    // 3 and 4. Check the saved token, and reuse it when it is still good.
+    const savedLogin = await checkSavedToken(request, appOrigin, email)
+    setup
+      .info()
+      .annotations.push({ type: 'auth', description: savedLogin.reason })
+    if (savedLogin.reusable) return
 
+    // 4. Otherwise, log in through the real Auth0 Universal Login page.
     await hideNextDevTools(page)
     await page.goto('/login')
     await page.getByRole('button', { name: 'Continue with email' }).click()
@@ -126,7 +129,6 @@ async function checkSavedToken(
   if (!token) return { reusable: false, reason: 'New login: no saved token' }
 
   const claims = decodeClaims(token)
-  console.log('Saved token claims:', claims)
   if (!claims) {
     return { reusable: false, reason: 'New login: saved token is unreadable' }
   }
