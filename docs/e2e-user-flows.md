@@ -5,9 +5,9 @@ order, and what each one needs. It builds on
 [e2e-testing-plan.md](./e2e-testing-plan.md), which holds the strategy, the
 test layers, the harness and the CI setup. Read that first.
 
-**Status:** proposed 2026-11-04, for review. One test is written: F1
-scenario 1 in Layer 2 (full stack, local only, 2026-11-05). No Layer 1 test
-for these flows is written yet.
+**Status:** proposed 2026-11-04, for review. Written so far: F1 scenario 1 in
+Layer 2 (full stack, local only, 2026-11-05), and F2 in Layer 1 except the
+switch across workspaces (`specs/landing.spec.ts`, 2026-11-11).
 
 **How this was made:** by reading the code, not by running the app. Labels,
 endpoints and bugs below come from the source and give a path where it
@@ -60,10 +60,15 @@ asked (`E2E_FULLSTACK=1`), never in CI. How to run it is in
 [e2e-testing-plan.md, "Running locally and in
 CI"](./e2e-testing-plan.md#running-locally-and-in-ci).
 
+`apps/web/e2e/specs/landing.spec.ts` covers F2 in Layer 1: deep links, an
+unknown project, the switcher within one workspace, legacy `/dashboard` links
+and an invite on a project route. See [F2](#f2-deep-links-unknown-projects-and-the-project-switcher)
+for what is in and what is left out.
+
 Tests 2 to 5 in [e2e-testing-plan.md, "First five
-tests"](./e2e-testing-plan.md#first-five-tests) are specified but not written
-in Layer 1.
-They map to F1, F2, the legacy links part of F2, and F10 here. Their step
+tests"](./e2e-testing-plan.md#first-five-tests) map to F1, F2, the legacy
+links part of F2, and F10 here. Tests 3 and 4 (F2) are written; tests 2 and 5
+are not. Their step
 lists live in that file and are not copied here; this file adds what they
 need and where they sit in the order.
 
@@ -153,8 +158,10 @@ Build these once, in the order the flows need them.
 
 | Need | Where | First used by |
 |---|---|---|
-| A second project, and the project with each role (`owner`, `admin`, `contributor`, `observer`) | `e2e/fixtures/data/session.ts` (extend `mockSession` with options, or add `withRole(role)`) | F1, F2, F12 |
-| Overview mocks: KPIs, recent additions, map data | `e2e/fixtures/data/overview.ts` | F1, F2 |
+| A second project (**done**: `SECOND_PROJECT`, same workspace, passed as `mockSession(api, { projects })`), and the project with each role (`owner`, `admin`, `contributor`, `observer`) (not yet) | `e2e/fixtures/data/session.ts` (`mockSession` takes options now; add `withRole(role)` next) | F1, F2, F12 |
+| A second workspace with a project in it (not yet; only the cross-workspace switch needs it) | `e2e/fixtures/data/session.ts` | F2 scenario 3 |
+| Overview mocks: KPIs, recent additions, map data (**done**: `mockOverview(api)`, any project uid) | `e2e/fixtures/data/overview.ts` | F1, F2 |
+| A pending invite and its status mock (**done**: `mockInviteStatus(api)`) | `e2e/fixtures/data/invites.ts` | F2, F8 |
 | Typed builders for sites, interventions, species and members, made up and small | `e2e/fixtures/data/*.ts` | F4 to F9 |
 | A route for `PUT /api/upload-image` that returns `{ success: true }` and records calls, plus a presign mock | a helper next to `api-mock.ts`, or a `uploads` fixture | F4, F11 |
 | Small test files: a Polygon GeoJSON, a KML, a Point GeoJSON, a valid and an invalid CSV, a tiny PNG | `e2e/fixtures/files/` (made up, never real coordinates of a real project) | F4, F6, F7 |
@@ -308,7 +315,42 @@ target page's own calls (settings: `GET projects/<uid>`,
 **Edge cases:** a failed `workspace/primary` keeps the user where they were;
 `?project-invite=` on a project route leaves the project list empty (see Bugs).
 
-**Prerequisites:** a second project in a second workspace.
+**Prerequisites:** a second project; a second workspace only for scenario 3.
+
+**Status** (all in `specs/landing.spec.ts`, Layer 1)
+
+| Scenario | Layer 1 (mocked) |
+|---|---|
+| 1. Deep link to the second project's settings | **Done** |
+| 2. Switch within one workspace keeps the section | **Done** |
+| 3. Switch across workspaces | **Left out on purpose** (workspace work is a separate task). Needs a second workspace in the session mock |
+| 4. Unknown uid, then "Go to dashboard" | **Done** |
+| 5. Legacy links | **Done**. `/dashboard/overview` and `/dashboard/settings` are `test.fail()` (they spin forever, see the strategy doc's Known issues); `/dashboard?project-invite=` passes |
+| Edge: failed `workspace/primary` | **Left out** with scenario 3: within one workspace the switch never calls it |
+| Edge: `?project-invite=` on a project route | **Done**. The modal opens (normal test); the page behind it loading is `test.fail()` (see Bugs) |
+
+What writing it taught, for later flows:
+
+- **Both projects sit in one workspace on purpose.** The switcher only calls
+  `POST workspace/primary` when the workspace changes, and that call has no
+  mock, so the unmocked-call guard proves it was never made.
+- **A deep link races the bootstrap.** `DashboardClientLayout` selects the
+  user's main project while the project layout selects the one in the URL.
+  The URL wins today, but if it ever lost, the settings page would load
+  p_main behind a p_second URL. The deep link test checks that
+  `GET projects/p_main` is never called, not only what the page shows.
+- **Check `test.fail()` tests for the right failure.** `test.fail()` passes on
+  any failure, a broken mock included. Each one here was run with the JSON
+  reporter to see that it fails where the bug says: the URL stays on
+  `/dashboard/...`, and "Trees Planted" never shows behind the invite.
+- Locators that work: the switcher is the sidebar button whose name holds the
+  project name; projects in the open list are buttons with the exact project
+  name. The settings "Project name" field has a real label, so
+  `getByLabel('Project name')` works. An empty sites list shows "No sites
+  found".
+- The switcher keeps only the first path segment, and the role is not
+  re-checked on the new project. Neither has its own test: the first needs a
+  nested page with its own mocks (forms), the second belongs to F12.
 
 ---
 
@@ -965,7 +1007,7 @@ normal test for the rest of the page.
 | F4 | The presign file name is `getMilliseconds()`, so only 1000 names exist | `new-intervention/InterventionUploadModal.tsx` |
 | F1 | Notification action button only closes the modal; the per-item X removes it only on the client | `component/header/NotificationIcon.tsx` |
 | F1 | **#1137. Seen in a browser** (Layer 2). The sidebar shows a blank user name, and "U" as the initials when there is no image, for a user with no first or last name: it falls back to `user.name`, but `users/me` sends `displayName`, not `name`. `fullstack/landing.spec.ts` notes it as a "known issue" for now | `component/sidebar/DashboardSidebar.tsx`, `userName` |
-| F2 | `?project-invite=` on a project route leaves the project list empty, so the page spins behind the modal | `DashboardClientLayout.tsx`, `initializeApp` |
+| F2 | **Seen in a test** (`landing.spec.ts`, `test.fail()`). `?project-invite=` on a project route leaves the project list empty, so the page spins behind the modal | `DashboardClientLayout.tsx`, `initializeApp` |
 | Later | Leaderboard filters and "load more" send no parameters, so every filter shows the same data and "load more" appends duplicates | `leaderboard/page.tsx` |
 | Later | Profile save does not check the `PATCH` result, and does not update the store | `(standalone)/profile/page.tsx` |
 
