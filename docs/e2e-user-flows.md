@@ -6,8 +6,9 @@ order, and what each one needs. It builds on
 test layers, the harness and the CI setup. Read that first.
 
 **Status:** proposed 2026-11-04, for review. Written so far: F1 scenario 1 in
-Layer 2 (full stack, local only, 2026-11-05), and F2 in Layer 1 except the
-switch across workspaces (`specs/landing.spec.ts`, 2026-11-11).
+Layer 2 (full stack, local only, 2026-11-05), F2 in Layer 1 except the switch
+across workspaces (`specs/landing.spec.ts`, 2026-11-11), and F2 scenario 1 in
+Layer 2 (`fullstack/deep-link.spec.ts`, 2026-11-12).
 
 **How this was made:** by reading the code, not by running the app. Labels,
 endpoints and bugs below come from the source and give a path where it
@@ -54,9 +55,10 @@ errors, open redirects, logout (also from the collapsed sidebar), and logout
 while impersonating. None of the flows below repeat that. They all start
 logged in (`test.use({ loggedIn: true })`).
 
-`apps/web/e2e/fullstack/landing.spec.ts` covers F1 scenario 1 in Layer 2: a
-real Auth0 login, a local server and a local database. It runs only when
-asked (`E2E_FULLSTACK=1`), never in CI. How to run it is in
+`apps/web/e2e/fullstack/landing.spec.ts` covers F1 scenario 1 in Layer 2,
+and `fullstack/deep-link.spec.ts` covers F2 scenario 1: a real Auth0 login
+(reused while the saved token is good), a local server and a local database.
+They run only when asked (`E2E_FULLSTACK=1`), never in CI. How to run it is in
 [e2e-testing-plan.md, "Running locally and in
 CI"](./e2e-testing-plan.md#running-locally-and-in-ci).
 
@@ -67,8 +69,8 @@ for what is in and what is left out.
 
 Tests 2 to 5 in [e2e-testing-plan.md, "First five
 tests"](./e2e-testing-plan.md#first-five-tests) map to F1, F2, the legacy
-links part of F2, and F10 here. Tests 3 and 4 (F2) are written; tests 2 and 5
-are not. Their step
+links part of F2, and F10 here. Tests 3 and 4 (F2) are written. Test 2 (F1) has
+only its Layer 2 version so far, and test 5 is not written. Their step
 lists live in that file and are not copied here; this file adds what they
 need and where they sit in the order.
 
@@ -317,17 +319,18 @@ target page's own calls (settings: `GET projects/<uid>`,
 
 **Prerequisites:** a second project; a second workspace only for scenario 3.
 
-**Status** (all in `specs/landing.spec.ts`, Layer 1)
+**Status** (Layer 1 in `specs/landing.spec.ts`, Layer 2 in
+`fullstack/deep-link.spec.ts`)
 
-| Scenario | Layer 1 (mocked) |
-|---|---|
-| 1. Deep link to the second project's settings | **Done** |
-| 2. Switch within one workspace keeps the section | **Done** |
-| 3. Switch across workspaces | **Left out on purpose** (workspace work is a separate task). Needs a second workspace in the session mock |
-| 4. Unknown uid, then "Go to dashboard" | **Done** |
-| 5. Legacy links | **Done**. `/dashboard/overview` and `/dashboard/settings` are `test.fail()` (they spin forever, see the strategy doc's Known issues); `/dashboard?project-invite=` passes |
-| Edge: failed `workspace/primary` | **Left out** with scenario 3: within one workspace the switch never calls it |
-| Edge: `?project-invite=` on a project route | **Done**. The modal opens (normal test); the page behind it loading is `test.fail()` (see Bugs) |
+| Scenario | Layer 1 (mocked) | Layer 2 (full stack, local) |
+|---|---|---|
+| 1. Deep link to the second project's settings | **Done** | **Done**. Skips unless the account has a second project in its main project's workspace |
+| 2. Switch within one workspace keeps the section | **Done** | Not written |
+| 3. Switch across workspaces | **Left out on purpose** (workspace work is a separate task). Needs a second workspace in the session mock | Not planned: `POST workspace/primary` changes the account's main workspace |
+| 4. Unknown uid, then "Go to dashboard" | **Done** | Not written |
+| 5. Legacy links | **Done**. `/dashboard/overview` and `/dashboard/settings` are `test.fail()` (they spin forever, see the strategy doc's Known issues); `/dashboard?project-invite=` passes | Not written |
+| Edge: failed `workspace/primary` | **Left out** with scenario 3: within one workspace the switch never calls it | Not planned |
+| Edge: `?project-invite=` on a project route | **Done**. The modal opens (normal test); the page behind it loading is `test.fail()` (see Bugs) | Not written |
 
 What writing it taught, for later flows:
 
@@ -351,6 +354,12 @@ What writing it taught, for later flows:
 - The switcher keeps only the first path segment, and the role is not
   re-checked on the new project. Neither has its own test: the first needs a
   nested page with its own mocks (forms), the second belongs to F12.
+- **The Layer 2 deep link test is read-only by force, not by care.** It routes
+  every non-GET `/api/server/` request, aborts it and fails the test, so a
+  page that starts writing cannot change the real account. It reads the
+  expected name, slug, workspace and role from the API as the same user, and
+  checks that the page's own `GET projects/<uid>` returned 200: empty fields
+  alone would also pass on a failed load.
 
 ---
 
