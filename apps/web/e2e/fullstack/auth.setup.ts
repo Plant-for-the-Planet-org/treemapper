@@ -134,7 +134,9 @@ async function checkSavedToken(
   }
 
   // A changed test account in .env.e2e must not run as the old one.
-  const tokenEmail = String(claims[EMAIL_CLAIM] ?? claims.email ?? '')
+  // Only a string counts. Anything else is treated as "another account".
+  const emailClaim = claims[EMAIL_CLAIM] ?? claims.email
+  const tokenEmail = typeof emailClaim === 'string' ? emailClaim : ''
   if (tokenEmail.toLowerCase() !== email.toLowerCase()) {
     return {
       reusable: false,
