@@ -73,12 +73,34 @@ export const USER: UserInterface & { firstName: string; lastName: string } = {
   impersonated: null,
 };
 
+// A second project in the same workspace, so switching to it never crosses
+// workspaces (no `POST workspace/primary`). Created after the main project, so
+// the sidebar switcher lists it first (newest first within a workspace).
+export const SECOND_PROJECT: ProjectWithUserRoleI = {
+  ...MAIN_PROJECT,
+  uid: 'p_second',
+  slug: 'e2e-second-project',
+  name: 'E2E Second Project',
+  target: 500,
+  createdAt: new Date('2026-02-01T00:00:00Z'),
+  updatedAt: new Date('2026-02-01T00:00:00Z'),
+};
+
+interface SessionOptions {
+  /** The projects `GET /projects` returns. Default: the main project only. */
+  projects?: ProjectWithUserRoleI[];
+}
+
 // What every dashboard load asks for (DashboardClientLayout, DashboardSidebar
-// and NotificationBell): an owner with one project in one workspace.
-export function mockSession(api: ApiMock) {
+// and NotificationBell): an owner with one project in one workspace, unless
+// `projects` says otherwise.
+export function mockSession(
+  api: ApiMock,
+  { projects = [MAIN_PROJECT] }: SessionOptions = {}
+) {
   api
     .get('users/me', ok(USER))
-    .get('projects', ok({ projects: [MAIN_PROJECT], workspaces: [WORKSPACE] }))
+    .get('projects', ok({ projects, workspaces: [WORKSPACE] }))
     .get('workspace/my', ok([]))
     .get('notifications', ok({ notifications: [] }));
 }
