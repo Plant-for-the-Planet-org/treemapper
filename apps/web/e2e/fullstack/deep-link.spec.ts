@@ -22,20 +22,27 @@ test('a deep link opens that project, not the main one', async ({
 }) => {
   const me = await backend.get('users/me')
   const { projects } = await backend.get<{ projects: Project[] }>('projects')
-  const main = projects.find(p => p.uid === me.primaryProjectUid)
-  expect(main, "The main project is in the user's project list").toBeTruthy()
+  const mainProject = projects.find(p => p.uid === me.primaryProjectUid)
+  expect(
+    mainProject,
+    "The main project is in the user's project list",
+  ).toBeTruthy()
 
-  // Keep the target in the same workspace. Switching workspaces sends
+  // Keep the linked project in the same workspace. Switching workspaces sends
   // POST workspace/primary, which would change the user's main workspace.
-  const target = projects.find(
-    p => p.uid !== main!.uid && p.workspace.uid === main!.workspace.uid,
+  const sameWorkspaceProject = projects.find(
+    p =>
+      p.uid !== mainProject!.uid &&
+      p.workspace.uid === mainProject!.workspace.uid,
   )
   test.skip(
-    !target,
+    !sameWorkspaceProject,
     'Needs a test account with a second project in the same workspace as its main project.',
   )
-  const project = target!
-  const detail = await backend.get(`projects/${project.uid}`)
+  const linkedProject = sameWorkspaceProject!
+  const linkedProjectDetail = await backend.get(
+    `projects/${linkedProject.uid}`,
+  )
 
   // Block all non-GET requests so the test cannot modify the real test account.
   // Any attempted write is recorded and fails the test.
@@ -49,34 +56,44 @@ test('a deep link opens that project, not the main one', async ({
 
   // Verify the page's own API request. Empty settings fields alone would not
   // tell us whether the project request succeeded.
-  const pageDetail = page.waitForResponse(
+  const pageProjectResponse = page.waitForResponse(
     res =>
-      new URL(res.url()).pathname === `/api/server/projects/${project.uid}`,
+      new URL(res.url()).pathname ===
+      `/api/server/projects/${linkedProject.uid}`,
   )
 
-  await page.goto(`/project/${project.uid}/settings`)
+  await page.goto(`/project/${linkedProject.uid}/settings`)
 
-  const response = await pageDetail
+  const response = await pageProjectResponse
   expect(response.status(), 'The page could load the project').toBe(200)
-  expect((await response.json()).statusCode).toBe(200)
+  expect(
+    (await response.json()).statusCode,
+    'The project response envelope says 200',
+  ).toBe(200)
 
   // The page shows the project the URL names, as the API describes it.
-  await expect(page).toHaveURL(`/project/${project.uid}/settings`)
-  await expect(page.getByLabel('Project name')).toHaveValue(detail.name)
-  await expect(page.getByLabel('Project slug')).toHaveValue(detail.slug)
+  await expect(page).toHaveURL(`/project/${linkedProject.uid}/settings`)
+  await expect(page.getByLabel('Project name')).toHaveValue(
+    linkedProjectDetail.name,
+  )
+  await expect(page.getByLabel('Project slug')).toHaveValue(
+    linkedProjectDetail.slug,
+  )
 
   // The sidebar switcher agrees: the project, its workspace and the role.
   const sidebar = page.locator('[data-slot="sidebar"]')
-  await expect(sidebar.getByText(project.name, { exact: true })).toBeVisible()
   await expect(
-    sidebar.getByText(project.workspace.name, { exact: true }),
+    sidebar.getByText(linkedProject.name, { exact: true }),
   ).toBeVisible()
   await expect(
-    sidebar.getByText(project.userRole, { exact: true }),
+    sidebar.getByText(linkedProject.workspace.name, { exact: true }),
+  ).toBeVisible()
+  await expect(
+    sidebar.getByText(linkedProject.userRole, { exact: true }),
   ).toBeVisible()
 
   // The bootstrap also selects the main project. If that ever won the race,
   // settings would load the main project behind this URL.
-  expect(apiCalls).not.toContain(`GET projects/${main!.uid}`)
+  expect(apiCalls).not.toContain(`GET projects/${mainProject!.uid}`)
   expect(blockedWrites, 'Writes the page tried to send').toEqual([])
 })
