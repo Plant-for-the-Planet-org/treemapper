@@ -27,7 +27,7 @@ const sidebar = (page: Page) => page.locator('[data-slot="sidebar"]');
 const switcher = (page: Page) =>
   sidebar(page).getByRole('button', { name: /E2E (Main|Second) Project/ });
 
-function mockSettings(api: ApiMock) {
+function mockSettingsPage(api: ApiMock) {
   // The General tab reads the project and its images. The project body is the
   // same shape as the list entry; the page only copies the fields it shows.
   api
@@ -48,7 +48,7 @@ test.describe('F2. Deep links, unknown projects and the project switcher', () =>
     page,
     api,
   }) => {
-    mockSettings(api);
+    mockSettingsPage(api);
 
     await page.goto(`/project/${SECOND_PROJECT.uid}/settings`);
 
@@ -135,7 +135,7 @@ test.describe('F2. Old /dashboard links', () => {
     }) => {
       test.fail(true, 'Legacy /dashboard links spin forever on a cold load');
       mockOverview(api);
-      mockSettings(api);
+      mockSettingsPage(api);
 
       await page.goto(`/dashboard/${subpage}`);
 
@@ -167,7 +167,7 @@ test.describe('F2. Old /dashboard links', () => {
 // Edge case from F2: an invite link on a project page. The invite itself is
 // the subject of F8; here only the page behind it is checked.
 test.describe('F2. An invite on a project route', () => {
-  const url = `/project/${MAIN_PROJECT.uid}/overview?project-invite=${INVITE_TOKEN}`;
+  const inviteUrl = `/project/${MAIN_PROJECT.uid}/overview?project-invite=${INVITE_TOKEN}`;
 
   test.beforeEach(({ api }) => {
     mockSession(api);
@@ -175,8 +175,8 @@ test.describe('F2. An invite on a project route', () => {
     mockInviteStatus(api);
   });
 
-  test('the invite opens', async ({ page }) => {
-    await page.goto(url);
+  test('the invite modal opens', async ({ page }) => {
+    await page.goto(inviteUrl);
 
     await expect(
       page.getByRole('heading', { name: 'Project Invitation' })
@@ -192,7 +192,7 @@ test.describe('F2. An invite on a project route', () => {
   test('the project page loads behind the invite', async ({ page, api }) => {
     test.fail(true, 'An invite on a project route leaves the project list empty');
 
-    await page.goto(url);
+    await page.goto(inviteUrl);
     await expect(
       page.getByRole('heading', { name: 'Project Invitation' })
     ).toBeVisible();

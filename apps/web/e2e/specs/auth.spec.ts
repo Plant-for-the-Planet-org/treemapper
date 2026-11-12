@@ -26,7 +26,7 @@ function mockSettingsPage(api: ApiMock) {
     .get(`projects/${MAIN_PROJECT.uid}/api-key`, ok(null));
 }
 
-function storage(page: import('@playwright/test').Page) {
+function readStorage(page: import('@playwright/test').Page) {
   return page.evaluate(() => ({
     token: localStorage.getItem('access_token'),
     session: { ...sessionStorage },
@@ -77,7 +77,7 @@ test.describe('no session', () => {
     expect(
       auth0.authorizeRequests.map(url => url.searchParams.get('prompt'))
     ).toEqual(['none']);
-    expect((await storage(page)).token).toBeNull();
+    expect((await readStorage(page)).token).toBeNull();
   });
 
   // isTokenExpired counts the last 30s before `exp` as expired already.
@@ -103,7 +103,7 @@ test.describe('no session', () => {
       await expect(page).toHaveURL(`/login?returnTo=${encodeURIComponent(DEEP_LINK)}`);
       // The stored token was dropped, so the app asked Auth0 instead.
       expect(auth0.silentAnswers).toEqual(['login_required']);
-      expect((await storage(page)).token).toBeNull();
+      expect((await readStorage(page)).token).toBeNull();
       // And it never sent the stale token to the API.
       expect(api.calls).toEqual([]);
     });
@@ -147,9 +147,9 @@ test.describe('silent login', () => {
     expect(sha256(exchange.code_verifier)).toBe(silent.get('code_challenge'));
 
     // The verifier never touched storage, and the new token is stored and used.
-    const after = await storage(page);
-    expect(after.session).not.toHaveProperty('pkce_code_verifier');
-    expect(after.token).toBe(auth0.accessToken);
+    const stored = await readStorage(page);
+    expect(stored.session).not.toHaveProperty('pkce_code_verifier');
+    expect(stored.token).toBe(auth0.accessToken);
     expect(
       api.callsTo('GET', 'users/me')[0].request.headers().authorization
     ).toBe(`Bearer ${auth0.accessToken}`);
@@ -197,7 +197,7 @@ test.describe('open redirect', () => {
       await page.getByRole('button', { name: 'Continue with email' }).click();
 
       await expect.poll(() => state).toBeTruthy();
-      expect((await storage(page)).session[`oauth_state_${state}`]).toBe(saved);
+      expect((await readStorage(page)).session[`oauth_state_${state}`]).toBe(saved);
     });
   }
 
@@ -268,10 +268,10 @@ test.describe('login', () => {
     expect(sha256(exchange.code_verifier)).toBe(authorize.get('code_challenge'));
 
     // The new token is stored and used, and the one-time login values are gone.
-    const after = await storage(page);
-    expect(after.token).toBe(auth0.accessToken);
-    expect(after.session).not.toHaveProperty('pkce_code_verifier');
-    expect(after.session).not.toHaveProperty(`oauth_state_${authorize.get('state')}`);
+    const stored = await readStorage(page);
+    expect(stored.token).toBe(auth0.accessToken);
+    expect(stored.session).not.toHaveProperty('pkce_code_verifier');
+    expect(stored.session).not.toHaveProperty(`oauth_state_${authorize.get('state')}`);
     expect(
       api.callsTo('GET', 'users/me')[0].request.headers().authorization
     ).toBe(`Bearer ${auth0.accessToken}`);
@@ -315,7 +315,7 @@ test.describe('login', () => {
       expect(target.pathname + target.search).toBe(landsOn);
       await expect(page.getByRole(shows.role, { name: shows.name })).toBeVisible();
       expect(auth0.tokenRequests).toHaveLength(0);
-      expect((await storage(page)).token).toBeNull();
+      expect((await readStorage(page)).token).toBeNull();
     });
   }
 });
@@ -323,7 +323,7 @@ test.describe('login', () => {
 test.describe('logged in', () => {
   test.use({ loggedIn: true });
 
-  test('opening login keeps the session and does not break', async ({
+  test('opening login keeps the token, asks Auth0 nothing and throws no errors', async ({
     page,
     api,
     auth0,
@@ -351,7 +351,7 @@ test.describe('logged in', () => {
         .getByRole('button', { name: 'Continue with email' })
         .or(page.getByRole('button', { name: 'Account menu' }))
     ).toBeVisible();
-    expect((await storage(page)).token).not.toBeNull();
+    expect((await readStorage(page)).token).not.toBeNull();
     // The token was good, so the app had no reason to ask Auth0 for a new one.
     expect(auth0.authorizeRequests).toHaveLength(0);
     expect(pageErrors).toEqual([]);
@@ -364,7 +364,7 @@ test.describe('logged in', () => {
     // Remove this line when it is fixed; the test then has to pass.
     // test.fail() passes on any failure, so this test checks the redirect
     // only. The test above covers everything else on this page.
-    test.fail(true, 'logged-in user is not sent on from /login');
+    test.fail(true, '#1124: a logged-in user is not sent on from /login');
 
     mockSession(api);
     mockSettingsPage(api);
@@ -398,7 +398,7 @@ test.describe('logged in', () => {
     expect(logoutUrl.searchParams.get('returnTo')).toBe(
       `${baseURL}/redirecting?logoutSuccess=true&redirectTo=%2F`
     );
-    expect((await storage(page)).token).toBeNull();
+    expect((await readStorage(page)).token).toBeNull();
 
     // A reload must not log you back in. With no token, the app asks Auth0 for
     // a silent login. The test started with an Auth0 session, so this is
@@ -421,7 +421,7 @@ test.describe('logged in', () => {
     await expect(
       page.getByRole('button', { name: 'Continue with email' })
     ).toBeVisible();
-    expect((await storage(page)).token).toBeNull();
+    expect((await readStorage(page)).token).toBeNull();
   });
 
   test('logging out while impersonating ends the impersonation first', async ({
@@ -441,7 +441,7 @@ test.describe('logged in', () => {
 
     await page.goto(`/project/${MAIN_PROJECT.uid}/settings`);
     await expect(page.getByText(`Impersonating ${E2E_EMAIL}`)).toBeVisible();
-    const { token } = await storage(page);
+    const { token: tokenBeforeLogout } = await readStorage(page);
 
     await page.getByRole('button', { name: 'Account menu' }).click();
     await page.getByRole('menuitem', { name: 'Logout' }).click();
@@ -451,7 +451,7 @@ test.describe('logged in', () => {
     // admin's next login. It has to happen before the token is gone.
     const exits = api.callsTo('PUT', 'workspace/impersonate/exit');
     expect(exits).toHaveLength(1);
-    expect(exits[0].request.headers().authorization).toBe(`Bearer ${token}`);
+    expect(exits[0].request.headers().authorization).toBe(`Bearer ${tokenBeforeLogout}`);
     expect(logoutsAtExit).toEqual([0]);
     expect(auth0.logoutRequests).toHaveLength(1);
   });
@@ -473,7 +473,7 @@ test.describe('logged in', () => {
     await expect(page).toHaveURL('/login?returnTo=%2F');
     expect(api.callsTo('PUT', 'workspace/impersonate/exit')).toHaveLength(1);
     expect(auth0.logoutRequests).toHaveLength(1);
-    expect((await storage(page)).token).toBeNull();
+    expect((await readStorage(page)).token).toBeNull();
   });
 
   test.describe('narrow screen', () => {
@@ -499,7 +499,7 @@ test.describe('logged in', () => {
 
       await expect(page).toHaveURL('/login?returnTo=%2F');
       expect(auth0.logoutRequests).toHaveLength(1);
-      expect((await storage(page)).token).toBeNull();
+      expect((await readStorage(page)).token).toBeNull();
     });
   });
 });
