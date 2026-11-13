@@ -67,6 +67,9 @@ setup.describe(() => {
   setup.skip(() => !!savedLogin?.reusable, 'Reused the saved token')
 
   setup('log in through Auth0', async ({ page, baseURL }) => {
+    // Checked again here: this test can run on its own (--grep, or one click
+    // in the VS Code extension), and then the test above never ran.
+    assertLocalBackend()
     const { email, password } = credentials()
     const appOrigin = new URL(baseURL!).origin
 
