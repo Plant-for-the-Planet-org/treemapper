@@ -80,7 +80,7 @@ test('a deep link opens that project, not the main one', async ({
     linkedProjectDetail.slug,
   )
 
-  // The sidebar switcher agrees: the project, its workspace and the role.
+  // The sidebar switcher agrees: the project and its workspace.
   const sidebar = page.locator('[data-slot="sidebar"]')
   await expect(
     sidebar.getByText(linkedProject.name, { exact: true }),
@@ -88,9 +88,18 @@ test('a deep link opens that project, not the main one', async ({
   await expect(
     sidebar.getByText(linkedProject.workspace.name, { exact: true }),
   ).toBeVisible()
+  // The role is not in the switcher. It sits in the user footer, under the
+  // user name, and only shows while the sidebar is expanded.
   await expect(
-    sidebar.getByText(linkedProject.userRole, { exact: true }),
+    sidebar
+      .locator('[data-slot="sidebar-footer"]')
+      .getByText(linkedProject.userRole, { exact: true }),
   ).toBeVisible()
+  // Check the field again now that the sidebar has settled: a late win for
+  // the main project would have flipped it after the first check.
+  await expect(page.getByLabel('Project name')).toHaveValue(
+    linkedProjectDetail.name,
+  )
 
   // The bootstrap also selects the main project. If that ever won the race,
   // settings would load the main project behind this URL.

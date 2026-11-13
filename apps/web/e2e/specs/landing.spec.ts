@@ -57,6 +57,11 @@ test.describe('F2. Deep links, unknown projects and the project switcher', () =>
     );
     await expect(switcher(page)).toContainText(SECOND_PROJECT.name);
     await expect(page).toHaveURL(`/project/${SECOND_PROJECT.uid}/settings`);
+    // Check the field again now that the sidebar has settled: a late win for
+    // the main project would have flipped it after the first check.
+    await expect(page.getByLabel('Project name')).toHaveValue(
+      SECOND_PROJECT.name
+    );
 
     // The bootstrap also selects the user's main project. If that ever wins
     // the race, settings would load p_main behind a p_second URL.
