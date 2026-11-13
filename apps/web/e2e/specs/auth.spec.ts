@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
 
-import type { ApiMock } from '../fixtures/api-mock';
 import { MAIN_PROJECT, USER, mockSession } from '../fixtures/data/session';
+// Settings is only the page these tests land on.
+import { mockSettingsPage } from '../fixtures/data/settings';
 import { expect, test } from '../fixtures/test';
 import { E2E_EMAIL, fakeJwt, seedToken } from '../helpers/auth';
 import { AUTH0_ORIGIN, E2E_AUTH_CODE } from '../helpers/auth0';
@@ -15,15 +16,6 @@ const EVIL_PATHS = ['//evil.example', 'https://evil.example', '/\\evil.example']
 
 function sha256(value: string) {
   return createHash('sha256').update(value).digest('base64url');
-}
-
-// Settings is only the page these tests land on; these are its own loads.
-function mockSettingsPage(api: ApiMock) {
-  api
-    .get(`projects/${MAIN_PROJECT.uid}`, ok(MAIN_PROJECT))
-    .get(`projects/${MAIN_PROJECT.uid}/images`, ok([]))
-    // Only the features tab asks for this. No data means "no key yet".
-    .get(`projects/${MAIN_PROJECT.uid}/api-key`, ok(null));
 }
 
 function readStorage(page: import('@playwright/test').Page) {

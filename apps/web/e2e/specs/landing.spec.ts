@@ -10,8 +10,8 @@ import {
   SECOND_PROJECT,
   mockSession,
 } from '../fixtures/data/session';
-import { fail, ok } from '../helpers/envelope';
-import type { ApiMock } from '../fixtures/api-mock';
+import { mockSettingsPage } from '../fixtures/data/settings';
+import { ok } from '../helpers/envelope';
 import type { Page } from '@playwright/test';
 
 // F2 in docs/e2e-user-flows.md: the URL picks the project. Both projects sit in
@@ -26,18 +26,6 @@ const sidebar = (page: Page) => page.locator('[data-slot="sidebar"]');
 // name; its label also holds the workspace name.
 const switcher = (page: Page) =>
   sidebar(page).getByRole('button', { name: /E2E (Main|Second) Project/ });
-
-function mockSettingsPage(api: ApiMock) {
-  // The General tab reads the project and its images. The project body is the
-  // same shape as the list entry; the page only copies the fields it shows.
-  api
-    .get(/^projects\/[^/]+$/, ({ path }) => {
-      const uid = path.split('/')[1];
-      const project = [MAIN_PROJECT, SECOND_PROJECT].find(p => p.uid === uid);
-      return project ? ok(project) : fail(404, 'Project not found');
-    })
-    .get(/^projects\/[^/]+\/images$/, ok([]));
-}
 
 test.describe('F2. Deep links, unknown projects and the project switcher', () => {
   test.beforeEach(({ api }) => {
