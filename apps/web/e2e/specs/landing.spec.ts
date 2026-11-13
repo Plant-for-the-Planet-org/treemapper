@@ -128,7 +128,7 @@ test.describe('F2. Old /dashboard links', () => {
     mockSession(api, { projects: [MAIN_PROJECT, SECOND_PROJECT] });
   });
 
-  // Known issue: app/dashboard/layout.tsx does not mount
+  // Known bug, issue #1142. app/dashboard/layout.tsx does not mount
   // DashboardClientLayout, so nothing loads the user or the projects, and the
   // redirect waits for them forever behind a spinner. `test.fail()` passes
   // while the bug is there; once it is fixed, the test fails and should lose
@@ -138,7 +138,7 @@ test.describe('F2. Old /dashboard links', () => {
       page,
       api,
     }) => {
-      test.fail(true, 'Legacy /dashboard links spin forever on a cold load');
+      test.fail(true, '#1142: legacy /dashboard links spin forever on a cold load');
       mockOverview(api);
       mockSettingsPage(api);
 
@@ -191,11 +191,11 @@ test.describe('F2. An invite on a project route', () => {
     ).toBeVisible();
   });
 
-  // Known issue: initializeApp returns as soon as it sees an invite, before it
+  // Known bug, issue #1143. initializeApp returns as soon as it sees an invite, before it
   // loads the projects, so the project layout never finds the project and
   // spins behind the modal.
   test('the project page loads behind the invite', async ({ page, api }) => {
-    test.fail(true, 'An invite on a project route leaves the project list empty');
+    test.fail(true, '#1143: an invite on a project route leaves the project list empty');
 
     await page.goto(inviteUrl);
     await expect(

@@ -537,7 +537,8 @@ real test depends on it.
    none was needed: the sidebar account menu got `aria-label="Account menu"`
    instead, which also fixes what screen readers announce.
 3. Decide how to handle tests that expose real bugs: fix first, or mark them
-   `test.fail()` with a ticket. `auth.spec.ts` uses `test.fail()` for #1124.
+   `test.fail()` with a ticket. `auth.spec.ts` uses `test.fail()` for #1124,
+   `landing.spec.ts` for #1142 and #1143.
    A `test.fail()` test passes on any failure, so keep it to the one check
    that shows the bug, and pair it with a normal test for everything else on
    that page.
@@ -659,7 +660,7 @@ account's real projects, plus the slug and the role in the sidebar.
 - **Expected today:** cases 1 and 2 fail (see Known issues).
 
 **Done** in `landing.spec.ts`. Cases 1 and 2 are `test.fail()`: the page stays on
-`/dashboard/...` and never redirects. Case 3 passes, because `/dashboard` itself
+`/dashboard/...` and never redirects (#1142). Case 3 passes, because `/dashboard` itself
 is a server redirect that does not need the stores.
 
 ### 5. Onboarding a new user creates a project and lands on it
@@ -721,7 +722,8 @@ All issues below are confirmed in the code. #1124 (the first) and #1137
   `fullstack/landing.spec.ts` skips the name check for such a user and adds a
   "known issue" annotation to the report; once fixed, it should check for
   `displayName` instead.
-- **Legacy `/dashboard/*` links show a spinner forever on a cold load.**
+- **Legacy `/dashboard/*` links show a spinner forever on a cold load**
+  (#1142).
   **Seen in a test** (`landing.spec.ts`, as `test.fail()`).
   `app/dashboard/layout.tsx` only passes its children through.
   `LegacyProjectRedirect` waits for store values that only

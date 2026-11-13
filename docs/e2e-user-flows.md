@@ -315,7 +315,7 @@ target page's own calls (settings: `GET projects/<uid>`,
 5. Legacy links (strategy doc, test 4): expected to fail today, see Bugs.
 
 **Edge cases:** a failed `workspace/primary` keeps the user where they were;
-`?project-invite=` on a project route leaves the project list empty (see Bugs).
+`?project-invite=` on a project route leaves the project list empty (#1143).
 
 **Prerequisites:** a second project; a second workspace only for scenario 3.
 
@@ -328,9 +328,9 @@ target page's own calls (settings: `GET projects/<uid>`,
 | 2. Switch within one workspace keeps the section | **Done** | Not written |
 | 3. Switch across workspaces | **Left out on purpose** (workspace work is a separate task). Needs a second workspace in the session mock | Not planned: `POST workspace/primary` changes the account's main workspace |
 | 4. Unknown uid, then "Go to dashboard" | **Done** | Not written |
-| 5. Legacy links | **Done**. `/dashboard/overview` and `/dashboard/settings` are `test.fail()` (they spin forever, see the strategy doc's Known issues); `/dashboard?project-invite=` passes | Not written |
+| 5. Legacy links | **Done**. `/dashboard/overview` and `/dashboard/settings` are `test.fail()` (they spin forever, #1142); `/dashboard?project-invite=` passes | Not written |
 | Edge: failed `workspace/primary` | **Left out** with scenario 3: within one workspace the switch never calls it | Not planned |
-| Edge: `?project-invite=` on a project route | **Done**. The modal opens (normal test); the page behind it loading is `test.fail()` (see Bugs) | Not written |
+| Edge: `?project-invite=` on a project route | **Done**. The modal opens (normal test); the page behind it loading is `test.fail()` (#1143) | Not written |
 
 What writing it taught, for later flows:
 
@@ -1016,7 +1016,7 @@ normal test for the rest of the page.
 | F4 | The presign file name is `getMilliseconds()`, so only 1000 names exist | `new-intervention/InterventionUploadModal.tsx` |
 | F1 | Notification action button only closes the modal; the per-item X removes it only on the client | `component/header/NotificationIcon.tsx` |
 | F1 | **#1137. Seen in a browser** (Layer 2). The sidebar shows a blank user name, and "U" as the initials when there is no image, for a user with no first or last name: it falls back to `user.name`, but `users/me` sends `displayName`, not `name`. `fullstack/landing.spec.ts` notes it as a "known issue" for now | `component/sidebar/DashboardSidebar.tsx`, `userName` |
-| F2 | **Seen in a test** (`landing.spec.ts`, `test.fail()`). `?project-invite=` on a project route leaves the project list empty, so the page spins behind the modal | `DashboardClientLayout.tsx`, `initializeApp` |
+| F2 | **Seen in a test** (`landing.spec.ts`, `test.fail()`), #1143. `?project-invite=` on a project route leaves the project list empty, so the page spins behind the modal | `DashboardClientLayout.tsx`, `initializeApp` |
 | Later | Leaderboard filters and "load more" send no parameters, so every filter shows the same data and "load more" appends duplicates | `leaderboard/page.tsx` |
 | Later | Profile save does not check the `PATCH` result, and does not update the store | `(standalone)/profile/page.tsx` |
 
