@@ -20,7 +20,9 @@ const MIN_TOKEN_LIFE_MS = 60 * 60 * 1000
 //   2. Check the local API server is running.
 //   3. Check whether AUTH_FILE holds a token that is still good.
 //   4. Reuse it, or log in through the real Auth0 Universal Login page.
-//   5. Save the token, only after a new login.
+//   5. Save the token, and only the token. This runs on reuse too, so an
+//      older file (one that also kept Auth0's cookies, or was saved without
+//      0600) is rewritten in the same shape on every run.
 // Steps 1 and 2 never depend on the saved token: a good token must not skip
 // the safety checks.
 setup(
@@ -45,7 +47,12 @@ setup(
     setup
       .info()
       .annotations.push({ type: 'auth', description: savedLogin.reason })
-    if (savedLogin.reusable) return
+    if (savedLogin.reusable) {
+      // 5. Rewrite the file even though the token is unchanged, so no older
+      // copy with cookies or loose permissions survives a reuse.
+      saveToken(appOrigin, savedLogin.token)
+      return
+    }
 
     // 4. Otherwise, log in through the real Auth0 Universal Login page.
     await hideNextDevTools(page)
@@ -124,7 +131,10 @@ async function checkSavedToken(
   request: APIRequestContext,
   appOrigin: string,
   email: string,
-): Promise<{ reusable: boolean; reason: string }> {
+): Promise<
+  | { reusable: true; token: string; reason: string }
+  | { reusable: false; reason: string }
+> {
   const token = readSavedToken(appOrigin)
   if (!token) return { reusable: false, reason: 'New login: no saved token' }
 
@@ -167,6 +177,7 @@ async function checkSavedToken(
   const hours = (msLeft / 3_600_000).toFixed(1)
   return {
     reusable: true,
+    token,
     reason: `Reused the saved token (${hours} hours left)`,
   }
 }
