@@ -171,7 +171,9 @@ Opt in, and never part of `yarn test:e2e` or CI. The Playwright projects
      this app's origin and for the account in `.env.e2e`, has more than an
      hour left, and the local server accepts it (`200` on `users/me`). The
      report shows which check decided, as an `auth` annotation, without the
-     email or the token.
+     email or the token. A reuse never starts a browser: the setup is two
+     serial tests, and the login test, the only one that asks for `page`, is
+     skipped.
   3. Otherwise it logs in through the real Auth0 Universal Login page:
      "Continue with email", then the email page, then the password page, and
      Accept on the consent screen if Auth0 shows one. A rejected password

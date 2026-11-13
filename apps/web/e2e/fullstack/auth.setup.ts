@@ -25,34 +25,50 @@ const MIN_TOKEN_LIFE_MS = 60 * 60 * 1000
 //      0600) is rewritten in the same shape on every run.
 // Steps 1 and 2 never depend on the saved token: a good token must not skip
 // the safety checks.
-setup(
-  'log in through Auth0, or reuse a saved login',
-  async ({ page, request, baseURL }) => {
-    // 1. The backend is local.
-    assertLocalBackend()
+//
+// Two tests, not one, so a reused token never starts a browser. Only the
+// login test asks for `page`, and a skipped test sets up none of its fixtures.
+// Serial mode keeps both in one worker, so the second sees what the first
+// found, and a failed check skips the login instead of trying it.
+setup.describe.configure({ mode: 'serial' })
+
+// Set by the first test, read by the second.
+let savedLogin: SavedLogin | undefined
+
+setup('check the backend and the saved token', async ({ request, baseURL }) => {
+  // 1. The backend is local.
+  assertLocalBackend()
+  const { email } = credentials()
+
+  // 2. The backend is running. Without a token the Nest server answers 401.
+  // A 5xx means the Next rewrite has nothing on SERVER_PORT to talk to.
+  const probe = await request.get('/api/server/users/me')
+  expect(
+    probe.status(),
+    'The local API server is not answering on /api/server. Start apps/server first.',
+  ).toBe(401)
+
+  const appOrigin = new URL(baseURL!).origin
+
+  // 3 and 4. Check the saved token, and reuse it when it is still good.
+  savedLogin = await checkSavedToken(request, appOrigin, email)
+  setup
+    .info()
+    .annotations.push({ type: 'auth', description: savedLogin.reason })
+  if (savedLogin.reusable) {
+    // 5. Rewrite the file even though the token is unchanged, so no older
+    // copy with cookies or loose permissions survives a reuse.
+    saveToken(appOrigin, savedLogin.token)
+  }
+})
+
+setup.describe(() => {
+  // Runs before any fixture of the test below, so a reuse launches nothing.
+  setup.skip(() => !!savedLogin?.reusable, 'Reused the saved token')
+
+  setup('log in through Auth0', async ({ page, baseURL }) => {
     const { email, password } = credentials()
-
-    // 2. The backend is running. Without a token the Nest server answers 401.
-    // A 5xx means the Next rewrite has nothing on SERVER_PORT to talk to.
-    const probe = await request.get('/api/server/users/me')
-    expect(
-      probe.status(),
-      'The local API server is not answering on /api/server. Start apps/server first.',
-    ).toBe(401)
-
     const appOrigin = new URL(baseURL!).origin
-
-    // 3 and 4. Check the saved token, and reuse it when it is still good.
-    const savedLogin = await checkSavedToken(request, appOrigin, email)
-    setup
-      .info()
-      .annotations.push({ type: 'auth', description: savedLogin.reason })
-    if (savedLogin.reusable) {
-      // 5. Rewrite the file even though the token is unchanged, so no older
-      // copy with cookies or loose permissions survives a reuse.
-      saveToken(appOrigin, savedLogin.token)
-      return
-    }
 
     // 4. Otherwise, log in through the real Auth0 Universal Login page.
     await hideNextDevTools(page)
@@ -118,8 +134,12 @@ setup(
 
     // 5. Save the token, and only the token.
     saveToken(appOrigin, token!)
-  },
-)
+  })
+})
+
+type SavedLogin =
+  | { reusable: true; token: string; reason: string }
+  | { reusable: false; reason: string }
 
 /**
  * Whether AUTH_FILE holds a token the specs can start from: one for this app's
@@ -131,10 +151,7 @@ async function checkSavedToken(
   request: APIRequestContext,
   appOrigin: string,
   email: string,
-): Promise<
-  | { reusable: true; token: string; reason: string }
-  | { reusable: false; reason: string }
-> {
+): Promise<SavedLogin> {
   const token = readSavedToken(appOrigin)
   if (!token) return { reusable: false, reason: 'New login: no saved token' }
 
