@@ -43,6 +43,7 @@ import type {
     MapError,
 } from './map/types';
 import {
+    BRAND,
     FILL_COLOR,
     REST_COLOR,
     SELECTED_COLOR,
@@ -75,6 +76,11 @@ import {
     fetchTreeRecords,
     fetchInterventionDetail,
 } from './map/api';
+import { useLandmarks } from './landmarks/useLandmarks';
+import type { Landmark } from './landmarks/api';
+import LandmarkMarkers from './landmarks/LandmarkMarkers';
+import LandmarkPanel from './landmarks/LandmarkPanel';
+import LandmarkFormDialog, { type LandmarkFormState, type LandmarkFormValues } from './landmarks/LandmarkFormDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -867,15 +873,17 @@ const StaticMapLayers: React.FC<{
         {/* Site boundaries — rendered first so they sit under the interventions */}
         {showSiteBoundaries && sites.features.length > 0 && (
             <Source id="site-boundaries" type="geojson" data={sites}>
-                {/* Outline */}
+                {/* Outline. On satellite the amber dashes read as near-black
+                    over dark imagery, so there the boundary is a solid white
+                    line instead; the vector basemaps keep the amber dashes. */}
                 <Layer
                     id="site-boundaries-outline"
                     type="line"
                     paint={{
-                        'line-color': SITE_BOUNDARY_COLOR,
+                        'line-color': basemap === 'satellite' ? BORDER_COLOR : SITE_BOUNDARY_COLOR,
                         'line-width': 2,
-                        'line-opacity': 0.9,
-                        'line-dasharray': [2, 1.5],
+                        'line-opacity': basemap === 'satellite' ? 1 : 0.9,
+                        ...(basemap === 'satellite' ? {} : { 'line-dasharray': [2, 1.5] }),
                     }}
                 />
                 {/* Site name label at the polygon centroid */}
@@ -911,7 +919,7 @@ const StaticMapLayers: React.FC<{
                     type="line"
                     minzoom={9}
                     paint={{
-                        'line-color': ['case', ['feature-state', 'selected'], SELECTED_COLOR, REST_COLOR],
+                        'line-color': ['case', ['feature-state', 'selected'], SELECTED_COLOR, basemap === 'satellite' ? BRAND : REST_COLOR],
                         'line-width': 8,
                         'line-blur': 5,
                         'line-opacity': [
@@ -936,43 +944,35 @@ const StaticMapLayers: React.FC<{
                         'fill-opacity': 0,
                     }}
                 />
-                {/* White casing under the outline — only on satellite,
-                    where the line needs separating from busy imagery. On
-                    the light/dark vector basemaps the line reads on its
-                    own, and a white halo would over-brighten on dark. */}
-                <Layer
-                    id="interventions-polygons-casing"
-                    type="line"
-                    minzoom={9}
-                    paint={{
-                        'line-color': BORDER_COLOR,
-                        'line-width': [
-                            'case',
-                            ['feature-state', 'selected'], 5,
-                            ['feature-state', 'hover'], 4.5,
-                            3.5,
-                        ],
-                        'line-opacity': basemap === 'satellite' ? 0.7 : 0,
-                        'line-blur': 0.5,
-                    }}
-                />
-                {/* Crisp outline. On satellite the unselected edge is white so it
-                    reads clearly over the dark imagery (the muted gray looked
-                    near-black); selected stays green. On the light/dark vector
-                    basemaps the gray rest color reads fine. */}
+                {/* Crisp outline. On satellite the edge is a dotted brand
+                    green (no white casing, which would fill the dash gaps);
+                    selection still reads through the brighter green, the
+                    wider line and the glow. On the light/dark vector
+                    basemaps it stays a solid gray rest line. MapLibre cannot
+                    vary line-dasharray per feature, so on satellite the
+                    selected outline is dotted too. */}
                 <Layer
                     id="interventions-polygons-outline"
                     type="line"
                     minzoom={9}
                     paint={{
-                        'line-color': ['case', ['feature-state', 'selected'], SELECTED_COLOR, basemap === 'satellite' ? BORDER_COLOR : REST_COLOR],
-                        'line-width': [
-                            'case',
-                            ['feature-state', 'selected'], 3,
-                            ['feature-state', 'hover'], 2,
-                            1.5,
-                        ],
+                        'line-color': ['case', ['feature-state', 'selected'], SELECTED_COLOR, basemap === 'satellite' ? BRAND : REST_COLOR],
+                        // On satellite the line must be a CONSTANT width: MapLibre
+                        // will not render line-dasharray together with a
+                        // data-driven (feature-state) line-width, so the dashed
+                        // outline would draw nothing. 2.5px gives the dark brand
+                        // green enough pixels to read over imagery. The vector
+                        // basemaps are solid, so they keep the per-state widths.
+                        'line-width': basemap === 'satellite'
+                            ? 2.5
+                            : [
+                                'case',
+                                ['feature-state', 'selected'], 3,
+                                ['feature-state', 'hover'], 2,
+                                1.5,
+                            ],
                         'line-opacity': 1,
+                        ...(basemap === 'satellite' ? { 'line-dasharray': [2, 1.5] } : {}),
                     }}
                 />
             </Source>
@@ -1106,7 +1106,9 @@ const ProjectMap: React.FC<{
     token: string;
     /** Optional overlay rendered at the map's top-right (e.g. the live-activity toggle). */
     mapTopRight?: React.ReactNode;
-}> = ({ projectId, token, mapTopRight }) => {
+    /** Owner/admin only: shows the add/edit/move/delete landmark controls. */
+    canManageLandmarks?: boolean;
+}> = ({ projectId, token, mapTopRight, canManageLandmarks = false }) => {
     const [interventions, setInterventions] = useState<MapIntervention[]>([]);
     const [trees, setTrees] = useState<MapTree[]>([]);
     const [sites, setSites] = useState<SiteFeatureCollection>({ type: 'FeatureCollection', features: [] });
@@ -1141,6 +1143,22 @@ const ProjectMap: React.FC<{
     const [mapLoaded, setMapLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<MapError | null>(null);
+
+    // Landmarks: named points of interest (nursery, meeting point, school...)
+    // shown as DOM markers. Owners/admins place one by clicking the map.
+    const {
+        landmarks,
+        create: createLandmark,
+        update: updateLandmark,
+        remove: removeLandmark,
+    } = useLandmarks(projectId, token);
+    const [showLandmarks, setShowLandmarks] = useState(true);
+    const [selectedLandmarkUid, setSelectedLandmarkUid] = useState<string | null>(null);
+    // While set, the next map click places (or moves) a landmark instead of
+    // selecting features.
+    const [placing, setPlacing] = useState<null | { mode: 'create' } | { mode: 'move'; uid: string }>(null);
+    const [landmarkForm, setLandmarkForm] = useState<LandmarkFormState | null>(null);
+    const [landmarkError, setLandmarkError] = useState<string | null>(null);
 
     const loadInterventions = useCallback(async () => {
         try {
@@ -1268,6 +1286,8 @@ const ProjectMap: React.FC<{
     const selectIntervention = useCallback((intervention: MapIntervention | null) => {
         const prevId = prevSelectedIdRef.current;
         const map = mapRef.current;
+        // The right pane shows one thing at a time.
+        setSelectedLandmarkUid(null);
         if (!intervention) {
             setMapState(s => ({ ...s, selectedInterventionId: null, selectedTreeId: null, showTreeDetails: false }));
             setTrees([]);
@@ -1296,6 +1316,23 @@ const ProjectMap: React.FC<{
         } catch { /* ignore */ }
     }, []);
 
+    const selectLandmark = useCallback((landmark: Landmark) => {
+        selectIntervention(null);
+        setSelectedLandmarkUid(landmark.uid);
+        const [lng, lat] = landmark.location.coordinates;
+        if (isFinite(lng) && isFinite(lat)) {
+            mapRef.current?.easeTo({ center: [lng, lat], duration: 600 });
+        }
+    }, [selectIntervention]);
+
+    // Placement mode can always be left with Escape.
+    useEffect(() => {
+        if (!placing) return;
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPlacing(null); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [placing]);
+
     const handleMapLoad = useCallback(() => {
         setMapLoaded(true);
         createTreeIcon(mapRef.current?.getMap?.() ?? mapRef.current);
@@ -1314,6 +1351,22 @@ const ProjectMap: React.FC<{
     }, [mapLoaded]);
 
     const handleMapClick = useCallback((event: any) => {
+        // Placement mode captures the click instead of selecting features.
+        if (placing) {
+            const { lng, lat } = event.lngLat ?? {};
+            if (isFinite(lng) && isFinite(lat)) {
+                if (placing.mode === 'create') {
+                    setLandmarkForm({ mode: 'create', coords: { lat, lng } });
+                } else {
+                    updateLandmark(placing.uid, { latitude: lat, longitude: lng })
+                        .catch((err: unknown) => setLandmarkError(
+                            err instanceof Error ? err.message : 'Failed to move the landmark',
+                        ));
+                }
+            }
+            setPlacing(null);
+            return;
+        }
         const feature = event.features?.[0];
         if (!feature) return;
         const layerId = feature.layer?.id;
@@ -1355,7 +1408,7 @@ const ProjectMap: React.FC<{
         } else {
             selectIntervention(intervention);
         }
-    }, [interventions, trees, mapState.selectedInterventionId, selectIntervention]);
+    }, [interventions, trees, mapState.selectedInterventionId, selectIntervention, placing, updateLandmark]);
 
     const selectedIntervention = useMemo(
         () => interventions.find(i => i.id === mapState.selectedInterventionId),
@@ -1529,7 +1582,11 @@ const ProjectMap: React.FC<{
     // Prefer the freshly fetched detail (richer: owner, resolved image) but fall
     // back to the bulk list item while the detail call is loading.
     const detailIntervention = detail?.intervention ?? selectedIntervention;
-    const rightPaneOpen = !!detailIntervention;
+    const selectedLandmark = useMemo(
+        () => landmarks.find(l => l.uid === selectedLandmarkUid) ?? null,
+        [landmarks, selectedLandmarkUid],
+    );
+    const rightPaneOpen = !!detailIntervention || !!selectedLandmark;
 
     // The right detail pane is a grid column, so opening/closing it changes the
     // map's span (and width). maplibre tracks size via ResizeObserver, but nudge
@@ -1610,7 +1667,7 @@ const ProjectMap: React.FC<{
             />
 
             {/* Center — map */}
-            <div className={cn('relative h-full rounded-2xl overflow-hidden', detailIntervention ? 'col-span-2' : 'col-span-3')}>
+            <div className={cn('relative h-full rounded-2xl overflow-hidden', rightPaneOpen ? 'col-span-2' : 'col-span-3')}>
             <Map
                 ref={mapRef}
                 onLoad={handleMapLoad}
@@ -1622,6 +1679,7 @@ const ProjectMap: React.FC<{
                 }}
                 style={MAP_CONTAINER_STYLE}
                 interactiveLayerIds={INTERACTIVE_LAYER_IDS}
+                cursor={placing ? 'crosshair' : undefined}
                 onClick={handleMapClick}
                 onMouseMove={event => {
                     try {
@@ -1716,6 +1774,17 @@ const ProjectMap: React.FC<{
                         />
                     </Source>
                 )}
+
+                {/* Landmarks — DOM markers (few in number), toggled in the
+                    layers panel. Hover shows name + type, click opens the
+                    detail pane. */}
+                {showLandmarks && landmarks.length > 0 && (
+                    <LandmarkMarkers
+                        landmarks={landmarks}
+                        selectedUid={selectedLandmarkUid}
+                        onSelect={selectLandmark}
+                    />
+                )}
             </Map>
 
             {/* Error */}
@@ -1729,14 +1798,63 @@ const ProjectMap: React.FC<{
                 )}
             </AnimatePresence>
 
-            {/* Site filter — map control, top-left */}
-            {sites.features.length > 0 && (
-                <div className="absolute top-3 left-3 z-20">
+            {/* Site filter + add-landmark — map controls, top-left */}
+            <div className="absolute top-3 left-3 z-20 flex items-center gap-2">
+                {sites.features.length > 0 && (
                     <SiteSelect
                         sites={sites.features}
                         selectedSiteId={selectedSiteId}
                         onSelectSite={handleSelectSite}
                     />
+                )}
+                {canManageLandmarks && !placing && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                            selectIntervention(null);
+                            setPlacing({ mode: 'create' });
+                        }}
+                        className="bg-background/95 shadow-md"
+                    >
+                        <MapPin className="w-3.5 h-3.5" />
+                        Add landmark
+                    </Button>
+                )}
+            </div>
+
+            {/* Placement hint — shown while a click will place/move a landmark */}
+            {placing && (
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-popover text-popover-foreground border border-border rounded-full shadow-lg pl-4 pr-1.5 py-1.5">
+                    <span className="text-sm">
+                        {placing.mode === 'create'
+                            ? 'Click the map to place the landmark'
+                            : 'Click the map to move the landmark'}
+                    </span>
+                    <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => setPlacing(null)}
+                        className="rounded-full text-muted-foreground"
+                        title="Cancel"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </Button>
+                </div>
+            )}
+
+            {/* Landmark action errors (e.g. a failed move) */}
+            {landmarkError && (
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 bg-popover text-popover-foreground border border-destructive/30 rounded-lg shadow-lg px-3 py-2">
+                    <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                    <span className="text-sm">{landmarkError}</span>
+                    <button
+                        type="button"
+                        onClick={() => setLandmarkError(null)}
+                        className="text-muted-foreground hover:text-foreground"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
                 </div>
             )}
 
@@ -1786,6 +1904,12 @@ const ProjectMap: React.FC<{
                                 <Switch checked={showSiteBoundaries} onCheckedChange={setShowSiteBoundaries} />
                             </label>
                         )}
+                        {landmarks.length > 0 && (
+                            <label className="flex items-center justify-between gap-2 pt-3 border-t border-border cursor-pointer">
+                                <span className="text-sm text-foreground">Landmarks</span>
+                                <Switch checked={showLandmarks} onCheckedChange={setShowLandmarks} />
+                            </label>
+                        )}
                     </PopoverContent>
                 </Popover>
                 <Button
@@ -1812,13 +1936,26 @@ const ProjectMap: React.FC<{
             {/* Right — detail pane (a 1-col grid cell, shown when something is
                 selected). Drills intervention -> tree -> records in place; the
                 map's col-span shrinks to make room. */}
-            {detailIntervention && (
+            {rightPaneOpen && (
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="col-span-1 h-full bg-card text-card-foreground border border-border rounded-2xl overflow-hidden flex flex-col"
                 >
-                    {selectedTree && mapState.showTreeDetails ? (
+                    {selectedLandmark ? (
+                        <LandmarkPanel
+                            key={selectedLandmark.uid}
+                            landmark={selectedLandmark}
+                            canManage={canManageLandmarks}
+                            onClose={() => setSelectedLandmarkUid(null)}
+                            onEdit={() => setLandmarkForm({ mode: 'edit', landmark: selectedLandmark })}
+                            onMove={() => setPlacing({ mode: 'move', uid: selectedLandmark.uid })}
+                            onDelete={async () => {
+                                await removeLandmark(selectedLandmark.uid);
+                                setSelectedLandmarkUid(null);
+                            }}
+                        />
+                    ) : selectedTree && mapState.showTreeDetails ? (
                         <TreeTooltip
                             key={selectedTree.id}
                             tree={selectedTree}
@@ -1831,7 +1968,7 @@ const ProjectMap: React.FC<{
                                 setMapState(prev => ({ ...prev, selectedTreeId: null, showTreeDetails: false }));
                             }}
                         />
-                    ) : (
+                    ) : detailIntervention ? (
                         <InterventionPanel
                             intervention={detailIntervention}
                             trees={detail?.trees ?? trees}
@@ -1847,9 +1984,30 @@ const ProjectMap: React.FC<{
                                 }
                             }}
                         />
-                    )}
+                    ) : null}
                 </motion.div>
             )}
+
+            {/* Create / edit landmark form */}
+            <LandmarkFormDialog
+                state={landmarkForm}
+                onClose={() => setLandmarkForm(null)}
+                onSubmit={async (values: LandmarkFormValues) => {
+                    if (!landmarkForm) return;
+                    if (landmarkForm.mode === 'create') {
+                        const created = await createLandmark({
+                            ...values,
+                            latitude: landmarkForm.coords.lat,
+                            longitude: landmarkForm.coords.lng,
+                        });
+                        setLandmarkForm(null);
+                        setSelectedLandmarkUid(created.uid);
+                    } else {
+                        await updateLandmark(landmarkForm.landmark.uid, values);
+                        setLandmarkForm(null);
+                    }
+                }}
+            />
         </div>
     );
 };

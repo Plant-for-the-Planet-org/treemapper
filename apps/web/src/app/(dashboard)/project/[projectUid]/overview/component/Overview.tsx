@@ -42,6 +42,7 @@ const Overview = () => {
                         <ProjectMap
                             projectId={selectedProjectUid}
                             token={accessToken}
+                            canManageLandmarks={isAdminOrOwner}
                             mapTopRight={isAdminOrOwner && !panelOpen ? (
                                 <Button
                                     variant="outline"

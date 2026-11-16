@@ -25,6 +25,7 @@ import { MonitoringPlotsModule } from './monitoring-plots/monitoring-plots.modul
 import { FormsModule } from './forms/forms.module';
 import { DevicesModule } from './devices/devices.module';
 import { TreeMatchModule } from './treematch/treematch.module';
+import { LandmarksModule } from './landmarks/landmarks.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { TreeMatchModule } from './treematch/treematch.module';
     FormsModule,
     DevicesModule,
     TreeMatchModule,
+    LandmarksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

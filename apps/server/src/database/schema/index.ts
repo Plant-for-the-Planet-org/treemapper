@@ -918,6 +918,49 @@ export const site = pgTable('site', {
   createdByIdx: index('site_created_by_idx').on(table.createdById)
 }));
 
+export const landmarkTypeEnum = pgEnum('landmark_type', [
+  'nursery',
+  'meeting_point',
+  'school',
+  'office',
+  'storage',
+  'water_source',
+  'other',
+]);
+
+// A named point of interest in or near a site: a nursery, a meeting point, a
+// school. Created from the web dashboard, shown as icons on the web and
+// mobile maps. Not an intervention: no capture flow, no approval gating, and
+// editable at any time.
+export const siteLandmark = pgTable('site_landmark', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+  // Derived: the site whose polygon contains the point, null when the point
+  // sits outside every site polygon (e.g. a nursery beside the site).
+  siteId: integer('site_id').references(() => site.id, { onDelete: 'set null' }),
+  type: landmarkTypeEnum('type').notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  // Free-text label shown when `type` is 'other'.
+  otherLabel: text('other_label'),
+  location: geometryWithGeoJSON(4326)('location').notNull(),
+  image: text('image'),
+  // Private landmarks must never be served by a public (unauthenticated)
+  // endpoint. Default private so nothing leaks by omission.
+  isPrivate: boolean('is_private').default(true).notNull(),
+  createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'restrict' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+}, (table) => ({
+  projectIdx: index('site_landmark_project_active_idx')
+    .on(table.projectId)
+    .where(sql`deleted_at IS NULL`),
+  siteIdx: index('site_landmark_site_idx').on(table.siteId),
+  locationIdx: index('site_landmark_location_gist_idx').using('gist', table.location),
+}));
+
 
 export const projectInvites = pgTable('project_invite', {
   id: serial('id').primaryKey(),
@@ -2126,6 +2169,21 @@ export const siteRelations = relations(site, ({ one, many }) => ({
     fields: [site.rejectedById],
     references: [user.id],
     relationName: 'siteRejectedBy',
+  }),
+}));
+
+export const siteLandmarkRelations = relations(siteLandmark, ({ one }) => ({
+  project: one(project, {
+    fields: [siteLandmark.projectId],
+    references: [project.id],
+  }),
+  site: one(site, {
+    fields: [siteLandmark.siteId],
+    references: [site.id],
+  }),
+  createdBy: one(user, {
+    fields: [siteLandmark.createdById],
+    references: [user.id],
   }),
 }));
 
