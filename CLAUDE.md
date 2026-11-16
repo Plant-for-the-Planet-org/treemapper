@@ -361,13 +361,11 @@ auto-upgrades anything.
 - `drizzle.config.ts` reads `DATABASE_URL` (not the `DB_*` vars), and in this
   repo's `.env` it points at a **shared staging** database, not localhost. Check
   where it aims before running `drizzle-kit migrate`.
-- Jest cannot resolve the absolute `src/...` imports that some server files use
-  (`projects.service.ts` and others): `rootDir` is `src` and there is no
-  `moduleNameMapper`. Specs that only import leaf modules are fine, which is why
-  the suite passes; the moment a spec imports a service that pulls in the DI
-  graph it dies with "Cannot find module 'src/util/uidGenerator'". Workaround
-  without touching the config:
-  `npx jest <path> --moduleNameMapper '{"^src/(.*)$":"<rootDir>/$1"}'`.
+- Jest resolves the absolute `src/...` imports some server files use through
+  `moduleNameMapper` in `apps/server/package.json`'s jest block (added
+  2026-11-16), so specs may import services that pull in the DI graph. Note
+  that any edit to `package.json` trips the pre-commit dependency-file guard,
+  so committing even a jest-config change needs `ALLOW_DEP_CHANGE=1`.
 - **The server's prettier errors are a config mismatch, not your code.** Root
   `.prettierrc.js` sets `semi: false`, `apps/server` has no prettier config of
   its own, and its eslint config loads
@@ -482,9 +480,9 @@ it is genuinely closed.
   response with `console.log` on every sync. Noisy, and response bodies are
   exactly the kind of thing that quietly grows to hold something you did not
   mean to publish. Prefer the injected `Logger` at debug level.
-- **No tests outside the server's two TreeMatch suites** (47 tests total).
-  `apps/web` and `apps/mobile` have none, and see the jest `moduleNameMapper`
-  gotcha before adding a server spec that touches the DI graph.
+- **No tests outside `apps/server`** (three suites, 69 tests: two TreeMatch,
+  plus `interventions.service.spec.ts` covering web intervention creation
+  without species). `apps/web` and `apps/mobile` have none.
 
 **Dead code, ask before deleting**
 

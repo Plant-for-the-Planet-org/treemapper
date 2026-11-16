@@ -830,7 +830,16 @@ export class InterventionsService {
       const cleanGeometry = this.getGeoJSONForPostGIS(createInterventionDto.geometry);
       const locationSQL = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(cleanGeometry)}), 4326)`;
       const { treeCount, error } = this.treeAndSpeciesCount(createInterventionDto)
-      const transformedSpecies = createInterventionDto.species.map(el => {
+      // Species are optional for types that do not allow them (maintenance,
+      // fencing, fire-patrol, ...), and the web client omits the key entirely.
+      const typeConfig = interventionConfigurationSeedData.find(
+        el => el.interventionType === createInterventionDto.type,
+      );
+      const speciesInput = createInterventionDto.species ?? [];
+      if (typeConfig?.requiresSpecies && speciesInput.length === 0) {
+        throw new BadRequestException('At least one species is required for this intervention type');
+      }
+      const transformedSpecies = speciesInput.map(el => {
         return {
           uid: generateUid('invspc'),
           scientificSpeciesId: el.scientificSpeciesId,
@@ -932,16 +941,19 @@ export class InterventionsService {
         source: 'web',
       });
 
-      const finalInterventionSpecies: InterventionSpeciesSelect[] = transformedSpecies.map(el => ({
-        ...el,
-        interventionId: result[0].id,
-      }))
-      const interventionSpecieData = await this.drizzleService.db
-        .insert(interventionSpecies)
-        .values(finalInterventionSpecies)
-        .returning()
-      if (interventionSpecieData.length === 0) {
-        throw 'Species creation failed'
+      let interventionSpecieData: (typeof interventionSpecies.$inferSelect)[] = [];
+      if (transformedSpecies.length > 0) {
+        const finalInterventionSpecies: InterventionSpeciesSelect[] = transformedSpecies.map(el => ({
+          ...el,
+          interventionId: result[0].id,
+        }))
+        interventionSpecieData = await this.drizzleService.db
+          .insert(interventionSpecies)
+          .values(finalInterventionSpecies)
+          .returning()
+        if (interventionSpecieData.length === 0) {
+          throw 'Species creation failed'
+        }
       }
       if (createInterventionDto.type === 'single-tree-registration') {
         const latlongDetails = this.extractCoordinatesFromPoint(createInterventionDto.geometry)
