@@ -378,6 +378,7 @@ apps/web/
   playwright.config.ts
   e2e/
     shared/          # only what both layers use
+      constants.ts   # API_PREFIX, EMAIL_CLAIM
       devtools.ts    # hideNextDevTools(page)
     mocked/          # Layer 1: project `chromium`
       test.ts        # extended test: `loggedIn` option, plus blockedHosts,

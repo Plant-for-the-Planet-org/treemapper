@@ -3,6 +3,7 @@ import path from 'node:path'
 
 import { type APIRequestContext, expect, test as setup } from '@playwright/test'
 
+import { API_PREFIX, EMAIL_CLAIM } from '../shared/constants'
 import { hideNextDevTools } from '../shared/devtools'
 import {
   AUTH_FILE,
@@ -12,9 +13,6 @@ import {
 } from './env'
 
 const AUTH0_LOGIN = /^https:\/\/accounts\.plant-for-the-planet\.org\/u\//
-
-// Same claim the app and server read (see mocked/helpers/auth.ts).
-const EMAIL_CLAIM = 'https://app.plant-for-the-planet.org/email'
 
 // A saved token is reused only if it has at least this long left, so it
 // cannot expire in the middle of a run.
@@ -47,7 +45,7 @@ setup('check the backend and the saved token', async ({ request, baseURL }) => {
 
   // 2. The backend is running. Without a token the Nest server answers 401.
   // A 5xx means the Next rewrite has nothing on SERVER_PORT to talk to.
-  const probe = await request.get('/api/server/users/me')
+  const probe = await request.get(`${API_PREFIX}users/me`)
   expect(
     probe.status(),
     'The local API server is not answering on /api/server. Start apps/server first.',
@@ -189,7 +187,7 @@ async function checkSavedToken(
 
   // The last word is the server's: it checks the signature, the audience and
   // that the account is active, none of which the claims above can prove.
-  const res = await request.get('/api/server/users/me', {
+  const res = await request.get(`${API_PREFIX}users/me`, {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (res.status() !== 200) {

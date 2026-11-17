@@ -1,10 +1,7 @@
 import type { Page, Request } from '@playwright/test';
 
+import { API_PREFIX } from '../shared/constants';
 import { fail, isEnvelope } from './helpers/envelope';
-
-// The browser only ever calls same-origin /api/server/*, which next.config.ts
-// rewrites to the Nest server (see docs/e2e-testing-plan.md).
-const API_PREFIX = '/api/server/';
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 

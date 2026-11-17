@@ -1,3 +1,4 @@
+import { API_PREFIX } from '../../shared/constants'
 import { expect, test } from '../test'
 
 // F2 scenario 1: verifies that a shared project link opens the intended
@@ -48,7 +49,7 @@ test('a deep link opens that project, not the main one', async ({
   const pageProjectResponse = page.waitForResponse(
     res =>
       new URL(res.url()).pathname ===
-      `/api/server/projects/${linkedProject.uid}`,
+      `${API_PREFIX}projects/${linkedProject.uid}`,
   )
 
   await page.goto(`/project/${linkedProject.uid}/settings`)

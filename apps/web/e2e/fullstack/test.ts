@@ -2,10 +2,9 @@ import { type APIRequestContext, test as base, expect } from '@playwright/test'
 
 import type { ApiResponse } from '@shared-core/types/api-responses'
 
+import { API_PREFIX } from '../shared/constants'
 import { hideNextDevTools } from '../shared/devtools'
 import { AUTH_FILE, readSavedToken } from './env'
-
-const API_PREFIX = '/api/server/'
 
 export interface Backend {
   /**

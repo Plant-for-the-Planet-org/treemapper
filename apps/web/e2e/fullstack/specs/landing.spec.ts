@@ -1,5 +1,6 @@
 import { formatNumber } from '@shared-core/utils/numberFormatingHelper'
 
+import { API_PREFIX } from '../../shared/constants'
 import { expect, test } from '../test'
 
 // F1 in docs/e2e-user-flows.md, against the real stack: a returning user opens
@@ -42,7 +43,7 @@ test('a returning user lands on their main project overview', async ({
   // no data would pass the value check on a failed load. Check the page's own
   // request succeeded too.
   const pageKpis = page.waitForResponse(res =>
-    res.url().includes(`/api/server/analytics/project-kpis/${project.uid}`),
+    res.url().includes(`${API_PREFIX}analytics/project-kpis/${project.uid}`),
   )
 
   await page.goto('/')
