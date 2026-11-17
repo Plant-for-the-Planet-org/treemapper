@@ -43,7 +43,7 @@ function savedToken(): string {
 
 // Layer 2 (full stack): no API mock, no Auth0 stub, no blocked hosts.
 //
-// Specs in this folder import `test` and `expect` from here, never from
+// Specs in fullstack/specs/ import `test` and `expect` from here, never from
 // mocked/fixtures/test.ts. That one is Layer 1: it mocks every API call and stubs
 // Auth0, so a full-stack spec importing it would quietly test nothing real.
 export const test = base.extend<Fixtures>({

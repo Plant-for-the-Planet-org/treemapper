@@ -49,8 +49,7 @@ const fullstackProjects: Project[] = [
   },
   {
     name: 'fullstack',
-    testDir: './e2e/fullstack',
-    testMatch: /\.spec\.ts$/,
+    testDir: './e2e/fullstack/specs',
     dependencies: ['fullstack-setup'],
     use: { ...devices['Desktop Chrome'], storageState: AUTH_FILE },
   },
