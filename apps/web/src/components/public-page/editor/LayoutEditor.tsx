@@ -19,7 +19,8 @@ import { BLOCK_CATALOGUE, addBlock, defaultLayout, matchesDefault, moveBlock, re
 import { PublicProjectPageView } from '../PublicProjectPageView'
 import { THEMES } from '../themes'
 import type { BlockId, BlockSpec, ThemeConfig } from '../themes'
-import type { PublicProjectPage } from '../types'
+import { photoPickKey } from '../types'
+import type { PublicPagePhoto, PublicProjectPage } from '../types'
 import { AddBlockPanel } from './AddBlockPanel'
 import { EditableBlock } from './EditableBlock'
 
@@ -65,6 +66,23 @@ export function LayoutEditor({
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const [overKey, setOverKey] = useState<string | null>(null)
   const [flashKey, setFlashKey] = useState<string | null>(null)
+
+  // Photos chosen in this session. The page payload only resolves choices
+  // that were already saved, so without this a newly chosen photo would not
+  // appear in the preview until after a save and a reload. Display only: a
+  // save still sends just the choices, and the server checks them again.
+  const [knownPhotos, setKnownPhotos] = useState<Record<string, PublicPagePhoto>>({})
+  const rememberPhotos = useCallback((photos: PublicPagePhoto[]) => {
+    setKnownPhotos((current) => {
+      const next = { ...current }
+      for (const photo of photos) next[photoPickKey(photo)] = photo
+      return next
+    })
+  }, [])
+  const previewData = useMemo(
+    () => ({ ...data, photoPicks: { ...data.photoPicks, ...knownPhotos } }),
+    [data, knownPhotos],
+  )
 
   // A new block lands above the footer, which on a long page is many screens
   // below the add panel. Without this scroll the click looks like it did
@@ -156,7 +174,7 @@ export function LayoutEditor({
 
   const page = (
     <PublicProjectPageView
-      data={data}
+      data={previewData}
       theme={theme}
       blocks={blocks}
       fontClassName={fontClassName}
@@ -180,6 +198,8 @@ export function LayoutEditor({
                 onToggleText={setTextOpenKey}
                 flash={flashKey === spec.key}
                 accessToken={accessToken}
+                projectUid={projectUid}
+                onPhotosKnown={rememberPhotos}
               >
                 {node}
               </EditableBlock>

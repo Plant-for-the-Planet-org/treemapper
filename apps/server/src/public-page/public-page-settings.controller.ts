@@ -8,7 +8,13 @@ import { ErrorResponse, SuccessResponse } from '../common/interfaces/response.in
 import { ResponseUtil } from '../common/utils/response.util';
 import { PublicPageSettingsDto } from './dto/public-page-settings.dto';
 import { PublicPageService } from './public-page.service';
-import { PUBLIC_PAGE_THEMES, PublicPageSettings, PublicPageTheme, PublicProjectPage } from './public-page.types';
+import {
+  PUBLIC_PAGE_THEMES,
+  PublicPagePhoto,
+  PublicPageSettings,
+  PublicPageTheme,
+  PublicProjectPage,
+} from './public-page.types';
 
 /**
  * Reading and changing a project's public page settings.
@@ -49,6 +55,30 @@ export class PublicPageSettingsController {
   ): Promise<SuccessResponse<PublicPageSettings> | ErrorResponse> {
     const settings = await this.publicPageService.updateSettings(membership.projectId, dto);
     return ResponseUtil.updated(settings, 'Public page settings updated', 'public_page_settings_updated');
+  }
+
+  /**
+   * Photos the photos block can be given, for the picker in the layout editor.
+   *
+   * Owner or admin, like everything else here. It lists only what the public
+   * page could already show (published records, non-private gallery images),
+   * but it reaches back further than the 12 the page uses, so it stays behind
+   * the same guard as the preview rather than on the open endpoint.
+   */
+  @Get('photos')
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  @ApiOperation({ summary: 'List photos that can be chosen for the public page (owner or admin)' })
+  async listPhotos(
+    @Membership() membership: ProjectGuardResponse,
+    @Query('offset') offsetRaw?: string,
+    @Query('limit') limitRaw?: string,
+  ): Promise<SuccessResponse<{ items: PublicPagePhoto[]; hasMore: boolean }> | ErrorResponse> {
+    const offset = Math.max(0, Math.floor(Number(offsetRaw) || 0));
+    const limit = Math.min(60, Math.max(1, Math.floor(Number(limitRaw) || 30)));
+
+    const data = await this.publicPageService.listPhotoCandidates(membership.projectId, offset, limit);
+    return ResponseUtil.fetched(data, 'Photos retrieved', 'public_page_photos_fetched');
   }
 
   /**

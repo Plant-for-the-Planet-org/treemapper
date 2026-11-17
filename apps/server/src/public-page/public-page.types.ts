@@ -76,6 +76,47 @@ export function isPublicPageImage(value: unknown): value is string {
   return typeof value === 'string' && PUBLIC_PAGE_IMAGE_FILENAME.test(value);
 }
 
+/** Most photos a project can choose for the "From the field" block. */
+export const PUBLIC_PAGE_PHOTO_PICKS_MAX = 12;
+
+/** Where a photo lives in storage. `project` is an upload made for the page. */
+export const PUBLIC_PAGE_PHOTO_FOLDERS = ['tree', 'intervention', 'site', 'project'] as const;
+export type PublicPagePhotoFolder = (typeof PUBLIC_PAGE_PHOTO_FOLDERS)[number];
+
+/**
+ * A field photo's stored filename. Looser than `PUBLIC_PAGE_IMAGE_FILENAME`
+ * because migrated records carry older naming schemes, but still a bare
+ * filename: no slash, no colon, so it can never be a URL or a path. A picked
+ * field photo is also checked against the project's own published records
+ * every time the page is built, which is the check that actually matters.
+ */
+export const PUBLIC_PAGE_FIELD_PHOTO_FILENAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,200}\.(jpg|jpeg|png|gif|webp)$/i;
+
+/**
+ * One photo chosen for the photos block. `caption` replaces the automatic
+ * one (species, intervention type or site name) when set.
+ */
+export interface PublicPagePhotoPick {
+  folder: PublicPagePhotoFolder;
+  image: string;
+  caption?: string;
+}
+
+export function isPublicPagePhotoPick(value: unknown): value is PublicPagePhotoPick {
+  if (!value || typeof value !== 'object') return false;
+  const pick = value as Partial<PublicPagePhotoPick>;
+  if (!PUBLIC_PAGE_PHOTO_FOLDERS.includes(pick.folder as PublicPagePhotoFolder)) return false;
+  // An upload made for the page follows the strict rule; field photos the looser one.
+  return pick.folder === 'project'
+    ? isPublicPageImage(pick.image)
+    : typeof pick.image === 'string' && PUBLIC_PAGE_FIELD_PHOTO_FILENAME.test(pick.image);
+}
+
+/** Lookup key for a pick in `PublicProjectPage.photoPicks`. */
+export function photoPickKey(pick: { folder: string; image: string }): string {
+  return `${pick.folder}/${pick.image}`;
+}
+
 /**
  * One block in a saved arrangement.
  *
@@ -93,6 +134,8 @@ export interface PublicPageBlockContent {
   image?: string;
   caption?: string;
   alt?: string;
+  /** The photos block's chosen photos, in order. Absent means pick automatically. */
+  photos?: PublicPagePhotoPick[];
 }
 
 export interface PublicPageBlock {
@@ -229,7 +272,7 @@ export interface PublicPageTimelinePoint {
 export interface PublicPagePhoto {
   /** Raw stored filename. The web app turns it into a CDN url. */
   image: string;
-  folder: 'tree' | 'intervention' | 'site';
+  folder: PublicPagePhotoFolder;
   caption: string | null;
   takenAt: string | null;
 }
@@ -293,6 +336,13 @@ export interface PublicProjectPage {
     }>;
   };
   photos: PublicPagePhoto[];
+  /**
+   * The photos block's chosen photos that passed the check, keyed by
+   * `photoPickKey`. A pick missing from here (deleted, unapproved, or never
+   * this project's) is simply not shown. Only the rendered theme's layout is
+   * resolved, so this is empty for a project that never chose photos.
+   */
+  photoPicks: Record<string, PublicPagePhoto>;
   people: {
     count: number;
     members: PublicPagePerson[];
@@ -389,14 +439,16 @@ export function sanitizePublicPageBlocks(value: unknown): PublicPageBlock[] {
       const image = isPublicPageImage(content.image) ? content.image : '';
       const caption = text(content.caption, PUBLIC_PAGE_IMAGE_CAPTION_MAX);
       const alt = text(content.alt, PUBLIC_PAGE_IMAGE_ALT_MAX);
+      const photos = sanitizePhotoPicks(content.photos);
 
-      if (heading || body || image || caption || alt) {
+      if (heading || body || image || caption || alt || photos.length) {
         block.content = {
           ...(heading ? { heading } : {}),
           ...(body ? { body } : {}),
           ...(image ? { image } : {}),
           ...(caption ? { caption } : {}),
           ...(alt ? { alt } : {}),
+          ...(photos.length ? { photos } : {}),
         };
       }
     }
@@ -405,6 +457,31 @@ export function sanitizePublicPageBlocks(value: unknown): PublicPageBlock[] {
   }
 
   return blocks;
+}
+
+/**
+ * Chosen photos, cleaned: valid picks only, no repeats, at most
+ * `PUBLIC_PAGE_PHOTO_PICKS_MAX`, captions trimmed. Order is kept, because the
+ * order is the choice.
+ */
+export function sanitizePhotoPicks(value: unknown): PublicPagePhotoPick[] {
+  if (!Array.isArray(value)) return [];
+
+  const seen = new Set<string>();
+  const picks: PublicPagePhotoPick[] = [];
+  for (const raw of value) {
+    if (picks.length >= PUBLIC_PAGE_PHOTO_PICKS_MAX) break;
+    if (!isPublicPagePhotoPick(raw)) continue;
+
+    const key = photoPickKey(raw);
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const caption =
+      typeof raw.caption === 'string' ? raw.caption.trim().slice(0, PUBLIC_PAGE_IMAGE_CAPTION_MAX) : '';
+    picks.push({ folder: raw.folder, image: raw.image, ...(caption ? { caption } : {}) });
+  }
+  return picks;
 }
 
 export function sanitizePublicPageLayouts(value: unknown): PublicPageLayouts {

@@ -60,6 +60,38 @@ export function isPublicPageImage(value: unknown): value is string {
   return typeof value === 'string' && PUBLIC_PAGE_IMAGE_FILENAME.test(value)
 }
 
+/** Most photos a project can choose for the "From the field" block. */
+export const PUBLIC_PAGE_PHOTO_PICKS_MAX = 12
+
+/** Where a photo lives in storage. `project` is an upload made for the page. */
+export const PUBLIC_PAGE_PHOTO_FOLDERS = ['tree', 'intervention', 'site', 'project'] as const
+export type PublicPagePhotoFolder = (typeof PUBLIC_PAGE_PHOTO_FOLDERS)[number]
+
+/** A field photo's stored filename: a bare name, never a URL or a path. */
+export const PUBLIC_PAGE_FIELD_PHOTO_FILENAME =
+  /^[A-Za-z0-9][A-Za-z0-9._-]{0,200}\.(jpg|jpeg|png|gif|webp)$/i
+
+/** One photo chosen for the photos block. `caption` replaces the automatic one. */
+export interface PublicPagePhotoPick {
+  folder: PublicPagePhotoFolder
+  image: string
+  caption?: string
+}
+
+export function isPublicPagePhotoPick(value: unknown): value is PublicPagePhotoPick {
+  if (!value || typeof value !== 'object') return false
+  const pick = value as Partial<PublicPagePhotoPick>
+  if (!PUBLIC_PAGE_PHOTO_FOLDERS.includes(pick.folder as PublicPagePhotoFolder)) return false
+  return pick.folder === 'project'
+    ? isPublicPageImage(pick.image)
+    : typeof pick.image === 'string' && PUBLIC_PAGE_FIELD_PHOTO_FILENAME.test(pick.image)
+}
+
+/** Lookup key for a pick in `PublicProjectPage.photoPicks`. Same shape as the server's. */
+export function photoPickKey(pick: { folder: string; image: string }): string {
+  return `${pick.folder}/${pick.image}`
+}
+
 /**
  * What a person supplies for a block: words for `text`, an uploaded image
  * with its caption and alt text for `image`. All plain text, rendered as text
@@ -71,6 +103,8 @@ export interface PublicPageBlockContent {
   image?: string
   caption?: string
   alt?: string
+  /** The photos block's chosen photos, in order. Absent means pick automatically. */
+  photos?: PublicPagePhotoPick[]
 }
 
 /** One block in a saved arrangement. `key` identifies the instance, not the kind. */
@@ -153,7 +187,7 @@ export interface PublicPageTimelinePoint {
 
 export interface PublicPagePhoto {
   image: string
-  folder: 'tree' | 'intervention' | 'site'
+  folder: PublicPagePhotoFolder
   caption: string | null
   takenAt: string | null
 }
@@ -208,5 +242,10 @@ export interface PublicProjectPage {
   timeline: PublicPageTimelinePoint[]
   sites: { type: 'FeatureCollection'; features: PublicPageSiteFeature[] }
   photos: PublicPagePhoto[]
+  /**
+   * The photos block's chosen photos that the server checked, keyed by
+   * `photoPickKey`. A pick missing from here is not shown.
+   */
+  photoPicks: Record<string, PublicPagePhoto>
   people: { count: number; members: PublicPagePerson[] }
 }

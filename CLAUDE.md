@@ -527,6 +527,15 @@ requires restarting the dev server, not just a reload. **The default is the
 local server**, so check whether your `.env` actually sets this before assuming
 a preview can reach data.
 
+**Grey photo tiles in a local preview are usually not a bug.** `cdnUrl`
+builds `<NEXT_PUBLIC_CDN_BASE>/<NEXT_PUBLIC_MODE>/<folder>/<file>`, and the
+upload path uses the *uploading* server's `MODE`. Records created through a
+deployed app live under `production/`, while a local `.env` usually says
+`development`, so their photos 404 and `BlockImage` leaves the placeholder.
+Check by requesting the same file under both folders. Switching the local mode
+fixes those photos but breaks anything uploaded locally, which lands under
+`development/`.
+
 The TreeMatch screens load real data through the local server
 (`/api/treematch/projects/:uid/...`), so previewing them needs `apps/server`
 running on :3001 (the `mobile` app is never needed). The donations pane proxies
@@ -634,6 +643,26 @@ A project can publish a one-page, unauthenticated summary of its work at
   Keep the regex mirrored in `apps/web/src/components/public-page/types.ts`.
   An upload is not a publish: the file goes to storage when chosen, but only a
   layout or settings save puts its name on the page.
+- **The photos block can be given a chosen set** ("Choose photos" in the
+  editor): up to 12 `{ folder, image, caption? }` picks in the block's
+  `content.photos`, from `GET /api/projects/:id/public-page/photos` (owner or
+  admin; published tree, intervention and site photos plus non-private gallery
+  images, paged) or uploaded on the spot. A stored pick is only a claim:
+  `resolvePhotoPicks` re-checks every field-photo pick against the project's
+  own published, not-deleted records each time the page is built and returns
+  the survivors as `photoPicks`, so a photo from another project, or one whose
+  record was later deleted or rejected, simply does not show. With no
+  surviving picks the block falls back to the newest photos. Field-photo
+  names follow the looser `PUBLIC_PAGE_FIELD_PHOTO_FILENAME` (migrated
+  records use older naming); `project` uploads keep the strict rule. The
+  folder decides the rule, so the DTO uses one custom validator over the pick:
+  `@ValidateIf` would switch off *every* validator on the property, not just
+  one.
+- **Do not run a bounded-repeat regex over a large table in Postgres.**
+  `image ~* '...{0,200}...'` on the ~45k-row `tree` table cost ~2s per call
+  (the planner filtered before the project join); `*` plus a
+  `length(...) <= n` check matched the same rows in ~30ms. The photo list uses
+  the coarse SQL form and then applies the exact JS rule to what comes back.
 
 **Server**: `apps/server/src/public-page/`. `GET /api/public-page/:slugOrUid`
 is `@Public()`, IP-rate-limited to 60/min, envelope-wrapped, cached 5 minutes.

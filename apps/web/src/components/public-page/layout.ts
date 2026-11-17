@@ -1,7 +1,13 @@
 import { BLOCKS } from './blocks'
 import type { BlockId, BlockSpec, ThemeConfig, Tone } from './themes'
-import { PUBLIC_PAGE_MAX_BLOCKS, isPublicPageImage } from './types'
-import type { PublicPageBlock, PublicPageBlockContent } from './types'
+import {
+  PUBLIC_PAGE_MAX_BLOCKS,
+  PUBLIC_PAGE_PHOTO_PICKS_MAX,
+  isPublicPageImage,
+  isPublicPagePhotoPick,
+  photoPickKey,
+} from './types'
+import type { PublicPageBlock, PublicPageBlockContent, PublicPagePhotoPick } from './types'
 
 /**
  * What a page can be built from, and how a saved arrangement becomes one.
@@ -35,6 +41,8 @@ export interface BlockDefinition {
   editableText?: boolean
   /** Carries an image the project uploads. Only the image block does. */
   editableImage?: boolean
+  /** Can carry a chosen set of photos. Only the photos block does. */
+  editablePhotos?: boolean
   /**
    * Removing it is allowed but worth a word of warning: the page reads as
    * broken without it.
@@ -106,7 +114,8 @@ export const BLOCK_CATALOGUE: Record<BlockId, BlockDefinition> = {
   photos: {
     id: 'photos',
     label: 'Photos',
-    description: 'Pictures taken in the field by the people doing the work.',
+    description: 'Pictures from the field. Newest first, or choose them yourself.',
+    editablePhotos: true,
     variants: [
       { id: 'wall', label: 'Wall of six' },
       { id: 'row', label: 'Row of three' },
@@ -280,14 +289,38 @@ export function resolveLayout(
  */
 function storedContent(content: BlockSpec['content']): PublicPageBlockContent | null {
   if (!content) return null
+  const photos = cleanPhotoPicks(content.photos)
   const kept: PublicPageBlockContent = {
     ...(content.heading ? { heading: content.heading } : {}),
     ...(content.body ? { body: content.body } : {}),
     ...(isPublicPageImage(content.image) ? { image: content.image } : {}),
     ...(content.caption ? { caption: content.caption } : {}),
     ...(content.alt ? { alt: content.alt } : {}),
+    ...(photos.length ? { photos } : {}),
   }
   return Object.keys(kept).length ? kept : null
+}
+
+/**
+ * Chosen photos as they are saved: valid picks only, no repeats, at most
+ * `PUBLIC_PAGE_PHOTO_PICKS_MAX`, captions trimmed and dropped when empty.
+ * The same rules as the server's `sanitizePhotoPicks`, so what the editor
+ * saves is what comes back.
+ */
+export function cleanPhotoPicks(value: unknown): PublicPagePhotoPick[] {
+  if (!Array.isArray(value)) return []
+  const seen = new Set<string>()
+  const picks: PublicPagePhotoPick[] = []
+  for (const raw of value) {
+    if (picks.length >= PUBLIC_PAGE_PHOTO_PICKS_MAX) break
+    if (!isPublicPagePhotoPick(raw)) continue
+    const key = photoPickKey(raw)
+    if (seen.has(key)) continue
+    seen.add(key)
+    const caption = raw.caption?.trim()
+    picks.push({ folder: raw.folder, image: raw.image, ...(caption ? { caption } : {}) })
+  }
+  return picks
 }
 
 /** The arrangement as the API stores it. Keys are always written out. */

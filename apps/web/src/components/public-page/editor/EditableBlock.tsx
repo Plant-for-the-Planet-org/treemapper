@@ -2,12 +2,13 @@
 
 import type { ReactNode } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
-import { ChevronDown, ChevronUp, GripVertical, ImagePlus, Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, GripVertical, ImagePlus, Images, Pencil, Trash2 } from 'lucide-react'
 import { BLOCK_CATALOGUE } from '../layout'
 import type { BlockSpec } from '../themes'
 import { isPublicPageImage } from '../types'
-import type { PublicPageBlockContent } from '../types'
+import type { PublicPageBlockContent, PublicPagePhoto } from '../types'
 import { ImageBlockEditor } from './ImageBlockEditor'
+import { PhotosBlockEditor } from './PhotosBlockEditor'
 import { TextBlockEditor } from './TextBlockEditor'
 
 /**
@@ -42,6 +43,8 @@ export function EditableBlock({
   onToggleText,
   flash,
   accessToken,
+  projectUid,
+  onPhotosKnown,
 }: {
   spec: BlockSpec
   index: number
@@ -58,8 +61,11 @@ export function EditableBlock({
   onToggleText: (key: string | null) => void
   /** Just added: the page scrolls here and this frame lights up briefly. */
   flash?: boolean
-  /** For the image block's upload. */
+  /** For uploads and the photo picker. */
   accessToken: string
+  projectUid: string
+  /** Lets the preview show a chosen photo before the layout is saved. */
+  onPhotosKnown: (photos: PublicPagePhoto[]) => void
 }) {
   const definition = BLOCK_CATALOGUE[spec.id]
   const key = spec.key as string
@@ -130,6 +136,23 @@ export function EditableBlock({
               </ToolButton>
             ) : null}
 
+            {definition.editablePhotos ? (
+              <button
+                type="button"
+                onClick={() => onToggleText(textOpen ? null : key)}
+                aria-pressed={textOpen}
+                className={[
+                  'inline-flex h-7 items-center gap-1.5 rounded-[6px] border px-2.5 text-[0.6875rem] font-medium',
+                  textOpen
+                    ? 'border-slate-400 bg-slate-200 text-slate-800'
+                    : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50',
+                ].join(' ')}
+              >
+                <Images size={13} />
+                {textOpen ? 'Close' : 'Choose photos'}
+              </button>
+            ) : null}
+
             <ToolButton
               label="Move up"
               disabled={index === 0}
@@ -154,6 +177,17 @@ export function EditableBlock({
           <TextBlockEditor
             content={spec.content ?? {}}
             onChange={(content) => onContent(key, content)}
+            onClose={() => onToggleText(null)}
+          />
+        ) : null}
+
+        {textOpen && definition.editablePhotos ? (
+          <PhotosBlockEditor
+            content={spec.content ?? {}}
+            accessToken={accessToken}
+            projectUid={projectUid}
+            onChange={(content) => onContent(key, content)}
+            onPhotosKnown={onPhotosKnown}
             onClose={() => onToggleText(null)}
           />
         ) : null}

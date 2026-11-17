@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { SQL, and, countDistinct, desc, eq, isNotNull, isNull, ne, or, sql } from 'drizzle-orm';
+import { SQL, and, countDistinct, desc, eq, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm';
 import { PgColumn } from 'drizzle-orm/pg-core';
 import { DrizzleService } from '../database/drizzle.service';
 import { CacheService } from '../cache/cache.service';
@@ -17,13 +17,17 @@ import {
 import { publishedInterventionFilter, publishedSiteFilter } from '../approval-board/approval.util';
 import { fieldInterventionsOnly } from '../database/intervention-filters';
 import {
+  PUBLIC_PAGE_IMAGE_FILENAME,
   PUBLIC_PAGE_THEMES,
   PublicPageBlock,
   PublicPageLayouts,
   PublicPagePhoto,
+  PublicPagePhotoFolder,
   PublicPageSettings,
   PublicPageTheme,
   PublicProjectPage,
+  isPublicPagePhotoPick,
+  photoPickKey,
   publicPageCacheKeys,
   resolvePublicPageSettings,
   sanitizePublicPageBlocks,
@@ -139,6 +143,7 @@ export class PublicPageService {
       people,
       plots,
       cover,
+      photoPicks,
     ] = await Promise.all([
       this.loadHeadline(projectId),
       this.loadVerification(projectId),
@@ -151,6 +156,7 @@ export class PublicPageService {
       this.loadPeople(projectId, settings),
       this.countMonitoringPlots(projectId),
       this.loadCover(projectRow, settings.coverImage),
+      this.resolvePhotoPicks(projectId, settings.layouts[settings.theme] ?? null),
     ]);
 
     return {
@@ -199,6 +205,7 @@ export class PublicPageService {
       timeline,
       sites: { type: 'FeatureCollection', features: sites.features },
       photos,
+      photoPicks,
       people: { count: people.count, members: people.members },
     };
   }
@@ -743,6 +750,192 @@ export class PublicPageService {
     }
 
     return photos;
+  }
+
+  /**
+   * Checks the photos a project chose for its photos block and returns the
+   * ones it may show, keyed by `photoPickKey`.
+   *
+   * A stored pick is only a claim. A field photo is shown only if it is still
+   * attached to one of this project's own published, not-deleted records,
+   * found by the same filters the automatic wall uses. That one rule covers a
+   * photo whose record was deleted or rejected, and a filename that was never
+   * this project's. Uploads made for the page (`project` folder) have no
+   * record to check; their strict filename shape was enforced on save.
+   *
+   * Only the layout being rendered is read, so a project that never chose
+   * photos costs no query at all.
+   */
+  private async resolvePhotoPicks(
+    projectId: number,
+    layout: PublicPageBlock[] | null,
+  ): Promise<Record<string, PublicPagePhoto>> {
+    const picks = (layout ?? [])
+      .filter((block) => block.id === 'photos')
+      .flatMap((block) => block.content?.photos ?? []);
+    if (!picks.length) return {};
+
+    const names = (folder: PublicPagePhotoFolder) =>
+      [...new Set(picks.filter((pick) => pick.folder === folder).map((pick) => pick.image))];
+    const iso = (value: Date | string | null) => (value ? new Date(value).toISOString() : null);
+    const found = new Map<string, PublicPagePhoto>();
+    const db = this.drizzleService.db;
+
+    const treeNames = names('tree');
+    const interventionNames = names('intervention');
+    const siteNames = names('site');
+
+    const [treeRows, interventionRows, siteRows] = await Promise.all([
+      treeNames.length
+        ? db
+            .select({
+              image: tree.image,
+              caption: sql<string | null>`COALESCE(${tree.speciesName}, ${tree.commonName})`,
+              takenAt: tree.plantingDate,
+            })
+            .from(tree)
+            .innerJoin(intervention, eq(tree.interventionId, intervention.id))
+            .where(
+              and(
+                eq(intervention.projectId, projectId),
+                isNull(tree.deletedAt),
+                inArray(tree.image, treeNames),
+                this.publishedInterventions(),
+              ),
+            )
+        : [],
+      interventionNames.length
+        ? db
+            .select({
+              image: intervention.image,
+              caption: intervention.type,
+              takenAt: intervention.registrationDate,
+            })
+            .from(intervention)
+            .where(
+              and(
+                eq(intervention.projectId, projectId),
+                inArray(intervention.image, interventionNames),
+                this.publishedInterventions(),
+              ),
+            )
+        : [],
+      siteNames.length
+        ? db
+            .select({ image: site.image, caption: site.name, takenAt: site.createdAt })
+            .from(site)
+            .where(
+              and(
+                eq(site.projectId, projectId),
+                isNull(site.deletedAt),
+                publishedSiteFilter(),
+                inArray(site.image, siteNames),
+              ),
+            )
+        : [],
+    ]);
+
+    const record = (folder: PublicPagePhotoFolder) => (row: {
+      image: string | null;
+      caption: string | null;
+      takenAt: Date | string | null;
+    }) => {
+      if (!row.image) return;
+      const key = photoPickKey({ folder, image: row.image });
+      // Several trees can share one photo filename; the first row is enough.
+      if (!found.has(key)) {
+        found.set(key, { image: row.image, folder, caption: row.caption, takenAt: iso(row.takenAt) });
+      }
+    };
+    treeRows.forEach(record('tree'));
+    interventionRows.forEach(record('intervention'));
+    siteRows.forEach(record('site'));
+
+    const resolved: Record<string, PublicPagePhoto> = {};
+    for (const pick of picks) {
+      const key = photoPickKey(pick);
+      if (pick.folder === 'project') {
+        resolved[key] = { image: pick.image, folder: 'project', caption: pick.caption ?? null, takenAt: null };
+        continue;
+      }
+      const photo = found.get(key);
+      if (photo) resolved[key] = { ...photo, caption: pick.caption ?? photo.caption };
+    }
+    return resolved;
+  }
+
+  /**
+   * Photos an owner or admin can choose from for the photos block, newest
+   * first: tree, intervention and site photos from published records (the
+   * same rules as the automatic wall) plus the project's own gallery uploads.
+   *
+   * Only filenames a pick can store are listed, so everything offered here can
+   * be chosen. Paged with offset and limit, because a large project has
+   * thousands of tree photos.
+   */
+  async listPhotoCandidates(
+    projectId: number,
+    offset: number,
+    limit: number,
+  ): Promise<{ items: PublicPagePhoto[]; hasMore: boolean }> {
+    // A coarse SQL pre-filter, then the exact rule in JS below. Not the shared
+    // regex as-is: Postgres compiles a bounded repeat like `{0,200}` into a
+    // very large automaton, and on a full tree scan that one pattern cost
+    // ~2s per call against ~30ms for `*` plus a length check, with identical
+    // matches. Length 206 is the longest name the exact rule allows.
+    const pickable = (column: PgColumn) =>
+      sql`(length(${column}) <= 206 AND ${column} ~* ${'^[A-Za-z0-9][A-Za-z0-9._-]*\\.(jpg|jpeg|png|gif|webp)$'})`;
+    const galleryPickable = sql`${image.filename} ~ ${PUBLIC_PAGE_IMAGE_FILENAME.source}`;
+
+    // One row more than asked for, to know whether there is another page.
+    const result = await this.drizzleService.db.execute(sql`
+      SELECT * FROM (
+        SELECT ${tree.image} AS image, 'tree' AS folder,
+               COALESCE(${tree.speciesName}, ${tree.commonName}) AS caption,
+               ${tree.plantingDate} AS taken_at, ${tree.createdAt} AS sort_at
+        FROM ${tree} INNER JOIN ${intervention} ON ${tree.interventionId} = ${intervention.id}
+        WHERE ${intervention.projectId} = ${projectId} AND ${tree.deletedAt} IS NULL
+          AND ${this.publishedInterventions()} AND ${pickable(tree.image)}
+        UNION ALL
+        SELECT ${intervention.image}, 'intervention', ${intervention.type}::text,
+               ${intervention.registrationDate}, ${intervention.createdAt}
+        FROM ${intervention}
+        WHERE ${intervention.projectId} = ${projectId}
+          AND ${this.publishedInterventions()} AND ${pickable(intervention.image)}
+        UNION ALL
+        SELECT ${site.image}, 'site', ${site.name}, ${site.createdAt}, ${site.createdAt}
+        FROM ${site}
+        WHERE ${site.projectId} = ${projectId} AND ${site.deletedAt} IS NULL
+          AND ${publishedSiteFilter()} AND ${pickable(site.image)}
+        UNION ALL
+        SELECT ${image.filename}, 'project', NULL, ${image.createdAt}, ${image.createdAt}
+        FROM ${image}
+        WHERE ${image.entityType} = 'project' AND ${image.entityId} = ${projectId}
+          AND ${image.deletedAt} IS NULL AND ${image.isPrivate} IS NOT TRUE AND ${galleryPickable}
+      ) AS candidates
+      ORDER BY sort_at DESC NULLS LAST, image
+      LIMIT ${limit + 1} OFFSET ${offset}
+    `);
+
+    const rows = result.rows as Array<{
+      image: string;
+      folder: PublicPagePhotoFolder;
+      caption: string | null;
+      taken_at: Date | string | null;
+    }>;
+    return {
+      items: rows
+        .slice(0, limit)
+        // The exact rule a save enforces, so nothing listed can be refused.
+        .filter((row) => isPublicPagePhotoPick({ folder: row.folder, image: row.image }))
+        .map((row) => ({
+          image: row.image,
+          folder: row.folder,
+          caption: row.caption,
+          takenAt: row.taken_at ? new Date(row.taken_at).toISOString() : null,
+        })),
+      hasMore: rows.length > limit,
+    };
   }
 
   /**

@@ -82,7 +82,49 @@ async function main() {
     })).length > 0,
   );
 
-  // 4. Cover priority: custom cover, then project.image, then the gallery.
+  // 4. Chosen photos for the photos block.
+  const LEGACY = '67b5a5bd8e743773056073.jpg'; // a migrated field photo name
+  const photosOf = (photos: unknown[]) =>
+    sanitizePublicPageBlocks([{ id: 'photos', key: 'p', content: { photos } }])[0]?.content?.photos ?? [];
+
+  const picked = photosOf([
+    { folder: 'tree', image: GOOD, caption: '  Planting day  ' },
+    { folder: 'site', image: LEGACY },
+    { folder: 'project', image: GOOD },
+    { folder: 'tree', image: GOOD }, // repeat
+    { folder: 'project', image: LEGACY }, // uploads must use the strict shape
+    { folder: 'tree', image: 'https://evil.example/x.jpg' },
+    { folder: 'tree', image: '../intervention/x.jpg' },
+    { folder: 'profile', image: GOOD }, // not a photo folder
+  ]);
+  check(
+    'picks keep valid field photos, uploads and order',
+    JSON.stringify(picked.map((p) => `${p.folder}/${p.image}`)) ===
+      JSON.stringify([`tree/${GOOD}`, `site/${LEGACY}`, `project/${GOOD}`]),
+  );
+  check('pick caption is trimmed', picked[0]?.caption === 'Planting day');
+  check(
+    'picks are capped at 12',
+    photosOf(Array.from({ length: 20 }, (_, i) => ({ folder: 'tree', image: `${1794070425900 + i}-a.jpg` })))
+      .length === 12,
+  );
+
+  const pickErrors = async (photos: unknown[]) =>
+    errorsFor({ layouts: { full: [{ id: 'photos', key: 'p', content: { photos } }] } });
+  check('DTO accepts a field photo and an upload', (await pickErrors([
+    { folder: 'tree', image: LEGACY },
+    { folder: 'project', image: GOOD },
+  ])).length === 0);
+  check('DTO refuses a URL pick', (await pickErrors([{ folder: 'tree', image: BAD[0] }])).length > 0);
+  check('DTO refuses a path pick', (await pickErrors([{ folder: 'tree', image: '../x.jpg' }])).length > 0);
+  check('DTO refuses a legacy name as an upload', (await pickErrors([{ folder: 'project', image: LEGACY }])).length > 0);
+  check('DTO refuses an unknown folder', (await pickErrors([{ folder: 'profile', image: GOOD }])).length > 0);
+  check(
+    'DTO refuses more than 12 picks',
+    (await pickErrors(Array.from({ length: 13 }, () => ({ folder: 'tree', image: GOOD })))).length > 0,
+  );
+
+  // 5. Cover priority: custom cover, then project.image, then the gallery.
   const neverQueried = {
     db: {
       select: () => {

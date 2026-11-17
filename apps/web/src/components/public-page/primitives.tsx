@@ -3,6 +3,7 @@ import { cdnUrl } from '@/lib/cdn'
 import { BlockImage } from './BlockImage'
 import { cn } from '@/lib/utils'
 import type { Tone } from './themes'
+import type { PublicPagePhotoFolder } from './types'
 
 /**
  * The small shared pieces every block is built from.
@@ -212,7 +213,7 @@ export function PhotoTile({
   height,
 }: {
   image?: string | null
-  folder?: 'tree' | 'intervention' | 'site'
+  folder?: PublicPagePhotoFolder
   caption?: string | null
   className?: string
   height?: number | string

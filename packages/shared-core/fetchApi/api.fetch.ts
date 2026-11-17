@@ -1595,7 +1595,14 @@ export interface PublicPageLayoutBlock {
   key: string;
   variant?: string;
   surface?: 'base' | 'detail';
-  content?: { heading?: string; body?: string; image?: string; caption?: string; alt?: string };
+  content?: {
+    heading?: string;
+    body?: string;
+    image?: string;
+    caption?: string;
+    alt?: string;
+    photos?: { folder: string; image: string; caption?: string }[];
+  };
 }
 
 export const getPublicPageSettings = async (token: string, prid: string) => {
@@ -1636,6 +1643,21 @@ export const updatePublicPageSettings = async (
 export const getPublicPagePreview = async (token: string, prid: string, theme?: string) => {
   const query = theme ? `?theme=${encodeURIComponent(theme)}` : '';
   const uri = `${getUrlApi.publicPagePreview}/${prid}/public-page/preview${query}`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+/**
+ * Photos that can be chosen for the public page's photos block, newest first.
+ * Owner or admin only. `data` is `{ items, hasMore }`.
+ */
+export const getPublicPagePhotos = async (
+  token: string,
+  prid: string,
+  offset = 0,
+  limit = 30,
+) => {
+  const uri = `${getUrlApi.publicPagePreview}/${prid}/public-page/photos?offset=${offset}&limit=${limit}`;
   const result = await fetchGetCall(uri, token);
   return result;
 };

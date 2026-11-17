@@ -10,6 +10,7 @@ import {
   IsString,
   Matches,
   MaxLength,
+  ValidateBy,
   ValidateNested,
 } from 'class-validator';
 import {
@@ -19,6 +20,9 @@ import {
   PUBLIC_PAGE_IMAGE_ALT_MAX,
   PUBLIC_PAGE_IMAGE_CAPTION_MAX,
   PUBLIC_PAGE_IMAGE_FILENAME,
+  PUBLIC_PAGE_PHOTO_FOLDERS,
+  PUBLIC_PAGE_PHOTO_PICKS_MAX,
+  PublicPagePhotoFolder,
   PUBLIC_PAGE_MAX_BLOCKS,
   PUBLIC_PAGE_SURFACES,
   PUBLIC_PAGE_TEXT_BODY_MAX,
@@ -27,7 +31,48 @@ import {
   PublicPageBlockId,
   PublicPageSurface,
   PublicPageTheme,
+  isPublicPagePhotoPick,
 } from '../public-page.types';
+
+/**
+ * The filename rule depends on the folder (strict for uploads made for the
+ * page, looser for field photos), so it is one validator over the whole pick
+ * rather than two `@Matches`. `@ValidateIf` cannot do this: when its
+ * condition is false it switches off every validator on the property.
+ */
+function IsPhotoPickImage(): PropertyDecorator {
+  return ValidateBy({
+    name: 'isPhotoPickImage',
+    validator: {
+      validate: (value, args) =>
+        isPublicPagePhotoPick({ ...(args?.object as object), image: value }),
+      defaultMessage: () =>
+        'image must be a stored photo filename, and an uploaded image filename for folder "project"',
+    },
+  });
+}
+
+/**
+ * One photo chosen for the photos block. The filename shape is checked here;
+ * whether the photo really belongs to this project is checked when the page
+ * is built, against its published records.
+ */
+export class PublicPagePhotoPickDto {
+  @ApiPropertyOptional({ enum: PUBLIC_PAGE_PHOTO_FOLDERS })
+  @IsIn(PUBLIC_PAGE_PHOTO_FOLDERS as unknown as string[])
+  folder: PublicPagePhotoFolder;
+
+  @ApiPropertyOptional({ description: 'Stored filename. URLs and paths are refused.' })
+  @IsString()
+  @IsPhotoPickImage()
+  image: string;
+
+  @ApiPropertyOptional({ maxLength: PUBLIC_PAGE_IMAGE_CAPTION_MAX })
+  @IsOptional()
+  @IsString()
+  @MaxLength(PUBLIC_PAGE_IMAGE_CAPTION_MAX)
+  caption?: string;
+}
 
 /**
  * Words a project writes itself. Plain text only: the page renders it as text
@@ -65,6 +110,14 @@ export class PublicPageBlockContentDto {
   @IsString()
   @MaxLength(PUBLIC_PAGE_IMAGE_ALT_MAX)
   alt?: string;
+
+  @ApiPropertyOptional({ type: [PublicPagePhotoPickDto], maxItems: PUBLIC_PAGE_PHOTO_PICKS_MAX })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(PUBLIC_PAGE_PHOTO_PICKS_MAX)
+  @ValidateNested({ each: true })
+  @Type(() => PublicPagePhotoPickDto)
+  photos?: PublicPagePhotoPickDto[];
 }
 
 export class PublicPageBlockDto {

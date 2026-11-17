@@ -123,6 +123,7 @@ export const SAMPLE_PUBLIC_PAGE: PublicProjectPage = {
     ],
   },
   photos: [],
+  photoPicks: {},
   people: {
     count: 14,
     members: [
