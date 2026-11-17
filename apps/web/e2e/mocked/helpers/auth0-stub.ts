@@ -39,6 +39,32 @@ function corsHeaders(route: Route): Record<string, string> {
   };
 }
 
+// Answers /authorize the way Auth0 would and returns where to redirect.
+function answerAuthorize(stub: Auth0Stub, url: URL): string {
+  stub.authorizeRequests.push(url);
+
+  const back = new URL(url.searchParams.get('redirect_uri') ?? '/');
+  if (url.searchParams.get('prompt') === 'none') {
+    // A silent login gets a code only while there is a session. Without
+    // one, this is what Auth0 answers.
+    if (stub.session) {
+      stub.silentAnswers.push('code');
+      back.searchParams.set('code', E2E_AUTH_CODE);
+    } else {
+      stub.silentAnswers.push('login_required');
+      back.searchParams.set('error', 'login_required');
+      back.searchParams.set('error_description', 'Login required');
+    }
+  } else {
+    stub.session = true;
+    back.searchParams.set('code', E2E_AUTH_CODE);
+  }
+  const state = url.searchParams.get('state');
+  if (state) back.searchParams.set('state', state);
+
+  return back.toString();
+}
+
 // Plays the part of Auth0 so the app's own side of the handshake runs for real:
 // the authorize params, the /api/auth/callback route, /redirecting, the token
 // exchange and the logout return trip.
@@ -66,28 +92,7 @@ export async function stubAuth0(
     const url = new URL(request.url());
 
     if (url.pathname === '/authorize') {
-      stub.authorizeRequests.push(url);
-
-      const back = new URL(url.searchParams.get('redirect_uri') ?? '/');
-      if (url.searchParams.get('prompt') === 'none') {
-        // A silent login gets a code only while there is a session. Without
-        // one, this is what Auth0 answers.
-        if (stub.session) {
-          stub.silentAnswers.push('code');
-          back.searchParams.set('code', E2E_AUTH_CODE);
-        } else {
-          stub.silentAnswers.push('login_required');
-          back.searchParams.set('error', 'login_required');
-          back.searchParams.set('error_description', 'Login required');
-        }
-      } else {
-        stub.session = true;
-        back.searchParams.set('code', E2E_AUTH_CODE);
-      }
-      const state = url.searchParams.get('state');
-      if (state) back.searchParams.set('state', state);
-
-      return redirect(route, back.toString());
+      return redirect(route, answerAuthorize(stub, url));
     }
 
     if (url.pathname === '/oauth/token') {
