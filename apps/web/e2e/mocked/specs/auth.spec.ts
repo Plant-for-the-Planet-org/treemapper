@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 
-import { MAIN_PROJECT, USER, mockSession } from '../fixtures/data/session';
+import { MAIN_PROJECT, USER, mockSession } from '../mocks/session';
 // Settings is only the page these tests land on.
-import { mockSettingsPage } from '../fixtures/data/settings';
+import { mockSettingsPage } from '../mocks/settings';
 import { expect, test } from '../test';
 import { E2E_EMAIL, fakeJwt, seedToken } from '../helpers/auth';
 import { AUTH0_ORIGIN, E2E_AUTH_CODE } from '../helpers/auth0';

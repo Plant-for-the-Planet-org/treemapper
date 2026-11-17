@@ -3,14 +3,14 @@ import {
   INVITE_TOKEN,
   PENDING_INVITE,
   mockInviteStatus,
-} from '../fixtures/data/invites';
-import { mockOverview } from '../fixtures/data/overview';
+} from '../mocks/invites';
+import { mockOverview } from '../mocks/overview';
 import {
   MAIN_PROJECT,
   SECOND_PROJECT,
   mockSession,
-} from '../fixtures/data/session';
-import { mockSettingsPage } from '../fixtures/data/settings';
+} from '../mocks/session';
+import { mockSettingsPage } from '../mocks/settings';
 import { ok } from '../helpers/envelope';
 import type { Page } from '@playwright/test';
 

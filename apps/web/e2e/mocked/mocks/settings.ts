@@ -1,7 +1,7 @@
 import type { ProjectWithUserRoleI } from '@shared-core/types/interface.app';
 
-import { fail, ok } from '../../helpers/envelope';
-import type { ApiMock } from '../../api-mock';
+import { fail, ok } from '../helpers/envelope';
+import type { ApiMock } from '../api-mock';
 import { MAIN_PROJECT, SECOND_PROJECT } from './session';
 
 interface SettingsPageOptions {

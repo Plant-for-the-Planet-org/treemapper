@@ -1,5 +1,5 @@
-import { ok } from '../../helpers/envelope';
-import type { ApiMock } from '../../api-mock';
+import { ok } from '../helpers/envelope';
+import type { ApiMock } from '../api-mock';
 
 // Made up on purpose. Never paste real API responses here: the repo is public.
 
