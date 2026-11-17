@@ -2,7 +2,7 @@ import { expect, test } from './fixtures'
 
 // F2 scenario 1: verifies that a shared project link opens the intended
 // project, not the user's main project. Unlike the Layer 1 test in
-// specs/landing.spec.ts, this uses the test account's real projects.
+// mocked/specs/landing.spec.ts, this uses the test account's real projects.
 //
 // Read-only test: expected values come from the API using the same user
 // account, without changing its data.

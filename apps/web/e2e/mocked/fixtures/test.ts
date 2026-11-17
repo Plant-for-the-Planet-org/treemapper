@@ -2,7 +2,7 @@ import { test as base, expect } from '@playwright/test';
 
 import { seedToken } from '../helpers/auth';
 import { type Auth0Stub, stubAuth0 } from '../helpers/auth0';
-import { hideNextDevTools } from '../shared/devtools';
+import { hideNextDevTools } from '../../shared/devtools';
 import { ApiMock } from './api-mock';
 
 interface Options {

@@ -8,7 +8,7 @@ import { AUTH_FILE, assertLocalBackend, credentials } from './env'
 
 const AUTH0_LOGIN = /^https:\/\/accounts\.plant-for-the-planet\.org\/u\//
 
-// Same claim the app and server read (see helpers/auth.ts).
+// Same claim the app and server read (see mocked/helpers/auth.ts).
 const EMAIL_CLAIM = 'https://app.plant-for-the-planet.org/email'
 
 // A saved token is reused only if it has at least this long left, so it

@@ -57,8 +57,6 @@ const fullstackProjects: Project[] = [
 ]
 
 export default defineConfig({
-  // Layer 1 (mocked API). Layer 2 projects set their own folder.
-  testDir: './e2e/specs',
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
@@ -79,7 +77,9 @@ export default defineConfig({
   },
   projects: [
     {
+      // Layer 1 (mocked API).
       name: 'chromium',
+      testDir: './e2e/mocked/specs',
       use: {
         ...devices['Desktop Chrome'],
       },
