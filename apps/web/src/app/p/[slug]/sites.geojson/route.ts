@@ -8,7 +8,7 @@ import { fetchPublicPage } from '@/components/public-page/fetch'
  * downloads is what they were looking at. Site polygons only, matching the
  * map: there is no tree-level endpoint here by design.
  */
-export const revalidate = 3600
+export const revalidate = 300
 
 export async function GET(
   _request: Request,

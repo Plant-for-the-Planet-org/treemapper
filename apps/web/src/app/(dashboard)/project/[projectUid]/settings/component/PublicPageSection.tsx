@@ -108,6 +108,16 @@ export const PublicPageSection = ({
         if (result?.statusCode !== 200) throw new Error(result?.message || 'Request failed')
         if (result.data) setSettings({ ...DEFAULTS, ...result.data })
         toast.success(successMessage)
+        // The public URL is served from a static cache. Ask Next to rebuild it
+        // now, so a page that was just switched on (or off, or re-themed) shows
+        // the change immediately instead of on the next timed revalidation.
+        // Fire-and-forget: the save already succeeded, and the timer is the
+        // fallback if this call is lost.
+        void fetch('/api/public-page/revalidate', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ slug, uid: projectUid }),
+        }).catch(() => undefined)
       } catch {
         setSettings(previous)
         toast.error('Could not save. Nothing was changed.')
@@ -115,7 +125,7 @@ export const PublicPageSection = ({
         setSaving(false)
       }
     },
-    [accessToken, canEdit, projectUid, settings],
+    [accessToken, canEdit, projectUid, settings, slug],
   )
 
   const copyLink = async () => {

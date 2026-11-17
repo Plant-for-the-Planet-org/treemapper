@@ -37,6 +37,7 @@ export function EditableBlock({
   onContent,
   textOpen,
   onToggleText,
+  flash,
 }: {
   spec: BlockSpec
   index: number
@@ -50,17 +51,24 @@ export function EditableBlock({
   onContent: (key: string, content: { heading: string; body: string }) => void
   textOpen: boolean
   onToggleText: (key: string | null) => void
+  /** Just added: the page scrolls here and this frame lights up briefly. */
+  flash?: boolean
 }) {
   const definition = BLOCK_CATALOGUE[spec.id]
   const key = spec.key as string
   const { setNodeRef, attributes, listeners, isDragging } = useSortable({ id: key })
 
   return (
-    <div ref={setNodeRef} className="relative" data-pp-block={spec.id}>
+    <div ref={setNodeRef} className="relative" data-pp-block={spec.id} data-pp-key={key}>
       {dropBefore ? <DropLine /> : null}
 
       <div
-        className="relative border border-dashed border-slate-300 transition-opacity"
+        className={[
+          'relative border border-dashed transition-all duration-700',
+          flash
+            ? 'border-emerald-500 shadow-[0_0_0_3px_rgba(5,150,105,0.35)]'
+            : 'border-slate-300',
+        ].join(' ')}
         style={{ opacity: isDragging ? 0.35 : 1 }}
       >
         <div className="pp-editor-chrome flex flex-wrap items-center gap-2 border-b border-slate-200 bg-slate-100 px-2.5 py-1.5 text-slate-700">

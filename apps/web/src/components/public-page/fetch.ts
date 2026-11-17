@@ -42,7 +42,7 @@ interface Envelope<T> {
  */
 export async function fetchPublicPage(
   slugOrUid: string,
-  revalidateSeconds: number | false = 3600,
+  revalidateSeconds: number | false = 300,
 ): Promise<PublicProjectPage | null> {
   // Development fixture, double gated so it cannot reach a deployed build.
   // Lets the four themes be worked on without the Nest server, and without

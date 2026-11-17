@@ -1,4 +1,5 @@
 import { cdnUrl } from '@/lib/cdn'
+import { BlockImage } from '../BlockImage'
 import { fmtDate, fmtHectares, fmtNum, fmtTrees, yearOf } from '../format'
 import { PhotoTile, Pill, PP_CONTAINER, TreeMark } from '../primitives'
 import type { BlockProps } from './types'
@@ -25,8 +26,14 @@ function BrandBar({ organization, inverse }: { organization: { name: string; ima
   return (
     <div className="flex items-center gap-2.5">
       {logo ? (
-        // eslint-disable-next-line @next/next/no-img-element -- CDN host is not in the Next image allowlist
-        <img src={logo} alt="" className="h-6 w-6 object-contain" />
+        <BlockImage
+          src={logo}
+          alt=""
+          className="h-6 w-6 object-contain"
+          fallback={
+            <TreeMark size={20} color={inverse ? 'var(--pp-inverse-ink)' : 'var(--pp-accent)'} />
+          }
+        />
       ) : (
         <TreeMark size={20} color={inverse ? 'var(--pp-inverse-ink)' : 'var(--pp-accent)'} />
       )}
@@ -94,8 +101,7 @@ function Cover({ data, copy }: Pick<BlockProps, 'data' | 'copy'>) {
     <header className="pp-inverse relative overflow-hidden">
       {cover ? (
         <>
-          {/* eslint-disable-next-line @next/next/no-img-element -- CDN host is not in the Next image allowlist */}
-          <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <BlockImage src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0" style={{ background: 'rgba(8, 24, 16, 0.68)' }} />
         </>
       ) : (

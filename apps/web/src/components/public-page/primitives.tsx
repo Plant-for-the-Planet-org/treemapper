@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cdnUrl } from '@/lib/cdn'
+import { BlockImage } from './BlockImage'
 import { cn } from '@/lib/utils'
 import type { Tone } from './themes'
 
@@ -228,8 +229,7 @@ export function PhotoTile({
       }}
     >
       {url ? (
-        // eslint-disable-next-line @next/next/no-img-element -- CDN host is not in the Next image allowlist
-        <img
+        <BlockImage
           src={url}
           alt={caption ?? ''}
           loading="lazy"

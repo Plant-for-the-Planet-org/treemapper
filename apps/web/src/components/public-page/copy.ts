@@ -1,4 +1,4 @@
-import { fmtHectares, fmtNum, fmtPercent, fmtTrees, yearOf } from './format'
+import { countryName, fmtHectares, fmtNum, fmtPercent, fmtTrees, humanizeType, yearOf } from './format'
 import type { Tone } from './themes'
 import type { PublicProjectPage } from './types'
 
@@ -52,7 +52,9 @@ export interface Copy {
 }
 
 const where = (d: PublicProjectPage) =>
-  [d.project.ecosystem, d.project.country].filter(Boolean).join(', ')
+  [d.project.ecosystem ? humanizeType(d.project.ecosystem) : null, countryName(d.project.country)]
+    .filter(Boolean)
+    .join(', ')
 
 const since = (d: PublicProjectPage) => {
   const year = yearOf(d.project.startedAt)
@@ -97,8 +99,10 @@ const FORMAL: Copy = {
   timelineHeading: 'Trees recorded per quarter',
   timelineNote: 'Grouped by registration date.',
   mapHeading: 'Where the work is',
-  mapCaption: (d) =>
-    `${fmtNum(d.totals.sites)} sites across ${fmtHectares(d.totals.hectares)} hectares${d.project.country ? ` in ${d.project.country}` : ''}.`,
+  mapCaption: (d) => {
+    const country = countryName(d.project.country)
+    return `${fmtNum(d.totals.sites)} sites across ${fmtHectares(d.totals.hectares)} hectares${country ? ` in ${country}` : ''}.`
+  },
   mapPrivacy: 'Site boundaries only. Individual tree positions are not published.',
   photosHeading: 'From the field',
   peopleHeading: (d) => `${fmtNum(d.people.count)} people recorded this work`,
@@ -106,7 +110,7 @@ const FORMAL: Copy = {
   badgesHeading: 'Milestones',
   dataHeading: 'Check the data yourself',
   dataBody:
-    'Everything on this page comes from records made in the field and is published unchanged. Site boundaries are released as GeoJSON. Species counts, intervention records and measurement history are released as CSV.',
+    'Everything on this page comes from records made in the field and is published unchanged. Site boundaries are released as GeoJSON, and every figure on the page as one JSON file.',
   shareHeading: 'Share this page',
   goalHeading: 'Progress against target',
   goalNote: (d) => `Target of ${fmtNum(d.project.target ?? 0)} trees.`,
@@ -118,7 +122,7 @@ const FORMAL: Copy = {
 
 const WARM: Copy = {
   ...FORMAL,
-  heroEyebrow: (d) => [d.project.name, d.project.country].filter(Boolean).join(', '),
+  heroEyebrow: (d) => [d.project.name, countryName(d.project.country)].filter(Boolean).join(', '),
   heroHeadline: (d) =>
     d.totals.trees > 0
       ? `${fmtTrees(d.totals.trees)} trees. Every one of them mapped.`

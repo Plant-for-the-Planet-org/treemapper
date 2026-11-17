@@ -1,4 +1,5 @@
 import { cdnUrl } from '@/lib/cdn'
+import { BlockImage } from '../BlockImage'
 import { fmtNum } from '../format'
 import { Section, SectionHeading } from '../primitives'
 import type { PublicPagePerson } from '../types'
@@ -119,19 +120,7 @@ function Avatar({
   const url = person.image ? cdnUrl('profile', person.image) : null
   const size = solid ? 'h-[34px] w-[34px] text-[0.8125rem]' : 'h-11 w-11 text-sm'
 
-  if (url) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element -- CDN host is not in the Next image allowlist
-      <img
-        src={url}
-        alt={person.name ?? ''}
-        className={`${size} rounded-full object-cover`}
-        loading="lazy"
-      />
-    )
-  }
-
-  return (
+  const chip = (
     <span
       className={`${size} flex items-center justify-center rounded-full font-semibold`}
       style={
@@ -144,4 +133,18 @@ function Avatar({
       {person.initials}
     </span>
   )
+
+  if (url) {
+    return (
+      <BlockImage
+        src={url}
+        alt={person.name ?? ''}
+        className={`${size} rounded-full object-cover`}
+        loading="lazy"
+        fallback={chip}
+      />
+    )
+  }
+
+  return chip
 }

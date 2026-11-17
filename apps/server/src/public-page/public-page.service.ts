@@ -36,6 +36,19 @@ const SPECIES_LIMIT = 40;
 const PEOPLE_LIMIT = 24;
 /** Seconds. Short enough that a correction shows up the same day, long enough to absorb a share spike. */
 const CACHE_TTL_SECONDS = 300;
+/**
+ * Seconds a miss is remembered. Most requests to this endpoint are for pages
+ * that do not exist (guessed slugs, pages switched off), and without this every
+ * one of them costs a project lookup. Kept short so switching a page on is
+ * visible within a minute even if the settings write ever misses a key.
+ */
+const NEGATIVE_CACHE_TTL_SECONDS = 60;
+
+/** What the cache stores for a slug that resolved to nothing. */
+type NegativeCacheEntry = { notFound: true };
+
+const isNegative = (value: PublicProjectPage | NegativeCacheEntry): value is NegativeCacheEntry =>
+  'notFound' in value && value.notFound === true;
 
 @Injectable()
 export class PublicPageService {
@@ -55,19 +68,34 @@ export class PublicPageService {
    */
   async getPublicPage(slugOrUid: string): Promise<PublicProjectPage> {
     const cacheKey = `public-page:${slugOrUid}`;
-    const cached = await this.cacheService.get<PublicProjectPage>(cacheKey);
-    if (cached) return cached;
-
-    const projectRow = await this.loadProject(or(eq(project.slug, slugOrUid), eq(project.uid, slugOrUid)));
-    const settings = resolvePublicPageSettings(projectRow.metadata);
-
-    if (!settings.enabled) {
-      throw new NotFoundException('Project not found');
+    const cached = await this.cacheService.get<PublicProjectPage | NegativeCacheEntry>(cacheKey);
+    if (cached) {
+      if (isNegative(cached)) throw new NotFoundException('Project not found');
+      return cached;
     }
 
-    const page = await this.buildPage(projectRow, settings);
-    await this.cacheService.set(cacheKey, page, CACHE_TTL_SECONDS);
-    return page;
+    try {
+      const projectRow = await this.loadProject(
+        or(eq(project.slug, slugOrUid), eq(project.uid, slugOrUid)),
+      );
+      const settings = resolvePublicPageSettings(projectRow.metadata);
+
+      if (!settings.enabled) {
+        throw new NotFoundException('Project not found');
+      }
+
+      const page = await this.buildPage(projectRow, settings);
+      await this.cacheService.set(cacheKey, page, CACHE_TTL_SECONDS);
+      return page;
+    } catch (error) {
+      // Misses are cached too: a dead slug that is being hammered must not
+      // cost a database lookup per request. `updateSettings` clears both the
+      // uid and slug keys, so enabling a page drops its negative entry at once.
+      if (error instanceof NotFoundException) {
+        await this.cacheService.set(cacheKey, { notFound: true }, NEGATIVE_CACHE_TTL_SECONDS);
+      }
+      throw error;
+    }
   }
 
   /**
@@ -640,6 +668,31 @@ export class PublicPageService {
       photos.push({
         image: row.image as string,
         folder: 'intervention',
+        caption: row.caption,
+        takenAt: row.takenAt ? new Date(row.takenAt).toISOString() : null,
+      });
+    }
+
+    if (photos.length >= PHOTO_LIMIT) return photos;
+
+    const sitePhotos = await this.drizzleService.db
+      .select({ image: site.image, caption: site.name, takenAt: site.createdAt })
+      .from(site)
+      .where(
+        and(
+          eq(site.projectId, projectId),
+          isNull(site.deletedAt),
+          publishedSiteFilter(),
+          hasImage(site.image),
+        ),
+      )
+      .orderBy(desc(site.createdAt))
+      .limit(PHOTO_LIMIT - photos.length);
+
+    for (const row of sitePhotos) {
+      photos.push({
+        image: row.image as string,
+        folder: 'site',
         caption: row.caption,
         takenAt: row.takenAt ? new Date(row.takenAt).toISOString() : null,
       });

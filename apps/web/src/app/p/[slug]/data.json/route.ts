@@ -8,7 +8,7 @@ import { fetchPublicPage } from '@/components/public-page/fetch'
  * just the payload itself, so a reader can check any figure on the page
  * against its source.
  */
-export const revalidate = 3600
+export const revalidate = 300
 
 export async function GET(
   _request: Request,

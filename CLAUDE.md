@@ -551,10 +551,28 @@ A project can publish a one-page, unauthenticated summary of its work at
 
 **Server**: `apps/server/src/public-page/`. `GET /api/public-page/:slugOrUid`
 is `@Public()`, IP-rate-limited to 60/min, envelope-wrapped, cached 5 minutes.
+Misses are negative-cached for 60s (most traffic to a public endpoint is for
+pages that do not exist, and each miss would otherwise cost a project lookup),
+and this is the one enveloped route that answers a real HTTP 404 with the 404
+envelope rather than HTTP 200: a CDN must not cache "not found" as a success.
+Hits carry `Cache-Control: public, max-age=60, s-maxage=300,
+stale-while-revalidate=600`; misses `max-age=15, s-maxage=60`, so a page that
+was just switched on appears through a CDN within a minute.
 `GET`/`PATCH /api/projects/:id/public-page/settings` is owner-or-admin and
 merges into `metadata` rather than replacing it. The settings controller is
 separate from the public one on purpose: that class carries a class-level
-`@Public()`.
+`@Public()`. `apps/server/scripts/public-page-smoke.ts` builds the full
+payload for any project read-only (no flag flip, no cache) and prints a
+summary per section - the quickest way to see what a project's page would
+hold. `scripts/` is excluded in `tsconfig.build.json`; keep it that way or
+`nest build` shifts its dist layout and `node dist/main` breaks.
+
+The three cache layers tier up: Nest in-memory (5 min) -> CDN via the headers
+above -> Next ISR, which statically regenerates `/p/[slug]` and its three file
+routes every 5 minutes. A settings save also POSTs
+`/api/public-page/revalidate` (unauthenticated on purpose: it can only ask
+Next to rebuild a `/p` path, and the backend cache absorbs the rebuild), so
+enable/disable/theme changes show immediately instead of on the next timer.
 
 **Web**: `apps/web/src/components/public-page/` plus `app/p/[slug]/`. The
 architecture is one data payload and four skins:

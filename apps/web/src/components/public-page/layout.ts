@@ -285,13 +285,13 @@ export function matchesDefault(theme: ThemeConfig, blocks: BlockSpec[]): boolean
   )
 }
 
-export function defaultVariantFor(id: BlockId, tone: Tone): string | undefined {
+function defaultVariantFor(id: BlockId, tone: Tone): string | undefined {
   const definition = BLOCK_CATALOGUE[id]
   return definition.defaultVariant?.[tone] ?? definition.variants[0]?.id
 }
 
 /** A key nothing else in this arrangement is using. */
-export function nextKey(blocks: BlockSpec[], id: BlockId): string {
+function nextKey(blocks: BlockSpec[], id: BlockId): string {
   const used = new Set(blocks.map((block) => block.key))
   let n = 1
   while (used.has(`${id}-${n}`)) n += 1

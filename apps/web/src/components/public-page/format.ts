@@ -79,6 +79,22 @@ export function humanizeStatus(status: string | null): string | null {
   return humanizeType(status)
 }
 
+/**
+ * "Mexico", not "MX ". The database stores ISO codes, sometimes with stray
+ * whitespace, and a public page should name the country. Falls back to
+ * whatever arrived when the code is not a two-letter region the runtime knows.
+ */
+export function countryName(code: string | null | undefined): string | null {
+  const trimmed = code?.trim().toUpperCase()
+  if (!trimmed) return null
+  if (!/^[A-Z]{2}$/.test(trimmed)) return code?.trim() || null
+  try {
+    return new Intl.DisplayNames(['en'], { type: 'region' }).of(trimmed) ?? trimmed
+  } catch {
+    return trimmed
+  }
+}
+
 const THREATENED = new Set(['vulnerable', 'endangered', 'critically endangered', 'critically_endangered'])
 
 export function isThreatened(status: string | null, isEndangered: boolean | null): boolean {

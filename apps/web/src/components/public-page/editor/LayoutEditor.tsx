@@ -64,6 +64,19 @@ export function LayoutEditor({
   const [textOpenKey, setTextOpenKey] = useState<string | null>(null)
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const [overKey, setOverKey] = useState<string | null>(null)
+  const [flashKey, setFlashKey] = useState<string | null>(null)
+
+  // A new block lands above the footer, which on a long page is many screens
+  // below the add panel. Without this scroll the click looks like it did
+  // nothing at all, which reads as "adding is broken".
+  useEffect(() => {
+    if (!flashKey) return
+    document
+      .querySelector(`[data-pp-key="${flashKey}"]`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const timer = window.setTimeout(() => setFlashKey(null), 2200)
+    return () => window.clearTimeout(timer)
+  }, [flashKey])
 
   const dirty = JSON.stringify(toStoredLayout(blocks)) !== savedJson
 
@@ -165,6 +178,7 @@ export function LayoutEditor({
                 onContent={(key, content) => mutate(updateBlock(blocks, key, { content }))}
                 textOpen={textOpenKey === spec.key}
                 onToggleText={setTextOpenKey}
+                flash={flashKey === spec.key}
               >
                 {node}
               </EditableBlock>
@@ -277,6 +291,7 @@ export function LayoutEditor({
               // editor straight away rather than leaving an empty frame that
               // renders nothing on the page.
               const added = next.find((block) => !blocks.some((old) => old.key === block.key))
+              if (added) setFlashKey(added.key as string)
               if (added && BLOCK_CATALOGUE[id].editableText) setTextOpenKey(added.key as string)
             }}
             onClose={() => setAdding(false)}

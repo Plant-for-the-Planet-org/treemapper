@@ -1,5 +1,6 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Res, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiResponse as SwaggerApiResponse, ApiTags } from '@nestjs/swagger';
+import { FastifyReply } from 'fastify';
 import { Public } from '../auth/public.decorator';
 import { IpRateLimit, IpRateLimitGuard } from '../common/guards/ip-rate-limit.guard';
 import { ErrorResponse, SuccessResponse } from '../common/interfaces/response.interface';
@@ -33,14 +34,25 @@ export class PublicPageController {
   @SwaggerApiResponse({ status: 404, description: 'No project, or its public page is switched off' })
   async getPublicPage(
     @Param('slugOrUid') slugOrUid: string,
+    @Res({ passthrough: true }) reply: FastifyReply,
   ): Promise<SuccessResponse<PublicProjectPage> | ErrorResponse> {
     try {
       const data = await this.publicPageService.getPublicPage(slugOrUid);
+      // max-age covers a browser hitting the API directly, s-maxage lets a CDN
+      // (Cloudflare fronts this in production) absorb a share spike without a
+      // single origin hit, and stale-while-revalidate keeps the edge warm
+      // while it refetches. Aligned with the service's own 5-minute cache.
+      reply.header('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
       return ResponseUtil.fetched(data, 'Public page retrieved successfully', 'public_page_fetched');
     } catch (error: any) {
       // A project whose page is off answers exactly like one that does not
       // exist, so the endpoint cannot be used to enumerate private projects.
       if (error?.status === 404) {
+        // A real 404 on the wire: a CDN must never cache "not found" under the
+        // success policy above, and it may only hold it briefly, so a page
+        // that has just been switched on appears within a minute everywhere.
+        reply.status(404);
+        reply.header('Cache-Control', 'public, max-age=15, s-maxage=60');
         return ResponseUtil.notFound('Project not found', null, 'project_not_found');
       }
       throw error;

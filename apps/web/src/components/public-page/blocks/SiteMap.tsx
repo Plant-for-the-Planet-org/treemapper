@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import Map, { Layer, Source } from 'react-map-gl/maplibre'
+import Map, { Layer, NavigationControl, Source } from 'react-map-gl/maplibre'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { PublicPageSiteFeature } from '../types'
 
@@ -85,6 +85,33 @@ export function SiteMap({
 
   const bounds = useMemo(() => boundsOf(features), [features])
 
+  // One dot per site, at its bounding-box centre. A restoration site of a few
+  // dozen hectares is a couple of pixels once the view is fitted to a project
+  // that spans a whole region, so the polygons alone read as an empty map.
+  // The dots mark every site at low zoom and hand over to the real boundaries
+  // as the reader zooms in.
+  const centroids = useMemo<GeoJSON.FeatureCollection>(
+    () => ({
+      type: 'FeatureCollection',
+      features: features.flatMap((feature) => {
+        const acc: Bounds = [Infinity, Infinity, -Infinity, -Infinity]
+        walk((feature.geometry as { coordinates?: unknown } | null)?.coordinates, acc)
+        if (!Number.isFinite(acc[0]) || !Number.isFinite(acc[3])) return []
+        return [
+          {
+            type: 'Feature' as const,
+            properties: feature.properties,
+            geometry: {
+              type: 'Point' as const,
+              coordinates: [(acc[0] + acc[2]) / 2, (acc[1] + acc[3]) / 2],
+            },
+          },
+        ]
+      }),
+    }),
+    [features],
+  )
+
   if (!features.length || !bounds) {
     return (
       <div
@@ -122,6 +149,25 @@ export function SiteMap({
           <Layer id="pp-sites-fill" type="fill" paint={{ 'fill-color': accent, 'fill-opacity': 0.35 }} />
           <Layer id="pp-sites-line" type="line" paint={{ 'line-color': accent, 'line-width': 2 }} />
         </Source>
+        <Source id="pp-sites-centroids" type="geojson" data={centroids}>
+          {/* Full size until the boundaries are big enough to carry the map
+              on their own (a ~50 ha site is readable from about zoom 11),
+              then gone, so a zoomed-in view never shows a dot on a polygon. */}
+          <Layer
+            id="pp-sites-dots"
+            type="circle"
+            paint={{
+              'circle-color': accent,
+              'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 5, 12, 0],
+              'circle-opacity': ['interpolate', ['linear'], ['zoom'], 10, 0.85, 12, 0],
+              'circle-stroke-color': '#ffffff',
+              'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 10, 1.5, 12, 0],
+            }}
+          />
+        </Source>
+        {/* Scroll zoom stays off so the page does not trap the wheel, which
+            makes these buttons the only way in to a small site. */}
+        <NavigationControl position="top-right" showCompass={false} />
       </Map>
     </div>
   )

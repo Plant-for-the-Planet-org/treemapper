@@ -275,16 +275,13 @@ export function resolvePublicPageSettings(metadata: unknown): PublicPageSettings
     ? (stored.theme as PublicPageTheme)
     : DEFAULT_PUBLIC_PAGE_SETTINGS.theme;
 
-  const geoDetail = PUBLIC_PAGE_GEO_DETAIL.includes(stored.geoDetail as PublicPageGeoDetail)
-    ? (stored.geoDetail as PublicPageGeoDetail)
-    : DEFAULT_PUBLIC_PAGE_SETTINGS.geoDetail;
-
   return {
     enabled: stored.enabled === true,
     theme,
-    // Only site-level geometry is implemented. Anything else is read as 'site'
-    // so a stored value cannot widen what is published by accident.
-    geoDetail: geoDetail === 'site' ? 'site' : 'site',
+    // Only site-level geometry is implemented. The field keeps its union type
+    // for the day fuzzed or exact points are built, but a stored value can
+    // never widen what is published: whatever is stored, the page gets 'site'.
+    geoDetail: 'site',
     showContributorNames: stored.showContributorNames === true,
     layouts: sanitizePublicPageLayouts(stored.layouts),
   };

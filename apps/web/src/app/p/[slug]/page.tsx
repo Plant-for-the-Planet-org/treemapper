@@ -12,10 +12,12 @@ import { resolveTheme } from '@/components/public-page/themes'
  *
  * Sits outside every route group on purpose: no auth, no `AuthInitializer`,
  * no dashboard chrome, no maintenance gate. It is statically generated and
- * revalidated hourly, so a link that goes round a social network hits the
- * cache rather than the database.
+ * revalidated every five minutes - matching the backend's own cache TTL, so a
+ * link that goes round a social network hits the cache rather than the
+ * database, while new field data still shows within minutes. A settings save
+ * additionally revalidates on demand through `/api/public-page/revalidate`.
  */
-export const revalidate = 3600
+export const revalidate = 300
 
 /**
  * No project is prerendered at build time. Which projects have a public page
