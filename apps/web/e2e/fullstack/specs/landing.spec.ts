@@ -1,3 +1,7 @@
+import type {
+  ProjectWithUserRoleI,
+  UserInterface,
+} from '@shared-core/types/interface.app'
 import { formatNumber } from '@shared-core/utils/numberFormatingHelper'
 
 import { API_PREFIX } from '../../shared/constants'
@@ -17,16 +21,20 @@ const STAT_TITLES = [
   'Active Contributors',
 ] as const
 
+// users/me sends camelCase `firstName` / `lastName`, which UserInterface does
+// not have (the Layer 1 USER mock adds them the same way).
+type Me = UserInterface & { firstName?: string; lastName?: string }
+
 test('a returning user lands on their main project overview', async ({
   page,
   backend,
   apiCalls,
 }) => {
-  const me = await backend.get('users/me')
-  const { projects } = await backend.get('projects')
-  const project = projects.find(
-    (p: { uid: string }) => p.uid === me.primaryProjectUid,
+  const me = await backend.get<Me>('users/me')
+  const { projects } = await backend.get<{ projects: ProjectWithUserRoleI[] }>(
+    'projects',
   )
+  const project = projects.find(p => p.uid === me.primaryProjectUid)
   expect(project, "The main project is in the user's project list").toBeTruthy()
 
   const { kpis } = await backend.get(`analytics/project-kpis/${project.uid}`)

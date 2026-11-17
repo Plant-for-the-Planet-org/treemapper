@@ -1,3 +1,8 @@
+import type {
+  ProjectWithUserRoleI,
+  UserInterface,
+} from '@shared-core/types/interface.app'
+
 import { API_PREFIX } from '../../shared/constants'
 import { expect, test } from '../test'
 
@@ -8,20 +13,15 @@ import { expect, test } from '../test'
 // Read-only test: expected values come from the API using the same user
 // account, without changing its data.
 
-interface Project {
-  uid: string
-  name: string
-  userRole: string
-  workspace: { uid: string; name: string }
-}
-
 test('a deep link opens that project, not the main one', async ({
   page,
   backend,
   apiCalls,
 }) => {
-  const me = await backend.get('users/me')
-  const { projects } = await backend.get<{ projects: Project[] }>('projects')
+  const me = await backend.get<UserInterface>('users/me')
+  const { projects } = await backend.get<{ projects: ProjectWithUserRoleI[] }>(
+    'projects',
+  )
   const mainProject = projects.find(p => p.uid === me.primaryProjectUid)
   expect(
     mainProject,
@@ -40,7 +40,7 @@ test('a deep link opens that project, not the main one', async ({
     'Needs a test account with a second project in the same workspace as its main project.',
   )
   const linkedProject = sameWorkspaceProject!
-  const linkedProjectDetail = await backend.get(
+  const linkedProjectDetail = await backend.get<ProjectWithUserRoleI>(
     `projects/${linkedProject.uid}`,
   )
 
