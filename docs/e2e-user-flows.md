@@ -160,13 +160,13 @@ Build these once, in the order the flows need them.
 
 | Need | Where | First used by |
 |---|---|---|
-| A second project (**done**: `SECOND_PROJECT`, same workspace, passed as `mockSession(api, { projects })`), and the project with each role (`owner`, `admin`, `contributor`, `observer`) (not yet) | `e2e/mocked/fixtures/data/session.ts` (`mockSession` takes options now; add `withRole(role)` next) | F1, F2, F12 |
-| A second workspace with a project in it (not yet; only the cross-workspace switch needs it) | `e2e/mocked/fixtures/data/session.ts` | F2 scenario 3 |
-| Overview mocks: KPIs, recent additions, map data (**done**: `mockOverview(api)`, any project uid) | `e2e/mocked/fixtures/data/overview.ts` | F1, F2 |
-| A pending invite and its status mock (**done**: `mockInviteStatus(api)`) | `e2e/mocked/fixtures/data/invites.ts` | F2, F8 |
-| Typed builders for sites, interventions, species and members, made up and small | `e2e/mocked/fixtures/data/*.ts` | F4 to F9 |
+| A second project (**done**: `SECOND_PROJECT`, same workspace, passed as `mockSession(api, { projects })`), and the project with each role (`owner`, `admin`, `contributor`, `observer`) (not yet) | `e2e/mocked/mocks/session.ts` (`mockSession` takes options now; add `withRole(role)` next) | F1, F2, F12 |
+| A second workspace with a project in it (not yet; only the cross-workspace switch needs it) | `e2e/mocked/mocks/session.ts` | F2 scenario 3 |
+| Overview mocks: KPIs, recent additions, map data (**done**: `mockOverview(api)`, any project uid) | `e2e/mocked/mocks/overview.ts` | F1, F2 |
+| A pending invite and its status mock (**done**: `mockInviteStatus(api)`) | `e2e/mocked/mocks/invites.ts` | F2, F8 |
+| Typed builders for sites, interventions, species and members, made up and small | `e2e/mocked/mocks/*.ts` | F4 to F9 |
 | A route for `PUT /api/upload-image` that returns `{ success: true }` and records calls, plus a presign mock | a helper next to `api-mock.ts`, or a `uploads` fixture | F4, F11 |
-| Small test files: a Polygon GeoJSON, a KML, a Point GeoJSON, a valid and an invalid CSV, a tiny PNG | `e2e/mocked/fixtures/files/` (made up, never real coordinates of a real project) | F4, F6, F7 |
+| Small test files: a Polygon GeoJSON, a KML, a Point GeoJSON, a valid and an invalid CSV, a tiny PNG | `e2e/mocked/files/` (made up, never real coordinates of a real project) | F4, F6, F7 |
 | `page.clock` for the 5s retry loop, the 2s post-success timers and the 30s overview poll | in the spec | F3, F8 |
 | A `page.on('dialog')` handler for the few `window.alert` calls | in the spec | F11 (profile) |
 
@@ -482,7 +482,7 @@ species search, image upload, and the upload modal.
   `isUnknown`.
 
 **Prerequisites:** presign and upload-image mocks, a tiny PNG and a GeoJSON in
-`e2e/mocked/fixtures/files/`, a species search mock.
+`e2e/mocked/files/`, a species search mock.
 
 ---
 
@@ -620,7 +620,7 @@ Scenario 8 in the strategy doc; it fits the mocked layer.
 - Contributor: no "Add Site" in the top bar, but `/newsite` by URL still works.
 
 **Prerequisites:** Polygon GeoJSON, KML and Point GeoJSON in
-`e2e/mocked/fixtures/files/`, a site and member data builder.
+`e2e/mocked/files/`, a site and member data builder.
 
 ---
 
@@ -683,7 +683,7 @@ it.
 - "Go to interventions" after success goes to `/project/undefined/intervention`
   (known issue in the strategy doc). Write as `test.fail()` with a ticket.
 
-**Prerequisites:** a valid and an invalid CSV in `e2e/mocked/fixtures/files/`, built
+**Prerequisites:** a valid and an invalid CSV in `e2e/mocked/files/`, built
 from the "Download template" columns.
 
 ---

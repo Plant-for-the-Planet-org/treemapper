@@ -202,8 +202,8 @@ Opt in, and never part of `yarn test:e2e` or CI. The Playwright projects
   `localhost`, `127.0.0.1` or `::1`. It reads those two keys only, so server
   secrets never reach the tests. It checks the files, not the running
   processes, so restart a server after editing its `.env`.
-- **Fixtures:** specs import `test` and `expect` from `fullstack/fixtures.ts`,
-  never from `mocked/fixtures/test.ts` (Layer 1 mocks the API and stubs Auth0). It
+- **Fixtures:** specs import `test` and `expect` from `fullstack/test.ts`,
+  never from `mocked/test.ts` (Layer 1 mocks the API and stubs Auth0). It
   gives:
   - `token`: the saved access token.
   - `backend.get(path)`: reads the real API as the same user, so specs learn
@@ -257,7 +257,7 @@ server.
 
 `fullstack/specs/landing.spec.ts` does that. Drift it has found so far:
 
-- `USER` in `mocked/fixtures/data/session.ts` has a `name` field. The real `users/me`
+- `USER` in `mocked/mocks/session.ts` has a `name` field. The real `users/me`
   has no `name`; it sends `displayName`, and `firstName` / `lastName` can be
   `null`. That is why Layer 1 never showed the blank sidebar name (#1137, see
   [Known issues](#known-issues-the-tests-are-expected-to-surface)). When F1 is
@@ -376,15 +376,14 @@ apps/web/
     shared/          # only what both layers use
       devtools.ts    # hideNextDevTools(page)
     mocked/          # Layer 1: project `chromium`
-      fixtures/
-        test.ts      # extended test: `loggedIn` option, plus blockedHosts,
+      test.ts        # extended test: `loggedIn` option, plus blockedHosts,
                      # api and auth0 (all auto, so every spec gets the guards)
-        api-mock.ts  # route handler; fails on any unmocked call
-        data/
-          session.ts   # made-up user, two projects, workspace; mockSession(api)
-          overview.ts  # KPIs, recent additions, map data; mockOverview(api)
-          settings.ts  # the settings page's loads; mockSettingsPage(api)
-          invites.ts   # a pending invite; mockInviteStatus(api)
+      api-mock.ts    # route handler; fails on any unmocked call
+      mocks/         # made-up API data, one file per page or area
+        session.ts   # made-up user, two projects, workspace; mockSession(api)
+        overview.ts  # KPIs, recent additions, map data; mockOverview(api)
+        settings.ts  # the settings page's loads; mockSettingsPage(api)
+        invites.ts   # a pending invite; mockInviteStatus(api)
       helpers/
         auth.ts      # fake JWT builder, localStorage seeding
         auth0.ts     # Auth0 stub: /authorize, /oauth/token, /v2/logout
@@ -397,7 +396,7 @@ apps/web/
       env.ts         # file paths, credentials(), assertLocalBackend()
       auth.setup.ts  # safety checks, then reuse the saved token or log in
                      # through Auth0; saves only the token to .auth/user.json
-      fixtures.ts    # test: token, backend, apiCalls (auto, fails on 5xx)
+      test.ts        # test: token, backend, apiCalls (auto, fails on 5xx)
       specs/
         landing.spec.ts    # F1 scenario 1
         deep-link.spec.ts  # F2 scenario 1, blocks every write
@@ -784,7 +783,7 @@ All issues below are confirmed in the code. #1124 (the first) and #1137
 
 ## Rules of thumb for writing tests
 
-- **Imports:** import `test` and `expect` from `e2e/mocked/fixtures/test`, not from
+- **Imports:** import `test` and `expect` from `e2e/mocked/test`, not from
   `@playwright/test`. That is how every spec gets the API, Auth0 and host
   guards.
 - **Locators:** prefer `getByRole`, `getByLabel` and visible text. shadcn

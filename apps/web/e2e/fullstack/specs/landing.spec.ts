@@ -1,6 +1,6 @@
 import { formatNumber } from '@shared-core/utils/numberFormatingHelper'
 
-import { expect, test } from '../fixtures'
+import { expect, test } from '../test'
 
 // F1 in docs/e2e-user-flows.md, against the real stack: a returning user opens
 // the app and lands on their main project. F1 has no Layer 1 test yet. Once it
