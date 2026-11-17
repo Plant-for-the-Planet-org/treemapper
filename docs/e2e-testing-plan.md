@@ -457,8 +457,13 @@ Config notes:
   3. Start `apps/server` (port 3001) and the web dev server (`npm run dev` in
      `apps/web`). Playwright reuses the web server and never starts the API
      server; the setup fails with "Start apps/server first" if it is down.
-  4. From `apps/web`: `E2E_FULLSTACK=1 npx playwright test --project=fullstack`.
-     That runs the setup first, then the specs. The setup reuses the saved
+  4. From `apps/web`: `yarn test:e2e:fullstack` (it sets `E2E_FULLSTACK=1`
+     and runs `playwright test --project=fullstack`). Extra Playwright flags
+     go after it, such as `yarn test:e2e:fullstack --headed`. From the repo
+     root, `E2E_FULLSTACK=1 yarn web:e2e` runs both layers: turbo passes
+     `E2E_FULLSTACK` through (`passThroughEnv` in `turbo.json`), and before
+     that it dropped the flag in silence and ran Layer 1 only.
+     The setup runs first, then the specs. The setup reuses the saved
      login while it is good (see [Layer 2](#what-exists-today-local-only));
      delete `apps/web/e2e/.auth/user.json` to force a new one.
      `project-links.spec.ts` skips unless the account has a second project in the
