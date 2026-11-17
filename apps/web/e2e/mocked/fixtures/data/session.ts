@@ -5,7 +5,7 @@ import type {
 
 import { E2E_EMAIL } from '../../helpers/auth';
 import { ok } from '../../helpers/envelope';
-import type { ApiMock } from '../api-mock';
+import type { ApiMock } from '../../api-mock';
 
 // Made up on purpose. Never paste real API responses here: the repo is public.
 

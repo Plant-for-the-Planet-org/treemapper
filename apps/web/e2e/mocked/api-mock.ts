@@ -1,6 +1,6 @@
 import type { Page, Request } from '@playwright/test';
 
-import { fail, isEnvelope } from '../helpers/envelope';
+import { fail, isEnvelope } from './helpers/envelope';
 
 // The browser only ever calls same-origin /api/server/*, which next.config.ts
 // rewrites to the Nest server (see docs/e2e-testing-plan.md).
