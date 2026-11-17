@@ -4,7 +4,12 @@ import path from 'node:path'
 import { type APIRequestContext, expect, test as setup } from '@playwright/test'
 
 import { hideNextDevTools } from '../shared/devtools'
-import { AUTH_FILE, assertLocalBackend, credentials } from './env'
+import {
+  AUTH_FILE,
+  assertLocalBackend,
+  credentials,
+  readSavedToken,
+} from './env'
 
 const AUTH0_LOGIN = /^https:\/\/accounts\.plant-for-the-planet\.org\/u\//
 
@@ -199,20 +204,6 @@ async function checkSavedToken(
     reusable: true,
     token,
     reason: `Reused the saved token (${hours} hours left)`,
-  }
-}
-
-function readSavedToken(appOrigin: string): string | undefined {
-  try {
-    const state = JSON.parse(fs.readFileSync(AUTH_FILE, 'utf8'))
-    return state.origins
-      ?.find((o: { origin: string }) => o.origin === appOrigin)
-      ?.localStorage?.find(
-        (item: { name: string }) => item.name === 'access_token',
-      )?.value
-  } catch {
-    // No file yet, or not JSON: log in again.
-    return undefined
   }
 }
 

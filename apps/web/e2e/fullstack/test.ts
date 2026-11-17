@@ -1,11 +1,9 @@
-import fs from 'node:fs'
-
 import { type APIRequestContext, test as base, expect } from '@playwright/test'
 
 import type { ApiResponse } from '@shared-core/types/api-responses'
 
 import { hideNextDevTools } from '../shared/devtools'
-import { AUTH_FILE } from './env'
+import { AUTH_FILE, readSavedToken } from './env'
 
 const API_PREFIX = '/api/server/'
 
@@ -27,28 +25,17 @@ interface Fixtures {
   apiCalls: string[]
 }
 
-// Reads the access token the setup project saved to AUTH_FILE.
-function savedToken(): string {
-  const state = JSON.parse(fs.readFileSync(AUTH_FILE, 'utf8'))
-  const token = state.origins
-    ?.flatMap(
-      (o: { localStorage: { name: string; value: string }[] }) =>
-        o.localStorage,
-    )
-    .find((item: { name: string }) => item.name === 'access_token')?.value
-  if (!token)
-    throw new Error(`No access_token in ${AUTH_FILE}. Run the setup project.`)
-  return token
-}
-
 // Layer 2 (full stack): no API mock, no Auth0 stub, no blocked hosts.
 //
 // Specs in fullstack/specs/ import `test` and `expect` from here, never from
 // mocked/test.ts. That one is Layer 1: it mocks every API call and stubs
 // Auth0, so a full-stack spec importing it would quietly test nothing real.
 export const test = base.extend<Fixtures>({
-  token: async ({}, use) => {
-    await use(savedToken())
+  token: async ({ baseURL }, use) => {
+    const token = readSavedToken(new URL(baseURL!).origin)
+    if (!token)
+      throw new Error(`No access_token in ${AUTH_FILE}. Run the setup project.`)
+    await use(token)
   },
 
   backend: async ({ playwright, baseURL, token }, use) => {
