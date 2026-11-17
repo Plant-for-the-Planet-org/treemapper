@@ -11,6 +11,7 @@ import { InterventionTypeSelector } from './components/InterventionTypeSelector'
 import { SpeciesSelector } from './components/SpeciesSelector';
 import { LocationSelector } from './components/LocationSelector';
 import { TreeRegistration } from './components/TreeRegistration';
+import { InterventionDateInput } from './components/InterventionDateInput';
 import { MultiSingleTreePanel } from './components/MultiSingleTreePanel';
 import { DescriptionInput } from './components/DescriptionInput';
 import { ImageUpload } from './components/ImageUpload';
@@ -236,6 +237,14 @@ const InterventionCreator = ({ goBack }) => {
 
           {/* Location Selection */}
           <LocationSelector
+            formData={formData}
+            setFormData={setFormData}
+            currentConfig={currentConfig}
+            errors={errors}
+          />
+
+          {/* Intervention Date (types without the tree registration panel) */}
+          <InterventionDateInput
             formData={formData}
             setFormData={setFormData}
             currentConfig={currentConfig}

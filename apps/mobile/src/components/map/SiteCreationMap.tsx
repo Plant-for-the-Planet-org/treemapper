@@ -8,11 +8,13 @@ import ActiveMarkerIcon from '../common/ActiveMarkerIcon'
 import LineMarker from './LineMarker'
 import AlphabetMarkers from './AlphabetMarkers'
 import { Colors, Typography } from 'src/utils/constants'
+import { scaleSize } from 'src/utils/constants/mixins'
 import distanceCalculator from 'src/utils/helpers/turfHelpers'
 import { useToast } from 'react-native-toast-notifications'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import SatelliteIconWrapper from './SatelliteIconWrapper'
+import GarminGpsButton from './GarminGpsButton'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import UserlocationMarker from './UserlocationMarker'
 import Icon from '@expo/vector-icons/FontAwesome5';
@@ -24,12 +26,19 @@ import { TourTarget } from '@wrack/react-native-tour-guide'
 import useCreateSiteTour from 'src/hooks/useCreateSiteTour'
 import { useTourAction } from 'src/hooks/useTourController'
 import { SITE_TOUR_STEPS, SITE_TOUR_TARGETS } from 'src/utils/tour/createSiteTour'
+import AlertModal from '../common/AlertModal'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
 // Draft owner for a site drawn before a project was picked.
 const UNASSIGNED_OWNER = 'unassigned-site'
+
+// Why a corner was refused. Mirrors PolygonMarkerMap: 'too_close' is the
+// surveyor's to fix by moving a step, 'error' is not theirs at all.
+type CornerCheck = 'ok' | 'too_close' | 'error'
 
 
 interface Props {
@@ -43,10 +52,23 @@ interface Props {
 
 const SiteCreationMap = (props: Props) => {
     const { setGeometry, close, projectBounds, projectId } = props
-    const [loadingSite, setLoadingSite] = useState(true)
+    // Covers the corner commit only. It used to track camera movement instead,
+    // which is what left the button disabled forever: see the note on the
+    // first-fix effect below.
+    const [submitting, setSubmitting] = useState(false)
+    // Bumped by the locate button. Any change means "put me back on my own
+    // position", which is the only thing that moves the camera to the user
+    // once the first fix has landed.
+    const [recenterRequest, setRecenterRequest] = useState(0)
     const [lineError, setLineError] = useState(false)
     const [coordinates, setCoordinates] = useState<[number, number][]>([])
     const [polygonComplete, setPolygonComplete] = useState(false)
+    const [undoModal, setUndoModal] = useState(false)
+    // Why the last corner was refused, or null when nothing was. A modal
+    // rather than a toast, because a refused corner leaves the boundary one
+    // short and the surveyor walking on believing it landed.
+    const [rejectReason, setRejectReason] = useState<CornerCheck | null>(null)
+    const posthog = usePostHog()
     const currentUserLocation = useSelector(
         (state: RootState) => state.gpsState.user_location,
     )
@@ -120,9 +142,35 @@ const SiteCreationMap = (props: Props) => {
     }, [polygonComplete, advanceIfOn])
 
 
+    // Centre on the user once, on the first usable fix.
+    //
+    // This used to run on every change of currentUserLocation, which the shared
+    // GPS watch dispatches about once a second (useLocationPermission keeps
+    // distanceInterval at 0 on purpose, so a user standing still still gets
+    // updates). Each run started a 1000ms easeTo, so a new camera animation
+    // began before the previous one ended and the map was never still:
+    // onRegionIsChanging held loadingSite true forever and the mark-point
+    // button stayed disabled for the whole session.
+    //
+    // After the first fix the camera belongs to the user. The locate button is
+    // the way back, through recenterRequest below.
+    const hasAutoCenteredRef = useRef(false)
+
     useEffect(() => {
+        if (hasAutoCenteredRef.current) return
+        if (!currentUserLocation || currentUserLocation[0] === 0) return
+        hasAutoCenteredRef.current = true
         handleCamera()
     }, [currentUserLocation])
+
+    // An explicit press of the locate button. Unlike the automatic centring it
+    // overrides a restored boundary's framing, because the user asked for it.
+    useEffect(() => {
+        if (!recenterRequest) return
+        if (!currentUserLocation || currentUserLocation[0] === 0) return
+        hasAutoCenteredRef.current = true
+        handleCamera(true)
+    }, [recenterRequest])
 
     const handleCameraViewChange = () => {
         // Restored points win over the project bounds: the user needs to see
@@ -165,10 +213,14 @@ const SiteCreationMap = (props: Props) => {
         }
     }
 
-    const handleCamera = () => {
+    const handleCamera = (force = false) => {
         // Recentring would undo the framing of a restored boundary, so hold the
-        // view until the user marks or undoes a point.
-        if (restoredCoordsRef.current.length > 0) {
+        // view until the user marks or undoes a point. A deliberate press of
+        // the locate button passes force and is honoured either way.
+        if (!force && restoredCoordsRef.current.length > 0) {
+            return
+        }
+        if (!currentUserLocation || currentUserLocation[0] === 0) {
             return
         }
         if (cameraRef?.current) {
@@ -180,41 +232,104 @@ const SiteCreationMap = (props: Props) => {
         }
     }
 
+    // The letter the last marked corner is currently wearing. AlphabetMarkers
+    // names each pin by its index, so this screen has no stored name for a
+    // corner either: removing one renames every pin after it.
+    const lastCornerLabel =
+        coordinates.length > 0
+            ? String.fromCharCode(65 + coordinates.length - 1)
+            : ''
+
+    // Undo asks first, as it does on the intervention boundary. A site is
+    // walked the same way and this button floats over the map with nothing
+    // around it, so a stray tap used to discard a corner silently and with no
+    // way back.
     const handlePreviousPoint = () => {
+        if (coordinates.length === 0) {
+            return
+        }
+        setUndoModal(true)
+    }
+
+    const removeLastCorner = () => {
         const updatedCoordinates = [...coordinates];
-        updatedCoordinates.pop()
+        const removed = updatedCoordinates.pop()
         setCoordinates(updatedCoordinates)
         restoredCoordsRef.current = []
         saveDraft('SITE', draftOwnerRef.current, updatedCoordinates)
         if (updatedCoordinates.length <= 2) {
             setPolygonComplete(false)
         }
+        captureAnalyticsEvent(posthog, AnalyticsEvents.MAP_POLYGON_POINT_UNDONE, {
+            surface: 'site',
+            point_count: updatedCoordinates.length,
+            removed_label: removed ? lastCornerLabel : '',
+        })
     }
 
-    const onSelectLocation = async () => {
-        const centerCoordinates = await mapRef.current.getCenter()
-        if (centerCoordinates.length !== 0) {
-            const checkValidDistance = await checkIsValidMarker(centerCoordinates, [...coordinates])
-            setLineError(!checkValidDistance)
-            if (!checkValidDistance) {
-                errorHaptic()
-                return
-            }
-            const updatedCoordinates = [...coordinates, centerCoordinates]
-            setCoordinates(updatedCoordinates)
-            restoredCoordsRef.current = []
-            saveDraft('SITE', draftOwnerRef.current, updatedCoordinates)
-            if (coordinates.length >= 2) {
-                setPolygonComplete(true)
-            }
+    // Everything a corner goes through once its coordinate is known. The
+    // crosshair reads the map centre, the watch reports where it actually is,
+    // and both land here so neither can skip the spacing rule or the draft.
+    // Typed as number[] rather than a tuple because getCenter() can hand back
+    // a short or empty array, and a tuple type would make the guard dead.
+    const commitCoordinate = async (coordinate: number[]) => {
+        if (!coordinate || coordinate.length < 2) {
+            return
+        }
+        const corner = coordinate as [number, number]
+        const checkValidDistance = await checkIsValidMarker(corner, [...coordinates])
+        setLineError(checkValidDistance !== 'ok')
+        if (checkValidDistance !== 'ok') {
+            errorHaptic()
+            // A modal, not a toast. A toast in sunlight is a toast nobody
+            // read, and the cost of missing it is a site boundary that is
+            // quietly one corner short by the time anyone notices.
+            setRejectReason(checkValidDistance)
+            captureAnalyticsEvent(posthog, AnalyticsEvents.MAP_POLYGON_POINT_REJECTED, {
+                surface: 'site',
+                reason: checkValidDistance,
+                point_count: coordinates.length,
+            })
+            return
+        }
+        const updatedCoordinates = [...coordinates, corner]
+        setCoordinates(updatedCoordinates)
+        restoredCoordsRef.current = []
+        saveDraft('SITE', draftOwnerRef.current, updatedCoordinates)
+        if (coordinates.length >= 2) {
+            setPolygonComplete(true)
         }
     }
 
-
-    const checkIsValidMarker = async (centerCoordinates: number[], coords: any) => {
+    const onSelectLocation = async () => {
+        if (submitting) return
+        setSubmitting(true)
         try {
-            let isValidMarkers = true;
+            const centerCoordinates = await mapRef.current.getCenter()
+            await commitCoordinate(centerCoordinates)
+        } finally {
+            setSubmitting(false)
+        }
+    }
 
+    // Place the corner where the watch says it is, then bring the map to it so
+    // the crosshair and the recorded corner agree on screen.
+    const handleGarminFix = async (coords: [number, number]) => {
+        cameraRef.current?.easeTo({ center: coords, zoom: 18, duration: 600 })
+        await commitCoordinate(coords)
+    }
+
+
+    // Reports why rather than just whether, and says nothing to the user
+    // itself. The caller owns the message, because it is the caller that
+    // knows a refusal here means the corner was not recorded at all.
+    //
+    // It also stops at the first violation. It used to carry on through the
+    // whole list firing a toast and a haptic per offending corner, so marking
+    // on top of an existing point could buzz and stack several toasts for one
+    // press.
+    const checkIsValidMarker = async (centerCoordinates: number[], coords: any): Promise<CornerCheck> => {
+        try {
             for (const oneMarker of coords) {
                 const distanceInMeters = distanceCalculator(
                     [centerCoordinates[1], centerCoordinates[0]],
@@ -222,19 +337,16 @@ const SiteCreationMap = (props: Props) => {
                     'meters',
                 );
                 if (distanceInMeters < 0.1) {
-                    errorHaptic()
-                    toast.show("Marker is close to previous point.", {
-                        type: "normal",
-                        placement: "bottom",
-                        duration: 2000,
-                        animationType: "slide-in",
-                    })
-                    isValidMarkers = false;
+                    return 'too_close'
                 }
             }
-            return isValidMarkers;
+            return 'ok';
         } catch (error) {
-            return true
+            // Changed 2026-11-02: this used to return true and accept the
+            // corner. A distance it could not measure is not a distance it
+            // checked, so accepting was the wrong default, and it is now the
+            // same refusal the intervention boundary already gave.
+            return 'error'
         }
 
     };
@@ -253,8 +365,10 @@ const SiteCreationMap = (props: Props) => {
 
 
 
+    // Panning away from a rejected corner clears the error, which is what
+    // re-enables the button. It no longer touches any loading flag: camera
+    // movement is not work the user is waiting on.
     const onRegionDidChange = async () => {
-        setLoadingSite(false)
         setLineError(false)
     }
 
@@ -279,9 +393,6 @@ const SiteCreationMap = (props: Props) => {
                 logo={false}
                 onDidFinishLoadingMap={handleCameraViewChange}
                 onRegionDidChange={onRegionDidChange}
-                onRegionIsChanging={() => {
-                    setLoadingSite(true)
-                }}
                 attribution={false}
                 mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
                 <Camera ref={cameraRef} />
@@ -291,6 +402,15 @@ const SiteCreationMap = (props: Props) => {
             </Map>
             </TourTarget>
             <SatelliteIconWrapper />
+            <GarminGpsButton
+                onFix={handleGarminFix}
+                origin={
+                    currentUserLocation && currentUserLocation[0] !== 0
+                        ? [currentUserLocation[0], currentUserLocation[1]]
+                        : null
+                }
+                bottom={scaleSize(270)}
+            />
             {polygonComplete && (
                 <TourTarget id={SITE_TOUR_TARGETS.FOOTER} style={styles.btnFooterSite}>
                     <CustomButton
@@ -314,12 +434,40 @@ const SiteCreationMap = (props: Props) => {
                     label={`${i18next.t('label.select_location_continue')}`}
                     containerStyle={styles.btnContainerSite}
                     pressHandler={onSelectLocation}
-                    disable={loadingSite || lineError}
-                    loading={loadingSite}
+                    disable={submitting || lineError}
+                    loading={submitting}
                 />
             )}
             <ActiveMarkerIcon />
-            <UserlocationMarker stopAutoFocus />
+            <UserlocationMarker stopAutoFocus onLocate={() => setRecenterRequest(n => n + 1)} />
+            {/* Named, because "the last point" means nothing to somebody
+                looking at a map of lettered pins, and the letter is what they
+                will be looking for when they check the shape afterwards. */}
+            <AlertModal
+                visible={undoModal}
+                heading={`Remove corner ${lastCornerLabel}?`}
+                message={`Corner ${lastCornerLabel} is deleted and the next corner you mark takes its letter. This cannot be undone.`}
+                primaryBtnText={"Remove"}
+                secondaryBtnText={"Keep"}
+                onPressPrimaryBtn={() => {
+                    setUndoModal(false)
+                    removeLastCorner()
+                }}
+                onPressSecondaryBtn={() => setUndoModal(false)}
+                showSecondaryButton={true}
+            />
+            <AlertModal
+                visible={rejectReason !== null}
+                heading={rejectReason === 'error' ? "Corner not marked" : "Too close to another corner"}
+                message={
+                    rejectReason === 'error'
+                        ? "Something went wrong and this corner was not saved. Try marking it again."
+                        : "This corner sits on top of one you already marked, so it was not saved. Move a step and mark it again."
+                }
+                primaryBtnText={"OK"}
+                onPressPrimaryBtn={() => setRejectReason(null)}
+                showSecondaryButton={false}
+            />
         </View>
     )
 }
@@ -430,12 +578,15 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontFamily: Typography.FONT_FAMILY_BOLD
     },
+    // 44 points tall, the smallest target a thumb can be asked to hit
+    // reliably. It was 30, floating over the map with nothing around it, and
+    // it removed a corner on the first tap with no way back.
     undoButtonSite: {
-        height: 30,
+        minHeight: 44,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
+        justifyContent: 'center',
+        paddingHorizontal: 12,
         backgroundColor: Colors.WHITE,
         borderRadius: 10,
         borderWidth: 1,
@@ -450,6 +601,5 @@ const styles = StyleSheet.create({
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         marginRight: 5,
         color: Colors.TEXT_LIGHT,
-        marginBottom: 5
     }
 })

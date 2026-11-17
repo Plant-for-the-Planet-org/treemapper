@@ -1,10 +1,14 @@
 import { Injectable, ConflictException, BadRequestException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
-import { image, intervention, project, projectMember, survey, user, userDevice, workspace, workspaceMember } from '../database/schema';
+import { DeviceErrorLog, DeviceSyncSnapshot, image, intervention, project, projectMember, survey, user, userDevice, workspace, workspaceMember } from '../database/schema';
 import { AvatarDTO, CreateSurvey } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { CreateDeviceDto } from './dto/create-device.dto';
+import {
+    CreateDeviceDto,
+    DeviceErrorLogInput,
+    SyncSnapshotInput,
+} from './dto/create-device.dto';
 import { isMigrationPlaceholderAuth0Id, LinkAuth0Result, User } from './entities/user.entity';
 import { eq, and, isNull, sql } from 'drizzle-orm';
 import { generateUid } from 'src/util/uidGenerator';
@@ -13,6 +17,12 @@ import { R2Service, ALLOWED_IMAGE_MIME_TYPES } from 'src/common/services/r2.serv
 import { CreatePresignedUrlDto } from './dto/signed-url.dto';
 import { randomPastTimestamp } from 'src/util/randomTimeStamp';
 import { AuditService } from '../audit/audit.service';
+
+// Caps on the error list a device may store on its row. The mobile app applies
+// the same numbers before sending; these are the ones that actually hold,
+// because the payload is client-supplied.
+const MAX_DEVICE_ERROR_LOGS = 20;
+const MAX_DEVICE_ERROR_MESSAGE = 300;
 
 @Injectable()
 export class UsersService {
@@ -664,6 +674,13 @@ export class UsersService {
                     };
                 }
 
+                // A device id this server has never seen means a fresh
+                // install. On the same phone that is almost always a reinstall
+                // -- the id is a uuid in AsyncStorage, which uninstalling
+                // destroys -- so retire this user's older row for the same
+                // hardware before writing the new one.
+                await this.retirePreviousInstall(tx, userId, dto);
+
                 const deviceUid = generateUid('dev');
                 await tx.insert(userDevice).values({
                     ...fields,
@@ -707,6 +724,52 @@ export class UsersService {
         return null;
     }
 
+    // Soft-deletes this user's earlier row for the same hardware, so one phone
+    // reinstalled three times is one device in the dashboard and not three.
+    //
+    // Matched on owner + model + OS, which is the most we can do: the only
+    // identifier the phone carries across a reinstall is its model name. The
+    // known false positive is one person using two phones of the exact same
+    // model, and it heals itself -- the second phone's next app open takes the
+    // update branch above, which clears `deletedAt`, so the row comes back the
+    // moment that device is used again. Nothing is lost either way:
+    // interventions belong to the user, never to the device.
+    //
+    // Skipped entirely unless both model and OS arrived, so a registration
+    // that reports nothing about the hardware can never sweep a real device
+    // away. The push alias is cleared with it: whatever that phone is now, the
+    // old install is not reachable.
+    private async retirePreviousInstall(
+        tx: any,
+        userId: number,
+        dto: CreateDeviceDto,
+    ): Promise<void> {
+        const deviceOs = dto.deviceOs ? this.normalizeDeviceOs(dto.deviceOs) : null;
+        if (!dto.deviceModel || !deviceOs) {
+            return;
+        }
+
+        const now = new Date();
+        const retired = await tx
+            .update(userDevice)
+            .set({ deletedAt: now, oneSignalId: null, updatedAt: now })
+            .where(
+                and(
+                    eq(userDevice.userId, userId),
+                    eq(userDevice.deviceModel, dto.deviceModel),
+                    eq(userDevice.deviceOs, deviceOs),
+                    isNull(userDevice.deletedAt),
+                ),
+            )
+            .returning({ uid: userDevice.uid });
+
+        if (retired.length > 0) {
+            this.logger.log(
+                `Retired ${retired.length} previous install(s) of ${dto.deviceModel} for user ${userId}`,
+            );
+        }
+    }
+
     // Columns that must not survive a device changing hands.
     //
     // `mapDeviceFields` deliberately skips keys the client omitted, which is
@@ -727,8 +790,93 @@ export class UsersService {
             networkType: dto.networkType ?? null,
             pendingInterventions: dto.pendingInterventions ?? null,
             pendingTrees: dto.pendingTrees ?? null,
+            syncSnapshot: this.normalizeSyncSnapshot(dto.syncSnapshot),
+            recentErrors: this.normalizeRecentErrors(dto.recentErrors),
             lastSyncAt: dto.lastSyncAt ? new Date(dto.lastSyncAt) : null,
         };
+    }
+
+    // Builds the stored snapshot from whatever the client sent, instead of
+    // trusting it. Only the keys below are kept, each one coerced to a
+    // non-negative integer, so an unknown or malformed field can never reach
+    // the column -- and a newer app build reporting an extra bucket is simply
+    // ignored rather than failing the registration.
+    //
+    // Returns null for anything unusable, which reads the same as an older app
+    // build: "this device has not told us", not "this device is clear".
+    private normalizeSyncSnapshot(
+        raw: SyncSnapshotInput | undefined,
+    ): DeviceSyncSnapshot | null {
+        if (!raw || typeof raw !== 'object') return null;
+
+        const count = (value: unknown): number => {
+            const parsed = Math.trunc(Number(value));
+            return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+        };
+
+        const queued = (raw.queued ?? {}) as Record<string, unknown>;
+
+        // A date we cannot parse is dropped rather than stored, so the
+        // dashboard never renders "Invalid Date".
+        let oldestPendingAt: string | null = null;
+        if (typeof raw.oldestPendingAt === 'string') {
+            const parsed = new Date(raw.oldestPendingAt);
+            if (!Number.isNaN(parsed.getTime())) {
+                oldestPendingAt = parsed.toISOString();
+            }
+        }
+
+        return {
+            drafts: count(raw.drafts),
+            fixRequired: count(raw.fixRequired),
+            queued: {
+                dataUpload: count(queued.dataUpload),
+                sampleTree: count(queued.sampleTree),
+                treeImage: count(queued.treeImage),
+                remeasurement: count(queued.remeasurement),
+                other: count(queued.other),
+            },
+            oldestPendingAt,
+        };
+    }
+
+    // Rebuilds the stored error list from what the client sent, keeping only the
+    // four fields we store and enforcing our own caps rather than trusting the
+    // app's. The device already caps at 20, but it is the client: a build with
+    // a bug, or anything else holding a token, could post thousands of long
+    // strings straight into a jsonb column otherwise.
+    //
+    // An entry with no usable message is dropped rather than stored blank. An
+    // unparseable timestamp falls back to now, because the entry is still worth
+    // showing and the alternative is rendering "Invalid Date".
+    private normalizeRecentErrors(
+        raw: DeviceErrorLogInput[] | undefined,
+    ): DeviceErrorLog[] | null {
+        if (!Array.isArray(raw)) return null;
+
+        const text = (value: unknown, max: number): string =>
+            typeof value === 'string' ? value.trim().slice(0, max) : '';
+
+        return raw
+            .slice(0, MAX_DEVICE_ERROR_LOGS)
+            .map((entry) => {
+                if (!entry || typeof entry !== 'object') return null;
+
+                const message = text(entry.message, MAX_DEVICE_ERROR_MESSAGE);
+                if (!message) return null;
+
+                const at = new Date(entry.at as string);
+
+                return {
+                    at: Number.isNaN(at.getTime())
+                        ? new Date().toISOString()
+                        : at.toISOString(),
+                    type: text(entry.type, 40) || 'OTHER',
+                    status: text(entry.status, 10) || null,
+                    message,
+                };
+            })
+            .filter((entry): entry is DeviceErrorLog => entry !== null);
     }
 
     // Picks out the device columns the client sent, skipping keys it omitted so
@@ -752,6 +900,12 @@ export class UsersService {
         if (dto.networkType !== undefined) fields.networkType = dto.networkType;
         if (dto.pendingInterventions !== undefined) fields.pendingInterventions = dto.pendingInterventions;
         if (dto.pendingTrees !== undefined) fields.pendingTrees = dto.pendingTrees;
+        if (dto.syncSnapshot !== undefined) {
+            fields.syncSnapshot = this.normalizeSyncSnapshot(dto.syncSnapshot);
+        }
+        if (dto.recentErrors !== undefined) {
+            fields.recentErrors = this.normalizeRecentErrors(dto.recentErrors);
+        }
         if (dto.lastSyncAt !== undefined) fields.lastSyncAt = new Date(dto.lastSyncAt);
 
         return fields;

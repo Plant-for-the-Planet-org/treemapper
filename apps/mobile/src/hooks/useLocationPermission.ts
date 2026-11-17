@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef } from 'react'
-import { Platform } from 'react-native'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { InteractionManager, Platform } from 'react-native'
 import * as Location from 'expo-location'
 import { useDispatch } from 'react-redux'
 import store from 'src/store'
@@ -54,6 +54,38 @@ let watchSubscription: Location.LocationSubscription | null = null
 let watchStarting: Promise<void> | null = null
 let watchRefCount = 0
 let bestFix: { coords: number[]; accuracy: number; timestamp: number } | null = null
+
+// Asking on mount put the native dialog up while Realm was still opening, the
+// store was still rehydrating and navigation was still mounting. A request made
+// in that window can be dropped before it ever reaches the user, and
+// expo-modules-core writes its own "asked" flag to SharedPreferences *before*
+// showing the dialog (PermissionsService.delegateRequestToActivity). A lost
+// first request therefore turns every later getForegroundPermissionsAsync()
+// into 'denied' for the life of the install. Let the first screen settle first.
+const PERMISSION_REQUEST_DELAY_MS = 1500
+
+// One ask per app run, shared by every mounted consumer. Several of these hooks
+// mount on the same screen, and each firing its own request only queues more
+// dialogs for the same permission behind the first.
+let sessionRequestAttempted = false
+
+// Set once a request has actually come back. Until then nothing may report the
+// permission as denied: expo's per-hook `status` is read once on mount and
+// never refreshed, so a consumer that stood down for somebody else's ask is
+// holding a pre-dialog answer, not the user's.
+let sessionRequestSettled = false
+
+// Consumers holding exactly that pre-dialog answer, waiting on whoever is
+// asking. If the asker unmounts before its request lands it hands the attempt
+// back, and these are woken so the ask does not leave with it.
+const standbyConsumers = new Set<() => void>()
+
+const releaseAttempt = () => {
+  sessionRequestAttempted = false
+  const waiting = Array.from(standbyConsumers)
+  standbyConsumers.clear()
+  waiting.forEach(wake => wake())
+}
 
 const readAccuracyAuthorization = (
   permission: Location.LocationPermissionResponse,
@@ -132,7 +164,9 @@ interface Options {
 const useLocationPermission = (options: Options = {}) => {
   const { track = false } = options
   const [status, requestForegroundPermissionsAsync] = Location.useForegroundPermissions()
-  const hasRequestedPermission = useRef(false)
+  // Bumped when an asker hands its attempt back, to re-run the effect below in
+  // a consumer that had stood down for it.
+  const [askEpoch, setAskEpoch] = useState(0)
 
   const dispatch = useDispatch()
   const { addNewLog } = useLogManagement()
@@ -241,41 +275,82 @@ const useLocationPermission = (options: Options = {}) => {
   const requestLocationPermission = useCallback(async () => {
     try {
       const result = await requestForegroundPermissionsAsync()
+      sessionRequestSettled = true
       if (result?.status === Location.PermissionStatus.GRANTED) {
         await applyGrantedPermission(result)
       } else if (result?.status === Location.PermissionStatus.DENIED) {
         dispatch(updatePermissionStatus('denied'))
+        // The one denial line per run, written where the user actually
+        // answered. Consumers that stood down for this ask stay quiet, so a
+        // field report no longer shows a denial that was never put to anyone.
+        addNewLog({
+          logType: 'LOCATION',
+          message: 'Location permission denied',
+          logLevel: 'warn',
+          statusCode: '',
+        })
       }
     } catch (error) {
+      // The ask is over either way. Leaving it unsettled would park every
+      // other consumer on an answer that is never coming.
+      sessionRequestSettled = true
       logLocationError('Location Permission', error)
     }
-  }, [requestForegroundPermissionsAsync, applyGrantedPermission, dispatch, logLocationError])
+  }, [requestForegroundPermissionsAsync, applyGrantedPermission, dispatch, addNewLog, logLocationError])
 
   useEffect(() => {
     // status is null while the initial native fetch is in progress -- wait for it
     if (status === null) return
 
-    if (status.status === Location.PermissionStatus.UNDETERMINED && !hasRequestedPermission.current) {
-      hasRequestedPermission.current = true
-      requestLocationPermission()
-      return
-    }
-
-    if (status.status === Location.PermissionStatus.DENIED) {
-      dispatch(updatePermissionStatus('denied'))
-      addNewLog({
-        logType: 'LOCATION',
-        message: "Location permission denied",
-        logLevel: 'warn',
-        statusCode: '',
-      })
-      return
-    }
-
     if (status.status === Location.PermissionStatus.GRANTED) {
       applyGrantedPermission(status)
+      return
     }
-  }, [status])
+
+    if (sessionRequestAttempted) {
+      // Somebody else has already asked and the user has answered, so what we
+      // are holding is the real thing. The asker wrote the log line.
+      if (sessionRequestSettled) {
+        dispatch(updatePermissionStatus('denied'))
+        return
+      }
+      // The ask is still in flight. Our own `status` predates the dialog, so
+      // saying anything about it now would be guessing at the answer. Stand by
+      // and let the asker report the outcome, but stay reachable in case it
+      // unmounts before the dialog lands.
+      const wake = () => setAskEpoch(epoch => epoch + 1)
+      standbyConsumers.add(wake)
+      return () => {
+        standbyConsumers.delete(wake)
+      }
+    }
+
+    // Deliberately not gated on UNDETERMINED. expo reports 'denied' as soon as
+    // its asked-flag is set, including when the dialog was never shown, so an
+    // UNDETERMINED gate leaves a lost first ask unrecoverable short of a
+    // reinstall. Asking again when the user really did block it costs nothing:
+    // Android resolves it straight away, without a dialog.
+    sessionRequestAttempted = true
+    let timer: ReturnType<typeof setTimeout> | undefined
+    let asked = false
+    // runAfterInteractions first, so the delay counts from a quiet JS thread
+    // rather than from mount while navigation and the map are still settling.
+    const task = InteractionManager.runAfterInteractions(() => {
+      timer = setTimeout(() => {
+        asked = true
+        requestLocationPermission()
+      }, PERMISSION_REQUEST_DELAY_MS)
+    })
+
+    return () => {
+      task.cancel()
+      if (timer) clearTimeout(timer)
+      // Unmounted before the ask landed: hand the one attempt back and wake
+      // anyone who stood down for it, so the next screen that needs a fix
+      // still gets to show the dialog.
+      if (!asked) releaseAttempt()
+    }
+  }, [status, askEpoch])
 
   // Hold the shared watch for as long as this consumer is mounted and allowed.
   // Keyed only on those two facts: any other dependency here would tear the
@@ -294,8 +369,14 @@ const useLocationPermission = (options: Options = {}) => {
   // so it must work on the very first grant without an app restart.
   const userCurrentLocation = useCallback(async () => {
     let permission = await Location.getForegroundPermissionsAsync()
-    if (permission.status === Location.PermissionStatus.UNDETERMINED) {
+    if (permission.status !== Location.PermissionStatus.GRANTED) {
+      // Same reason as the mount effect: UNDETERMINED is not a safe gate. A
+      // deliberate tap is also the right moment to put the dialog up, and it
+      // is the way back for an install whose first ask was lost.
+      sessionRequestAttempted = true
       permission = await requestForegroundPermissionsAsync()
+      // A tap settles the question for every other consumer too.
+      sessionRequestSettled = true
     }
     if (permission.status !== Location.PermissionStatus.GRANTED) {
       dispatch(updatePermissionStatus(permission.status === Location.PermissionStatus.DENIED ? 'denied' : 'undetermined'))

@@ -178,6 +178,8 @@ export const deleteUrlApi = {
   projectForms: `${baseUrl}/projects`,
   // TreeMatch: discard an auto-match run (project-scoped)
   treematch: `${baseUrl}/treematch/projects`,
+  // Devices (project-scoped)
+  projectDevice: `${baseUrl}/projects`,
 } as const;
 
 export const putUrlApi = {

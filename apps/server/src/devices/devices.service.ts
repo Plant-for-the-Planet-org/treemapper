@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { and, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNotNull, isNull } from 'drizzle-orm';
 import { DrizzleService } from '../database/drizzle.service';
 import {
   notifications,
@@ -28,6 +28,24 @@ import {
 // A device counts as "online" if it pinged us (lastActiveAt) within this many
 // minutes. The mobile app stamps lastActiveAt on every app open.
 const ONLINE_WINDOW_MINUTES = 15;
+
+// How long a device may go unseen before it drops out of the fleet.
+//
+// `deviceId` is a random uuid the app keeps in AsyncStorage, which the OS
+// destroys on uninstall and on Android's "Clear data". The next launch mints a
+// new one, and because `device_id` is unique that is always a new row -- so one
+// person who reinstalls a few times owns several rows and nothing ever retires
+// them. Left alone they inflate every count on the dashboard, and worst of all
+// they keep contributing a pending-sync backlog that no longer exists anywhere.
+//
+// So the fleet is "devices seen recently", not "rows in the table". Nothing is
+// deleted by this: it is a read filter, and setting it to 0 shows everything
+// again. `registerOrUpdateDevice` also retires the obvious reinstall case on
+// the write side, and admins can remove a device by hand.
+const ACTIVE_WINDOW_DAYS = 60;
+
+const activeSince = (): Date =>
+  new Date(Date.now() - ACTIVE_WINDOW_DAYS * 24 * 60 * 60 * 1000);
 
 // The fallback in getLatestAppBuild sorts the whole user_device table on a
 // column with no index, so it is cached rather than run once per fleet load.
@@ -110,7 +128,15 @@ export class DevicesService {
         const rows = await this.drizzle.db
           .select({ build: userDevice.appBuild, version: userDevice.appVersion })
           .from(userDevice)
-          .where(and(isNotNull(userDevice.appBuild), isNull(userDevice.deletedAt)))
+          .where(
+            and(
+              isNotNull(userDevice.appBuild),
+              isNull(userDevice.deletedAt),
+              // Same window as the fleet: the bar is the newest build someone
+              // is actually running, not one a long-dead row remembers.
+              gte(userDevice.lastActiveAt, activeSince()),
+            ),
+          )
           .orderBy(desc(userDevice.appBuild))
           .limit(1);
 
@@ -137,6 +163,8 @@ export class DevicesService {
       android: 0,
       needsUpdate: 0,
       pendingSync: 0,
+      draftsPending: 0,
+      fixRequired: 0,
     };
   }
 
@@ -175,6 +203,8 @@ export class DevicesService {
           networkType: userDevice.networkType,
           pendingInterventions: userDevice.pendingInterventions,
           pendingTrees: userDevice.pendingTrees,
+          syncSnapshot: userDevice.syncSnapshot,
+          recentErrors: userDevice.recentErrors,
           lastSyncAt: userDevice.lastSyncAt,
           lastActiveAt: userDevice.lastActiveAt,
           createdAt: userDevice.createdAt,
@@ -191,6 +221,7 @@ export class DevicesService {
           and(
             inArray(userDevice.userId, memberIds),
             isNull(userDevice.deletedAt),
+            gte(userDevice.lastActiveAt, activeSince()),
           ),
         )
         .orderBy(desc(userDevice.lastActiveAt)),
@@ -223,6 +254,8 @@ export class DevicesService {
         networkType: r.networkType,
         pendingInterventions: r.pendingInterventions,
         pendingTrees: r.pendingTrees,
+        syncSnapshot: r.syncSnapshot ?? null,
+        recentErrors: r.recentErrors ?? null,
         lastSyncAt: r.lastSyncAt,
         lastActiveAt: r.lastActiveAt,
         createdAt: r.createdAt,
@@ -249,6 +282,17 @@ export class DevicesService {
       needsUpdate: devices.filter((d) => d.needsUpdate).length,
       pendingSync: devices.reduce(
         (sum, d) => sum + (d.pendingInterventions ?? 0),
+        0,
+      ),
+      // Only devices running an app build that reports the snapshot
+      // contribute. An older build counts as nothing here, the same way it
+      // counts as nothing in pendingSync.
+      draftsPending: devices.reduce(
+        (sum, d) => sum + (d.syncSnapshot?.drafts ?? 0),
+        0,
+      ),
+      fixRequired: devices.reduce(
+        (sum, d) => sum + (d.syncSnapshot?.fixRequired ?? 0),
         0,
       ),
     };
@@ -318,6 +362,64 @@ export class DevicesService {
     };
   }
 
+  // Removes a device from the project's fleet for good.
+  //
+  // Soft delete, like everything else in this schema, and the OneSignal alias
+  // goes with it so no later send can address the phone. Scoped to project
+  // members for the same reason setDeviceActive is: an admin of one project
+  // must not reach a device outside it.
+  //
+  // This is not a revoke. If the app is still installed and someone opens it,
+  // registration upserts the same `device_id` row and clears `deletedAt`, so
+  // the device comes back. That is the right outcome -- a live phone belongs in
+  // the fleet -- and it makes this safe to use on the reinstall leftovers it
+  // is meant for, since those never open again.
+  async removeDevice(projectId: number, deviceUid: string, actorUserId: number) {
+    const members = await this.getProjectMembers(projectId);
+    const memberIds = members.map((m) => m.userId);
+
+    if (memberIds.length === 0) {
+      throw new NotFoundException({
+        message: 'Device not found in this project',
+        code: 'device_not_found',
+      });
+    }
+
+    const removed = await this.drizzle.db
+      .update(userDevice)
+      .set({ deletedAt: new Date(), oneSignalId: null, updatedAt: new Date() })
+      .where(
+        and(
+          eq(userDevice.uid, deviceUid),
+          inArray(userDevice.userId, memberIds),
+          isNull(userDevice.deletedAt),
+        ),
+      )
+      .returning({ uid: userDevice.uid });
+
+    if (removed.length === 0) {
+      throw new NotFoundException({
+        message: 'Device not found in this project',
+        code: 'device_not_found',
+      });
+    }
+
+    this.logger.log(
+      `Device ${deviceUid} removed from project ${projectId} by user ${actorUserId}`,
+    );
+
+    // Not audited, same reason as setDeviceActive: auditEntityEnum has no
+    // 'device' value and adding one needs an ALTER TYPE migration.
+
+    return {
+      message: 'Device removed',
+      statusCode: 200,
+      error: null,
+      data: removed[0],
+      code: 'device_removed',
+    };
+  }
+
   // Resolves the devices a send should reach.
   private async resolveTargetDevices(
     dto: SendDeviceNotificationDto,
@@ -328,6 +430,10 @@ export class DevicesService {
       isNull(userDevice.deletedAt),
       eq(userDevice.isActive, true),
       eq(userDevice.notificationPermission, true),
+      // Same window as the list. A device the dashboard does not show must not
+      // be counted in "sent to N devices" either, and an abandoned install's
+      // OneSignal alias is dead anyway.
+      gte(userDevice.lastActiveAt, activeSince()),
     ];
 
     // 'selected' still requires the device to be reachable. Sending to a device

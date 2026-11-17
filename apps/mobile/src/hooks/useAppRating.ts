@@ -45,19 +45,24 @@ const useAppRating = () => {
   // first and only open the store listing if it could not appear. From the
   // menu, go straight to the store listing (they asked for it explicitly).
   const acceptRating = useCallback(
-    async (source: RatingSource) => {
-      dispatch(markRated())
+    async (source: RatingSource): Promise<boolean> => {
       if (source === 'prompt') dispatch(markRatingAsked())
+      const opened =
+        source === 'menu'
+          ? await openStoreListing()
+          : (await requestNativeReview()) || (await openStoreListing())
+      // Only retire the prompt once they actually reached a rating surface.
+      // Marking first meant one dead tap switched the prompt off for good.
+      if (opened) dispatch(markRated())
       captureAnalyticsEvent(posthog, AnalyticsEvents.APP_RATING_PROMPT, {
         action: 'rate',
         source,
+        // Separates "we sent them to the store" from "nothing could open".
+        // The latter is silent otherwise, and is the normal state on a build
+        // that was not installed from the store.
+        opened,
       })
-      if (source === 'menu') {
-        await openStoreListing()
-        return
-      }
-      const shown = await requestNativeReview()
-      if (!shown) await openStoreListing()
+      return opened
     },
     [dispatch, posthog],
   )

@@ -33,6 +33,14 @@ const SideBarList = (props: Props) => {
   const { rateFromMenu } = useAppRating()
   const toast = useToast()
 
+  // The store can refuse silently: no store app, or a build that was not
+  // installed from one. Without this the entry is indistinguishable from a
+  // dead button.
+  const onPressRate = async () => {
+    const opened = await rateFromMenu()
+    if (!opened) toast.show(t('label.rating_store_unavailable'))
+  }
+
   const onChooseConsent = (choice: 'granted' | 'denied') => {
     setShowConsentModal(false)
     if (choice === consent) return
@@ -157,7 +165,7 @@ const SideBarList = (props: Props) => {
             key={item.key}
             onPressFeedback={() => setShowFeedbackModal(true)}
             onPressAnalyticsConsent={() => setShowConsentModal(true)}
-            onPressRate={rateFromMenu}
+            onPressRate={onPressRate}
           />
         )}
       />

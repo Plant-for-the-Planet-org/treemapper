@@ -22,6 +22,24 @@ import AnalyticsConsentGate from 'src/components/analytics/AnalyticsConsentGate'
 import AppRatingGate from 'src/components/rating/AppRatingGate'
 
 
+// PostHog is controlled entirely by env. There is no build-type fallback, so
+// nothing is inferred from debug vs release:
+//   EXPO_PUBLIC_POSTHOG_ENABLED=true  sends events to the dashboard
+//   EXPO_PUBLIC_POSTHOG_DEBUG=true    logs every capture to the console
+//
+// Both fail closed: anything other than 'true', including unset, means off.
+// Over-collecting by accident is worse than under-collecting, and an empty
+// dashboard gets noticed while silent extra collection does not.
+//
+// The cost of that choice: a release build with ENABLED unset ships with
+// analytics off and looks healthy. Setting it is part of the release checklist.
+//
+// EXPO_PUBLIC_* values are inlined at build time, so a change needs a restart
+// with the cache cleared (`npx expo start -c`), not just a reload. Read each
+// name directly: Expo cannot inline a computed or destructured key.
+const analyticsDisabled = process.env.EXPO_PUBLIC_POSTHOG_ENABLED !== 'true'
+const analyticsDebug = process.env.EXPO_PUBLIC_POSTHOG_DEBUG === 'true'
+
 
 export default function App() {
   // Keeps the screen on for as long as the app is in the foreground, so a
@@ -48,10 +66,10 @@ export default function App() {
                       <NavigationContainer>
                         <PostHogProvider
                           apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY}
-                          debug={__DEV__}
+                          debug={analyticsDebug}
                           options={{
                             host: process.env.EXPO_PUBLIC_POSTHOG_HOST,
-                            disabled: __DEV__,
+                            disabled: analyticsDisabled,
                           }}
                           autocapture={{
                             captureScreens: false,

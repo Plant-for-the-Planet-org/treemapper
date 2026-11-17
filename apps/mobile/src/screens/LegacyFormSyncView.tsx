@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,7 +7,7 @@ import {
   View,
 } from 'react-native'
 import React, { useMemo, useState } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { useObject, useQuery } from '@realm/react'
@@ -18,6 +17,7 @@ import Header from 'src/components/common/Header'
 import CustomButton from 'src/components/common/CustomButton'
 import CustomDropDown from 'src/components/common/CustomDropDown'
 import { Colors, Typography } from 'src/utils/constants'
+import { scaleSize } from 'src/utils/constants/mixins'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import {
@@ -56,6 +56,7 @@ const canCreateForms = (project: ProjectInterface): boolean => {
 const LegacyFormSyncView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'LegacyFormSync'>>()
+  const insets = useSafeAreaInsets()
   const formId = route.params?.formId || ''
   const toast = useToast()
   const { markFormMigrated } = useLegacyFormMigration()
@@ -360,20 +361,21 @@ const LegacyFormSyncView = () => {
           The form goes live on the project as soon as it is synced, and reaches
           every device on that project. You can edit it later on the dashboard.
         </Text>
-
-        <View style={styles.buttonWrap}>
-          {loading ? (
-            <ActivityIndicator size="large" color={Colors.NEW_PRIMARY} />
-          ) : (
-            <CustomButton
-              label="Sync to dashboard"
-              pressHandler={handleSync}
-              containerStyle={styles.button}
-              hideFadeIn
-            />
-          )}
-        </View>
       </ScrollView>
+      <View
+        style={[
+          styles.footer,
+          { paddingBottom: Math.max(insets.bottom, 16) },
+        ]}>
+        <CustomButton
+          label="Sync to dashboard"
+          pressHandler={handleSync}
+          containerStyle={styles.btnContainer}
+          wrapperStyle={styles.btnWrapper}
+          loading={loading}
+          hideFadeIn
+        />
+      </View>
     </SafeAreaView>
   )
 }
@@ -390,7 +392,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: '5%',
-    paddingBottom: 40,
+    paddingBottom: 24,
   },
   sectionLabel: {
     fontSize: Typography.FONT_SIZE_14,
@@ -517,14 +519,23 @@ const styles = StyleSheet.create({
     marginTop: 14,
     lineHeight: Typography.LINE_HEIGHT_18,
   },
-  buttonWrap: {
-    marginTop: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 60,
+  footer: {
+    paddingHorizontal: '5%',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.GRAY_LIGHT,
+    backgroundColor: Colors.WHITE,
   },
-  button: {
+  // CustomButton sizes itself in percentages, so its parent needs a real
+  // height. Without one the percentages resolve against nothing and the
+  // button collapses to zero.
+  btnContainer: {
     width: '100%',
+    height: scaleSize(56),
+  },
+  btnWrapper: {
+    width: '100%',
+    height: '100%',
   },
   emptyWrap: {
     flex: 1,

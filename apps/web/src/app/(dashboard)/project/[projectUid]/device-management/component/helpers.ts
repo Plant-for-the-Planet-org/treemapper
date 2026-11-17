@@ -33,6 +33,32 @@ export function formatDate(value: string | null): string {
   }
 }
 
+/** "12 Sep 2026 · 34 days ago", for a date whose age is the point. */
+export function dateWithAge(value: string | null): string {
+  if (!value) return '-'
+  try {
+    const date = new Date(value)
+    const shown = date.toLocaleDateString('en-US', {
+      year: 'numeric', month: 'short', day: 'numeric',
+    })
+    return `${shown} · ${formatDistanceToNowStrict(date)} ago`
+  } catch {
+    return '-'
+  }
+}
+
+/** "16 Oct, 09:14", compact enough to sit on a log row. */
+export function shortDateTime(value: string | null): string {
+  if (!value) return '-'
+  try {
+    return new Date(value).toLocaleString('en-GB', {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+    })
+  } catch {
+    return '-'
+  }
+}
+
 export function networkLabel(n: string | null): string {
   if (n === 'wifi') return 'Wi-Fi'
   if (n === 'cellular') return 'Cellular'

@@ -88,8 +88,11 @@ Two things here are easy to assume wrong:
 
 One Postgres schema file, `apps/server/src/database/schema/index.ts` (~2200
 lines, 35 tables, 36 enums), is the source of truth. Migrations live in
-`apps/server/drizzle/migrations` (currently 0000-0008; `0008_mushy_blue_blade`
-adds the `user_device` telemetry columns).
+`apps/server/drizzle/migrations` (currently 0000-0011; `0008_mushy_blue_blade`
+adds the `user_device` telemetry columns, `0010_elite_deathstrike` adds
+`user_device.sync_snapshot` for the per-status breakdown of a device's
+unsynced field work, and `0011_tricky_jasper_sitwell` adds
+`user_device.recent_errors`).
 
 The spine is **workspace -> project -> site -> intervention -> tree ->
 tree_record**:
@@ -312,6 +315,41 @@ auto-upgrades anything.
   `expo prebuild --clean` does not help, because the bad file is rewritten
   during prebuild. Fix with `rm -rf android/build/generated/autolinking
   android/app/build/generated/autolinking`, then rebuild.
+- **iOS needs the UIScene life cycle, and SDK 55 ships none of its own.** An
+  app built against the iOS 27 SDK that still drives its window from
+  `UIApplicationDelegate` alone is killed by UIKit as the first scene connects:
+  `EXC_BREAKPOINT` inside
+  `_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`, with
+  `AppDelegate.main()` the only frame of ours and no JavaScript yet run, so it
+  reads like any launch crash and invites blame on whatever native dependency
+  changed last. iOS 26 only warned, so this starts the day Xcode is upgraded,
+  with no source change. Expo added `ios.enableSceneSupport`
+  (expo-build-properties) in SDK 57 and adopts scenes by default in 58, but
+  **no SDK 55 patch has any scene support at all** -- 55.0.32 contains no
+  `SceneDelegate`, no `UIWindowScene` and no manifest key. So
+  `plugins/withSceneLifecycle.js` writes both halves: the
+  `UIApplicationSceneManifest` and a real `SceneDelegate` appended to
+  `AppDelegate.swift`. A manifest on its own does **not** satisfy the check.
+  Delete the plugin whole on the SDK upgrade that brings the real thing.
+  Four things it has to carry across, each of which fails silently otherwise:
+  URL opens and universal links go to the scene now, so Auth0's sign-in
+  callback, the `applinks:` links and Garmin Connect's device-picker return
+  are forwarded back through the app delegate to keep the Expo subscribers
+  firing; the cold-start URL is written back into launch options, which is
+  where `RCTLinkingManager.getInitialURL` looks for it; the scene's window is
+  assigned to the app delegate too, because `expo-system-ui` reads
+  `UIApplication.shared.delegate?.window`; and the app delegate's
+  foreground/background methods are called by hand, since UIKit stops
+  delivering them once scenes exist. React Native's own `AppState` is safe
+  either way -- `RCTAppState` observes `NSNotificationCenter`, not the
+  delegate -- which is what keeps the sync queue and the activity-log cleanup
+  running on foreground.
+- **`expo prebuild` does not overwrite an existing `AppDelegate.swift`.** It
+  regenerates `ios/` but leaves native source files already on disk, so a
+  `withAppDelegate` plugin applies to whatever is there. That is why those
+  plugins must be idempotent (ours bails on a marker) and why testing one
+  against a stock template means restoring the file first, or
+  `prebuild --clean`.
 - `engines.node` is pinned in **both** the root manifest (`22.x.x`) and
   `apps/server` (`22.x`). On a machine running a newer Node, yarn 1 refuses
   every script in either -- so `yarn build`, `yarn web:dev`, `yarn lint` and
@@ -323,13 +361,11 @@ auto-upgrades anything.
 - `drizzle.config.ts` reads `DATABASE_URL` (not the `DB_*` vars), and in this
   repo's `.env` it points at a **shared staging** database, not localhost. Check
   where it aims before running `drizzle-kit migrate`.
-- Jest cannot resolve the absolute `src/...` imports that some server files use
-  (`projects.service.ts` and others): `rootDir` is `src` and there is no
-  `moduleNameMapper`. Specs that only import leaf modules are fine, which is why
-  the suite passes; the moment a spec imports a service that pulls in the DI
-  graph it dies with "Cannot find module 'src/util/uidGenerator'". Workaround
-  without touching the config:
-  `npx jest <path> --moduleNameMapper '{"^src/(.*)$":"<rootDir>/$1"}'`.
+- Jest resolves the absolute `src/...` imports some server files use through
+  `moduleNameMapper` in `apps/server/package.json`'s jest block (added
+  2026-11-16), so specs may import services that pull in the DI graph. Note
+  that any edit to `package.json` trips the pre-commit dependency-file guard,
+  so committing even a jest-config change needs `ALLOW_DEP_CHANGE=1`.
 - **The server's prettier errors are a config mismatch, not your code.** Root
   `.prettierrc.js` sets `semi: false`, `apps/server` has no prettier config of
   its own, and its eslint config loads
@@ -364,11 +400,38 @@ auto-upgrades anything.
   `--font-open-sans: var(--font-open-sans)`, so
   `body { font-family: var(--font-open-sans), Arial, ... }` falls through to
   Arial. The dashboard is not rendering Open Sans today.
-- **Two nav entries are switched off in `DashboardSidebar.tsx`.**
-  `const showTreeMatch = false` hides the whole "Matching" group, and the
-  Devices entry is commented out until migration `0008` is applied everywhere
-  (the page 500s without its `user_device` telemetry columns). Both pages and
-  their APIs still work by direct URL. Each is a one-line restore.
+- **One nav entry is switched off in `DashboardSidebar.tsx`.**
+  `const showTreeMatch = false` hides the whole "Matching" group. The page and
+  its API still work by direct URL, and it is a one-line restore. The Devices
+  entry was hidden the same way and is back as of 2026-10-16; it reads
+  `user_device` telemetry columns directly, so that page 500s on any
+  deployment missing migration `0008` or `0010`.
+- **`user_device.recent_errors` is a snapshot, not a log pipeline.** The app
+  sends its 20 newest error-level activity logs with each registration and the
+  column is replaced wholesale, so there is no history, nothing to paginate
+  and nothing to prune. Both the app (`deviceTelemetry.ts`) and the server
+  (`normalizeRecentErrors`) cap the count and the message length; the server's
+  caps are the ones that hold, because the payload is client-supplied. Error
+  history over time needs its own table with an ingest endpoint and a
+  retention policy, not this column growing.
+- **Mobile activity logs expire after 15 days.** `db/activityLogCleanup.ts`
+  drops anything older, on cold start (a task in `useAppStartup`) and again on
+  every foreground. It returns before opening a write transaction when nothing
+  has aged out, which is what makes the foreground call cheap. `deleteAllLogs`
+  in `hooks/realm/useLogManagement.ts` still has zero callers and is not what
+  does this. Note `addNewLog` hardcodes `appVersion: ''`, overwriting whatever
+  the caller passed, so every log row has an empty app version.
+- **Device rows are per install, not per phone.** The mobile `device-id` is a
+  uuid in AsyncStorage, which the OS destroys on uninstall and on Android's
+  "Clear data", so every reinstall registers a brand-new `user_device` row.
+  Three things keep the fleet honest, and they work together: the read side
+  only shows devices seen within `ACTIVE_WINDOW_DAYS` (60) in
+  `devices.service.ts`, registration retires the same user's earlier row for
+  the same model and OS (`retirePreviousInstall` in `users.service.ts`), and
+  admins can `DELETE /projects/:id/devices/:deviceUid`. All three are soft or
+  read-only -- a phone that is still installed re-registers the same row and
+  clears `deletedAt`, so nothing here is permanent. Do not read a device count
+  as a headcount.
 - **The web dashboard is effectively English-only.** `src/lib/i18n.ts` inlines
   a handful of login strings and nothing else, despite `i18next` /
   `react-i18next` being installed. Only `apps/mobile` has real translations
@@ -417,9 +480,9 @@ it is genuinely closed.
   response with `console.log` on every sync. Noisy, and response bodies are
   exactly the kind of thing that quietly grows to hold something you did not
   mean to publish. Prefer the injected `Logger` at debug level.
-- **No tests outside the server's two TreeMatch suites** (47 tests total).
-  `apps/web` and `apps/mobile` have none, and see the jest `moduleNameMapper`
-  gotcha before adding a server spec that touches the DI graph.
+- **No tests outside `apps/server`** (three suites, 69 tests: two TreeMatch,
+  plus `interventions.service.spec.ts` covering web intervention creation
+  without species). `apps/web` and `apps/mobile` have none.
 
 **Dead code, ask before deleting**
 
@@ -668,7 +731,7 @@ web or server. Expo 55 / RN 0.83, bare workflow (checked-in `android/` and
 `ios/`), app version in `app.json` (3.0.6), bundle id `org.pftp.treemapper`.
 
 - **Realm is the primary store, not a cache.** `src/db/schema/` (~40 object
-  schemas) is the local model; `schemaVersion` is **32** in
+  schemas) is the local model; `schemaVersion` is **29** in
   `src/db/RealmProvider.tsx`, and `src/db/migrations.ts` holds the hand-written
   migrations (v24, v27 both backfill a new `sync_status`). Bumping a schema
   means bumping that version. `appRealm` is a module-level singleton so
@@ -776,6 +839,54 @@ web or server. Expo 55 / RN 0.83, bare workflow (checked-in `android/` and
   instead of starting and stalling. A tour spanning screens cannot count
   `nextStep()` calls, because the user can always press back -- each screen
   declares the steps it owns and the tour re-syncs forward on focus.
+- **Garmin GPS: the JS half is built, the native half is not.** A Garmin
+  device tile sits on every map that captures a coordinate (`PointMarkerMap`,
+  `PolygonMarkerMap`, `SiteCreationMap`, `CreatePlotMapDetail`,
+  `PlannedTreeLocationView`), opens a modal and drops the point the watch
+  sends onto the marker. The watch app is published and its contract is
+  `PROTOCOL.md` in `Plant-for-the-Planet-org/treemapper-garmin`, which also
+  carries a working Kotlin reference (`android-demo/.../WatchLink.kt`).
+  `src/garmin/protocol.ts` mirrors that file; keep the two in step, and treat
+  the watch as fixed, because it is already in the store.
+  The constraint that shapes the whole flow is a platform limit:
+  `Position.enableLocationEvents()` is restricted to device apps and widgets,
+  so a Connect IQ background service cannot turn the receiver on and the watch
+  app must be in the **foreground** to give a fresh fix. The phone can launch
+  it remotely, but then pays the whole cold acquisition, which runs to tens of
+  seconds under canopy. That is why `useGarminFix` has two separate waiting
+  states (`waking`, `acquiring`) and shows live quality through both.
+  Three things are easy to get wrong here:
+  **the watch only speaks when spoken to** -- `ready` answers `hello` or
+  `ping` and is otherwise sent just once, at app start, so a phone that stops
+  pinging freezes its quality readout; **quality is an enum, not metres**
+  (0-4, no metric accuracy exists on Connect IQ) and the phone owns the policy,
+  so a point below 3 is offered with a warning rather than refused, because
+  under canopy 2 may be the best reading all day -- note the user-facing words
+  deliberately differ from Garmin's enum names, 3 reads "Good" and 4 reads
+  "Excellent" since both are fine to record on, and the mock never reports
+  below 3 unless its `poor` scenario is asked for by name; and **optional fields are
+  absent, not null**, so read a missing key as null.
+  `createGarminTransport` returns the native link if it exists, a mock in
+  development, and **null in a release build** -- the tile hides rather than
+  producing a coordinate that would be indistinguishable from a surveyed one.
+  `setMockScenario` in `src/garmin/mockTransport.ts` picks which failure to
+  rehearse, and `setMockDevice` sets the model the simulation claims to be
+  (default `GPSMAP H1i Plus`, Garmin's current flagship handheld). **Vocabulary
+  is split on purpose**: `protocol.ts` says "watch" wherever `PROTOCOL.md`
+  does and the wire value `src: "watch"` keeps that spelling because the
+  published Connect IQ app sends it, while everything a user reads says
+  "device" or "your Garmin" -- Connect IQ runs on handhelds as well as
+  watches, and handhelds are what field teams carry. Do not reconcile the two
+  by renaming the wire. The native module is specified in `src/garmin/nativeTransport.ts`:
+  Android is a local Expo module over
+  `com.garmin.connectiq:ciq-companion-app-sdk` from Maven Central, needing a
+  `<queries>` entry for `com.garmin.android.apps.connectmobile` (without it
+  the SDK cannot see Garmin Connect on Android 11+ and fails as "service
+  unavailable"); iOS needs a framework downloaded by hand from Garmin's
+  developer portal plus the Garmin Connect URL-scheme handoff, so it is not a
+  package install. Nothing is persisted today: the quality and the fact that a
+  point came from a watch are shown and then dropped, so after the fact a
+  Garmin coordinate looks exactly like a phone one.
 - 7 languages under `src/locales/languages` (de, en, es, fr, it, mg, pt-BR) --
   unlike web, which is English-only.
 - Crash reporting is Bugsnag; analytics is PostHog; push is OneSignal.

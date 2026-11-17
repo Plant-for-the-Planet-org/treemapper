@@ -1,0 +1,10 @@
+{
+  "name": "treemapper-garmin",
+  "version": "1.0.0",
+  "description": "Native Connect IQ link between TreeMapper and a Garmin device.",
+  "private": true,
+  "platforms": [
+    "android",
+    "ios"
+  ]
+}

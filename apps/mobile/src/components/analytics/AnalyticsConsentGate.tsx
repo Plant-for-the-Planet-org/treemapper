@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
+import { InteractionManager } from 'react-native'
 import { useSelector } from 'react-redux'
 import { usePostHog } from 'posthog-react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -12,6 +13,15 @@ import AnalyticsConsentModal from './AnalyticsConsentModal'
 // the next person's anonymous events attached to the previous account.
 const LINKED_ID_KEY = 'analytics_linked_user_id'
 
+// How long to wait after the startup work drains before asking. The ask used
+// to render the moment this component mounted, which put a non-dismissible
+// Modal on screen while Realm was still opening, the store was still
+// rehydrating and navigation was still mounting. RN's Modal takes the touch
+// responder for the whole screen as soon as it is up, so on a first launch
+// the app read as frozen. Nothing about consent is urgent, so let the first
+// screen finish and settle before interrupting.
+const CONSENT_PROMPT_DELAY_MS = 6000
+
 /**
  * Asks for analytics consent on first launch and keeps PostHog's identity in
  * step with the answer:
@@ -23,6 +33,10 @@ const LINKED_ID_KEY = 'analytics_linked_user_id'
  * because there are several (sidebar, delete account, forced logout on a
  * failed token refresh) and a missed one would keep sending linked events.
  *
+ * The ask itself is delayed until startup has settled (see
+ * CONSENT_PROMPT_DELAY_MS); the identity sync below is not, because it must
+ * follow the store as soon as it rehydrates.
+ *
  * Mount inside both the Redux provider (after PersistGate) and PostHogProvider.
  */
 const AnalyticsConsentGate = () => {
@@ -30,6 +44,25 @@ const AnalyticsConsentGate = () => {
   const { consent, updateConsent } = useAnalyticsConsent()
   const isLoggedIn = useSelector((state: RootState) => state.appState.isLoggedIn)
   const { id, country, type, locale } = useSelector((state: RootState) => state.userState)
+  const [startupSettled, setStartupSettled] = useState(false)
+
+  useEffect(() => {
+    // Nothing to wait for once they have answered: a later change goes
+    // through settings, which renders its own copy of the modal.
+    if (consent !== 'unset') return
+    let timer: ReturnType<typeof setTimeout> | undefined
+    // runAfterInteractions first so the delay starts counting from a quiet
+    // JS thread, not from mount while animations and queries are still in
+    // flight. If it never drains, nothing is shown, which is the safe way
+    // round: the person keeps a working app and gets asked next launch.
+    const task = InteractionManager.runAfterInteractions(() => {
+      timer = setTimeout(() => setStartupSettled(true), CONSENT_PROMPT_DELAY_MS)
+    })
+    return () => {
+      task.cancel()
+      if (timer) clearTimeout(timer)
+    }
+  }, [consent])
 
   useEffect(() => {
     if (!posthog) return
@@ -74,7 +107,7 @@ const AnalyticsConsentGate = () => {
 
   return (
     <AnalyticsConsentModal
-      isVisible={consent === 'unset'}
+      isVisible={consent === 'unset' && startupSettled}
       consent={consent}
       dismissible={false}
       onChoose={choice => updateConsent(choice, 'first_launch')}

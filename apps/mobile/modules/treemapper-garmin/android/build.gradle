@@ -1,0 +1,22 @@
+apply plugin: 'com.android.library'
+apply plugin: 'expo-module-gradle-plugin'
+
+group = 'org.pftp.treemapper.garmin'
+version = '1.0.0'
+
+android {
+  namespace 'org.pftp.treemapper.garmin'
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
+}
+
+dependencies {
+  // The Connect IQ companion SDK, from Maven Central (already in the
+  // repositories of the generated android/build.gradle).
+  //
+  // The @aar classifier is required: the artifact is published as an AAR with
+  // no POM dependencies, and Gradle will not resolve it without it.
+  implementation 'com.garmin.connectiq:ciq-companion-app-sdk:2.4.0@aar'
+}

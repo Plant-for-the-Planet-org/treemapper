@@ -8,6 +8,7 @@ import CustomButton from '../common/CustomButton';
 import * as turf from '@turf/turf'
 import { PLOT_SHAPE } from 'src/types/type/app.type';
 import PlotShapeSource from './PlotShapeSource';
+import GarminGpsButton from './GarminGpsButton';
 import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement';
 import { Typography, Colors } from 'src/utils/constants';
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins';
@@ -57,26 +58,45 @@ const CreatePlotMapDetail = (props: Props) => {
   const [updatedCoords, setUpdatedCoords] = useState<Array<number[]>>([])
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updatePlotLocation, updatePlotPlantLocation } = useMonitoringPlotManagement()
-  const [loading, setLoading] = useState(false)
+  // Covers the plant-location write only. It used to track camera movement
+  // instead, which is what left the button disabled: see the note on the
+  // first-fix effect below.
+  const [submitting, setSubmitting] = useState(false)
   const toast = useToast()
   const { advanceIfOn } = useMonitoringPlotTour()
 
 
 
+  // Centre on the user once, on the first usable fix.
+  //
+  // The effect below used to run on every change of currentUserLocation, which
+  // the shared GPS watch dispatches about once a second (useLocationPermission
+  // keeps distanceInterval at 0 on purpose, so a user standing still still gets
+  // updates). Each run started a 1000ms easeTo, so a new camera animation began
+  // before the previous one ended and the map was never still:
+  // onRegionIsChanging held `loading` true forever and both footer buttons
+  // stayed disabled for the whole session.
+  //
+  // The two effects share one latch, so whichever lands first wins and the
+  // other stands down.
+  const hasAutoCenteredRef = useRef(false)
+
   useEffect(() => {
-    if (currentUserLocation && !initialPolygon?.length) {
-      setTimeout(() => {
-        if (cameraRef.current !== null) {
-          handleCamera()
-        }
-      }, 500)
-    }
+    if (initialPolygon?.length) return
+    const timer = setTimeout(() => {
+      if (hasAutoCenteredRef.current || cameraRef.current === null) return
+      if (!currentUserLocation || currentUserLocation[0] === 0) return
+      hasAutoCenteredRef.current = true
+      handleCamera()
+    }, 500)
+    return () => clearTimeout(timer)
   }, [])
 
   useEffect(() => {
-    if (currentUserLocation && cameraRef.current !== null) {
-      handleCamera()
-    }
+    if (hasAutoCenteredRef.current || cameraRef.current === null) return
+    if (!currentUserLocation || currentUserLocation[0] === 0) return
+    hasAutoCenteredRef.current = true
+    handleCamera()
   }, [currentUserLocation])
 
 
@@ -106,6 +126,11 @@ const CreatePlotMapDetail = (props: Props) => {
   }
 
   const handleCamera = () => {
+    // [0, 0] is the slice's placeholder before the first fix, not a position
+    // in the Gulf of Guinea.
+    if (!currentUserLocation || currentUserLocation[0] === 0) {
+      return
+    }
     cameraRef.current.easeTo({
       center: [...currentUserLocation],
       zoom: 15,
@@ -142,8 +167,11 @@ const CreatePlotMapDetail = (props: Props) => {
     return circleGeoJSON.geometry.coordinates[0]
   }
 
-  const handleContinuePress = async () => {
-    const centerCoordinates = await mapRef.current.getCenter()
+  // The coordinate is a parameter so a watch fix can take the same path as
+  // the crosshair. Left out, it falls back to the map centre, which is what
+  // the on-screen button has always done.
+  const handleContinuePress = async (coordinate?: [number, number]) => {
+    const centerCoordinates = coordinate ?? (await mapRef.current.getCenter())
     let updatedCoords = []
     if (plot_shape === 'CIRCULAR') {
       updatedCoords = getCircularCoords(centerCoordinates)
@@ -161,8 +189,8 @@ const CreatePlotMapDetail = (props: Props) => {
   }
 
 
-  const setSampleMarker = async () => {
-    const centerCoordinates = await mapRef.current.getCenter()
+  const setSampleMarker = async (coordinate?: [number, number]) => {
+    const centerCoordinates = coordinate ?? (await mapRef.current.getCenter())
     const validMarker = isPointInPolygon(centerCoordinates, {
       "type": "Feature",
       "properties": {},
@@ -186,12 +214,31 @@ const CreatePlotMapDetail = (props: Props) => {
     }
     // updatePlotPlantLocation refuses a synced plant (it is read-only on device);
     // only navigate on a real update so we don't pretend a blocked edit succeeded.
-    const updated = await updatePlotPlantLocation(plotId, plantId, centerCoordinates[1], centerCoordinates[0])
+    if (submitting) return
+    setSubmitting(true)
+    let updated: boolean
+    try {
+      updated = await updatePlotPlantLocation(plotId, plantId, centerCoordinates[1], centerCoordinates[0])
+    } finally {
+      setSubmitting(false)
+    }
     if (!updated) {
       toast.show("This plant is already synced and its location can't be changed.")
       return
     }
     navigation.replace("PlotDetails", { id: plotId })
+  }
+
+  // This screen marks two different things depending on how it was opened:
+  // the plot centre, or one plant inside an existing plot. The watch feeds
+  // whichever one is on screen.
+  const handleGarminFix = async (coords: [number, number]) => {
+    cameraRef.current?.easeTo({ center: coords, zoom: 18, duration: 600 })
+    if (isMarking) {
+      await setSampleMarker(coords)
+    } else {
+      await handleContinuePress(coords)
+    }
   }
 
   const continueForm = async () => {
@@ -260,12 +307,6 @@ const CreatePlotMapDetail = (props: Props) => {
         ref={mapRef}
         logo={false}
         attribution={false}
-        onRegionDidChange={() => {
-          setLoading(false)
-        }}
-        onRegionIsChanging={() => {
-          setLoading(true)
-        }}
         mapStyle={MapStyle}>
         <Camera ref={cameraRef} />
         <UserLocation heading minDisplacement={1} />
@@ -302,6 +343,15 @@ const CreatePlotMapDetail = (props: Props) => {
         {plantedTrees.length > 0 && <PlotMarker sampleTreeData={plantedTrees} onMarkerPress={() => { }} />}
       </Map>
       </TourTarget>
+      <GarminGpsButton
+        onFix={handleGarminFix}
+        origin={
+          currentUserLocation && currentUserLocation[0] !== 0
+            ? [currentUserLocation[0], currentUserLocation[1]]
+            : null
+        }
+        bottom={scaleSize(240)}
+      />
       {showOrientationHint && (
         <View style={styles.orientationHint} pointerEvents="none">
           <View style={styles.orientationRow}>
@@ -341,8 +391,8 @@ const CreatePlotMapDetail = (props: Props) => {
           label={plantId ? "Mark Plant Location" : i18next.t('label.mark_plot_center')}
           containerStyle={styles.btnContainer}
           pressHandler={setSampleMarker}
-          disable={loading}
-          loading={loading}
+          disable={submitting}
+          loading={submitting}
         />
       )}
 
@@ -351,8 +401,8 @@ const CreatePlotMapDetail = (props: Props) => {
           label={i18next.t('label.select_center')}
           containerStyle={styles.btnContainer}
           pressHandler={handleContinuePress}
-          disable={loading}
-          loading={loading}
+          disable={submitting}
+          loading={submitting}
         />
       ) : null}
 

@@ -38,6 +38,13 @@ export const validateForm = (formData: FormData): ValidationErrors => {
     return newErrors;
   }
 
+  // Intervention date validation. Every non-planning payload derives
+  // interventionStartDate / interventionEndDate from this field, and an empty
+  // value would throw at payload build time.
+  if (!formData.treeDetails.plantingDate) {
+    newErrors.interventionDate = 'Intervention date is required';
+  }
+
   // Species validation
   if (currentConfig.requiresSpecies && formData.species.length === 0) {
     newErrors.species = 'At least one species is required';

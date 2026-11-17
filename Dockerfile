@@ -1,5 +1,8 @@
-# Use Node.js 23 alpine
-FROM node:22-alpine AS base
+# Node.js 22 LTS, pinned to an exact patch for the same reason every npm
+# dependency is pinned: reproducible builds and a deliberate, reviewable bump.
+# 22.23.4 is the 2026-10-21 security release. Bump this when Node ships the
+# next one; a floating `22-alpine` tag would hide which runtime shipped.
+FROM node:22.23.4-alpine AS base
 
 # Install system dependencies once
 RUN apk add --no-cache libc6-compat

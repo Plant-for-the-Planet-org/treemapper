@@ -31,8 +31,9 @@ interface Props {
  * The floating "+" button and the menu it opens.
  *
  * It no longer draws any part of the bar. The bite it sits in belongs to
- * `TabBarBackground`, and both read the same geometry, so the white ring is
- * even on every screen instead of only on the one it was tuned for.
+ * `TabBarBackground`, and both read the same geometry, so the ring of map
+ * around the button is even on every screen instead of only on the one it was
+ * tuned for.
  */
 const AddBottomTabIcon = (props: Props) => {
   const { geometry, open, setOpen } = props
