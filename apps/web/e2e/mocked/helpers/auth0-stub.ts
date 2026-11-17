@@ -1,6 +1,6 @@
 import type { Page, Route } from '@playwright/test';
 
-import { fakeJwt } from './auth';
+import { fakeJwt } from './fake-token';
 
 // Same host as lib/auth/auth0-config.ts. Nothing in Layer 1 reaches it.
 export const AUTH0_ORIGIN = 'https://accounts.plant-for-the-planet.org';

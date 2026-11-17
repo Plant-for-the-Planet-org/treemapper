@@ -390,9 +390,9 @@ apps/web/
         settings.ts  # the settings page's loads; mockSettingsPage(api)
         invites.ts   # a pending invite; mockInviteStatus(api)
       helpers/
-        auth.ts      # fake JWT builder, localStorage seeding
-        auth0.ts     # Auth0 stub: /authorize, /oauth/token, /v2/logout
-        envelope.ts  # ok(data) / fail(status, code) helpers
+        fake-token.ts  # fake JWT builder, localStorage seeding
+        auth0-stub.ts  # Auth0 stub: /authorize, /oauth/token, /v2/logout
+        envelope.ts    # ok(data) / fail(status, code) helpers
       specs/
         auth.spec.ts     # login, silent login, callback errors, logout
         project-links.spec.ts  # F2: deep links, switcher, legacy links
