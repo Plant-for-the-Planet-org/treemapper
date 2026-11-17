@@ -4,6 +4,7 @@ import { PgColumn } from 'drizzle-orm/pg-core';
 import { DrizzleService } from '../database/drizzle.service';
 import { CacheService } from '../cache/cache.service';
 import {
+  image,
   intervention,
   interventionSpecies,
   project,
@@ -23,6 +24,7 @@ import {
   PublicPageSettings,
   PublicPageTheme,
   PublicProjectPage,
+  publicPageCacheKeys,
   resolvePublicPageSettings,
   sanitizePublicPageBlocks,
 } from './public-page.types';
@@ -136,6 +138,7 @@ export class PublicPageService {
       photos,
       people,
       plots,
+      cover,
     ] = await Promise.all([
       this.loadHeadline(projectId),
       this.loadVerification(projectId),
@@ -147,6 +150,7 @@ export class PublicPageService {
       this.loadPhotos(projectId),
       this.loadPeople(projectId, settings),
       this.countMonitoringPlots(projectId),
+      this.loadCover(projectRow),
     ]);
 
     return {
@@ -165,7 +169,7 @@ export class PublicPageService {
         ecosystem: projectRow.ecosystem,
         country: projectRow.country,
         website: projectRow.website,
-        image: projectRow.image,
+        image: cover,
         target: projectRow.target ?? null,
         startedAt: headline.startedAt,
       },
@@ -253,8 +257,9 @@ export class PublicPageService {
       .set({ metadata, updatedAt: new Date() })
       .where(eq(project.id, projectId));
 
-    await this.cacheService.delete(`public-page:${rows[0].uid}`);
-    if (rows[0].slug) await this.cacheService.delete(`public-page:${rows[0].slug}`);
+    for (const key of publicPageCacheKeys(rows[0].uid, rows[0].slug)) {
+      await this.cacheService.delete(key);
+    }
 
     this.logger.log(
       `Public page settings for project ${projectId}: enabled=${next.enabled} theme=${next.theme} names=${next.showContributorNames}`,
@@ -310,6 +315,39 @@ export class PublicPageService {
       publishedInterventionFilter(),
       fieldInterventionsOnly(),
     );
+  }
+
+  /**
+   * The hero cover image.
+   *
+   * `project.image` wins when set, but nothing in the app writes that column
+   * today - the settings screen's "Project images" upload goes to the `image`
+   * gallery table - so without this fallback a project created in the app can
+   * never have a cover. From the gallery, an image marked primary is
+   * preferred, then the newest upload. Private images never reach a public
+   * page, and NULL flags are treated as their defaults (not private, not
+   * primary) because older rows may predate the columns.
+   */
+  private async loadCover(projectRow: { id: number; image: string | null }): Promise<string | null> {
+    if (projectRow.image) return projectRow.image;
+
+    const rows = await this.drizzleService.db
+      .select({ filename: image.filename })
+      .from(image)
+      .where(
+        and(
+          eq(image.entityType, 'project'),
+          eq(image.entityId, projectRow.id),
+          isNull(image.deletedAt),
+          sql`${image.isPrivate} IS NOT TRUE`,
+          isNotNull(image.filename),
+          ne(image.filename, ''),
+        ),
+      )
+      .orderBy(desc(sql`${image.isPrimary} IS TRUE`), desc(image.createdAt))
+      .limit(1);
+
+    return rows[0]?.filename ?? null;
   }
 
   private async loadHeadline(projectId: number) {

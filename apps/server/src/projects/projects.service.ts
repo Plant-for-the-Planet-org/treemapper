@@ -10,6 +10,7 @@ import { UpdateExtraPermissionsDto } from './dto/update-extra-permissions.dto';
 import { eq, and, desc, ne, asc, isNull, inArray } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import { EmailService } from '../email/email.service';
+import { publicPageCacheKeys } from '../public-page/public-page.types';
 import { v4 as uuidv4 } from 'uuid';
 import { generateUid } from 'src/util/uidGenerator';
 import { User } from 'src/users/entities/user.entity';
@@ -98,8 +99,27 @@ export class ProjectsService {
     private notificationService: NotificationService,
     private projectCacheService: ProjectCacheService,
     private userCacheService: UserCacheService,
-    private auditLogsService: AuditService
+    private auditLogsService: AuditService,
+    private cacheService: CacheService
   ) { }
+
+  /**
+   * Drops the cached public page for a project. The page's hero cover falls
+   * back to the project image gallery, so adding or removing a gallery image
+   * changes what the public page shows and must not wait out the cache TTL.
+   */
+  private async dropPublicPageCache(projectId: number): Promise<void> {
+    const rows = await this.drizzleService.db
+      .select({ uid: project.uid, slug: project.slug })
+      .from(project)
+      .where(eq(project.id, projectId))
+      .limit(1);
+    if (!rows.length) return;
+
+    for (const key of publicPageCacheKeys(rows[0].uid, rows[0].slug)) {
+      await this.cacheService.delete(key);
+    }
+  }
 
 
   private getGeoJSONForPostGIS(locationInput: any): any {
@@ -3041,6 +3061,8 @@ export class ProjectsService {
         })
         .returning();
 
+      await this.dropPublicPageCache(projectId);
+
       return {
         message: 'Project image added successfully',
         statusCode: 201,
@@ -3101,6 +3123,8 @@ export class ProjectsService {
         oldValues: { imageUid, entityId: existing.entityId },
         source: 'web',
       });
+
+      await this.dropPublicPageCache(projectId);
 
       return {
         message: 'Project image deleted successfully',

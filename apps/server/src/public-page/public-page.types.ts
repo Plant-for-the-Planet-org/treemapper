@@ -265,6 +265,17 @@ export interface PublicProjectPage {
  * with the safe default. Unknown theme or geoDetail values fall back rather
  * than throwing: a bad value in jsonb must never 500 a public page.
  */
+/**
+ * Cache keys under which a project's public page may be stored. The page is
+ * addressable by slug and by uid and each spelling is its own entry, so
+ * anything that changes what the page shows must drop both.
+ */
+export function publicPageCacheKeys(uid: string, slug: string | null): string[] {
+  const keys = [`public-page:${uid}`];
+  if (slug && slug !== uid) keys.push(`public-page:${slug}`);
+  return keys;
+}
+
 export function resolvePublicPageSettings(metadata: unknown): PublicPageSettings {
   const stored = (metadata as { publicPage?: Partial<PublicPageSettings> } | null)?.publicPage;
   if (!stored || typeof stored !== 'object') {

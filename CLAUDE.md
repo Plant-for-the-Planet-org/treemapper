@@ -611,6 +611,15 @@ A project can publish a one-page, unauthenticated summary of its work at
 - Contributor names and faces are withheld unless `showContributorNames` is
   on **and** the user is not `isPrivate`. The server sends initials otherwise,
   so the client cannot leak a name it was never given.
+- **The hero cover falls back to the project image gallery.** Nothing in the
+  app writes the `project.image` column (only migrated projects carry one);
+  the settings screen's "Project images" upload goes to the `image` table. So
+  `loadCover` uses `project.image` when set, else the gallery: primary-marked
+  first, then newest, never `isPrivate` rows. Gallery add/delete drops the
+  public-page cache (`dropPublicPageCache` in `projects.service.ts`, keys from
+  `publicPageCacheKeys`) and pings `/api/public-page/revalidate`, so a new
+  cover shows immediately. The photo wall is separate: tree, then
+  intervention, then site photos, never the gallery.
 
 **Server**: `apps/server/src/public-page/`. `GET /api/public-page/:slugOrUid`
 is `@Public()`, IP-rate-limited to 60/min, envelope-wrapped, cached 5 minutes.

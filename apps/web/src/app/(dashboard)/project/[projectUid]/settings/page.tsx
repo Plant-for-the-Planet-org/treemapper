@@ -797,6 +797,18 @@ const ProjectSettings = () => {
     }
   }
 
+  // The public page's hero cover falls back to this gallery when
+  // project.image is empty, so adding or removing a gallery image changes the
+  // published page. Ask Next to rebuild its static copy now; the timed
+  // revalidation is the fallback if this ping is lost.
+  const revalidatePublicPage = () => {
+    void fetch('/api/public-page/revalidate', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ slug: projectData.slug || undefined, uid: selectedProject?.uid }),
+    }).catch(() => undefined)
+  }
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!canEdit) {
       toast.error('You do not have permission to modify project images.')
@@ -822,6 +834,7 @@ const ProjectSettings = () => {
       if (saveResult.data) {
         setProjectImages(prev => [...prev, saveResult.data])
         toast.success('Image uploaded successfully')
+        revalidatePublicPage()
       } else {
         throw new Error('Failed to save image record')
       }
@@ -840,6 +853,7 @@ const ProjectSettings = () => {
       if (result.statusCode === 200 || result.statusCode === 201) {
         setProjectImages(prev => prev.filter(img => img.uid !== imageUid))
         toast.success('Image deleted')
+        revalidatePublicPage()
       } else {
         toast.error('Failed to delete image')
       }
