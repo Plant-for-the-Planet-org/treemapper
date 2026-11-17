@@ -32,6 +32,7 @@ export const PUBLIC_PAGE_BLOCK_IDS = [
   'people',
   'badges',
   'text',
+  'image',
   'detailSeam',
   'data',
   'share',
@@ -44,6 +45,33 @@ export type PublicPageSurface = 'base' | 'detail'
 export const PUBLIC_PAGE_MAX_BLOCKS = 40
 export const PUBLIC_PAGE_TEXT_HEADING_MAX = 120
 export const PUBLIC_PAGE_TEXT_BODY_MAX = 2000
+export const PUBLIC_PAGE_IMAGE_CAPTION_MAX = 200
+export const PUBLIC_PAGE_IMAGE_ALT_MAX = 200
+
+/**
+ * The only image value a public page stores: a bare filename exactly as the
+ * presign upload returns it, in the `project` folder. Never a URL, because
+ * `cdnUrl` passes URLs through unchanged. The server enforces the same rule;
+ * this copy lets the client refuse early and render defensively.
+ */
+export const PUBLIC_PAGE_IMAGE_FILENAME = /^\d{10,16}-[a-z0-9]{1,12}\.(jpg|jpeg|png|gif|webp)$/
+
+export function isPublicPageImage(value: unknown): value is string {
+  return typeof value === 'string' && PUBLIC_PAGE_IMAGE_FILENAME.test(value)
+}
+
+/**
+ * What a person supplies for a block: words for `text`, an uploaded image
+ * with its caption and alt text for `image`. All plain text, rendered as text
+ * nodes.
+ */
+export interface PublicPageBlockContent {
+  heading?: string
+  body?: string
+  image?: string
+  caption?: string
+  alt?: string
+}
 
 /** One block in a saved arrangement. `key` identifies the instance, not the kind. */
 export interface PublicPageBlock {
@@ -51,8 +79,7 @@ export interface PublicPageBlock {
   key: string
   variant?: string
   surface?: PublicPageSurface
-  /** Plain text, rendered as text nodes. Only the `text` block uses it. */
-  content?: { heading?: string; body?: string }
+  content?: PublicPageBlockContent
 }
 
 export type PublicPageLayouts = Partial<Record<PublicPageTheme, PublicPageBlock[]>>

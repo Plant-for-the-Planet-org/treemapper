@@ -15,8 +15,8 @@ import { PUBLIC_PAGE_MAX_BLOCKS } from '../types'
  *
  * A block already on the page is shown greyed rather than hidden, so the list
  * stays in the same order every time and "where did Species go" never comes
- * up. Only the two repeatable ones (numbers and your own words) can be added
- * again.
+ * up. Only the repeatable ones (numbers, your own words, your own image) can
+ * be added again.
  */
 export function AddBlockPanel({
   blocks,

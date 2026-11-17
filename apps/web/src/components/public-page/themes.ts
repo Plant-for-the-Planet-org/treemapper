@@ -1,4 +1,9 @@
-import type { PublicPageBlockId, PublicPageSurface, PublicPageTheme } from './types'
+import type {
+  PublicPageBlockContent,
+  PublicPageBlockId,
+  PublicPageSurface,
+  PublicPageTheme,
+} from './types'
 
 /**
  * The theme system.
@@ -37,10 +42,11 @@ export interface BlockSpec {
    */
   surface?: PublicPageSurface
   /**
-   * Words the project wrote itself. Only the `text` block reads it, and only
-   * a saved arrangement can carry it: a theme default never has any.
+   * What the project supplied itself: words for `text`, an uploaded image for
+   * `image`. Only a saved arrangement can carry it; a theme default never has
+   * any.
    */
-  content?: { heading?: string; body?: string }
+  content?: PublicPageBlockContent
 }
 
 export interface ThemeConfig {

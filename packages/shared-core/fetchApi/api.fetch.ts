@@ -1595,7 +1595,7 @@ export interface PublicPageLayoutBlock {
   key: string;
   variant?: string;
   surface?: 'base' | 'detail';
-  content?: { heading?: string; body?: string };
+  content?: { heading?: string; body?: string; image?: string; caption?: string; alt?: string };
 }
 
 export const getPublicPageSettings = async (token: string, prid: string) => {
@@ -1617,6 +1617,8 @@ export const updatePublicPageSettings = async (
     theme?: string;
     showContributorNames?: boolean;
     layouts?: Record<string, PublicPageLayoutBlock[] | null>;
+    /** Uploaded filename, or null to go back to the automatic cover. */
+    coverImage?: string | null;
   },
 ) => {
   const uri = `${patchUrlApi.publicPageSettings}/${prid}/public-page/settings`;

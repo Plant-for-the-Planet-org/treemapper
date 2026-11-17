@@ -611,15 +611,29 @@ A project can publish a one-page, unauthenticated summary of its work at
 - Contributor names and faces are withheld unless `showContributorNames` is
   on **and** the user is not `isPrivate`. The server sends initials otherwise,
   so the client cannot leak a name it was never given.
-- **The hero cover falls back to the project image gallery.** Nothing in the
-  app writes the `project.image` column (only migrated projects carry one);
-  the settings screen's "Project images" upload goes to the `image` table. So
-  `loadCover` uses `project.image` when set, else the gallery: primary-marked
-  first, then newest, never `isPrivate` rows. Gallery add/delete drops the
-  public-page cache (`dropPublicPageCache` in `projects.service.ts`, keys from
+- **The hero cover is picked in this order** (`loadCover`): the page's own
+  `publicPage.coverImage` (uploaded in Settings > Public page), then
+  `project.image`, then the "Project images" gallery (`image` table,
+  primary-marked first, then newest, never `isPrivate` rows). The middle step
+  rarely fires: nothing in the app writes `project.image`, only migrated
+  projects carry one. Gallery add/delete drops the public-page cache
+  (`dropPublicPageCache` in `projects.service.ts`, keys from
   `publicPageCacheKeys`) and pings `/api/public-page/revalidate`, so a new
   cover shows immediately. The photo wall is separate: tree, then
   intervention, then site photos, never the gallery.
+- **Custom images are filenames, never URLs.** The cover and the `image`
+  block (repeatable, uploaded from the layout editor) store only the bare
+  filename the presign upload returns, in the `project` folder, and it must
+  match `PUBLIC_PAGE_IMAGE_FILENAME` (`<ms timestamp>-<random>.<ext>`, raster
+  types a browser can show; HEIC is refused). This is a security boundary:
+  `cdnUrl` passes any `http(s)://` value straight through, so a free string
+  would let a stored layout point a public page at any image on the internet.
+  The rule is enforced three times - the DTO on save, the sanitizer and
+  resolver on read, and `ImageBlock` on render - and
+  `apps/server/scripts/public-page-image-check.ts` covers the first two.
+  Keep the regex mirrored in `apps/web/src/components/public-page/types.ts`.
+  An upload is not a publish: the file goes to storage when chosen, but only a
+  layout or settings save puts its name on the page.
 
 **Server**: `apps/server/src/public-page/`. `GET /api/public-page/:slugOrUid`
 is `@Public()`, IP-rate-limited to 60/min, envelope-wrapped, cached 5 minutes.

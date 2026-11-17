@@ -2,9 +2,12 @@
 
 import type { ReactNode } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
-import { ChevronDown, ChevronUp, GripVertical, Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, GripVertical, ImagePlus, Pencil, Trash2 } from 'lucide-react'
 import { BLOCK_CATALOGUE } from '../layout'
 import type { BlockSpec } from '../themes'
+import { isPublicPageImage } from '../types'
+import type { PublicPageBlockContent } from '../types'
+import { ImageBlockEditor } from './ImageBlockEditor'
 import { TextBlockEditor } from './TextBlockEditor'
 
 /**
@@ -38,6 +41,7 @@ export function EditableBlock({
   textOpen,
   onToggleText,
   flash,
+  accessToken,
 }: {
   spec: BlockSpec
   index: number
@@ -48,11 +52,14 @@ export function EditableBlock({
   onMove: (key: string, offset: number) => void
   onRemove: (key: string) => void
   onVariant: (key: string, variant: string) => void
-  onContent: (key: string, content: { heading: string; body: string }) => void
+  onContent: (key: string, content: PublicPageBlockContent) => void
+  /** Whether this block's content panel (text or image) is open. */
   textOpen: boolean
   onToggleText: (key: string | null) => void
   /** Just added: the page scrolls here and this frame lights up briefly. */
   flash?: boolean
+  /** For the image block's upload. */
+  accessToken: string
 }) {
   const definition = BLOCK_CATALOGUE[spec.id]
   const key = spec.key as string
@@ -113,6 +120,16 @@ export function EditableBlock({
               </ToolButton>
             ) : null}
 
+            {definition.editableImage ? (
+              <ToolButton
+                label={textOpen ? 'Close the image editor' : 'Change the image'}
+                onClick={() => onToggleText(textOpen ? null : key)}
+                active={textOpen}
+              >
+                <ImagePlus size={14} />
+              </ToolButton>
+            ) : null}
+
             <ToolButton
               label="Move up"
               disabled={index === 0}
@@ -133,12 +150,30 @@ export function EditableBlock({
           </div>
         </div>
 
-        {textOpen ? (
+        {textOpen && definition.editableText ? (
           <TextBlockEditor
             content={spec.content ?? {}}
             onChange={(content) => onContent(key, content)}
             onClose={() => onToggleText(null)}
           />
+        ) : null}
+
+        {textOpen && definition.editableImage ? (
+          <ImageBlockEditor
+            content={spec.content ?? {}}
+            accessToken={accessToken}
+            onChange={(content) => onContent(key, content)}
+            onClose={() => onToggleText(null)}
+          />
+        ) : null}
+
+        {/* An image block with no image renders nothing on the page, which in
+            the editor would leave a frame with no body. Say so instead. */}
+        {definition.editableImage && !isPublicPageImage(spec.content?.image) && !textOpen ? (
+          <p className="m-0 px-4 py-6 text-center text-xs text-slate-500">
+            No image yet. Use the image button above to upload one. Until then this block is
+            left out of the published page.
+          </p>
         ) : null}
 
         {/* Inert while editing: the toolbar above is the only live part. */}

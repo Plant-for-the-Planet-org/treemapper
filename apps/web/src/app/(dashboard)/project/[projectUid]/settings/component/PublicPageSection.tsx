@@ -1,12 +1,14 @@
 'use client'
 
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   AlertTriangle,
   Check,
   Copy,
   ExternalLink,
   Globe,
+  ImageIcon,
+  ImagePlus,
   Layers,
   Loader2,
   Lock,
@@ -20,9 +22,15 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { cdnUrl } from '@/lib/cdn'
 import { cn } from '@/lib/utils'
 import { THEMES } from '@/components/public-page/themes'
+import { isPublicPageImage } from '@/components/public-page/types'
 import type { PublicPageTheme } from '@/components/public-page/types'
+import {
+  PUBLIC_PAGE_IMAGE_ACCEPT,
+  uploadPublicPageImage,
+} from '@/components/public-page/uploadImage'
 
 /**
  * Public page settings for a project.
@@ -41,6 +49,8 @@ interface Settings {
   theme: PublicPageTheme
   geoDetail: string
   showContributorNames: boolean
+  /** A cover chosen for the public page. Null means pick one automatically. */
+  coverImage: string | null
 }
 
 const DEFAULTS: Settings = {
@@ -48,6 +58,7 @@ const DEFAULTS: Settings = {
   theme: 'full',
   geoDetail: 'site',
   showContributorNames: false,
+  coverImage: null,
 }
 
 export const PublicPageSection = ({
@@ -67,6 +78,8 @@ export const PublicPageSection = ({
   const [saving, setSaving] = useState(false)
   const [confirmPublish, setConfirmPublish] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [coverUploading, setCoverUploading] = useState(false)
+  const coverInput = useRef<HTMLInputElement>(null)
 
   const slug = projectSlug || projectUid
   const path = `/p/${slug}`
@@ -127,6 +140,26 @@ export const PublicPageSection = ({
     },
     [accessToken, canEdit, projectUid, settings, slug],
   )
+
+  // Uploads first, then saves the filename as one settings change, so the
+  // cover only changes once the file is actually in storage.
+  const chooseCover = async (file: File | undefined) => {
+    if (!file) return
+    setCoverUploading(true)
+    try {
+      const filename = await uploadPublicPageImage(accessToken, file)
+      await save({ coverImage: filename }, 'Cover image updated.')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'The upload failed. Try again.')
+    } finally {
+      setCoverUploading(false)
+      if (coverInput.current) coverInput.current.value = ''
+    }
+  }
+
+  const coverUrl = isPublicPageImage(settings.coverImage)
+    ? cdnUrl('project', settings.coverImage)
+    : null
 
   const copyLink = async () => {
     try {
@@ -242,6 +275,68 @@ export const PublicPageSection = ({
       </Card>
 
       <Card className="py-0 gap-0 overflow-hidden">
+        <div className="px-5 py-4 flex items-center gap-2.5 border-b border-border">
+          <ImageIcon size={14} className="text-primary" />
+          <h3 className="text-sm font-semibold text-foreground">Cover image</h3>
+        </div>
+
+        <div className="p-5 space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <div className="flex h-28 w-full shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted/40 sm:w-48">
+              {coverUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- CDN host is not in the Next image allowlist
+                <img src={coverUrl} alt="Current cover" className="h-full w-full object-cover" />
+              ) : (
+                <span className="px-3 text-center text-xs text-muted-foreground">
+                  Picked automatically
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground max-w-[60ch]">
+                The large photo at the top of the page. Without one, the page uses the project
+                photo, then the newest image under Project images. JPG, PNG, WebP or GIF, up to
+                10 MB. A wide landscape photo works best.
+              </p>
+              <input
+                ref={coverInput}
+                type="file"
+                accept={PUBLIC_PAGE_IMAGE_ACCEPT}
+                className="sr-only"
+                onChange={(event) => chooseCover(event.target.files?.[0])}
+              />
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!canEdit || saving || coverUploading}
+                  onClick={() => coverInput.current?.click()}
+                >
+                  {coverUploading ? (
+                    <Loader2 size={13} className="mr-1.5 animate-spin" />
+                  ) : (
+                    <ImagePlus size={13} className="mr-1.5" />
+                  )}
+                  {coverUploading ? 'Uploading' : coverUrl ? 'Replace cover' : 'Upload a cover'}
+                </Button>
+                {coverUrl ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={!canEdit || saving || coverUploading}
+                    onClick={() => save({ coverImage: null }, 'Back to the automatic cover.')}
+                  >
+                    Use automatic cover
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="py-0 gap-0 overflow-hidden">
         <div className="px-5 py-4 flex items-center justify-between gap-4 border-b border-border">
           <h3 className="text-sm font-semibold text-foreground">Theme</h3>
           <span className="text-xs text-muted-foreground">
@@ -315,9 +410,9 @@ export const PublicPageSection = ({
               <p className="font-medium text-foreground">Arrange the blocks yourself</p>
               <p>
                 Open a preview and choose &quot;Arrange blocks&quot;. You can reorder what is on
-                the page, drop blocks you do not want, add ones the theme leaves out, and write
-                your own text. Each theme keeps its own arrangement, and a theme you never touch
-                keeps following its default.
+                the page, drop blocks you do not want, add ones the theme leaves out, write
+                your own text and add your own images. Each theme keeps its own arrangement, and
+                a theme you never touch keeps following its default.
               </p>
             </div>
           </div>

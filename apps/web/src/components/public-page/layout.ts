@@ -1,7 +1,7 @@
 import { BLOCKS } from './blocks'
 import type { BlockId, BlockSpec, ThemeConfig, Tone } from './themes'
-import { PUBLIC_PAGE_MAX_BLOCKS } from './types'
-import type { PublicPageBlock } from './types'
+import { PUBLIC_PAGE_MAX_BLOCKS, isPublicPageImage } from './types'
+import type { PublicPageBlock, PublicPageBlockContent } from './types'
 
 /**
  * What a page can be built from, and how a saved arrangement becomes one.
@@ -33,6 +33,8 @@ export interface BlockDefinition {
   repeatable?: boolean
   /** Carries words the project types. Only the text block does. */
   editableText?: boolean
+  /** Carries an image the project uploads. Only the image block does. */
+  editableImage?: boolean
   /**
    * Removing it is allowed but worth a word of warning: the page reads as
    * broken without it.
@@ -170,6 +172,17 @@ export const BLOCK_CATALOGUE: Record<BlockId, BlockDefinition> = {
       { id: 'quote', label: 'Pull quote' },
     ],
   },
+  image: {
+    id: 'image',
+    label: 'Your own image',
+    description: 'A photo you upload, with a caption. Add as many as you like.',
+    repeatable: true,
+    editableImage: true,
+    variants: [
+      { id: 'framed', label: 'Framed' },
+      { id: 'wide', label: 'Full width' },
+    ],
+  },
   detailSeam: {
     id: 'detailSeam',
     label: 'Section break',
@@ -260,22 +273,35 @@ export function resolveLayout(
   return blocks.length ? blocks : defaultLayout(theme)
 }
 
+/**
+ * Only the content fields that hold something, so an untouched block and one
+ * whose fields were typed then cleared compare equal. An image value that is
+ * not an uploaded filename is dropped here, the same as on the server.
+ */
+function storedContent(content: BlockSpec['content']): PublicPageBlockContent | null {
+  if (!content) return null
+  const kept: PublicPageBlockContent = {
+    ...(content.heading ? { heading: content.heading } : {}),
+    ...(content.body ? { body: content.body } : {}),
+    ...(isPublicPageImage(content.image) ? { image: content.image } : {}),
+    ...(content.caption ? { caption: content.caption } : {}),
+    ...(content.alt ? { alt: content.alt } : {}),
+  }
+  return Object.keys(kept).length ? kept : null
+}
+
 /** The arrangement as the API stores it. Keys are always written out. */
 export function toStoredLayout(blocks: BlockSpec[]): PublicPageBlock[] {
-  return blocks.map((spec, index) => ({
-    id: spec.id,
-    key: spec.key ?? `${spec.id}-${index}`,
-    ...(spec.variant ? { variant: spec.variant } : {}),
-    ...(spec.surface ? { surface: spec.surface } : {}),
-    ...(spec.content?.heading || spec.content?.body
-      ? {
-          content: {
-            ...(spec.content.heading ? { heading: spec.content.heading } : {}),
-            ...(spec.content.body ? { body: spec.content.body } : {}),
-          },
-        }
-      : {}),
-  }))
+  return blocks.map((spec, index) => {
+    const content = storedContent(spec.content)
+    return {
+      id: spec.id,
+      key: spec.key ?? `${spec.id}-${index}`,
+      ...(spec.variant ? { variant: spec.variant } : {}),
+      ...(spec.surface ? { surface: spec.surface } : {}),
+      ...(content ? { content } : {}),
+    }
+  })
 }
 
 /** True when the arrangement is the theme's own, so nothing needs storing. */
@@ -317,9 +343,8 @@ export function addBlock(blocks: BlockSpec[], id: BlockId, theme: ThemeConfig): 
     key: nextKey(blocks, id),
     ...(variant ? { variant } : {}),
     ...(before?.surface ? { surface: before.surface } : {}),
-    ...(BLOCK_CATALOGUE[id].editableText
-      ? { content: { heading: '', body: '' } }
-      : {}),
+    ...(BLOCK_CATALOGUE[id].editableText ? { content: { heading: '', body: '' } } : {}),
+    ...(BLOCK_CATALOGUE[id].editableImage ? { content: {} } : {}),
   }
 
   return [...blocks.slice(0, at), next, ...blocks.slice(at)]

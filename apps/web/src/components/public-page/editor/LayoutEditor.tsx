@@ -179,6 +179,7 @@ export function LayoutEditor({
                 textOpen={textOpenKey === spec.key}
                 onToggleText={setTextOpenKey}
                 flash={flashKey === spec.key}
+                accessToken={accessToken}
               >
                 {node}
               </EditableBlock>
@@ -292,7 +293,9 @@ export function LayoutEditor({
               // renders nothing on the page.
               const added = next.find((block) => !blocks.some((old) => old.key === block.key))
               if (added) setFlashKey(added.key as string)
-              if (added && BLOCK_CATALOGUE[id].editableText) setTextOpenKey(added.key as string)
+              if (added && (BLOCK_CATALOGUE[id].editableText || BLOCK_CATALOGUE[id].editableImage)) {
+                setTextOpenKey(added.key as string)
+              }
             }}
             onClose={() => setAdding(false)}
           />

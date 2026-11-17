@@ -150,7 +150,7 @@ export class PublicPageService {
       this.loadPhotos(projectId),
       this.loadPeople(projectId, settings),
       this.countMonitoringPlots(projectId),
-      this.loadCover(projectRow),
+      this.loadCover(projectRow, settings.coverImage),
     ]);
 
     return {
@@ -244,6 +244,8 @@ export class PublicPageService {
       ...(changes.showContributorNames === undefined
         ? {}
         : { showContributorNames: changes.showContributorNames }),
+      // Absent keeps the stored cover, null clears it back to automatic.
+      ...(changes.coverImage === undefined ? {} : { coverImage: changes.coverImage ?? null }),
       layouts: mergeLayouts(current.layouts, changes.layouts),
     };
 
@@ -318,17 +320,21 @@ export class PublicPageService {
   }
 
   /**
-   * The hero cover image.
+   * The hero cover image, first match wins:
    *
-   * `project.image` wins when set, but nothing in the app writes that column
-   * today - the settings screen's "Project images" upload goes to the `image`
-   * gallery table - so without this fallback a project created in the app can
-   * never have a cover. From the gallery, an image marked primary is
-   * preferred, then the newest upload. Private images never reach a public
-   * page, and NULL flags are treated as their defaults (not private, not
-   * primary) because older rows may predate the columns.
+   *  1. `coverImage`, a cover uploaded for the public page itself.
+   *  2. `project.image`. Nothing in the app writes that column today (only
+   *     migrated projects carry one), which is why the next step exists.
+   *  3. The settings screen's "Project images" gallery (`image` table): an
+   *     image marked primary, then the newest upload. Private images never
+   *     reach a public page, and NULL flags are treated as their defaults (not
+   *     private, not primary) because older rows may predate the columns.
    */
-  private async loadCover(projectRow: { id: number; image: string | null }): Promise<string | null> {
+  private async loadCover(
+    projectRow: { id: number; image: string | null },
+    coverImage: string | null,
+  ): Promise<string | null> {
+    if (coverImage) return coverImage;
     if (projectRow.image) return projectRow.image;
 
     const rows = await this.drizzleService.db

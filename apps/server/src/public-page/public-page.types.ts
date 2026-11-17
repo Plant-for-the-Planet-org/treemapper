@@ -37,6 +37,7 @@ export const PUBLIC_PAGE_BLOCK_IDS = [
   'people',
   'badges',
   'text',
+  'image',
   'detailSeam',
   'data',
   'share',
@@ -53,6 +54,27 @@ export const PUBLIC_PAGE_TEXT_HEADING_MAX = 120;
 export const PUBLIC_PAGE_TEXT_BODY_MAX = 2000;
 export const PUBLIC_PAGE_BLOCK_KEY_MAX = 64;
 export const PUBLIC_PAGE_BLOCK_VARIANT_MAX = 32;
+export const PUBLIC_PAGE_IMAGE_CAPTION_MAX = 200;
+export const PUBLIC_PAGE_IMAGE_ALT_MAX = 200;
+
+/**
+ * The only image value a public page will store: a bare filename in the exact
+ * shape `R2Service.generatePresignedUrl` produces (`<ms timestamp>-<random>.<ext>`),
+ * uploaded to the `project` folder.
+ *
+ * This is a security boundary, not tidiness. The web's `cdnUrl` passes any
+ * `http(s)://` value through unchanged, so accepting a free string here would
+ * let a stored layout point a public page at any image on the internet. HEIC
+ * and HEIF are left out even though uploads allow them: browsers do not render
+ * them, so they could only ever show as a broken image.
+ *
+ * **Mirrored** in `apps/web/src/components/public-page/types.ts`.
+ */
+export const PUBLIC_PAGE_IMAGE_FILENAME = /^\d{10,16}-[a-z0-9]{1,12}\.(jpg|jpeg|png|gif|webp)$/;
+
+export function isPublicPageImage(value: unknown): value is string {
+  return typeof value === 'string' && PUBLIC_PAGE_IMAGE_FILENAME.test(value);
+}
 
 /**
  * One block in a saved arrangement.
@@ -60,15 +82,25 @@ export const PUBLIC_PAGE_BLOCK_VARIANT_MAX = 32;
  * `key` identifies the instance, not the kind, because a theme may place the
  * same block twice and the editor needs a stable handle for each copy.
  *
- * `content` is the only place on a public page where a person types the words.
- * It is plain text and is rendered as text nodes, never as markup.
+ * `content` is the only place on a public page where a person supplies what is
+ * shown: words for the `text` block, an uploaded image plus its caption and
+ * alt text for the `image` block. Text is plain and rendered as text nodes,
+ * never as markup; `image` is a filename checked by `isPublicPageImage`.
  */
+export interface PublicPageBlockContent {
+  heading?: string;
+  body?: string;
+  image?: string;
+  caption?: string;
+  alt?: string;
+}
+
 export interface PublicPageBlock {
   id: PublicPageBlockId;
   key: string;
   variant?: string;
   surface?: PublicPageSurface;
-  content?: { heading?: string; body?: string };
+  content?: PublicPageBlockContent;
 }
 
 /**
@@ -102,6 +134,12 @@ export interface PublicPageSettings {
    * default list, which is the state every project starts in.
    */
   layouts: PublicPageLayouts;
+  /**
+   * A cover chosen for this page alone. Wins over `project.image` and the
+   * project gallery; null means "pick automatically". Shared by all themes,
+   * because a cover belongs to the project, not to a layout.
+   */
+  coverImage: string | null;
 }
 
 export const DEFAULT_PUBLIC_PAGE_SETTINGS: PublicPageSettings = {
@@ -110,6 +148,7 @@ export const DEFAULT_PUBLIC_PAGE_SETTINGS: PublicPageSettings = {
   geoDetail: 'site',
   showContributorNames: false,
   layouts: {},
+  coverImage: null,
 };
 
 export interface PublicPageTotals {
@@ -295,6 +334,7 @@ export function resolvePublicPageSettings(metadata: unknown): PublicPageSettings
     geoDetail: 'site',
     showContributorNames: stored.showContributorNames === true,
     layouts: sanitizePublicPageLayouts(stored.layouts),
+    coverImage: isPublicPageImage(stored.coverImage) ? stored.coverImage : null,
   };
 }
 
@@ -339,18 +379,24 @@ export function sanitizePublicPageBlocks(value: unknown): PublicPageBlock[] {
 
     const content = entry.content;
     if (content && typeof content === 'object') {
-      const heading =
-        typeof content.heading === 'string'
-          ? content.heading.trim().slice(0, PUBLIC_PAGE_TEXT_HEADING_MAX)
-          : '';
-      const body =
-        typeof content.body === 'string'
-          ? content.body.trim().slice(0, PUBLIC_PAGE_TEXT_BODY_MAX)
-          : '';
-      if (heading || body) {
+      const text = (value: unknown, max: number) =>
+        typeof value === 'string' ? value.trim().slice(0, max) : '';
+
+      const heading = text(content.heading, PUBLIC_PAGE_TEXT_HEADING_MAX);
+      const body = text(content.body, PUBLIC_PAGE_TEXT_BODY_MAX);
+      // An image value that is not a server-made filename is dropped, never
+      // kept: see `PUBLIC_PAGE_IMAGE_FILENAME` for why.
+      const image = isPublicPageImage(content.image) ? content.image : '';
+      const caption = text(content.caption, PUBLIC_PAGE_IMAGE_CAPTION_MAX);
+      const alt = text(content.alt, PUBLIC_PAGE_IMAGE_ALT_MAX);
+
+      if (heading || body || image || caption || alt) {
         block.content = {
           ...(heading ? { heading } : {}),
           ...(body ? { body } : {}),
+          ...(image ? { image } : {}),
+          ...(caption ? { caption } : {}),
+          ...(alt ? { alt } : {}),
         };
       }
     }

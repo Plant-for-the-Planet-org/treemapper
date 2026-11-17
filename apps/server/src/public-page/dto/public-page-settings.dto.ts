@@ -8,6 +8,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  Matches,
   MaxLength,
   ValidateNested,
 } from 'class-validator';
@@ -15,6 +16,9 @@ import {
   PUBLIC_PAGE_BLOCK_IDS,
   PUBLIC_PAGE_BLOCK_KEY_MAX,
   PUBLIC_PAGE_BLOCK_VARIANT_MAX,
+  PUBLIC_PAGE_IMAGE_ALT_MAX,
+  PUBLIC_PAGE_IMAGE_CAPTION_MAX,
+  PUBLIC_PAGE_IMAGE_FILENAME,
   PUBLIC_PAGE_MAX_BLOCKS,
   PUBLIC_PAGE_SURFACES,
   PUBLIC_PAGE_TEXT_BODY_MAX,
@@ -41,6 +45,26 @@ export class PublicPageBlockContentDto {
   @IsString()
   @MaxLength(PUBLIC_PAGE_TEXT_BODY_MAX)
   body?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filename from the presign upload (folder "project"). URLs are refused.',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(PUBLIC_PAGE_IMAGE_FILENAME, { message: 'image must be an uploaded image filename' })
+  image?: string;
+
+  @ApiPropertyOptional({ maxLength: PUBLIC_PAGE_IMAGE_CAPTION_MAX })
+  @IsOptional()
+  @IsString()
+  @MaxLength(PUBLIC_PAGE_IMAGE_CAPTION_MAX)
+  caption?: string;
+
+  @ApiPropertyOptional({ maxLength: PUBLIC_PAGE_IMAGE_ALT_MAX })
+  @IsOptional()
+  @IsString()
+  @MaxLength(PUBLIC_PAGE_IMAGE_ALT_MAX)
+  alt?: string;
 }
 
 export class PublicPageBlockDto {
@@ -136,6 +160,16 @@ export class PublicPageSettingsDto {
   @IsOptional()
   @IsBoolean()
   showContributorNames?: boolean;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    description:
+      'Cover image for the public page: a filename from the presign upload (folder "project"). Send null to go back to the automatic cover.',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(PUBLIC_PAGE_IMAGE_FILENAME, { message: 'coverImage must be an uploaded image filename' })
+  coverImage?: string | null;
 
   @ApiPropertyOptional({
     type: PublicPageLayoutsDto,

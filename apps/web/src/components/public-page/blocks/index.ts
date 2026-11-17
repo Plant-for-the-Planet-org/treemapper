@@ -1,6 +1,7 @@
 import type { BlockId } from '../themes'
 import { BadgesBlock } from './BadgesBlock'
 import { HeroBlock } from './HeroBlock'
+import { ImageBlock } from './ImageBlock'
 import { MapBlock } from './MapBlock'
 import { AnchorNavBlock, DataBlock, DetailSeamBlock, FooterBlock } from './MiscBlocks'
 import { MonitoringBlock } from './MonitoringBlock'
@@ -38,6 +39,7 @@ export const BLOCKS: Record<BlockId, BlockComponent> = {
   people: PeopleBlock,
   badges: BadgesBlock,
   text: TextBlock,
+  image: ImageBlock,
   detailSeam: DetailSeamBlock,
   data: DataBlock,
   share: ShareBlock,
