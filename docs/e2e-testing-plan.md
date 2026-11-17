@@ -210,10 +210,14 @@ Opt in, and never part of `yarn test:e2e` or CI. The Playwright projects
     the expected values at run time. No real data is written into the repo.
   - `apiCalls`: every `/api/server/` call the page made. Automatic for every
     test, and any 5xx fails the test.
+  - `blockedWrites`: the read-only guard. Automatic for every test: it aborts
+    every non-GET `/api/server/` request the page sends and fails the test if
+    there was one. It covers the page only, not `backend.request`.
+  - `allowWrites`: option, `false` by default. A spec that must write sets
+    `test.use({ allowWrites: true })`, and only once the user has agreed.
 - **Data:** whatever the test account has in the local database. Specs must
-  not hardcode it, and must not write unless the user agrees.
-  `fullstack/specs/project-links.spec.ts` shows one way to make that hold: it routes every non-GET
-  `/api/server/` request, aborts it and fails the test. A spec that needs data
+  not hardcode it, and must not write unless the user agrees. The
+  `blockedWrites` guard makes that the default. A spec that needs data
   the account may not have (a second project in the same workspace) skips
   with a reason instead of failing.
 - **Empty values pass on a failed load.** Many widgets start at 0 or empty and
@@ -396,10 +400,11 @@ apps/web/
       env.ts         # file paths, credentials(), assertLocalBackend()
       auth.setup.ts  # safety checks, then reuse the saved token or log in
                      # through Auth0; saves only the token to .auth/user.json
-      test.ts        # test: token, backend, apiCalls (auto, fails on 5xx)
+      test.ts        # test: token, backend, apiCalls (auto, fails on 5xx),
+                     # blockedWrites (auto, read-only unless allowWrites)
       specs/
         landing.spec.ts    # F1 scenario 1
-        project-links.spec.ts  # F2 scenario 1, blocks every write
+        project-links.spec.ts  # F2 scenario 1
     .auth/           # saved login state, gitignored (holds a real token)
 apps/web/.env.e2e    # E2E_USER_EMAIL, E2E_USER_PASSWORD; gitignored
 ```

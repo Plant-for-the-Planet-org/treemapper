@@ -16,7 +16,6 @@ interface Project {
 
 test('a deep link opens that project, not the main one', async ({
   page,
-  baseURL,
   backend,
   apiCalls,
 }) => {
@@ -43,16 +42,6 @@ test('a deep link opens that project, not the main one', async ({
   const linkedProjectDetail = await backend.get(
     `projects/${linkedProject.uid}`,
   )
-
-  // Block all non-GET requests so the test cannot modify the real test account.
-  // Any attempted write is recorded and fails the test.
-  const blockedWrites: string[] = []
-  await page.route(`${new URL(baseURL!).origin}/api/server/**`, route => {
-    const request = route.request()
-    if (request.method() === 'GET') return route.fallback()
-    blockedWrites.push(`${request.method()} ${new URL(request.url()).pathname}`)
-    return route.abort('blockedbyclient')
-  })
 
   // Verify the page's own API request. Empty settings fields alone would not
   // tell us whether the project request succeeded.
@@ -104,5 +93,4 @@ test('a deep link opens that project, not the main one', async ({
   // The bootstrap also selects the main project. If that ever won the race,
   // settings would load the main project behind this URL.
   expect(apiCalls).not.toContain(`GET projects/${mainProject!.uid}`)
-  expect(blockedWrites, 'Writes the page tried to send').toEqual([])
 })
