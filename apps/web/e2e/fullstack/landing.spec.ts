@@ -3,8 +3,8 @@ import { formatNumber } from '@shared-core/utils/numberFormatingHelper'
 import { expect, test } from './fixtures'
 
 // F1 in docs/e2e-user-flows.md, against the real stack: a returning user opens
-// the app and lands on their main project. Layer 1 checks the same journey on
-// made-up data; this one checks those mocks still match the real API.
+// the app and lands on their main project. F1 has no Layer 1 test yet. Once it
+// does, this one is what shows its mocks still match the real API.
 //
 // Nothing about the test account is written here. Every expected value is
 // read from the API as the same user, then compared with what the page shows.

@@ -27,8 +27,7 @@ interface Fixtures {
   apiCalls: string[]
 }
 
-// Read the access token saved by the Playwright setup project.
-// This allows tests to reuse an authenticated session without logging in again.
+// Reads the access token the setup project saved to AUTH_FILE.
 function savedToken(): string {
   const state = JSON.parse(fs.readFileSync(AUTH_FILE, 'utf8'))
   const token = state.origins
@@ -47,12 +46,8 @@ function savedToken(): string {
 // Specs in this folder import `test` and `expect` from here, never from
 // ../fixtures/test. That one is Layer 1: it mocks every API call and stubs
 // Auth0, so a full-stack spec importing it would quietly test nothing real.
-//
-// Extends Playwright's built-in test with reusable fixtures for the saved
-// login, direct backend requests, and API monitoring.
 export const test = base.extend<Fixtures>({
   token: async ({}, use) => {
-    // Provide the saved access token to tests that need authentication.
     await use(savedToken())
   },
 
@@ -77,8 +72,8 @@ export const test = base.extend<Fixtures>({
     await request.dispose()
   },
 
-  // Automatically monitor browser API requests in every test.
-  // Record the requested endpoints and fail the test if any API returns a 5xx error.
+  // Records every /api/server/ call the page makes, in every test (auto), and
+  // fails the test if any of them answered with a 5xx.
   apiCalls: [
     async ({ page, baseURL }, use) => {
       const prefix = new URL(API_PREFIX, baseURL!).toString()
@@ -86,7 +81,6 @@ export const test = base.extend<Fixtures>({
       const serverErrors: string[] = []
 
       page.on('request', req => {
-        // Ignore requests outside our backend API.
         if (!req.url().startsWith(prefix)) return
         const path = new URL(req.url()).pathname.slice(API_PREFIX.length)
         calls.push(`${req.method()} ${path}`)
@@ -101,16 +95,12 @@ export const test = base.extend<Fixtures>({
       })
 
       await use(calls)
-      // Fail the test if any browser API request returned a server error (5xx).
       expect(serverErrors, 'API calls that failed on the server').toEqual([])
     },
-    // Run this fixture for every test automatically,
-    // even when the test doesn't explicitly request apiCalls.
     { auto: true },
   ],
 
   page: async ({ page }, use) => {
-    // Prepare the browser page before making it available to the test.
     await hideNextDevTools(page)
     await use(page)
   },
