@@ -10,13 +10,13 @@ Phase 4. It also covers silent login, expired tokens, open redirects through
 `returnTo` and `redirectTo`, logout from the collapsed sidebar, and logout while
 impersonating.
 
-F2 is written in Layer 1 (2026-11-11): `landing.spec.ts` covers tests 3 and
+F2 is written in Layer 1 (2026-11-11): `project-links.spec.ts` covers tests 3 and
 4 below and scenario 12, except the switch across workspaces. See F2 in
 [e2e-user-flows.md](./e2e-user-flows.md#f2-deep-links-unknown-projects-and-the-project-switcher).
 
 Layer 2 has started too, locally only: a real Auth0 login, F1 scenario 1
 (`fullstack/specs/landing.spec.ts`, 2026-11-05) and F2 scenario 1
-(`fullstack/specs/deep-link.spec.ts`, 2026-11-12), against a local server and
+(`fullstack/specs/project-links.spec.ts`, 2026-11-12), against a local server and
 database. Since 2026-11-12 the setup reuses a saved login while its token is
 still good, so most runs skip the Auth0 page. It is not in CI. See [Layer 2: full stack](#layer-2-full-stack-a-few-smoke-tests).
 
@@ -212,7 +212,7 @@ Opt in, and never part of `yarn test:e2e` or CI. The Playwright projects
     test, and any 5xx fails the test.
 - **Data:** whatever the test account has in the local database. Specs must
   not hardcode it, and must not write unless the user agrees.
-  `deep-link.spec.ts` shows one way to make that hold: it routes every non-GET
+  `fullstack/specs/project-links.spec.ts` shows one way to make that hold: it routes every non-GET
   `/api/server/` request, aborts it and fails the test. A spec that needs data
   the account may not have (a second project in the same workspace) skips
   with a reason instead of failing.
@@ -315,8 +315,8 @@ stack), and **U** means it is better as a unit or integration test.
 | 1 | Open a protected page with no session | any route, `DashboardClientLayout`, `login/components/LoginContent.tsx` | Redirect to `/login?returnTo=...`; login starts PKCE with the right parameters | The login gate runs in the browser only | High | M. **Done** (`auth.spec.ts`) |
 | 1b | Login callback errors | `GET /api/auth/callback`, `/login` | Unverified email opens the verify dialog; other errors go back to login with no token | Users get stuck here when it breaks | Medium | M. **Done** (`auth.spec.ts`) |
 | 2 | Returning user opens the app | `/`, project layout, `Overview` | Lands on `/project/<main>/overview`; sidebar and stats show | Every visit goes through this | High | M, plus one F smoke test. F **done** (`fullstack/specs/landing.spec.ts`, local only) |
-| 3 | Open a shared deep link | `(dashboard)/project/[projectUid]/layout.tsx` | The right project loads; an unknown uid shows "Project not found" | Unchecked runtime item in `URL-ROUTING-MIGRATION.md` | High | M. **Done** (`landing.spec.ts`). F **done** for the deep link (`fullstack/specs/deep-link.spec.ts`, local only) |
-| 4 | Use an old `/dashboard/*` bookmark | `component/LegacyProjectRedirect.tsx` | Goes to `/project/<uid>/...`; invite query string is kept | Real bookmarks; broken (see Known issues) | High | M. **Done** (`landing.spec.ts`; two cases are `test.fail()`) |
+| 3 | Open a shared deep link | `(dashboard)/project/[projectUid]/layout.tsx` | The right project loads; an unknown uid shows "Project not found" | Unchecked runtime item in `URL-ROUTING-MIGRATION.md` | High | M. **Done** (`project-links.spec.ts`). F **done** for the deep link (`fullstack/specs/project-links.spec.ts`, local only) |
+| 4 | Use an old `/dashboard/*` bookmark | `component/LegacyProjectRedirect.tsx` | Goes to `/project/<uid>/...`; invite query string is kept | Real bookmarks; broken (see Known issues) | High | M. **Done** (`project-links.spec.ts`; two cases are `test.fail()`) |
 | 5 | New user, first run | `/onboard`, `/create-project` | Project created; lands on its overview | Every new user; likely creates two projects | High | M, then F |
 | 6 | Accept a project invite | `/?project-invite=T`, `ProjectInviteModal` | Joins the project, skips onboarding | How teams grow | High | M; F needs two users |
 | 7 | Record a single-tree intervention | `/project/:uid/new-intervention` | Shows in the interventions list | Core purpose of the product | High value, complex | M first: latitude and longitude can be typed in Point mode, so no map click is needed. Then one F smoke test. See F4 in `e2e-user-flows.md` |
@@ -324,7 +324,7 @@ stack), and **U** means it is better as a unit or integration test.
 | 9 | Bulk upload a CSV | `/bulkupload` (4 steps) | Success screen; link opens interventions | Large data path | Medium | Happy path and main errors: M, then one F. Validation rules: U. See F7 |
 | 10 | Sidebar and access per role | `DashboardSidebar`, `ProjectRoleGate` | Each role sees the right items | Client and server gates disagree today | Medium | M |
 | 11 | Session error screens | `DashboardClientLayout` | `email_not_verified` shows "Verify your email"; 5xx retries, then "Error Occurred" | Users get stuck here when it breaks | Medium | M (use `page.clock`) |
-| 12 | Switch project, stay on the same section | sidebar project switcher | `/project/<new>/<same section>` | Routing migration item | Medium | M. **Done** within one workspace (`landing.spec.ts`); across workspaces not written |
+| 12 | Switch project, stay on the same section | sidebar project switcher | `/project/<new>/<same section>` | Routing migration item | Medium | M. **Done** within one workspace (`project-links.spec.ts`); across workspaces not written |
 | 13 | Log out | `lib/logout.ts` | Token cleared; goes to Auth0 `/v2/logout`; after a reload, Auth0 refuses the silent login, so you stay logged out | Shared machines in the field | Medium | M. **Done** (`auth.spec.ts`) |
 | 14 | Team: invite, change role, remove | `/team` | Server enforces roles | Access control | Medium | F |
 | 15 | Settings, species, approvals, forms, export | the matching pages | Edits save; export downloads | Breadth | Low-Med | F later. Approvals: use modal buttons, not drag and drop |
@@ -346,10 +346,10 @@ What exists (confirmed):
   `GET /` to return "Hello World!", which no longer exists, so it fails.
 - `apps/web/e2e/mocked/specs/auth.spec.ts`: the Layer 1 auth tests (added on this
   branch).
-- `apps/web/e2e/fullstack/specs/landing.spec.ts` and `deep-link.spec.ts`: the
+- `apps/web/e2e/fullstack/specs/landing.spec.ts` and `project-links.spec.ts`: the
   Layer 2 tests (F1 scenario 1, F2 scenario 1), behind a real login in
   `fullstack/auth.setup.ts`. Local only.
-- `apps/web/e2e/mocked/specs/landing.spec.ts`: the Layer 1 F2 tests (deep links,
+- `apps/web/e2e/mocked/specs/project-links.spec.ts`: the Layer 1 F2 tests (deep links,
   unknown projects, the switcher, legacy links).
 - No other tests in `apps/web`, and none in `apps/mobile` or
   `packages/shared-core`.
@@ -390,7 +390,7 @@ apps/web/
         envelope.ts  # ok(data) / fail(status, code) helpers
       specs/
         auth.spec.ts     # login, silent login, callback errors, logout
-        landing.spec.ts  # F2: deep links, switcher, legacy links
+        project-links.spec.ts  # F2: deep links, switcher, legacy links
     fullstack/       # Layer 2: projects `fullstack-setup` and `fullstack`,
                      # only when E2E_FULLSTACK is set
       env.ts         # file paths, credentials(), assertLocalBackend()
@@ -399,7 +399,7 @@ apps/web/
       test.ts        # test: token, backend, apiCalls (auto, fails on 5xx)
       specs/
         landing.spec.ts    # F1 scenario 1
-        deep-link.spec.ts  # F2 scenario 1, blocks every write
+        project-links.spec.ts  # F2 scenario 1, blocks every write
     .auth/           # saved login state, gitignored (holds a real token)
 apps/web/.env.e2e    # E2E_USER_EMAIL, E2E_USER_PASSWORD; gitignored
 ```
@@ -456,7 +456,7 @@ Config notes:
      That runs the setup first, then the specs. The setup reuses the saved
      login while it is good (see [Layer 2](#what-exists-today-local-only));
      delete `apps/web/e2e/.auth/user.json` to force a new one.
-     `deep-link.spec.ts` skips unless the account has a second project in the
+     `project-links.spec.ts` skips unless the account has a second project in the
      same workspace as its main project.
   - **VS Code Playwright extension:** it loads the config without
     `E2E_FULLSTACK`, so it does not show the Layer 2 tests. Add
@@ -543,7 +543,7 @@ real test depends on it.
    instead, which also fixes what screen readers announce.
 3. Decide how to handle tests that expose real bugs: fix first, or mark them
    `test.fail()` with a ticket. `auth.spec.ts` uses `test.fail()` for #1124,
-   `landing.spec.ts` for #1142 and #1143.
+   `project-links.spec.ts` for #1142 and #1143.
    A `test.fail()` test passes on any failure, so keep it to the one check
    that shows the bug, and pair it with a normal test for everything else on
    that page.
@@ -638,9 +638,9 @@ The stubbed Auth0 is followed, not caught, so the app's own
 
 ### 3. Deep links open the right project, and unknown ids are handled
 
-**Done** in `landing.spec.ts`. It also checks that the main project's settings
+**Done** in `project-links.spec.ts`. It also checks that the main project's settings
 are never fetched behind the p_second URL. Step 1 also has a Layer 2 version,
-`fullstack/specs/deep-link.spec.ts`, which runs the same checks on the test
+`fullstack/specs/project-links.spec.ts`, which runs the same checks on the test
 account's real projects, plus the slug and the role in the sidebar.
 
 - **Steps:**
@@ -664,7 +664,7 @@ account's real projects, plus the slug and the role in the sidebar.
   3. Ends on `/?project-invite=abc`, and the invite modal opens.
 - **Expected today:** cases 1 and 2 fail (see Known issues).
 
-**Done** in `landing.spec.ts`. Cases 1 and 2 are `test.fail()`: the page stays on
+**Done** in `project-links.spec.ts`. Cases 1 and 2 are `test.fail()`: the page stays on
 `/dashboard/...` and never redirects (#1142). Case 3 passes, because `/dashboard` itself
 is a server redirect that does not need the stores.
 
@@ -729,7 +729,7 @@ All issues below are confirmed in the code. #1124 (the first) and #1137
   `displayName` instead.
 - **Legacy `/dashboard/*` links show a spinner forever on a cold load**
   (#1142).
-  **Seen in a test** (`landing.spec.ts`, as `test.fail()`).
+  **Seen in a test** (`project-links.spec.ts`, as `test.fail()`).
   `app/dashboard/layout.tsx` only passes its children through.
   `LegacyProjectRedirect` waits for store values that only
   `DashboardClientLayout` fills, and that layout is not mounted under

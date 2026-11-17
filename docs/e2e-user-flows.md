@@ -7,8 +7,8 @@ test layers, the harness and the CI setup. Read that first.
 
 **Status:** proposed 2026-11-04, for review. Written so far: F1 scenario 1 in
 Layer 2 (full stack, local only, 2026-11-05), F2 in Layer 1 except the switch
-across workspaces (`mocked/specs/landing.spec.ts`, 2026-11-11), and F2 scenario 1 in
-Layer 2 (`fullstack/specs/deep-link.spec.ts`, 2026-11-12).
+across workspaces (`mocked/specs/project-links.spec.ts`, 2026-11-11), and F2 scenario 1 in
+Layer 2 (`fullstack/specs/project-links.spec.ts`, 2026-11-12).
 
 **How this was made:** by reading the code, not by running the app. Labels,
 endpoints and bugs below come from the source and give a path where it
@@ -56,13 +56,13 @@ while impersonating. None of the flows below repeat that. They all start
 logged in (`test.use({ loggedIn: true })`).
 
 `apps/web/e2e/fullstack/specs/landing.spec.ts` covers F1 scenario 1 in Layer 2,
-and `fullstack/specs/deep-link.spec.ts` covers F2 scenario 1: a real Auth0 login
+and `fullstack/specs/project-links.spec.ts` covers F2 scenario 1: a real Auth0 login
 (reused while the saved token is good), a local server and a local database.
 They run only when asked (`E2E_FULLSTACK=1`), never in CI. How to run it is in
 [e2e-testing-plan.md, "Running locally and in
 CI"](./e2e-testing-plan.md#running-locally-and-in-ci).
 
-`apps/web/e2e/mocked/specs/landing.spec.ts` covers F2 in Layer 1: deep links, an
+`apps/web/e2e/mocked/specs/project-links.spec.ts` covers F2 in Layer 1: deep links, an
 unknown project, the switcher within one workspace, legacy `/dashboard` links
 and an invite on a project route. See [F2](#f2-deep-links-unknown-projects-and-the-project-switcher)
 for what is in and what is left out.
@@ -146,7 +146,7 @@ new code the test walks through. **Effort** is the mock and fixture work.
    intended role rules (see [Questions](#questions-to-settle-before-some-flows)).
 
 Suggested spec files, one per area, in `apps/web/e2e/mocked/specs/`:
-`landing.spec.ts` (F1, F2), `session-errors.spec.ts` (F3),
+`landing.spec.ts` (F1), `project-links.spec.ts` (F2), `session-errors.spec.ts` (F3),
 `new-intervention.spec.ts` (F4), `interventions.spec.ts` (F5),
 `sites.spec.ts` (F6), `bulk-upload.spec.ts` (F7), `team.spec.ts` (F8),
 `approvals.spec.ts` (F9), `onboarding.spec.ts` (F10), `settings.spec.ts` (F11),
@@ -319,8 +319,8 @@ target page's own calls (settings: `GET projects/<uid>`,
 
 **Prerequisites:** a second project; a second workspace only for scenario 3.
 
-**Status** (Layer 1 in `mocked/specs/landing.spec.ts`, Layer 2 in
-`fullstack/specs/deep-link.spec.ts`)
+**Status** (Layer 1 in `mocked/specs/project-links.spec.ts`, Layer 2 in
+`fullstack/specs/project-links.spec.ts`)
 
 | Scenario | Layer 1 (mocked) | Layer 2 (full stack, local) |
 |---|---|---|
@@ -1016,7 +1016,7 @@ normal test for the rest of the page.
 | F4 | The presign file name is `getMilliseconds()`, so only 1000 names exist | `new-intervention/InterventionUploadModal.tsx` |
 | F1 | Notification action button only closes the modal; the per-item X removes it only on the client | `component/header/NotificationIcon.tsx` |
 | F1 | **#1137. Seen in a browser** (Layer 2). The sidebar shows a blank user name, and "U" as the initials when there is no image, for a user with no first or last name: it falls back to `user.name`, but `users/me` sends `displayName`, not `name`. `fullstack/specs/landing.spec.ts` notes it as a "known issue" for now | `component/sidebar/DashboardSidebar.tsx`, `userName` |
-| F2 | **Seen in a test** (`landing.spec.ts`, `test.fail()`), #1143. `?project-invite=` on a project route leaves the project list empty, so the page spins behind the modal | `DashboardClientLayout.tsx`, `initializeApp` |
+| F2 | **Seen in a test** (`project-links.spec.ts`, `test.fail()`), #1143. `?project-invite=` on a project route leaves the project list empty, so the page spins behind the modal | `DashboardClientLayout.tsx`, `initializeApp` |
 | Later | Leaderboard filters and "load more" send no parameters, so every filter shows the same data and "load more" appends duplicates | `leaderboard/page.tsx` |
 | Later | Profile save does not check the `PATCH` result, and does not update the store | `(standalone)/profile/page.tsx` |
 
