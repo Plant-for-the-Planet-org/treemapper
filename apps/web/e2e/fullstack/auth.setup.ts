@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import { type APIRequestContext, expect, test as setup } from '@playwright/test'
 
-import { hideNextDevTools } from '../helpers/devtools'
+import { hideNextDevTools } from '../shared/devtools'
 import { AUTH_FILE, assertLocalBackend, credentials } from './env'
 
 const AUTH0_LOGIN = /^https:\/\/accounts\.plant-for-the-planet\.org\/u\//

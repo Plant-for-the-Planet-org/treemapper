@@ -4,7 +4,7 @@ import { type APIRequestContext, test as base, expect } from '@playwright/test'
 
 import type { ApiResponse } from '@shared-core/types/api-responses'
 
-import { hideNextDevTools } from '../helpers/devtools'
+import { hideNextDevTools } from '../shared/devtools'
 import { AUTH_FILE } from './env'
 
 const API_PREFIX = '/api/server/'
