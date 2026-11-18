@@ -1,3 +1,9 @@
+import type {
+  ProjectWithUserRoleI,
+  UserInterface,
+} from '@shared-core/types/interface.app'
+
+import { API_PREFIX } from '../../shared/constants'
 import { expect, test } from '../test'
 
 // F2 scenario 1: verifies that a shared project link opens the intended
@@ -7,21 +13,15 @@ import { expect, test } from '../test'
 // Read-only test: expected values come from the API using the same user
 // account, without changing its data.
 
-interface Project {
-  uid: string
-  name: string
-  userRole: string
-  workspace: { uid: string; name: string }
-}
-
 test('a deep link opens that project, not the main one', async ({
   page,
-  baseURL,
   backend,
   apiCalls,
 }) => {
-  const me = await backend.get('users/me')
-  const { projects } = await backend.get<{ projects: Project[] }>('projects')
+  const me = await backend.get<UserInterface>('users/me')
+  const { projects } = await backend.get<{ projects: ProjectWithUserRoleI[] }>(
+    'projects',
+  )
   const mainProject = projects.find(p => p.uid === me.primaryProjectUid)
   expect(
     mainProject,
@@ -40,26 +40,16 @@ test('a deep link opens that project, not the main one', async ({
     'Needs a test account with a second project in the same workspace as its main project.',
   )
   const linkedProject = sameWorkspaceProject!
-  const linkedProjectDetail = await backend.get(
+  const linkedProjectDetail = await backend.get<ProjectWithUserRoleI>(
     `projects/${linkedProject.uid}`,
   )
-
-  // Block all non-GET requests so the test cannot modify the real test account.
-  // Any attempted write is recorded and fails the test.
-  const blockedWrites: string[] = []
-  await page.route(`${new URL(baseURL!).origin}/api/server/**`, route => {
-    const request = route.request()
-    if (request.method() === 'GET') return route.fallback()
-    blockedWrites.push(`${request.method()} ${new URL(request.url()).pathname}`)
-    return route.abort('blockedbyclient')
-  })
 
   // Verify the page's own API request. Empty settings fields alone would not
   // tell us whether the project request succeeded.
   const pageProjectResponse = page.waitForResponse(
     res =>
       new URL(res.url()).pathname ===
-      `/api/server/projects/${linkedProject.uid}`,
+      `${API_PREFIX}projects/${linkedProject.uid}`,
   )
 
   await page.goto(`/project/${linkedProject.uid}/settings`)
@@ -104,5 +94,4 @@ test('a deep link opens that project, not the main one', async ({
   // The bootstrap also selects the main project. If that ever won the race,
   // settings would load the main project behind this URL.
   expect(apiCalls).not.toContain(`GET projects/${mainProject!.uid}`)
-  expect(blockedWrites, 'Writes the page tried to send').toEqual([])
 })

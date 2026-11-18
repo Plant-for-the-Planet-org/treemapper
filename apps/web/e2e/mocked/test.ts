@@ -1,7 +1,7 @@
 import { test as base, expect } from '@playwright/test';
 
-import { seedToken } from './helpers/auth';
-import { type Auth0Stub, stubAuth0 } from './helpers/auth0';
+import { seedToken } from './helpers/fake-token';
+import { type Auth0Stub, stubAuth0 } from './helpers/auth0-stub';
 import { hideNextDevTools } from '../shared/devtools';
 import { ApiMock } from './api-mock';
 
@@ -62,8 +62,9 @@ export const test = base.extend<Options & Fixtures>({
   ],
 
   api: [
+    // blockedHosts is listed only so it is set up first (see above).
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async ({ page, baseURL, blockedHosts }, use) => {
-      void blockedHosts;
       const api = new ApiMock();
       await api.install(page, new URL(baseURL!).origin);
 
@@ -75,8 +76,9 @@ export const test = base.extend<Options & Fixtures>({
   ],
 
   auth0: [
+    // blockedHosts is listed only so it is set up first (see above).
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async ({ page, blockedHosts, loggedIn }, use) => {
-      void blockedHosts;
       // A real logged-in user also has an Auth0 session, so give them one.
       const stub = await stubAuth0(page, { session: loggedIn });
 

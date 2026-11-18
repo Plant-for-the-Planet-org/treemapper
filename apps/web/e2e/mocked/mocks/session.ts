@@ -3,7 +3,7 @@ import type {
   UserInterface,
 } from '@shared-core/types/interface.app';
 
-import { E2E_EMAIL } from '../helpers/auth';
+import { E2E_EMAIL } from '../helpers/fake-token';
 import { ok } from '../helpers/envelope';
 import type { ApiMock } from '../api-mock';
 

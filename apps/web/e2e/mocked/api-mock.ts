@@ -1,10 +1,7 @@
 import type { Page, Request } from '@playwright/test';
 
+import { API_PREFIX } from '../shared/constants';
 import { fail, isEnvelope } from './helpers/envelope';
-
-// The browser only ever calls same-origin /api/server/*, which next.config.ts
-// rewrites to the Nest server (see docs/e2e-testing-plan.md).
-const API_PREFIX = '/api/server/';
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -17,10 +14,13 @@ export interface MockRequest {
   request: Request;
 }
 
+/** A JSON body: usually an envelope from `ok()` / `fail()`. */
+type MockBody = object | string | number | boolean | null;
+
 /** An envelope from `ok()` / `fail()`, or a function that returns one. */
 export type MockReply =
-  | unknown
-  | ((req: MockRequest) => unknown | Promise<unknown>);
+  | MockBody
+  | ((req: MockRequest) => MockBody | Promise<MockBody>);
 
 interface Handler {
   method: Method;
@@ -42,7 +42,7 @@ function readBody(request: Request): unknown {
 export class ApiMock {
   readonly calls: MockRequest[] = [];
   readonly unmocked: string[] = [];
-  private handlers: Handler[] = [];
+  private readonly handlers: Handler[] = [];
 
   get(path: string | RegExp, reply: MockReply) {
     return this.on('GET', path, reply);

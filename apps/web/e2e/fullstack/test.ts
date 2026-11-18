@@ -1,13 +1,10 @@
-import fs from 'node:fs'
-
 import { type APIRequestContext, test as base, expect } from '@playwright/test'
 
 import type { ApiResponse } from '@shared-core/types/api-responses'
 
+import { API_PREFIX } from '../shared/constants'
 import { hideNextDevTools } from '../shared/devtools'
-import { AUTH_FILE } from './env'
-
-const API_PREFIX = '/api/server/'
+import { AUTH_FILE, readSavedToken } from './env'
 
 export interface Backend {
   /**
@@ -19,26 +16,23 @@ export interface Backend {
   request: APIRequestContext
 }
 
+interface Options {
+  /**
+   * Let the page send non-GET /api/server/ requests. Off by default: the test
+   * account is real, so a spec opts in with `test.use({ allowWrites: true })`
+   * only when the user has agreed to the write.
+   */
+  allowWrites: boolean
+}
+
 interface Fixtures {
   /** The real access token the setup project saved. */
   token: string
   backend: Backend
   /** Every /api/server/ call the page made, as `GET users/me` (no query). */
   apiCalls: string[]
-}
-
-// Reads the access token the setup project saved to AUTH_FILE.
-function savedToken(): string {
-  const state = JSON.parse(fs.readFileSync(AUTH_FILE, 'utf8'))
-  const token = state.origins
-    ?.flatMap(
-      (o: { localStorage: { name: string; value: string }[] }) =>
-        o.localStorage,
-    )
-    .find((item: { name: string }) => item.name === 'access_token')?.value
-  if (!token)
-    throw new Error(`No access_token in ${AUTH_FILE}. Run the setup project.`)
-  return token
+  /** Non-GET /api/server/ calls the page tried and the guard aborted. */
+  blockedWrites: string[]
 }
 
 // Layer 2 (full stack): no API mock, no Auth0 stub, no blocked hosts.
@@ -46,9 +40,14 @@ function savedToken(): string {
 // Specs in fullstack/specs/ import `test` and `expect` from here, never from
 // mocked/test.ts. That one is Layer 1: it mocks every API call and stubs
 // Auth0, so a full-stack spec importing it would quietly test nothing real.
-export const test = base.extend<Fixtures>({
-  token: async ({}, use) => {
-    await use(savedToken())
+export const test = base.extend<Options & Fixtures>({
+  allowWrites: [false, { option: true }],
+
+  token: async ({ baseURL }, use) => {
+    const token = readSavedToken(new URL(baseURL!).origin)
+    if (!token)
+      throw new Error(`No access_token in ${AUTH_FILE}. Run the setup project.`)
+    await use(token)
   },
 
   backend: async ({ playwright, baseURL, token }, use) => {
@@ -96,6 +95,33 @@ export const test = base.extend<Fixtures>({
 
       await use(calls)
       expect(serverErrors, 'API calls that failed on the server').toEqual([])
+    },
+    { auto: true },
+  ],
+
+  // Aborts every non-GET /api/server/ request the page sends, in every test
+  // (auto), and fails the test if there was one, so no spec can change the
+  // real test account by accident. Covers the page only: `backend.request` is
+  // a separate client and is not routed.
+  blockedWrites: [
+    async ({ page, baseURL, allowWrites }, use) => {
+      const blocked: string[] = []
+      if (!allowWrites) {
+        await page.route(
+          `${new URL(baseURL!).origin}${API_PREFIX}**`,
+          route => {
+            const request = route.request()
+            if (request.method() === 'GET') return route.fallback()
+            blocked.push(
+              `${request.method()} ${new URL(request.url()).pathname}`,
+            )
+            return route.abort('blockedbyclient')
+          },
+        )
+      }
+
+      await use(blocked)
+      expect(blocked, 'Writes the page tried to send').toEqual([])
     },
     { auto: true },
   ],

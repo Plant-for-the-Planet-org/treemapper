@@ -16,6 +16,23 @@ export const CREDENTIALS_FILE = path.join(WEB_DIR, '.env.e2e')
  */
 export const AUTH_FILE = path.join(WEB_DIR, 'e2e/.auth/user.json')
 
+/**
+ * The access token AUTH_FILE holds for `origin`. Undefined when there is no
+ * file yet, it is not JSON, or it has no token for that origin.
+ */
+export function readSavedToken(origin: string): string | undefined {
+  try {
+    const state = JSON.parse(fs.readFileSync(AUTH_FILE, 'utf8'))
+    return state.origins
+      ?.find((o: { origin: string }) => o.origin === origin)
+      ?.localStorage?.find(
+        (item: { name: string }) => item.name === 'access_token',
+      )?.value
+  } catch {
+    return undefined
+  }
+}
+
 export function credentials() {
   const email = process.env.E2E_USER_EMAIL
   const password = process.env.E2E_USER_PASSWORD
