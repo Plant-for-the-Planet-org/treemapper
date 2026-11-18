@@ -20,7 +20,7 @@ type MockBody = object | string | number | boolean | null;
 /** An envelope from `ok()` / `fail()`, or a function that returns one. */
 export type MockReply =
   | MockBody
-  | ((req: MockRequest) => unknown | Promise<unknown>);
+  | ((req: MockRequest) => MockBody | Promise<MockBody>);
 
 interface Handler {
   method: Method;
