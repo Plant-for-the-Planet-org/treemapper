@@ -42,7 +42,7 @@ function readBody(request: Request): unknown {
 export class ApiMock {
   readonly calls: MockRequest[] = [];
   readonly unmocked: string[] = [];
-  private handlers: Handler[] = [];
+  private readonly handlers: Handler[] = [];
 
   get(path: string | RegExp, reply: MockReply) {
     return this.on('GET', path, reply);
