@@ -87,7 +87,7 @@ export async function stubAuth0(
     session,
   };
 
-  await page.route(`${AUTH0_ORIGIN}/**`, async route => {
+  await page.route(`${AUTH0_ORIGIN}/**`, route => {
     const request = route.request();
     const url = new URL(request.url());
 
