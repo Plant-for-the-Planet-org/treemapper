@@ -14,9 +14,12 @@ export interface MockRequest {
   request: Request;
 }
 
+/** A JSON body: usually an envelope from `ok()` / `fail()`. */
+type MockBody = object | string | number | boolean | null;
+
 /** An envelope from `ok()` / `fail()`, or a function that returns one. */
 export type MockReply =
-  | unknown
+  | MockBody
   | ((req: MockRequest) => unknown | Promise<unknown>);
 
 interface Handler {
