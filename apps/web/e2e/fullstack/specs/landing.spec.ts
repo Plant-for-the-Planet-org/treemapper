@@ -1,6 +1,11 @@
+import type {
+  ProjectWithUserRoleI,
+  UserInterface,
+} from '@shared-core/types/interface.app'
 import { formatNumber } from '@shared-core/utils/numberFormatingHelper'
 
-import { expect, test } from './fixtures'
+import { API_PREFIX } from '../../shared/constants'
+import { expect, test } from '../test'
 
 // F1 in docs/e2e-user-flows.md, against the real stack: a returning user opens
 // the app and lands on their main project. F1 has no Layer 1 test yet. Once it
@@ -16,16 +21,20 @@ const STAT_TITLES = [
   'Active Contributors',
 ] as const
 
+// users/me sends camelCase `firstName` / `lastName`, which UserInterface does
+// not have (the Layer 1 USER mock adds them the same way).
+type Me = UserInterface & { firstName?: string; lastName?: string }
+
 test('a returning user lands on their main project overview', async ({
   page,
   backend,
   apiCalls,
 }) => {
-  const me = await backend.get('users/me')
-  const { projects } = await backend.get('projects')
-  const project = projects.find(
-    (p: { uid: string }) => p.uid === me.primaryProjectUid,
+  const me = await backend.get<Me>('users/me')
+  const { projects } = await backend.get<{ projects: ProjectWithUserRoleI[] }>(
+    'projects',
   )
+  const project = projects.find(p => p.uid === me.primaryProjectUid)
   expect(project, "The main project is in the user's project list").toBeTruthy()
 
   const { kpis } = await backend.get(`analytics/project-kpis/${project.uid}`)
@@ -42,7 +51,7 @@ test('a returning user lands on their main project overview', async ({
   // no data would pass the value check on a failed load. Check the page's own
   // request succeeded too.
   const pageKpis = page.waitForResponse(res =>
-    res.url().includes(`/api/server/analytics/project-kpis/${project.uid}`),
+    res.url().includes(`${API_PREFIX}analytics/project-kpis/${project.uid}`),
   )
 
   await page.goto('/')

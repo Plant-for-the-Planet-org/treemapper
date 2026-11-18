@@ -7,8 +7,8 @@ test layers, the harness and the CI setup. Read that first.
 
 **Status:** proposed 2026-11-04, for review. Written so far: F1 scenario 1 in
 Layer 2 (full stack, local only, 2026-11-05), F2 in Layer 1 except the switch
-across workspaces (`specs/landing.spec.ts`, 2026-11-11), and F2 scenario 1 in
-Layer 2 (`fullstack/deep-link.spec.ts`, 2026-11-12).
+across workspaces (`mocked/specs/project-links.spec.ts`, 2026-11-11), and F2 scenario 1 in
+Layer 2 (`fullstack/specs/project-links.spec.ts`, 2026-11-12).
 
 **How this was made:** by reading the code, not by running the app. Labels,
 endpoints and bugs below come from the source and give a path where it
@@ -49,20 +49,20 @@ that is the core of TreeMapper, then teams and review, then admin.
 
 ## What is already covered
 
-`apps/web/e2e/specs/auth.spec.ts` covers login and logout in full: the
+`apps/web/e2e/mocked/specs/auth.spec.ts` covers login and logout in full: the
 redirect to login, the PKCE round trip, silent login, stale tokens, callback
 errors, open redirects, logout (also from the collapsed sidebar), and logout
 while impersonating. None of the flows below repeat that. They all start
 logged in (`test.use({ loggedIn: true })`).
 
-`apps/web/e2e/fullstack/landing.spec.ts` covers F1 scenario 1 in Layer 2,
-and `fullstack/deep-link.spec.ts` covers F2 scenario 1: a real Auth0 login
+`apps/web/e2e/fullstack/specs/landing.spec.ts` covers F1 scenario 1 in Layer 2,
+and `fullstack/specs/project-links.spec.ts` covers F2 scenario 1: a real Auth0 login
 (reused while the saved token is good), a local server and a local database.
 They run only when asked (`E2E_FULLSTACK=1`), never in CI. How to run it is in
 [e2e-testing-plan.md, "Running locally and in
 CI"](./e2e-testing-plan.md#running-locally-and-in-ci).
 
-`apps/web/e2e/specs/landing.spec.ts` covers F2 in Layer 1: deep links, an
+`apps/web/e2e/mocked/specs/project-links.spec.ts` covers F2 in Layer 1: deep links, an
 unknown project, the switcher within one workspace, legacy `/dashboard` links
 and an invite on a project route. See [F2](#f2-deep-links-unknown-projects-and-the-project-switcher)
 for what is in and what is left out.
@@ -88,7 +88,7 @@ These shape how every test is mocked. All were read in the code.
   "shows success on failure" bugs below.
 - **Every success body says `statusCode: 200`**, even for a `POST` that answers
   201 on the wire (`apps/server/src/common/interceptors/response.interceptor.ts`).
-  Use `ok(data)` from `e2e/helpers/envelope.ts` for every success mock.
+  Use `ok(data)` from `e2e/mocked/helpers/envelope.ts` for every success mock.
 - **Some fetchers wrap one level deeper.** The presign call is read as
   `data.data.uploadUrl` on the profile page, and the approval queues as
   `data.data[]`. Copy the shape the page reads, not what looks tidy.
@@ -145,8 +145,8 @@ new code the test walks through. **Effort** is the mock and fixture work.
 4. **Phase D** is breadth. F12 grows one role at a time and waits on the
    intended role rules (see [Questions](#questions-to-settle-before-some-flows)).
 
-Suggested spec files, one per area, in `apps/web/e2e/specs/`:
-`landing.spec.ts` (F1, F2), `session-errors.spec.ts` (F3),
+Suggested spec files, one per area, in `apps/web/e2e/mocked/specs/`:
+`landing.spec.ts` (F1), `project-links.spec.ts` (F2), `session-errors.spec.ts` (F3),
 `new-intervention.spec.ts` (F4), `interventions.spec.ts` (F5),
 `sites.spec.ts` (F6), `bulk-upload.spec.ts` (F7), `team.spec.ts` (F8),
 `approvals.spec.ts` (F9), `onboarding.spec.ts` (F10), `settings.spec.ts` (F11),
@@ -160,13 +160,13 @@ Build these once, in the order the flows need them.
 
 | Need | Where | First used by |
 |---|---|---|
-| A second project (**done**: `SECOND_PROJECT`, same workspace, passed as `mockSession(api, { projects })`), and the project with each role (`owner`, `admin`, `contributor`, `observer`) (not yet) | `e2e/fixtures/data/session.ts` (`mockSession` takes options now; add `withRole(role)` next) | F1, F2, F12 |
-| A second workspace with a project in it (not yet; only the cross-workspace switch needs it) | `e2e/fixtures/data/session.ts` | F2 scenario 3 |
-| Overview mocks: KPIs, recent additions, map data (**done**: `mockOverview(api)`, any project uid) | `e2e/fixtures/data/overview.ts` | F1, F2 |
-| A pending invite and its status mock (**done**: `mockInviteStatus(api)`) | `e2e/fixtures/data/invites.ts` | F2, F8 |
-| Typed builders for sites, interventions, species and members, made up and small | `e2e/fixtures/data/*.ts` | F4 to F9 |
+| A second project (**done**: `SECOND_PROJECT`, same workspace, passed as `mockSession(api, { projects })`), and the project with each role (`owner`, `admin`, `contributor`, `observer`) (not yet) | `e2e/mocked/mocks/session.ts` (`mockSession` takes options now; add `withRole(role)` next) | F1, F2, F12 |
+| A second workspace with a project in it (not yet; only the cross-workspace switch needs it) | `e2e/mocked/mocks/session.ts` | F2 scenario 3 |
+| Overview mocks: KPIs, recent additions, map data (**done**: `mockOverview(api)`, any project uid) | `e2e/mocked/mocks/overview.ts` | F1, F2 |
+| A pending invite and its status mock (**done**: `mockInviteStatus(api)`) | `e2e/mocked/mocks/invites.ts` | F2, F8 |
+| Typed builders for sites, interventions, species and members, made up and small | `e2e/mocked/mocks/*.ts` | F4 to F9 |
 | A route for `PUT /api/upload-image` that returns `{ success: true }` and records calls, plus a presign mock | a helper next to `api-mock.ts`, or a `uploads` fixture | F4, F11 |
-| Small test files: a Polygon GeoJSON, a KML, a Point GeoJSON, a valid and an invalid CSV, a tiny PNG | `e2e/fixtures/files/` (made up, never real coordinates of a real project) | F4, F6, F7 |
+| Small test files: a Polygon GeoJSON, a KML, a Point GeoJSON, a valid and an invalid CSV, a tiny PNG | `e2e/mocked/files/` (made up, never real coordinates of a real project) | F4, F6, F7 |
 | `page.clock` for the 5s retry loop, the 2s post-success timers and the 30s overview poll | in the spec | F3, F8 |
 | A `page.on('dialog')` handler for the few `window.alert` calls | in the spec | F11 (profile) |
 
@@ -247,7 +247,7 @@ calls, stores, the project layout guard, the overview and the sidebar.
 
 | Scenario | Layer 1 (mocked) | Layer 2 (full stack, local) |
 |---|---|---|
-| 1. Owner lands on the overview | Not written | **Done**, `fullstack/landing.spec.ts` |
+| 1. Owner lands on the overview | Not written | **Done**, `fullstack/specs/landing.spec.ts` |
 | 2. No `primaryProjectUid` | Not written | Not planned: needs a user with no main project, and it writes |
 | 3. Contributor lands | Not written | Not written: needs a contributor account. The spec already switches its checks on the role it reads |
 | 4. Notifications | Not written | Unread count next (read only). "Mark all read" writes, so it waits for agreement |
@@ -319,8 +319,8 @@ target page's own calls (settings: `GET projects/<uid>`,
 
 **Prerequisites:** a second project; a second workspace only for scenario 3.
 
-**Status** (Layer 1 in `specs/landing.spec.ts`, Layer 2 in
-`fullstack/deep-link.spec.ts`)
+**Status** (Layer 1 in `mocked/specs/project-links.spec.ts`, Layer 2 in
+`fullstack/specs/project-links.spec.ts`)
 
 | Scenario | Layer 1 (mocked) | Layer 2 (full stack, local) |
 |---|---|---|
@@ -482,7 +482,7 @@ species search, image upload, and the upload modal.
   `isUnknown`.
 
 **Prerequisites:** presign and upload-image mocks, a tiny PNG and a GeoJSON in
-`e2e/fixtures/files/`, a species search mock.
+`e2e/mocked/files/`, a species search mock.
 
 ---
 
@@ -620,7 +620,7 @@ Scenario 8 in the strategy doc; it fits the mocked layer.
 - Contributor: no "Add Site" in the top bar, but `/newsite` by URL still works.
 
 **Prerequisites:** Polygon GeoJSON, KML and Point GeoJSON in
-`e2e/fixtures/files/`, a site and member data builder.
+`e2e/mocked/files/`, a site and member data builder.
 
 ---
 
@@ -683,7 +683,7 @@ it.
 - "Go to interventions" after success goes to `/project/undefined/intervention`
   (known issue in the strategy doc). Write as `test.fail()` with a ticket.
 
-**Prerequisites:** a valid and an invalid CSV in `e2e/fixtures/files/`, built
+**Prerequisites:** a valid and an invalid CSV in `e2e/mocked/files/`, built
 from the "Download template" columns.
 
 ---
@@ -1015,8 +1015,8 @@ normal test for the rest of the page.
 | F4 | `scientificSpeciesUid` is filled with the numeric species id | `new-intervention/utils/payloadBuilder.ts` |
 | F4 | The presign file name is `getMilliseconds()`, so only 1000 names exist | `new-intervention/InterventionUploadModal.tsx` |
 | F1 | Notification action button only closes the modal; the per-item X removes it only on the client | `component/header/NotificationIcon.tsx` |
-| F1 | **#1137. Seen in a browser** (Layer 2). The sidebar shows a blank user name, and "U" as the initials when there is no image, for a user with no first or last name: it falls back to `user.name`, but `users/me` sends `displayName`, not `name`. `fullstack/landing.spec.ts` notes it as a "known issue" for now | `component/sidebar/DashboardSidebar.tsx`, `userName` |
-| F2 | **Seen in a test** (`landing.spec.ts`, `test.fail()`), #1143. `?project-invite=` on a project route leaves the project list empty, so the page spins behind the modal | `DashboardClientLayout.tsx`, `initializeApp` |
+| F1 | **#1137. Seen in a browser** (Layer 2). The sidebar shows a blank user name, and "U" as the initials when there is no image, for a user with no first or last name: it falls back to `user.name`, but `users/me` sends `displayName`, not `name`. `fullstack/specs/landing.spec.ts` notes it as a "known issue" for now | `component/sidebar/DashboardSidebar.tsx`, `userName` |
+| F2 | **Seen in a test** (`project-links.spec.ts`, `test.fail()`), #1143. `?project-invite=` on a project route leaves the project list empty, so the page spins behind the modal | `DashboardClientLayout.tsx`, `initializeApp` |
 | Later | Leaderboard filters and "load more" send no parameters, so every filter shows the same data and "load more" appends duplicates | `leaderboard/page.tsx` |
 | Later | Profile save does not check the `PATCH` result, and does not update the store | `(standalone)/profile/page.tsx` |
 

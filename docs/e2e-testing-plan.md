@@ -10,13 +10,13 @@ Phase 4. It also covers silent login, expired tokens, open redirects through
 `returnTo` and `redirectTo`, logout from the collapsed sidebar, and logout while
 impersonating.
 
-F2 is written in Layer 1 (2026-11-11): `landing.spec.ts` covers tests 3 and
+F2 is written in Layer 1 (2026-11-11): `project-links.spec.ts` covers tests 3 and
 4 below and scenario 12, except the switch across workspaces. See F2 in
 [e2e-user-flows.md](./e2e-user-flows.md#f2-deep-links-unknown-projects-and-the-project-switcher).
 
 Layer 2 has started too, locally only: a real Auth0 login, F1 scenario 1
-(`fullstack/landing.spec.ts`, 2026-11-05) and F2 scenario 1
-(`fullstack/deep-link.spec.ts`, 2026-11-12), against a local server and
+(`fullstack/specs/landing.spec.ts`, 2026-11-05) and F2 scenario 1
+(`fullstack/specs/project-links.spec.ts`, 2026-11-12), against a local server and
 database. Since 2026-11-12 the setup reuses a saved login while its token is
 still good, so most runs skip the Auth0 page. It is not in CI. See [Layer 2: full stack](#layer-2-full-stack-a-few-smoke-tests).
 
@@ -202,18 +202,22 @@ Opt in, and never part of `yarn test:e2e` or CI. The Playwright projects
   `localhost`, `127.0.0.1` or `::1`. It reads those two keys only, so server
   secrets never reach the tests. It checks the files, not the running
   processes, so restart a server after editing its `.env`.
-- **Fixtures:** specs import `test` and `expect` from `fullstack/fixtures.ts`,
-  never from `fixtures/test.ts` (Layer 1 mocks the API and stubs Auth0). It
+- **Fixtures:** specs import `test` and `expect` from `fullstack/test.ts`,
+  never from `mocked/test.ts` (Layer 1 mocks the API and stubs Auth0). It
   gives:
   - `token`: the saved access token.
   - `backend.get(path)`: reads the real API as the same user, so specs learn
     the expected values at run time. No real data is written into the repo.
   - `apiCalls`: every `/api/server/` call the page made. Automatic for every
     test, and any 5xx fails the test.
+  - `blockedWrites`: the read-only guard. Automatic for every test: it aborts
+    every non-GET `/api/server/` request the page sends and fails the test if
+    there was one. It covers the page only, not `backend.request`.
+  - `allowWrites`: option, `false` by default. A spec that must write sets
+    `test.use({ allowWrites: true })`, and only once the user has agreed.
 - **Data:** whatever the test account has in the local database. Specs must
-  not hardcode it, and must not write unless the user agrees.
-  `deep-link.spec.ts` shows one way to make that hold: it routes every non-GET
-  `/api/server/` request, aborts it and fails the test. A spec that needs data
+  not hardcode it, and must not write unless the user agrees. The
+  `blockedWrites` guard makes that the default. A spec that needs data
   the account may not have (a second project in the same workspace) skips
   with a reason instead of failing.
 - **Empty values pass on a failed load.** Many widgets start at 0 or empty and
@@ -255,9 +259,9 @@ Mocked data can drift from the real API. One Layer 2 smoke test should repeat
 the checks of the Layer 1 "returning user" test (test 2 below) against the real
 server.
 
-`fullstack/landing.spec.ts` does that. Drift it has found so far:
+`fullstack/specs/landing.spec.ts` does that. Drift it has found so far:
 
-- `USER` in `fixtures/data/session.ts` has a `name` field. The real `users/me`
+- `USER` in `mocked/mocks/session.ts` has a `name` field. The real `users/me`
   has no `name`; it sends `displayName`, and `firstName` / `lastName` can be
   `null`. That is why Layer 1 never showed the blank sidebar name (#1137, see
   [Known issues](#known-issues-the-tests-are-expected-to-surface)). When F1 is
@@ -314,9 +318,9 @@ stack), and **U** means it is better as a unit or integration test.
 |---|---|---|---|---|---|---|
 | 1 | Open a protected page with no session | any route, `DashboardClientLayout`, `login/components/LoginContent.tsx` | Redirect to `/login?returnTo=...`; login starts PKCE with the right parameters | The login gate runs in the browser only | High | M. **Done** (`auth.spec.ts`) |
 | 1b | Login callback errors | `GET /api/auth/callback`, `/login` | Unverified email opens the verify dialog; other errors go back to login with no token | Users get stuck here when it breaks | Medium | M. **Done** (`auth.spec.ts`) |
-| 2 | Returning user opens the app | `/`, project layout, `Overview` | Lands on `/project/<main>/overview`; sidebar and stats show | Every visit goes through this | High | M, plus one F smoke test. F **done** (`fullstack/landing.spec.ts`, local only) |
-| 3 | Open a shared deep link | `(dashboard)/project/[projectUid]/layout.tsx` | The right project loads; an unknown uid shows "Project not found" | Unchecked runtime item in `URL-ROUTING-MIGRATION.md` | High | M. **Done** (`landing.spec.ts`). F **done** for the deep link (`fullstack/deep-link.spec.ts`, local only) |
-| 4 | Use an old `/dashboard/*` bookmark | `component/LegacyProjectRedirect.tsx` | Goes to `/project/<uid>/...`; invite query string is kept | Real bookmarks; broken (see Known issues) | High | M. **Done** (`landing.spec.ts`; two cases are `test.fail()`) |
+| 2 | Returning user opens the app | `/`, project layout, `Overview` | Lands on `/project/<main>/overview`; sidebar and stats show | Every visit goes through this | High | M, plus one F smoke test. F **done** (`fullstack/specs/landing.spec.ts`, local only) |
+| 3 | Open a shared deep link | `(dashboard)/project/[projectUid]/layout.tsx` | The right project loads; an unknown uid shows "Project not found" | Unchecked runtime item in `URL-ROUTING-MIGRATION.md` | High | M. **Done** (`project-links.spec.ts`). F **done** for the deep link (`fullstack/specs/project-links.spec.ts`, local only) |
+| 4 | Use an old `/dashboard/*` bookmark | `component/LegacyProjectRedirect.tsx` | Goes to `/project/<uid>/...`; invite query string is kept | Real bookmarks; broken (see Known issues) | High | M. **Done** (`project-links.spec.ts`; two cases are `test.fail()`) |
 | 5 | New user, first run | `/onboard`, `/create-project` | Project created; lands on its overview | Every new user; likely creates two projects | High | M, then F |
 | 6 | Accept a project invite | `/?project-invite=T`, `ProjectInviteModal` | Joins the project, skips onboarding | How teams grow | High | M; F needs two users |
 | 7 | Record a single-tree intervention | `/project/:uid/new-intervention` | Shows in the interventions list | Core purpose of the product | High value, complex | M first: latitude and longitude can be typed in Point mode, so no map click is needed. Then one F smoke test. See F4 in `e2e-user-flows.md` |
@@ -324,7 +328,7 @@ stack), and **U** means it is better as a unit or integration test.
 | 9 | Bulk upload a CSV | `/bulkupload` (4 steps) | Success screen; link opens interventions | Large data path | Medium | Happy path and main errors: M, then one F. Validation rules: U. See F7 |
 | 10 | Sidebar and access per role | `DashboardSidebar`, `ProjectRoleGate` | Each role sees the right items | Client and server gates disagree today | Medium | M |
 | 11 | Session error screens | `DashboardClientLayout` | `email_not_verified` shows "Verify your email"; 5xx retries, then "Error Occurred" | Users get stuck here when it breaks | Medium | M (use `page.clock`) |
-| 12 | Switch project, stay on the same section | sidebar project switcher | `/project/<new>/<same section>` | Routing migration item | Medium | M. **Done** within one workspace (`landing.spec.ts`); across workspaces not written |
+| 12 | Switch project, stay on the same section | sidebar project switcher | `/project/<new>/<same section>` | Routing migration item | Medium | M. **Done** within one workspace (`project-links.spec.ts`); across workspaces not written |
 | 13 | Log out | `lib/logout.ts` | Token cleared; goes to Auth0 `/v2/logout`; after a reload, Auth0 refuses the silent login, so you stay logged out | Shared machines in the field | Medium | M. **Done** (`auth.spec.ts`) |
 | 14 | Team: invite, change role, remove | `/team` | Server enforces roles | Access control | Medium | F |
 | 15 | Settings, species, approvals, forms, export | the matching pages | Edits save; export downloads | Breadth | Low-Med | F later. Approvals: use modal buttons, not drag and drop |
@@ -344,12 +348,12 @@ What exists (confirmed):
   `src/treematch/automatch/automatch-planner.spec.ts`.
 - `apps/server/test/app.e2e-spec.ts`: the untouched Nest template. It expects
   `GET /` to return "Hello World!", which no longer exists, so it fails.
-- `apps/web/e2e/specs/auth.spec.ts`: the Layer 1 auth tests (added on this
+- `apps/web/e2e/mocked/specs/auth.spec.ts`: the Layer 1 auth tests (added on this
   branch).
-- `apps/web/e2e/fullstack/landing.spec.ts` and `deep-link.spec.ts`: the
+- `apps/web/e2e/fullstack/specs/landing.spec.ts` and `project-links.spec.ts`: the
   Layer 2 tests (F1 scenario 1, F2 scenario 1), behind a real login in
   `fullstack/auth.setup.ts`. Local only.
-- `apps/web/e2e/specs/landing.spec.ts`: the Layer 1 F2 tests (deep links,
+- `apps/web/e2e/mocked/specs/project-links.spec.ts`: the Layer 1 F2 tests (deep links,
   unknown projects, the switcher, legacy links).
 - No other tests in `apps/web`, and none in `apps/mobile` or
   `packages/shared-core`.
@@ -373,30 +377,35 @@ What exists (confirmed):
 apps/web/
   playwright.config.ts
   e2e/
-    fixtures/
+    shared/          # only what both layers use
+      constants.ts   # API_PREFIX, EMAIL_CLAIM
+      devtools.ts    # hideNextDevTools(page)
+    mocked/          # Layer 1: project `chromium`
       test.ts        # extended test: `loggedIn` option, plus blockedHosts,
                      # api and auth0 (all auto, so every spec gets the guards)
       api-mock.ts    # route handler; fails on any unmocked call
-      data/
+      mocks/         # made-up API data, one file per page or area
         session.ts   # made-up user, two projects, workspace; mockSession(api)
         overview.ts  # KPIs, recent additions, map data; mockOverview(api)
+        settings.ts  # the settings page's loads; mockSettingsPage(api)
         invites.ts   # a pending invite; mockInviteStatus(api)
-    helpers/
-      auth.ts        # fake JWT builder, localStorage seeding
-      auth0.ts       # Auth0 stub: /authorize, /oauth/token, /v2/logout
-      envelope.ts    # ok(data) / fail(status, code) helpers
-      devtools.ts    # hideNextDevTools(page), shared by both layers
-    specs/           # Layer 1
-      auth.spec.ts     # login, silent login, callback errors, logout
-      landing.spec.ts  # F2: deep links, switcher, legacy links
+      helpers/
+        fake-token.ts  # fake JWT builder, localStorage seeding
+        auth0-stub.ts  # Auth0 stub: /authorize, /oauth/token, /v2/logout
+        envelope.ts    # ok(data) / fail(status, code) helpers
+      specs/
+        auth.spec.ts     # login, silent login, callback errors, logout
+        project-links.spec.ts  # F2: deep links, switcher, legacy links
     fullstack/       # Layer 2: projects `fullstack-setup` and `fullstack`,
                      # only when E2E_FULLSTACK is set
       env.ts         # file paths, credentials(), assertLocalBackend()
       auth.setup.ts  # safety checks, then reuse the saved token or log in
                      # through Auth0; saves only the token to .auth/user.json
-      fixtures.ts    # test: token, backend, apiCalls (auto, fails on 5xx)
-      landing.spec.ts    # F1 scenario 1
-      deep-link.spec.ts  # F2 scenario 1, blocks every write
+      test.ts        # test: token, backend, apiCalls (auto, fails on 5xx),
+                     # blockedWrites (auto, read-only unless allowWrites)
+      specs/
+        landing.spec.ts    # F1 scenario 1
+        project-links.spec.ts  # F2 scenario 1
     .auth/           # saved login state, gitignored (holds a real token)
 apps/web/.env.e2e    # E2E_USER_EMAIL, E2E_USER_PASSWORD; gitignored
 ```
@@ -449,11 +458,16 @@ Config notes:
   3. Start `apps/server` (port 3001) and the web dev server (`npm run dev` in
      `apps/web`). Playwright reuses the web server and never starts the API
      server; the setup fails with "Start apps/server first" if it is down.
-  4. From `apps/web`: `E2E_FULLSTACK=1 npx playwright test --project=fullstack`.
-     That runs the setup first, then the specs. The setup reuses the saved
+  4. From `apps/web`: `yarn test:e2e:fullstack` (it sets `E2E_FULLSTACK=1`
+     and runs `playwright test --project=fullstack`). Extra Playwright flags
+     go after it, such as `yarn test:e2e:fullstack --headed`. From the repo
+     root, `E2E_FULLSTACK=1 yarn web:e2e` runs both layers: turbo passes
+     `E2E_FULLSTACK` through (`passThroughEnv` in `turbo.json`), and before
+     that it dropped the flag in silence and ran Layer 1 only.
+     The setup runs first, then the specs. The setup reuses the saved
      login while it is good (see [Layer 2](#what-exists-today-local-only));
      delete `apps/web/e2e/.auth/user.json` to force a new one.
-     `deep-link.spec.ts` skips unless the account has a second project in the
+     `project-links.spec.ts` skips unless the account has a second project in the
      same workspace as its main project.
   - **VS Code Playwright extension:** it loads the config without
     `E2E_FULLSTACK`, so it does not show the Layer 2 tests. Add
@@ -540,7 +554,7 @@ real test depends on it.
    instead, which also fixes what screen readers announce.
 3. Decide how to handle tests that expose real bugs: fix first, or mark them
    `test.fail()` with a ticket. `auth.spec.ts` uses `test.fail()` for #1124,
-   `landing.spec.ts` for #1142 and #1143.
+   `project-links.spec.ts` for #1142 and #1143.
    A `test.fail()` test passes on any failure, so keep it to the one check
    that shows the bug, and pair it with a normal test for everything else on
    that page.
@@ -635,9 +649,9 @@ The stubbed Auth0 is followed, not caught, so the app's own
 
 ### 3. Deep links open the right project, and unknown ids are handled
 
-**Done** in `landing.spec.ts`. It also checks that the main project's settings
+**Done** in `project-links.spec.ts`. It also checks that the main project's settings
 are never fetched behind the p_second URL. Step 1 also has a Layer 2 version,
-`fullstack/deep-link.spec.ts`, which runs the same checks on the test
+`fullstack/specs/project-links.spec.ts`, which runs the same checks on the test
 account's real projects, plus the slug and the role in the sidebar.
 
 - **Steps:**
@@ -661,7 +675,7 @@ account's real projects, plus the slug and the role in the sidebar.
   3. Ends on `/?project-invite=abc`, and the invite modal opens.
 - **Expected today:** cases 1 and 2 fail (see Known issues).
 
-**Done** in `landing.spec.ts`. Cases 1 and 2 are `test.fail()`: the page stays on
+**Done** in `project-links.spec.ts`. Cases 1 and 2 are `test.fail()`: the page stays on
 `/dashboard/...` and never redirects (#1142). Case 3 passes, because `/dashboard` itself
 is a server redirect that does not need the stores.
 
@@ -721,12 +735,12 @@ All issues below are confirmed in the code. #1124 (the first) and #1137
   real `users/me` never sends `name`; it sends `displayName`, and
   `firstName` / `lastName` can be `null`. For the same reason the avatar
   initials, shown when the user has no image, fall back to "U". Likely fix: fall back to `displayName`.
-  `fullstack/landing.spec.ts` skips the name check for such a user and adds a
+  `fullstack/specs/landing.spec.ts` skips the name check for such a user and adds a
   "known issue" annotation to the report; once fixed, it should check for
   `displayName` instead.
 - **Legacy `/dashboard/*` links show a spinner forever on a cold load**
   (#1142).
-  **Seen in a test** (`landing.spec.ts`, as `test.fail()`).
+  **Seen in a test** (`project-links.spec.ts`, as `test.fail()`).
   `app/dashboard/layout.tsx` only passes its children through.
   `LegacyProjectRedirect` waits for store values that only
   `DashboardClientLayout` fills, and that layout is not mounted under
@@ -780,7 +794,7 @@ All issues below are confirmed in the code. #1124 (the first) and #1137
 
 ## Rules of thumb for writing tests
 
-- **Imports:** import `test` and `expect` from `e2e/fixtures/test`, not from
+- **Imports:** import `test` and `expect` from `e2e/mocked/test`, not from
   `@playwright/test`. That is how every spec gets the API, Auth0 and host
   guards.
 - **Locators:** prefer `getByRole`, `getByLabel` and visible text. shadcn
@@ -788,7 +802,7 @@ All issues below are confirmed in the code. #1124 (the first) and #1137
   only when those are unclear.
 - **Waiting:** wait for elements or URLs, never for `networkidle`.
 - **Mocks:** build responses with `ok()` and `fail()` from
-  `helpers/envelope.ts`. They set `statusCode` in the body, and the mock sends
+  `mocked/helpers/envelope.ts`. They set `statusCode` in the body, and the mock sends
   the same value as the HTTP status. The newest handler wins, so a test can
   override a default from `mockSession`.
 - **Maps:** do not check what is drawn on the map canvas. Check the controls
