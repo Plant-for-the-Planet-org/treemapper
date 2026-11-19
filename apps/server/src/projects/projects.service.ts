@@ -755,6 +755,7 @@ export class ProjectsService {
         inviterName: currentUser.displayName || '',
         token: invitation.token,
         expiresAt: expiryDate,
+        message,
       });
       this.notificationService.createNotification(
         {
