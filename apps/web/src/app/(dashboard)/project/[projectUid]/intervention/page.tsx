@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Plus } from 'lucide-react';
-import { getProjectIntervention, getUserProjectSites } from '@shared-core/fetchApi/api.fetch';
+import { getProjectIntervention, getProjectRecorders, getUserProjectSites } from '@shared-core/fetchApi/api.fetch';
+import { isProjectAdmin } from '@/lib/projectAccess';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useInterventionFilterStore } from '@shared-core/store/useInterventionFilterStore';
 import { useToken } from '@/context/useTokenContext';
@@ -41,12 +42,20 @@ interface Intervention {
   [key: string]: unknown;
 }
 
+interface Recorder {
+  uid: string;
+  name: string | null;
+  email: string | null;
+  interventionCount: number;
+}
+
 interface Filters {
   type: string;
   captureMode: string;
   projectSiteId: string;
   registrationDate: string;
-  userId: string;
+  // Uid of the user who recorded the intervention.
+  recordedBy: string;
   species: string[];
   flag: string;
   sortOrder: string;
@@ -65,7 +74,7 @@ const DEFAULT_FILTERS: Filters = {
   captureMode: '',
   projectSiteId: '',
   registrationDate: '',
-  userId: '',
+  recordedBy: '',
   species: [],
   flag: '',
   sortOrder: 'desc',
@@ -115,9 +124,13 @@ const TreeMapperUI = () => {
   const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 20, total: 0, totalPages: 0 });
   const [hasMore, setHasMore] = useState(true);
   const [sites, setSites] = useState<Site[]>([]);
+  const [recorders, setRecorders] = useState<Recorder[]>([]);
 
   const { accessToken } = useToken();
   const selectedProject = useProjectStore(state => state.selectedProject);
+  // Owners and admins only: the recorders route and user emails are admin-only
+  // on the server, the same as the Team page.
+  const isAdmin = isProjectAdmin(selectedProject?.userRole);
   const userDetails = useUserStore(state => state);
   const { startDate, endDate, resetDateRange } = useInterventionFilterStore();
 
@@ -162,7 +175,7 @@ const TreeMapperUI = () => {
         interventionStartDate: startDate || undefined,
         interventionStartDateTo: endDate || undefined,
         registrationDate: filters.registrationDate || undefined,
-        userId: filters.userId ? parseInt(filters.userId) : undefined,
+        recordedBy: filters.recordedBy || undefined,
         species: filters.species && filters.species.length > 0 ? filters.species : undefined,
         flag: filters.flag !== '' ? filters.flag === 'true' : undefined,
         sortOrder: filters.sortOrder || 'desc',
@@ -240,11 +253,27 @@ const TreeMapperUI = () => {
     }
   };
 
+  const fetchRecorders = async () => {
+    if (!selectedProject?.uid || !accessToken || !isAdmin) {
+      setRecorders([]);
+      return;
+    }
+    try {
+      const response = await getProjectRecorders(accessToken, selectedProject.uid);
+      if (response && response.statusCode === 200) {
+        setRecorders(response.data || []);
+      }
+    } catch (err) {
+      console.error('Error fetching recorders:', err);
+    }
+  };
+
   // Initial load
   useEffect(() => {
     if (selectedProject) {
       fetchInterventionData(1, false, deeplinkUid || undefined);
       fetchSites();
+      fetchRecorders();
     }
   }, [selectedProject]);
 
@@ -370,7 +399,7 @@ const TreeMapperUI = () => {
   const goNewIntervention = () => router.push(`/project/${projectUid}/new-intervention`);
 
   const activeFilterCount =
-    [filters.type, filters.captureMode, filters.projectSiteId, filters.registrationDate, filters.userId, filters.flag]
+    [filters.type, filters.captureMode, filters.projectSiteId, filters.registrationDate, filters.recordedBy, filters.flag]
       .filter(v => v !== '' && v != null).length
     + (filters.species.length > 0 ? 1 : 0)
     + (searchTerm ? 1 : 0)
@@ -392,6 +421,7 @@ const TreeMapperUI = () => {
           setFilters={setFilters}
           interventionTypes={interventionTypes}
           sites={sites}
+          recorders={recorders}
           pagination={pagination}
           activeFilterCount={activeFilterCount}
           clearAllFilters={clearAllFilters}

@@ -400,6 +400,14 @@ export const getProjectIntervention = async (token: string, id: string, queryPar
   return result
 }
 
+// Everyone who has recorded an intervention in the project, for the
+// "Recorded by" filter. Owner/admin only on the server.
+export const getProjectRecorders = async (token: string, id: string) => {
+  const uri = `${getUrlApi.getProjectIntervnetion}/${id}/recorders`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
 
 export const createBulkIntervention = async (token: string, params: any, prjId: string) => {
   const uri = `${postUrlApi.createNewIntervention}/${prjId}/bulk`;

@@ -99,6 +99,8 @@ interface UserInfo {
   id?: string | number;
   name?: string;
   image?: string;
+  // Only sent to project owners and admins.
+  email?: string;
 }
 
 interface Intervention {
@@ -537,6 +539,16 @@ export const InterventionDetails = ({
               <span className="truncate">{intervention.user?.name || 'Unknown'}</span>
             </span>
           </DetailRow>
+          {intervention.user?.email && (
+            <DetailRow label="Email">
+              <a
+                href={`mailto:${intervention.user.email}`}
+                className="truncate text-primary hover:underline"
+              >
+                {intervention.user.email}
+              </a>
+            </DetailRow>
+          )}
           <DetailRow label="Last updated">{displayDate(intervention.updatedAt)}</DetailRow>
         </div>
 

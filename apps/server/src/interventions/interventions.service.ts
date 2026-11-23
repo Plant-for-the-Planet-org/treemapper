@@ -21,6 +21,7 @@ import {
   CreateCustomBulkDto,
   GetProjectInterventionsQueryDto,
   GetProjectInterventionsResponseDto,
+  ProjectRecorderDto,
   InterventionDto,
   InterventionSpeciesDto,
   TreeDto,
@@ -1313,6 +1314,32 @@ export class InterventionsService {
     })
   }
 
+  /**
+   * Everyone who has recorded a field intervention in this project, for the
+   * "Recorded by" filter. Built from the interventions themselves rather than
+   * project_member, so people who have left the project still appear.
+   */
+  async getProjectRecorders(projectId: number): Promise<ProjectRecorderDto[]> {
+    const rows = await this.drizzleService.db
+      .select({
+        uid: user.uid,
+        name: user.displayName,
+        email: user.email,
+        image: user.image,
+        interventionCount: sql<number>`count(${intervention.id})::int`,
+      })
+      .from(intervention)
+      .innerJoin(user, eq(intervention.userId, user.id))
+      .where(and(
+        eq(intervention.projectId, projectId),
+        isNull(intervention.deletedAt),
+        fieldInterventionsOnly(),
+      ))
+      .groupBy(user.id, user.uid, user.displayName, user.email, user.image)
+      .orderBy(asc(user.displayName));
+
+    return rows;
+  }
 
   async getProjectInterventions(
     projectId: number,
@@ -1325,6 +1352,7 @@ export class InterventionsService {
       page = 1,
       type,
       userId,
+      recordedBy,
       interventionStartDate,
       interventionStartDateTo,
       registrationDate,
@@ -1373,6 +1401,16 @@ export class InterventionsService {
 
     if (userId) {
       whereConditions.push(eq(intervention.userId, userId));
+    }
+
+    if (recordedBy) {
+      // Subquery, not a join: the count query below has no user join.
+      whereConditions.push(
+        inArray(
+          intervention.userId,
+          this.drizzleService.db.select({ id: user.id }).from(user).where(eq(user.uid, recordedBy)),
+        ),
+      );
     }
 
     if (interventionStartDate) {
@@ -1506,6 +1544,7 @@ export class InterventionsService {
         user: {
           uid: user.uid,
           displayName: user.displayName,
+          email: user.email,
           image: user.image,
         }
       })
@@ -1751,6 +1790,9 @@ export class InterventionsService {
           uid: userData.uid,
           name: userData.displayName,
           image: userData.image,
+          // Emails are for owners and admins only, matching the Team page
+          // (`allmembers`), which contributors cannot read either.
+          ...(isAdmin ? { email: userData.email } : {}),
         } : undefined,
         site: siteData && siteData.uid ? {
           id: siteData.id,

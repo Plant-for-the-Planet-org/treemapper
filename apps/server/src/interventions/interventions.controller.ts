@@ -24,6 +24,7 @@ import {
   CreateCustomBulkDto,
   GetProjectInterventionsQueryDto,
   GetProjectInterventionsResponseDto,
+  ProjectRecorderDto,
   UpdateInterventionSpeciesDto,
   BulkUpdateSpeciesDto,
   BulkUpdateStartDateDto,
@@ -72,6 +73,17 @@ export class InterventionsController {
     @Membership() membership: ProjectGuardResponse,
   ): Promise<any> {
     return this.interventionsService.createBulkSingleTreePlanWeb(dto, membership);
+  }
+
+  // Declared before '/projects/:id' only for readability: the extra path
+  // segment means the two routes never collide.
+  @Get('/projects/:id/recorders')
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async getProjectRecorders(
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<ProjectRecorderDto[]> {
+    return this.interventionsService.getProjectRecorders(membership.projectId);
   }
 
   @Get('/projects/:id')
