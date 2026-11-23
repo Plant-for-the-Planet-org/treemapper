@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import Map, { Source, Layer } from 'react-map-gl/maplibre';
+import Map, { Source, Layer, Marker, ScaleControl } from 'react-map-gl/maplibre';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { DateRange as PickerRange } from 'react-day-picker';
 import {
     Trees,
     Activity,
     Calendar,
+    CalendarDays,
+    ChevronDown,
     Ruler,
     Heart,
     AlertCircle,
@@ -28,6 +31,11 @@ import {
     CloudCheck,
     CloudAlert,
     Maximize2,
+    Minimize2,
+    Scan,
+    ListFilter,
+    PanelLeftClose,
+    PanelLeftOpen,
 } from 'lucide-react';
 import * as turf from '@turf/turf';
 import { cn } from '@/lib/utils';
@@ -43,20 +51,24 @@ import type {
     MapError,
 } from './map/types';
 import {
-    FILL_COLOR,
-    REST_COLOR,
-    SELECTED_COLOR,
-    BORDER_COLOR,
+    HALO_COLOR,
+    CASING_COLOR,
     SITE_BOUNDARY_COLOR,
+    CLUSTER_COLOR,
+    TREE_STATUS_COLORS,
+    TREE_STATUS_ORDER,
     BASEMAP_STYLES,
     BASEMAP_OPTIONS,
     type BasemapKey,
 } from './map/constants';
 import {
     getInterventionColor,
+    getInterventionLabel,
     getInterventionIcon,
     getTreeStatusColor,
+    getSiteLabelPoint,
     formatDate,
+    formatCompact,
     buildTreeImageUrl,
     buildSpeciesImageUrl,
     formatHeight,
@@ -66,7 +78,6 @@ import {
     initialsOf,
     getMarkerPosition,
     zoomToIntervention,
-    createTreeIcon,
 } from './map/utils';
 import {
     fetchProjectInterventions,
@@ -89,6 +100,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Calendar as DayCalendar } from '@/components/ui/calendar';
 
 // Static map props. These MUST be module-level constants (stable references).
 // react-map-gl compares `style` / `interactiveLayerIds` by reference and
@@ -102,11 +114,26 @@ const MAP_CONTAINER_STYLE = { width: '100%', height: '100%' };
 const INTERACTIVE_LAYER_IDS = [
     'interventions-polygons-fill',
     'interventions-polygons-outline',
-    'interventions-points-clusters',
     'interventions-points-circle',
     'interventions-centroids-circle',
     'trees-points-circle',
 ];
+
+// Sources whose features are interventions (used for the hover tooltip).
+const INTERVENTION_SOURCES = new Set(['interventions-polygons', 'interventions-points', 'interventions-centroids']);
+
+// One look for every floating map control: white, 1px border, 8px radius,
+// small shadow, 40px targets (same as the shadcn outline button).
+const CONTROL_GROUP = 'flex flex-col overflow-hidden rounded-lg border border-border bg-background shadow-sm';
+const CONTROL_BUTTON = 'flex size-10 items-center justify-center text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset';
+const TOOLBAR_BUTTON = 'h-10 rounded-lg bg-background shadow-sm border-border font-medium';
+
+// Map width in the 4-column grid: the list and the detail pane take one
+// column each when shown.
+const mapSpanClass = (listOpen: boolean, detailOpen: boolean): string => {
+    const span = 4 - (listOpen ? 1 : 0) - (detailOpen ? 1 : 0);
+    return span === 4 ? 'col-span-4' : span === 3 ? 'col-span-3' : 'col-span-2';
+};
 
 // ==================== COMPONENTS ====================
 
@@ -126,27 +153,55 @@ const SyncStatus: React.FC<{ status: string; captureStatus?: string }> = ({ stat
     return <CloudAlert className="h-3.5 w-3.5 text-amber-600" aria-label="Not synced" />;
 };
 
-// Site filter dropdown. Rendered as a map overlay (top-left) rather than inside
-// the list, so it reads as a map control.
+
+// Small square that shows an intervention color the same way the map does:
+// light fill + solid edge. Point types (single tree) get a round swatch.
+const TypeSwatch: React.FC<{ type: string; size?: number; muted?: boolean }> = ({ type, size = 14, muted = false }) => {
+    const color = getInterventionColor(type);
+    const round = type === 'single-tree-registration' || type === 'sample-tree-registration';
+    return (
+        <span
+            aria-hidden="true"
+            className="shrink-0 box-border"
+            style={{
+                width: size,
+                height: size,
+                borderRadius: round ? size / 2 : 3,
+                background: muted ? 'transparent' : `${color}40`,
+                border: muted ? '2px dashed #A1A1AA' : `2px solid ${color}`,
+            }}
+        />
+    );
+};
+
+// Site picker. Picking a site flies to it and dims everything outside it.
 const SiteSelect: React.FC<{
     sites: SiteFeature[];
     selectedSiteId: number | null;
     onSelectSite: (id: number | null) => void;
 }> = ({ sites, selectedSiteId, onSelectSite }) => {
     if (sites.length === 0) return null;
+    const selectedName = sites.find(s => s.id === selectedSiteId)?.properties.name;
     return (
         <Select
             value={selectedSiteId != null ? String(selectedSiteId) : 'all'}
             onValueChange={v => onSelectSite(v === 'all' ? null : Number(v))}
         >
-            <SelectTrigger size="sm" className="w-[200px] bg-background/95 shadow-md border-border">
-                <span className="flex items-center gap-2 min-w-0">
-                    <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                    <SelectValue placeholder="All sites" />
+            <SelectTrigger
+                aria-label="Site"
+                title={selectedName ?? 'All sites'}
+                className={cn(TOOLBAR_BUTTON, 'w-[220px] max-w-full px-3 data-[size=default]:h-10')}
+            >
+                <span className="flex flex-1 items-center gap-2 min-w-0 overflow-hidden">
+                    <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
+                    {/* Long site names are cut with an ellipsis; the full name is in the tooltip. */}
+                    <span className="min-w-0 flex-1 truncate text-left">
+                        <SelectValue placeholder="All sites" />
+                    </span>
                 </span>
             </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="all">All sites</SelectItem>
+            <SelectContent className="max-w-[320px]">
+                <SelectItem value="all">All sites ({sites.length})</SelectItem>
                 {sites.map(s => (
                     <SelectItem key={s.id} value={String(s.id)}>{s.properties.name}</SelectItem>
                 ))}
@@ -155,6 +210,324 @@ const SiteSelect: React.FC<{
     );
 };
 
+// Date filter. Filters on the intervention start date.
+interface MapDateRange { from: Date; to: Date }
+
+const startOfDay = (d: Date) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+const endOfDay = (d: Date) => { const x = new Date(d); x.setHours(23, 59, 59, 999); return x; };
+const daysAgo = (n: number) => { const d = new Date(); d.setDate(d.getDate() - n); return startOfDay(d); };
+const shortDate = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+const DATE_PRESETS: { label: string; range: () => MapDateRange | null }[] = [
+    { label: 'All time', range: () => null },
+    { label: 'Last 30 days', range: () => ({ from: daysAgo(30), to: endOfDay(new Date()) }) },
+    { label: 'Last 12 months', range: () => ({ from: daysAgo(365), to: endOfDay(new Date()) }) },
+    { label: 'This year', range: () => ({ from: new Date(new Date().getFullYear(), 0, 1), to: endOfDay(new Date()) }) },
+];
+
+// Earliest month the custom range calendar lets you jump to.
+const CALENDAR_START = new Date(2000, 0, 1);
+
+const sameDay = (a: Date, b: Date) => startOfDay(a).getTime() === startOfDay(b).getTime();
+
+const DateFilter: React.FC<{
+    range: MapDateRange | null;
+    onChange: (range: MapDateRange | null) => void;
+}> = ({ range, onChange }) => {
+    const [open, setOpen] = useState(false);
+    // Draft custom range. Nothing filters the map until Apply.
+    const [draft, setDraft] = useState<PickerRange | undefined>(undefined);
+    const [month, setMonth] = useState<Date>(new Date());
+
+    // Which preset matches the current range, if any. Otherwise it is custom.
+    const activePreset = useMemo(() => {
+        if (!range) return 'All time';
+        return DATE_PRESETS.find(p => {
+            const r = p.range();
+            return r && sameDay(r.from, range.from) && sameDay(r.to, range.to);
+        })?.label ?? null;
+    }, [range]);
+
+    // Reset the draft to the applied range each time the popover opens.
+    const handleOpenChange = (next: boolean) => {
+        if (next) {
+            setDraft(range ? { from: range.from, to: range.to } : undefined);
+            setMonth(range?.from ?? new Date());
+        }
+        setOpen(next);
+    };
+
+    // Own click logic: first click sets the start, second sets the end.
+    // (react-day-picker would make the first click a one-day range.)
+    const handleDayClick = (day: Date) => {
+        setDraft(prev => {
+            if (!prev?.from || prev.to) return { from: day, to: undefined };
+            return day < prev.from ? { from: day, to: prev.from } : { from: prev.from, to: day };
+        });
+    };
+
+    const applyCustom = () => {
+        if (!draft?.from || !draft.to) return;
+        onChange({ from: startOfDay(draft.from), to: endOfDay(draft.to) });
+        setOpen(false);
+    };
+
+    const label = !range
+        ? 'All time'
+        : activePreset ?? `${shortDate(range.from)} - ${shortDate(range.to)}`;
+
+    const hint = !draft?.from
+        ? 'Pick a start date'
+        : !draft.to
+            ? `${shortDate(draft.from)} - pick an end date`
+            : `${shortDate(draft.from)} - ${shortDate(draft.to)}`;
+
+    return (
+        <Popover open={open} onOpenChange={handleOpenChange}>
+            <PopoverTrigger asChild>
+                <Button variant="outline" className={cn(TOOLBAR_BUTTON, 'gap-2 px-3')} aria-label="Date range">
+                    <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                    <span className="whitespace-nowrap">{label}</span>
+                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-auto p-0">
+                <div className="flex">
+                    <div className="flex flex-col gap-0.5 p-2 border-r border-border min-w-[140px]">
+                        {DATE_PRESETS.map(p => (
+                            <button
+                                key={p.label}
+                                type="button"
+                                onClick={() => { onChange(p.range()); setOpen(false); }}
+                                className={cn(
+                                    'text-left text-sm px-2.5 py-1.5 rounded-md hover:bg-muted text-foreground',
+                                    activePreset === p.label && 'bg-muted font-medium',
+                                )}
+                            >
+                                {p.label}
+                            </button>
+                        ))}
+                        <div
+                            className={cn(
+                                'text-left text-sm px-2.5 py-1.5 rounded-md text-foreground',
+                                range && !activePreset && 'bg-muted font-medium',
+                            )}
+                        >
+                            Custom range
+                        </div>
+                    </div>
+                    <div className="flex flex-col">
+                        <DayCalendar
+                            mode="range"
+                            captionLayout="dropdown"
+                            startMonth={CALENDAR_START}
+                            endMonth={new Date(new Date().getFullYear(), 11, 31)}
+                            month={month}
+                            onMonthChange={setMonth}
+                            selected={draft}
+                            onDayClick={handleDayClick}
+                        />
+                        <div className="flex items-center justify-between gap-3 border-t border-border px-3 py-2">
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">{hint}</span>
+                            <div className="flex gap-1.5">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setDraft(undefined)}
+                                    disabled={!draft?.from}
+                                >
+                                    Clear
+                                </Button>
+                                <Button size="sm" onClick={applyCustom} disabled={!draft?.from || !draft.to}>
+                                    Apply
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </PopoverContent>
+        </Popover>
+    );
+};
+
+// Legend that doubles as the filter. Lists only the intervention types this
+// project uses, with counts. Tree status shows while trees are on the map.
+const MapLegend: React.FC<{
+    typeCounts: { type: string; count: number }[];
+    hiddenTypes: Set<string>;
+    onToggleType: (type: string) => void;
+    onShowAll: () => void;
+    showTreeStatus: boolean;
+    expanded: boolean;
+    onExpandedChange: (v: boolean) => void;
+}> = ({ typeCounts, hiddenTypes, onToggleType, onShowAll, showTreeStatus, expanded, onExpandedChange }) => {
+    if (typeCounts.length === 0) return null;
+    const visible = typeCounts.filter(t => !hiddenTypes.has(t.type)).length;
+
+    if (!expanded) {
+        return (
+            <Button
+                variant="outline"
+                onClick={() => onExpandedChange(true)}
+                className={cn(TOOLBAR_BUTTON, 'gap-2 px-3')}
+                aria-label="Open interventions legend"
+            >
+                <ListFilter className="w-4 h-4 text-muted-foreground" />
+                Interventions
+                <span className="rounded px-1.5 py-0.5 text-xs bg-muted text-muted-foreground tabular-nums">
+                    {visible} of {typeCounts.length}
+                </span>
+            </Button>
+        );
+    }
+
+    return (
+        <div className="w-[264px] max-h-full overflow-y-auto rounded-[10px] border border-border bg-background p-2 shadow-md">
+            <div className="flex items-center justify-between px-2 pt-1 pb-1.5">
+                <span className="text-xs font-semibold text-foreground">Interventions</span>
+                <div className="flex items-center gap-2">
+                    {hiddenTypes.size > 0 && (
+                        <button
+                            type="button"
+                            onClick={onShowAll}
+                            className="text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                        >
+                            Show all
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        onClick={() => onExpandedChange(false)}
+                        aria-label="Collapse legend"
+                        className="flex text-muted-foreground hover:text-foreground"
+                    >
+                        <PanelLeftClose className="w-4 h-4" />
+                    </button>
+                </div>
+            </div>
+            <div className="flex flex-col">
+                {typeCounts.map(({ type, count }) => {
+                    const on = !hiddenTypes.has(type);
+                    return (
+                        <button
+                            key={type}
+                            type="button"
+                            aria-pressed={on}
+                            onClick={() => onToggleType(type)}
+                            className="flex items-center gap-2.5 w-full h-8 px-2 rounded-md hover:bg-muted text-left"
+                        >
+                            <TypeSwatch type={type} muted={!on} />
+                            <span className={cn('flex-1 truncate text-[13px]', on ? 'text-foreground' : 'text-muted-foreground/70')}>
+                                {getInterventionLabel(type)}
+                            </span>
+                            <span className={cn('text-xs tabular-nums', on ? 'text-muted-foreground' : 'text-muted-foreground/70')}>
+                                {formatNum(count)}
+                            </span>
+                        </button>
+                    );
+                })}
+            </div>
+            {showTreeStatus && (
+                <>
+                    <div className="h-px bg-border my-2" />
+                    <div className="px-2 pb-1.5 text-xs font-semibold text-foreground">Tree status</div>
+                    <div className="flex flex-col">
+                        {TREE_STATUS_ORDER.map(s => (
+                            <div key={s} className="flex items-center gap-2.5 h-7 px-2 text-[13px] text-foreground capitalize">
+                                <span
+                                    aria-hidden="true"
+                                    className="size-2.5 rounded-full shrink-0 ring-2 ring-white shadow-[0_0_0_3px_var(--border)]"
+                                    style={{ backgroundColor: TREE_STATUS_COLORS[s] }}
+                                />
+                                {s}
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
+
+// Floating map controls, grouped by job: layers, framing, zoom.
+const MapControls: React.FC<{
+    basemap: BasemapKey;
+    onBasemap: (b: BasemapKey) => void;
+    hasSites: boolean;
+    showSiteBoundaries: boolean;
+    onShowSiteBoundaries: (v: boolean) => void;
+    onFit: () => void;
+    isFullscreen: boolean;
+    onToggleFullscreen: () => void;
+    onZoomIn: () => void;
+    onZoomOut: () => void;
+}> = ({ basemap, onBasemap, hasSites, showSiteBoundaries, onShowSiteBoundaries, onFit, isFullscreen, onToggleFullscreen, onZoomIn, onZoomOut }) => (
+    <div className="flex flex-col items-end gap-2">
+        <div className={CONTROL_GROUP}>
+            <Popover>
+                <PopoverTrigger asChild>
+                    <button type="button" className={CONTROL_BUTTON} aria-label="Basemap and layers" title="Basemap and layers">
+                        <Layers className="w-[18px] h-[18px]" />
+                    </button>
+                </PopoverTrigger>
+                <PopoverContent side="left" align="end" className="w-56 p-3 gap-3">
+                    <div>
+                        <div className="text-xs font-medium text-muted-foreground mb-1.5">Basemap</div>
+                        <div className="grid grid-cols-3 gap-1">
+                            {BASEMAP_OPTIONS.map(opt => (
+                                <button
+                                    key={opt.key}
+                                    type="button"
+                                    onClick={() => onBasemap(opt.key)}
+                                    aria-pressed={basemap === opt.key}
+                                    className={cn(
+                                        'px-2 py-1.5 text-xs rounded-md border transition-colors',
+                                        basemap === opt.key
+                                            ? 'bg-foreground text-background border-foreground'
+                                            : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted',
+                                    )}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    {hasSites && (
+                        <label className="flex items-center justify-between gap-2 pt-3 border-t border-border cursor-pointer">
+                            <span className="text-sm text-foreground">Site boundaries</span>
+                            <Switch checked={showSiteBoundaries} onCheckedChange={onShowSiteBoundaries} />
+                        </label>
+                    )}
+                </PopoverContent>
+            </Popover>
+        </div>
+        <div className={CONTROL_GROUP}>
+            <button type="button" onClick={onFit} className={CONTROL_BUTTON} aria-label="Fit to project" title="Fit to project">
+                <Scan className="w-[18px] h-[18px]" />
+            </button>
+            <div className="h-px bg-border" />
+            <button
+                type="button"
+                onClick={onToggleFullscreen}
+                className={CONTROL_BUTTON}
+                aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
+                title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+            >
+                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
+        </div>
+        <div className={CONTROL_GROUP}>
+            <button type="button" onClick={onZoomIn} className={CONTROL_BUTTON} aria-label="Zoom in" title="Zoom in">
+                <Plus className="w-[18px] h-[18px]" />
+            </button>
+            <div className="h-px bg-border" />
+            <button type="button" onClick={onZoomOut} className={CONTROL_BUTTON} aria-label="Zoom out" title="Zoom out">
+                <Minus className="w-[18px] h-[18px]" />
+            </button>
+        </div>
+    </div>
+);
+
 const InterventionSidebar: React.FC<{
     interventions: MapIntervention[];
     selectedId: number | null;
@@ -162,7 +535,8 @@ const InterventionSidebar: React.FC<{
     hidSearch: string;
     onHidSearch: (v: string) => void;
     total: number;
-}> = ({ interventions, selectedId, onSelect, hidSearch, onHidSearch, total }) => {
+    onCollapse: () => void;
+}> = ({ interventions, selectedId, onSelect, hidSearch, onHidSearch, total, onCollapse }) => {
     const listRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -175,8 +549,8 @@ const InterventionSidebar: React.FC<{
         <div className="col-span-1 h-full flex flex-col bg-card text-card-foreground border border-border rounded-2xl overflow-hidden">
             {/* Header: search */}
             <div className="shrink-0 border-b border-border">
-                <div className="px-3 pt-3 pb-2">
-                    <div className="relative">
+                <div className="px-3 pt-3 pb-2 flex items-center gap-2">
+                    <div className="relative flex-1 min-w-0">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                         <Input
                             value={hidSearch}
@@ -195,6 +569,16 @@ const InterventionSidebar: React.FC<{
                             </Button>
                         )}
                     </div>
+                    <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={onCollapse}
+                        aria-label="Hide interventions list"
+                        title="Hide list"
+                        className="shrink-0 text-muted-foreground"
+                    >
+                        <PanelLeftClose className="w-4 h-4" />
+                    </Button>
                 </div>
                 <div className="px-3 pb-2">
                     <span className="text-xs text-muted-foreground">
@@ -238,8 +622,9 @@ const InterventionSidebar: React.FC<{
                                                 <SyncStatus status={i.status} captureStatus={i.captureStatus} />
                                             </span>
                                         </div>
-                                        <div className="text-xs text-muted-foreground capitalize truncate mb-1">
-                                            {i.type.replace(/-/g, ' ')}
+                                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate mb-1">
+                                            <TypeSwatch type={i.type} size={10} />
+                                            <span className="truncate">{getInterventionLabel(i.type)}</span>
                                         </div>
                                         <div className="flex items-center gap-x-3 gap-y-1 flex-wrap text-xs text-muted-foreground">
                                             <span className="flex items-center gap-1">
@@ -401,14 +786,29 @@ const TreeGridItem: React.FC<{ tree: MapTree; onSelect: (tree: MapTree) => void 
     );
 };
 
+const PanelFact: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
+    <div className="flex flex-col gap-1.5 rounded-lg border border-border p-3 min-w-0">
+        <span className="text-xs font-medium text-muted-foreground">{label}</span>
+        <span className="text-[15px] font-semibold text-foreground tabular-nums truncate">{value}</span>
+    </div>
+);
+
+const PanelSection: React.FC<{ title: React.ReactNode; children: React.ReactNode }> = ({ title, children }) => (
+    <div className="px-5 pt-5">
+        <div className="text-xs font-semibold text-foreground mb-2">{title}</div>
+        {children}
+    </div>
+);
+
 const InterventionPanel: React.FC<{
     intervention: MapIntervention;
     trees: MapTree[];
     isLoading?: boolean;
     projectUid: string;
+    siteName?: string | null;
     onClose: () => void;
     onSelectTree: (tree: MapTree) => void;
-}> = ({ intervention, trees, isLoading = false, projectUid, onClose, onSelectTree }) => {
+}> = ({ intervention, trees, isLoading = false, projectUid, siteName, onClose, onSelectTree }) => {
     // No "supporting donations" list here: which donations paid for a given
     // intervention is TTC's data, and TreeMapper deliberately keeps no
     // per-intervention donor read, so there is nothing truthful to show.
@@ -427,6 +827,24 @@ const InterventionPanel: React.FC<{
             return null;
         }
     }, [intervention]);
+
+    // Health split and species, from the sample trees we have loaded.
+    const health = useMemo(() => {
+        const counts: Record<string, number> = {};
+        trees.forEach(t => { counts[t.status] = (counts[t.status] ?? 0) + 1; });
+        return TREE_STATUS_ORDER
+            .map(s => ({ status: s, count: counts[s] ?? 0 }))
+            .filter(h => h.count > 0);
+    }, [trees]);
+
+    const species = useMemo(() => {
+        const counts: Record<string, number> = {};
+        trees.forEach(t => {
+            const name = t.speciesName || t.commonName;
+            if (name) counts[name] = (counts[name] ?? 0) + 1;
+        });
+        return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    }, [trees]);
 
     // Download the intervention geometry as a GeoJSON Feature, named by HID.
     const downloadGeoJSON = () => {
@@ -450,89 +868,108 @@ const InterventionPanel: React.FC<{
         URL.revokeObjectURL(url);
     };
 
+    const isArea = intervention.location.type === 'Polygon' || intervention.location.type === 'MultiPolygon';
+
     return (
-        <div className="w-full h-full bg-card text-card-foreground flex flex-col overflow-hidden">
-            {/* Header — no intervention photo; tree photos live in the list below */}
-            <div className="shrink-0 px-4 py-3 border-b border-border">
-                <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                        <div className="font-semibold text-foreground truncate">{intervention.hid}</div>
-                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                            <Badge variant="secondary" className="capitalize">
-                                {intervention.type.replace(/-/g, ' ')}
-                            </Badge>
-                        </div>
-                    </div>
-                    <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={onClose}
-                        title="Close"
-                        className="rounded-full text-muted-foreground shrink-0"
-                    >
-                        <X className="w-4 h-4" />
-                    </Button>
+        <aside aria-label="Intervention details" className="w-full h-full bg-card text-card-foreground flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="shrink-0 flex items-center justify-between gap-2 pl-5 pr-3 py-2.5 border-b border-border">
+                <div className="flex items-center gap-1.5 min-w-0 text-xs font-medium text-muted-foreground">
+                    <span className="truncate">Intervention · <span className="font-mono">{intervention.hid}</span></span>
+                    <CopyButton value={intervention.hid} title="Copy HID" />
                 </div>
+                <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={onClose}
+                    aria-label="Close details"
+                    className="text-muted-foreground shrink-0"
+                >
+                    <X className="w-4 h-4" />
+                </Button>
             </div>
 
             {/* Scrollable body */}
-            <div className="flex-1 overflow-y-auto">
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-3 px-4 pt-3">
-                    <div>
-                        <div className="text-xs text-muted-foreground mb-0.5">Start date</div>
-                        <div className="text-sm text-foreground">{formatDate(intervention.interventionStartDate)}</div>
+            <div className="flex-1 overflow-y-auto pb-5">
+                {/* Title */}
+                <div className="px-5 pt-4 flex flex-col gap-2">
+                    <div className="flex items-center gap-2.5">
+                        <TypeSwatch type={intervention.type} />
+                        <h2 className="text-lg font-semibold leading-tight tracking-tight text-foreground">
+                            {getInterventionLabel(intervention.type)}
+                        </h2>
                     </div>
-                    {(intervention.location.type === 'Polygon' || intervention.location.type === 'MultiPolygon') && (
-                        <div>
-                            <div className="text-xs text-muted-foreground mb-0.5">Area</div>
-                            <div className="text-sm text-foreground">{resolveArea(intervention)}</div>
-                        </div>
-                    )}
-                    <div>
-                        <div className="text-xs text-muted-foreground mb-0.5">Total trees</div>
-                        <div className="text-sm font-medium text-foreground">{intervention.totalTreeCount?.toLocaleString() ?? 0}</div>
+                    {siteName && <div className="text-[13px] text-muted-foreground">{siteName}</div>}
+                    <div className="flex items-center gap-2">
+                        <SyncStatus status={intervention.status} captureStatus={intervention.captureStatus} />
+                        <span className="text-xs text-muted-foreground">
+                            {intervention.status === 'planning' ? '' : intervention.captureStatus === 'complete' ? 'Synced' : 'Not synced'}
+                        </span>
                     </div>
                 </div>
 
-                {/* Coordinates — only for single points; a polygon has no single
-                    lat/lng, so we offer its geometry via the GeoJSON download. */}
-                {intervention.location.type === 'Point' && (
-                    <div className="px-4 pt-3">
-                        <div className="text-xs text-muted-foreground mb-1">Coordinates</div>
-                        <div className="flex items-center gap-2">
-                            <div className="flex gap-3 text-sm font-mono text-foreground">
-                                <span><span className="text-xs text-muted-foreground mr-1">Lat</span>{centroidCoords?.lat ?? '—'}</span>
-                                <span><span className="text-xs text-muted-foreground mr-1">Lng</span>{centroidCoords?.lng ?? '—'}</span>
-                            </div>
-                            <CopyButton value={`${centroidCoords?.lat ?? ''}, ${centroidCoords?.lng ?? ''}`} title="Copy coordinates" />
-                        </div>
-                    </div>
-                )}
+                {/* Key facts */}
+                <div className="grid grid-cols-2 gap-2 px-5 pt-4">
+                    <PanelFact label="Start date" value={formatDate(intervention.interventionStartDate)} />
+                    {isArea
+                        ? <PanelFact label="Area" value={resolveArea(intervention)} />
+                        : <PanelFact label="Coordinates" value={centroidCoords ? `${centroidCoords.lat}, ${centroidCoords.lng}` : '—'} />}
+                    <PanelFact label="Trees" value={formatNum(intervention.totalTreeCount ?? 0)} />
+                    <PanelFact label="Sample trees" value={formatNum(intervention.totalSampleTreeCount ?? trees.length)} />
+                </div>
 
-                {/* Description */}
                 {intervention.description && (
-                    <div className="px-4 pt-3">
-                        <div className="text-xs text-muted-foreground mb-0.5">Description</div>
+                    <PanelSection title="Description">
                         <p className="text-sm text-foreground">{intervention.description}</p>
-                    </div>
+                    </PanelSection>
                 )}
 
-                {/* Sample trees — compact grid. Full per-tree data lives on the
-                    intervention page; this is a quick visual + drill-in. */}
-                <div className="px-4 pt-4 pb-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="text-sm font-medium text-foreground">
-                            Sample trees {!isLoading && (
-                                <span className="text-muted-foreground font-normal">
-                                    ({intervention.totalSampleTreeCount && intervention.totalSampleTreeCount !== trees.length
-                                        ? `${formatNum(trees.length)} of ${formatNum(intervention.totalSampleTreeCount)}`
-                                        : formatNum(trees.length)})
+                {/* Health split of the sample trees */}
+                {!isLoading && health.length > 0 && (
+                    <PanelSection title="Sample tree health">
+                        <div className="flex h-2 overflow-hidden rounded gap-0.5" role="img" aria-label={health.map(h => `${h.status} ${h.count}`).join(', ')}>
+                            {health.map(h => (
+                                <div key={h.status} style={{ flex: h.count, backgroundColor: TREE_STATUS_COLORS[h.status] }} />
+                            ))}
+                        </div>
+                        <div className="flex flex-wrap gap-x-3.5 gap-y-1 mt-2 text-xs text-muted-foreground">
+                            {health.map(h => (
+                                <span key={h.status} className="flex items-center gap-1.5 capitalize">
+                                    <span className="size-2 rounded-full" style={{ backgroundColor: TREE_STATUS_COLORS[h.status] }} />
+                                    {h.status} {formatNum(h.count)}
                                 </span>
+                            ))}
+                        </div>
+                    </PanelSection>
+                )}
+
+                {!isLoading && species.length > 0 && (
+                    <PanelSection title="Species in sample">
+                        <div>
+                            {species.slice(0, 6).map(([name, count]) => (
+                                <div key={name} className="flex items-center justify-between h-[30px] border-b border-muted text-[13px]">
+                                    <span className="italic text-foreground truncate">{name}</span>
+                                    <span className="text-muted-foreground tabular-nums">{formatNum(count)}</span>
+                                </div>
+                            ))}
+                            {species.length > 6 && (
+                                <div className="pt-1.5 text-xs text-muted-foreground">+{species.length - 6} more</div>
                             )}
                         </div>
-                    </div>
+                    </PanelSection>
+                )}
 
+                {/* Sample trees: compact grid. Full per-tree data lives on the
+                    intervention page; this is a quick visual + drill-in. */}
+                <PanelSection
+                    title={<>Sample trees {!isLoading && (
+                        <span className="text-muted-foreground font-normal">
+                            ({intervention.totalSampleTreeCount && intervention.totalSampleTreeCount !== trees.length
+                                ? `${formatNum(trees.length)} of ${formatNum(intervention.totalSampleTreeCount)}`
+                                : formatNum(trees.length)})
+                        </span>
+                    )}</>}
+                >
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
                             <Loader2 className="w-6 h-6 animate-spin" strokeWidth={1.5} />
@@ -550,14 +987,14 @@ const InterventionPanel: React.FC<{
                             ))}
                         </div>
                     )}
-                </div>
+                </PanelSection>
 
-                {/* Added by — secondary info, kept at the bottom */}
+                {/* Added by */}
                 {intervention.owner?.displayName && (
-                    <div className="flex items-center gap-2 px-4 pt-1 pb-3">
+                    <div className="flex items-center gap-2 px-5 pt-5">
                         <OwnerAvatar name={intervention.owner.displayName} image={intervention.owner.image} size={26} />
                         <div className="min-w-0">
-                            <div className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                            <div className="text-[11px] text-muted-foreground flex items-center gap-1">
                                 <User className="w-3 h-3" /> Added by
                             </div>
                             <div className="text-sm text-foreground truncate">{intervention.owner.displayName}</div>
@@ -566,20 +1003,20 @@ const InterventionPanel: React.FC<{
                 )}
             </div>
 
-            {/* Footer actions — always visible */}
-            <div className="shrink-0 border-t border-border p-3 flex gap-2">
-                <Button asChild variant="outline" size="sm" className="flex-1">
+            {/* Footer actions, always visible */}
+            <div className="shrink-0 border-t border-border px-5 py-3 flex gap-2">
+                <Button asChild className="flex-1 h-10">
                     <Link href={`/project/${projectUid}/intervention?id=${intervention.uid}`}>
-                        Manage
+                        Open intervention
                         <ArrowRight className="w-4 h-4" />
                     </Link>
                 </Button>
-                <Button variant="outline" size="sm" onClick={downloadGeoJSON} title="Download GeoJSON">
+                <Button variant="outline" className="h-10" onClick={downloadGeoJSON} title="Download GeoJSON">
                     <Download className="w-4 h-4" />
                     GeoJSON
                 </Button>
             </div>
-        </div>
+        </aside>
     );
 };
 
@@ -612,6 +1049,20 @@ const TreeTooltip: React.FC<{
     const [treeImgError, setTreeImgError] = useState(false);
     const [speciesImgError, setSpeciesImgError] = useState(false);
     const [showFullImage, setShowFullImage] = useState(false);
+    // Parallax: the photo moves at 40% of the scroll speed inside its clipped
+    // banner, so the details slide up over it. Written straight to the DOM
+    // (no re-render per scroll) and skipped when the user prefers less motion.
+    const parallaxRef = useRef<HTMLDivElement>(null);
+    const reduceMotion = useMemo(
+        () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
+        [],
+    );
+    const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+        const el = parallaxRef.current;
+        if (!el || reduceMotion) return;
+        const y = Math.max(0, e.currentTarget.scrollTop);
+        el.style.transform = `translate3d(0, ${y * 0.4}px, 0) scale(${1 + Math.min(y, 300) / 1500})`;
+    }, [reduceMotion]);
 
     const showTreeImage = treeImage && !treeImgError;
     const showSpeciesImage = speciesImage && !speciesImgError;
@@ -636,22 +1087,34 @@ const TreeTooltip: React.FC<{
             <div
                 className="overflow-y-auto flex-1 min-h-0 overscroll-contain"
                 onWheel={(e) => e.stopPropagation()}
+                onScroll={handleScroll}
                 style={{ scrollbarWidth: 'thin', scrollbarColor: '#e5e7eb transparent' }}
             >
-                {/* Image header / banner — scrolls with the content */}
-                <div className="relative h-32 bg-muted">
+                {/* Photo banner. 4:3, so most field photos keep their framing.
+                    The whole photo is shown (contain) over a blurred copy of
+                    itself, so portrait shots never get cropped or leave grey bars. */}
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                     {showTreeImage ? (
                         <button
                             type="button"
                             onClick={() => setShowFullImage(true)}
-                            className="group relative w-full h-full block cursor-zoom-in"
+                            aria-label="Open full photo"
+                            className="group absolute inset-0 block cursor-zoom-in"
                         >
-                            <img
-                                src={treeImage as string}
-                                alt={tree.tag || tree.hid}
-                                className="w-full h-full object-cover"
-                                onError={() => setTreeImgError(true)}
-                            />
+                            <div ref={parallaxRef} className="absolute inset-0 will-change-transform">
+                                <img
+                                    src={treeImage as string}
+                                    alt=""
+                                    aria-hidden="true"
+                                    className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-70"
+                                />
+                                <img
+                                    src={treeImage as string}
+                                    alt={tree.tag || tree.hid}
+                                    className="absolute inset-0 w-full h-full object-contain"
+                                    onError={() => setTreeImgError(true)}
+                                />
+                            </div>
                             <span className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
                             <span className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Maximize2 className="w-3.5 h-3.5" />
@@ -671,8 +1134,7 @@ const TreeTooltip: React.FC<{
 
                     {/* Status badge */}
                     <div
-                        className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium capitalize backdrop-blur-sm"
-                        style={{ backgroundColor: 'rgba(255,255,255,0.9)', color: statusColor }}
+                        className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium capitalize backdrop-blur-sm bg-white/90 text-zinc-900"
                     >
                         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColor }} />
                         {tree.status}
@@ -845,140 +1307,128 @@ const TreeTooltip: React.FC<{
     );
 };
 
-// All site + intervention map layers. Their paint/layout is fully static:
-// selection and hover are conveyed through feature-state (set imperatively on
-// the map), NOT through React state, so these layers never need to change when
-// the user selects an intervention. Wrapping them in React.memo keeps the
+// All site + intervention map layers. Their paint/layout is static except for
+// `hasSelection` (none vs some selected) and the basemap: selection and hover
+// of a single feature are conveyed through feature-state (set imperatively on
+// the map), NOT through React state. Wrapping them in React.memo keeps the
 // rendered <Source>/<Layer> elements referentially identical across selection
-// re-renders, so react-map-gl skips all reconciliation for them. This is what
-// stops the shapes/markers from blinking (flickering) on every select. The
-// props only change on a data refresh (poll), a basemap switch, or a
-// sites/visibility toggle.
+// re-renders, so react-map-gl skips reconciliation and shapes never blink.
+//
+// Style rules (see the "Map style rules" design board):
+// - Polygons: light fill (24%) + thin stroke in the intervention color, on a
+//   soft dark casing so every color reads on satellite. No blur.
+// - Hover: stronger fill (40%) and a thicker stroke.
+// - Selected: white halo + 2.5px stroke. Everything else dims to 40%.
+// - Sites: white dashed line on a soft dark casing; names are HTML chips.
+const fillOpacity = (hasSelection: boolean): any => [
+    'case',
+    ['boolean', ['feature-state', 'selected'], false], 0.30,
+    ['boolean', ['feature-state', 'hover'], false], 0.40,
+    hasSelection ? 0.07 : 0.24,
+];
+
 const StaticMapLayers: React.FC<{
     showSiteBoundaries: boolean;
     sites: SiteFeatureCollection;
+    siteMask: GeoJSON.Feature | null;
     polygonGeoJSON: GeoJSON.FeatureCollection;
     centroidGeoJSON: GeoJSON.FeatureCollection;
     pointGeoJSON: GeoJSON.FeatureCollection;
-    basemap: BasemapKey;
-    mapLoaded: boolean;
-}> = React.memo(({ showSiteBoundaries, sites, polygonGeoJSON, centroidGeoJSON, pointGeoJSON, basemap, mapLoaded }) => (
+    hasSelection: boolean;
+}> = React.memo(({ showSiteBoundaries, sites, siteMask, polygonGeoJSON, centroidGeoJSON, pointGeoJSON, hasSelection }) => (
     <>
-        {/* Site boundaries — rendered first so they sit under the interventions */}
+        {/* Site boundaries, under the interventions */}
         {showSiteBoundaries && sites.features.length > 0 && (
             <Source id="site-boundaries" type="geojson" data={sites}>
-                {/* Outline */}
+                <Layer
+                    id="site-boundaries-casing"
+                    type="line"
+                    paint={{ 'line-color': CASING_COLOR, 'line-width': 4, 'line-opacity': 0.35 }}
+                    layout={{ 'line-join': 'round' }}
+                />
                 <Layer
                     id="site-boundaries-outline"
                     type="line"
                     paint={{
                         'line-color': SITE_BOUNDARY_COLOR,
-                        'line-width': 2,
-                        'line-opacity': 0.9,
-                        'line-dasharray': [2, 1.5],
+                        'line-width': 1.5,
+                        'line-dasharray': [5, 3.5],
                     }}
-                />
-                {/* Site name label at the polygon centroid */}
-                <Layer
-                    id="site-boundaries-label"
-                    type="symbol"
-                    layout={{
-                        'text-field': ['get', 'name'],
-                        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-                        'text-size': 12,
-                        'text-anchor': 'center',
-                        'text-allow-overlap': false,
-                        'symbol-placement': 'point',
-                    }}
-                    paint={{
-                        'text-color': SITE_BOUNDARY_COLOR,
-                        'text-halo-color': 'rgba(0,0,0,0.65)',
-                        'text-halo-width': 1.5,
-                    }}
+                    layout={{ 'line-join': 'round' }}
                 />
             </Source>
         )}
 
-        {/* Polygon fills — visible from zoom 9. Refined treatment:
-            soft green glow (hover/select only) -> soft fill -> white
-            casing -> crisp green outline. The casing keeps the edge
-            legible on satellite, light and dark basemaps alike. */}
+        {/* Intervention polygons, visible from zoom 9 */}
         {polygonGeoJSON.features.length > 0 && (
             <Source id="interventions-polygons" type="geojson" data={polygonGeoJSON}>
-                {/* Soft green glow — subtle lift on hover/select */}
-                <Layer
-                    id="interventions-polygons-glow"
-                    type="line"
-                    minzoom={9}
-                    paint={{
-                        'line-color': ['case', ['feature-state', 'selected'], SELECTED_COLOR, REST_COLOR],
-                        'line-width': 8,
-                        'line-blur': 5,
-                        'line-opacity': [
-                            'case',
-                            ['feature-state', 'selected'], 0.45,
-                            ['feature-state', 'hover'], 0.20,
-                            0,
-                        ],
-                    }}
-                />
-                {/* Fill — fully transparent (border-only, Felt-style:
-                    the outline carries the shape on every basemap, and
-                    hover/select are shown via the edge, not a fill).
-                    Kept as a layer so the polygon interior stays
-                    clickable — a 0-opacity fill still registers clicks. */}
                 <Layer
                     id="interventions-polygons-fill"
                     type="fill"
                     minzoom={9}
-                    paint={{
-                        'fill-color': FILL_COLOR,
-                        'fill-opacity': 0,
-                    }}
+                    paint={{ 'fill-color': ['get', 'color'], 'fill-opacity': fillOpacity(hasSelection) }}
                 />
-                {/* White casing under the outline — only on satellite,
-                    where the line needs separating from busy imagery. On
-                    the light/dark vector basemaps the line reads on its
-                    own, and a white halo would over-brighten on dark. */}
+                {/* Soft dark casing (default/hover) or a darker rim under the
+                    white halo (selected). Hidden on dimmed shapes. */}
                 <Layer
                     id="interventions-polygons-casing"
                     type="line"
                     minzoom={9}
+                    layout={{ 'line-join': 'round' }}
                     paint={{
-                        'line-color': BORDER_COLOR,
+                        'line-color': CASING_COLOR,
                         'line-width': [
                             'case',
-                            ['feature-state', 'selected'], 5,
-                            ['feature-state', 'hover'], 4.5,
+                            ['boolean', ['feature-state', 'selected'], false], 8,
+                            ['boolean', ['feature-state', 'hover'], false], 4.5,
                             3.5,
                         ],
-                        'line-opacity': basemap === 'satellite' ? 0.7 : 0,
-                        'line-blur': 0.5,
+                        'line-opacity': [
+                            'case',
+                            ['boolean', ['feature-state', 'selected'], false], 0.35,
+                            ['boolean', ['feature-state', 'hover'], false], 0.55,
+                            hasSelection ? 0 : 0.5,
+                        ],
                     }}
                 />
-                {/* Crisp outline. On satellite the unselected edge is white so it
-                    reads clearly over the dark imagery (the muted gray looked
-                    near-black); selected stays green. On the light/dark vector
-                    basemaps the gray rest color reads fine. */}
+                {/* White halo, selected only */}
+                <Layer
+                    id="interventions-polygons-halo"
+                    type="line"
+                    minzoom={9}
+                    layout={{ 'line-join': 'round' }}
+                    paint={{
+                        'line-color': HALO_COLOR,
+                        'line-width': 5.5,
+                        'line-opacity': ['case', ['boolean', ['feature-state', 'selected'], false], 1, 0],
+                    }}
+                />
+                {/* Colored stroke */}
                 <Layer
                     id="interventions-polygons-outline"
                     type="line"
                     minzoom={9}
+                    layout={{ 'line-join': 'round' }}
                     paint={{
-                        'line-color': ['case', ['feature-state', 'selected'], SELECTED_COLOR, basemap === 'satellite' ? BORDER_COLOR : REST_COLOR],
+                        'line-color': ['get', 'color'],
                         'line-width': [
                             'case',
-                            ['feature-state', 'selected'], 3,
-                            ['feature-state', 'hover'], 2,
-                            1.5,
+                            ['boolean', ['feature-state', 'selected'], false], 2.5,
+                            ['boolean', ['feature-state', 'hover'], false], 2.5,
+                            hasSelection ? 1.25 : 1.75,
                         ],
-                        'line-opacity': 1,
+                        'line-opacity': [
+                            'case',
+                            ['boolean', ['feature-state', 'selected'], false], 1,
+                            ['boolean', ['feature-state', 'hover'], false], 1,
+                            hasSelection ? 0.4 : 1,
+                        ],
                     }}
                 />
             </Source>
         )}
 
-        {/* Centroid dots for polygon interventions at low zoom */}
+        {/* Polygon centroids as small colored dots at low zoom */}
         {centroidGeoJSON.features.length > 0 && (
             <Source id="interventions-centroids" type="geojson" data={centroidGeoJSON}>
                 <Layer
@@ -986,20 +1436,26 @@ const StaticMapLayers: React.FC<{
                     type="circle"
                     maxzoom={9}
                     paint={{
-                        'circle-color': FILL_COLOR,
-                        'circle-radius': [
-                            'interpolate', ['linear'], ['zoom'],
-                            0, 5, 6, 8, 9, 12,
-                        ],
-                        'circle-opacity': ['case', ['feature-state', 'hover'], 1, 0.88],
-                        'circle-stroke-width': 2.5,
-                        'circle-stroke-color': BORDER_COLOR,
+                        'circle-color': ['get', 'color'],
+                        'circle-radius': ['interpolate', ['linear'], ['zoom'], 0, 4, 6, 5, 9, 7],
+                        'circle-opacity': hasSelection ? 0.5 : 1,
+                        'circle-stroke-width': ['case', ['boolean', ['feature-state', 'hover'], false], 2.5, 1.75],
+                        'circle-stroke-color': HALO_COLOR,
                     }}
                 />
             </Source>
         )}
 
-        {/* Point interventions with clustering */}
+        {/* Dim everything outside the picked site, so the eye stays inside it.
+            Drawn above polygons so shapes outside the site dim too. */}
+        {siteMask && (
+            <Source id="site-mask" type="geojson" data={siteMask}>
+                <Layer id="site-mask-fill" type="fill" paint={{ 'fill-color': '#000000', 'fill-opacity': 0.3 }} />
+            </Source>
+        )}
+
+        {/* Point interventions. Clusters are drawn as HTML markers (see
+            ClusterMarkers); this layer draws single points only. */}
         {pointGeoJSON.features.length > 0 && (
             <Source
                 id="interventions-points"
@@ -1010,95 +1466,73 @@ const StaticMapLayers: React.FC<{
                 clusterRadius={50}
                 clusterProperties={{ totalTreeCount: ['+', ['get', 'totalTreeCount']] }}
             >
-                {/* Cluster bubble */}
-                <Layer
-                    id="interventions-points-clusters"
-                    type="circle"
-                    filter={['has', 'point_count']}
-                    paint={{
-                        'circle-color': FILL_COLOR,
-                        'circle-radius': [
-                            'step', ['get', 'point_count'],
-                            22, 5, 30, 20, 38,
-                        ],
-                        'circle-opacity': 0.92,
-                        'circle-stroke-width': 3,
-                        'circle-stroke-color': BORDER_COLOR,
-                    }}
-                />
-                {/* Cluster: tree icon + total tree count */}
-                {mapLoaded && (
-                    <Layer
-                        id="interventions-points-cluster-label"
-                        type="symbol"
-                        filter={['has', 'point_count']}
-                        layout={{
-                            'icon-image': 'tree-icon',
-                            'icon-size': 0.75,
-                            'icon-anchor': 'bottom',
-                            'icon-offset': [0, 2],
-                            'icon-allow-overlap': true,
-                            'text-field': [
-                                'case',
-                                ['>', ['get', 'totalTreeCount'], 0],
-                                ['to-string', ['get', 'totalTreeCount']],
-                                ['to-string', ['get', 'point_count']],
-                            ],
-                            'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-                            'text-size': 11,
-                            'text-anchor': 'top',
-                            'text-offset': [0, -0.2],
-                            'text-allow-overlap': true,
-                        }}
-                        paint={{ 'text-color': '#ffffff' }}
-                    />
-                )}
-                {/* Individual unclustered point — circle background */}
                 <Layer
                     id="interventions-points-circle"
                     type="circle"
                     filter={['!', ['has', 'point_count']]}
                     paint={{
-                        'circle-color': ['case', ['feature-state', 'selected'], SELECTED_COLOR, REST_COLOR],
+                        'circle-color': ['get', 'color'],
                         'circle-radius': [
                             'case',
-                            ['feature-state', 'selected'], 18,
-                            ['feature-state', 'hover'], 16,
-                            14,
+                            ['boolean', ['feature-state', 'selected'], false], 8,
+                            ['boolean', ['feature-state', 'hover'], false], 7,
+                            5.5,
                         ],
-                        'circle-stroke-width': [
-                            'case',
-                            ['feature-state', 'selected'], 3.5,
-                            ['feature-state', 'hover'], 2.5,
-                            2,
-                        ],
-                        'circle-stroke-color': BORDER_COLOR,
+                        'circle-stroke-width': ['case', ['boolean', ['feature-state', 'selected'], false], 3, 2],
+                        'circle-stroke-color': HALO_COLOR,
                         'circle-opacity': [
                             'case',
-                            ['feature-state', 'selected'], 1,
-                            ['feature-state', 'hover'], 0.95,
-                            0.90,
+                            ['boolean', ['feature-state', 'selected'], false], 1,
+                            hasSelection ? 0.45 : 1,
+                        ],
+                        'circle-stroke-opacity': [
+                            'case',
+                            ['boolean', ['feature-state', 'selected'], false], 1,
+                            hasSelection ? 0.45 : 1,
                         ],
                     }}
                 />
-                {/* Individual unclustered point — tree icon overlay */}
-                {mapLoaded && (
-                    <Layer
-                        id="interventions-points-icon"
-                        type="symbol"
-                        filter={['!', ['has', 'point_count']]}
-                        layout={{
-                            'icon-image': 'tree-icon',
-                            'icon-size': 0.65,
-                            'icon-allow-overlap': true,
-                        }}
-                    />
-                )}
             </Source>
         )}
     </>
 ));
 StaticMapLayers.displayName = 'StaticMapLayers';
+
+// A cluster of point interventions, as read from the clustered source.
+interface ClusterInfo { id: number; lng: number; lat: number; count: number; trees: number }
+
+// Dark round cluster with the total tree count. HTML, so it needs no map
+// glyphs and matches the dashboard type. Three sizes: <100, <1,000, 1,000+.
+const ClusterBubble: React.FC<{ cluster: ClusterInfo; onClick: () => void }> = ({ cluster, onClick }) => {
+    const value = cluster.trees > 0 ? cluster.trees : cluster.count;
+    const size = value >= 1000 ? 52 : value >= 100 ? 44 : 36;
+    return (
+        <button
+            type="button"
+            onClick={e => { e.stopPropagation(); onClick(); }}
+            aria-label={`${formatNum(value)} ${cluster.trees > 0 ? 'trees' : 'interventions'}. Zoom in`}
+            title={`${formatNum(cluster.count)} interventions · ${formatNum(cluster.trees)} trees`}
+            className="flex items-center justify-center rounded-full text-white font-semibold tabular-nums shadow-md ring-2 ring-white/90 transition-transform hover:scale-105 cursor-pointer"
+            style={{ width: size, height: size, backgroundColor: `${CLUSTER_COLOR}D1`, fontSize: size >= 44 ? 12 : 11 }}
+        >
+            {formatCompact(value)}
+        </button>
+    );
+};
+
+// One name chip per site, sitting just above the site's top edge.
+const SiteLabel: React.FC<{ name: string; active: boolean; onClick: () => void }> = ({ name, active, onClick }) => (
+    <button
+        type="button"
+        onClick={e => { e.stopPropagation(); onClick(); }}
+        className={cn(
+            'h-[26px] px-2.5 rounded-full text-xs font-semibold whitespace-nowrap shadow-[0_1px_3px_rgba(0,0,0,0.25)] cursor-pointer transition-colors',
+            active ? 'bg-foreground text-background' : 'bg-white/95 text-zinc-950 hover:bg-white',
+        )}
+    >
+        {name}
+    </button>
+);
 
 // ==================== MAIN COMPONENT ====================
 const ProjectMap: React.FC<{
@@ -1115,6 +1549,34 @@ const ProjectMap: React.FC<{
     const [selectedSiteId, setSelectedSiteId] = useState<number | null>(null);
     const [bounds, setBounds] = useState<ProjectMapBounds | null>(null);
     const [hidSearch, setHidSearch] = useState('');
+    // Legend filter + date filter.
+    const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(() => new Set());
+    const [dateRange, setDateRange] = useState<MapDateRange | null>(null);
+    const [legendOpen, setLegendOpen] = useState(true);
+    // Interventions list on the left. Collapsible; the choice is remembered
+    // in this browser.
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+    useEffect(() => {
+        try {
+            if (window.localStorage.getItem('overview-map-list-open') === 'false') setSidebarOpen(false);
+        } catch { /* storage unavailable */ }
+    }, []);
+    const toggleSidebar = useCallback((open: boolean) => {
+        setSidebarOpen(open);
+        try { window.localStorage.setItem('overview-map-list-open', String(open)); } catch { /* storage unavailable */ }
+    }, []);
+    // HTML cluster bubbles, read from the clustered source after each move.
+    const [clusters, setClusters] = useState<ClusterInfo[]>([]);
+    // Hover tooltip: the id lives in state (changes rarely); the position is
+    // written straight to the DOM on mouse move so hovering never re-renders.
+    const [hoveredId, setHoveredId] = useState<number | null>(null);
+    const [hoverPointer, setHoverPointer] = useState(false);
+    const tooltipRef = useRef<HTMLDivElement>(null);
+    const lastPointRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+    // Full screen covers the whole map view (list + map + detail pane), not
+    // only the map, so the list and details stay usable.
+    const fullscreenRef = useRef<HTMLDivElement>(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
     const [mapState, setMapState] = useState<MapState>({
         selectedInterventionId: null,
         selectedTreeId: null,
@@ -1174,9 +1636,20 @@ const ProjectMap: React.FC<{
         }
     }, [projectId, token]);
 
+    const fitProject = useCallback(() => {
+        if (!bounds) return;
+        try {
+            mapRef.current?.fitBounds(bounds.bounds, {
+                padding: { top: 80, bottom: 80, left: 80, right: 80 },
+                duration: 1000,
+                maxZoom: 15,
+            });
+        } catch { /* ignore */ }
+    }, [bounds]);
+
     const handleSelectSite = useCallback((id: number | null) => {
         setSelectedSiteId(id);
-        if (id == null) return;
+        if (id == null) { fitProject(); return; }
         const site = sites.features.find(s => s.id === id);
         if (!site) return;
         try {
@@ -1187,7 +1660,7 @@ const ProjectMap: React.FC<{
                 maxZoom: 16,
             });
         } catch { /* ignore */ }
-    }, [sites.features]);
+    }, [sites.features, fitProject]);
 
     useEffect(() => { loadSites(); }, [loadSites]);
 
@@ -1203,18 +1676,48 @@ const ProjectMap: React.FC<{
         }
     }, [mapLoaded, bounds, interventions.length]);
 
-    // Interventions filtered by HID search. The overview already receives only
-    // public, approved interventions from the server, so no further filtering.
+    // Interventions inside the date range (start date). The overview already
+    // receives only public, approved interventions from the server.
+    const datedInterventions = useMemo(() => {
+        if (!dateRange) return interventions;
+        const from = dateRange.from.getTime();
+        const to = dateRange.to.getTime();
+        return interventions.filter(i => {
+            const t = new Date(i.interventionStartDate).getTime();
+            return isFinite(t) && t >= from && t <= to;
+        });
+    }, [interventions, dateRange]);
+
+    // Legend rows: the types this project uses, most common first, counted
+    // inside the date range.
+    const typeCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        interventions.forEach(i => { counts[i.type] = 0; });
+        datedInterventions.forEach(i => { counts[i.type] = (counts[i.type] ?? 0) + 1; });
+        return Object.entries(counts)
+            .map(([type, count]) => ({ type, count }))
+            .sort((a, b) => b.count - a.count || getInterventionLabel(a.type).localeCompare(getInterventionLabel(b.type)));
+    }, [interventions, datedInterventions]);
+
+    const toggleType = useCallback((type: string) => {
+        setHiddenTypes(prev => {
+            const next = new Set(prev);
+            if (next.has(type)) next.delete(type); else next.add(type);
+            return next;
+        });
+    }, []);
+
+    // Interventions after date, legend and HID filters. Drives the map and the list.
     const filteredInterventions = useMemo(() => {
         const q = hidSearch.toLowerCase();
-        const base = q
-            ? interventions.filter(i => i.hid.toLowerCase().includes(q))
-            : interventions;
+        const base = datedInterventions.filter(i =>
+            !hiddenTypes.has(i.type) && (!q || i.hid.toLowerCase().includes(q)),
+        );
         // Recent first: most recently registered interventions at the top.
         return [...base].sort(
             (a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime(),
         );
-    }, [interventions, hidSearch]);
+    }, [datedInterventions, hiddenTypes, hidSearch]);
 
     const polygonGeoJSON = useMemo(() => ({
         type: 'FeatureCollection' as const,
@@ -1265,6 +1768,88 @@ const ProjectMap: React.FC<{
             }),
     }), [filteredInterventions]);
 
+    // World-minus-site polygon, used to dim everything outside the picked site.
+    const siteMask = useMemo(() => {
+        if (selectedSiteId == null) return null;
+        const site = sites.features.find(s => s.id === selectedSiteId);
+        if (!site) return null;
+        try {
+            return turf.mask(turf.feature(site.geometry) as any) as GeoJSON.Feature;
+        } catch {
+            return null;
+        }
+    }, [selectedSiteId, sites.features]);
+
+    // Site name chips, placed above each site's top edge.
+    const siteLabels = useMemo(() => sites.features
+        .map(s => ({ id: s.id, name: s.properties.name, point: getSiteLabelPoint(s.geometry) }))
+        .filter((l): l is { id: number; name: string; point: [number, number] } => !!l.point && !!l.name),
+    [sites.features]);
+
+    const siteNameOf = useCallback((intervention: MapIntervention): string | null => {
+        try {
+            const pt = turf.point(getMarkerPosition(intervention));
+            const site = sites.features.find(s => turf.booleanPointInPolygon(pt, s.geometry as any));
+            return site?.properties.name ?? null;
+        } catch {
+            return null;
+        }
+    }, [sites.features]);
+
+    // Read clusters from the clustered source, deduped by cluster id. Only
+    // updates state when the set of clusters really changed.
+    const clusterKeyRef = useRef('');
+    const updateClusters = useCallback(() => {
+        const map = mapRef.current?.getMap?.() ?? mapRef.current;
+        if (!map?.getSource?.('interventions-points')) {
+            if (clusterKeyRef.current !== '') { clusterKeyRef.current = ''; setClusters([]); }
+            return;
+        }
+        try {
+            const feats = map.querySourceFeatures('interventions-points', { filter: ['has', 'point_count'] });
+            const seen: Record<number, ClusterInfo> = {};
+            feats.forEach((f: any) => {
+                const id = f.properties?.cluster_id;
+                if (id == null || seen[id]) return;
+                const [lng, lat] = f.geometry.coordinates;
+                seen[id] = { id, lng, lat, count: f.properties.point_count ?? 0, trees: f.properties.totalTreeCount ?? 0 };
+            });
+            const list = Object.values(seen);
+            const key = list.map(c => `${c.id}:${c.count}`).sort().join('|');
+            if (key !== clusterKeyRef.current) {
+                clusterKeyRef.current = key;
+                setClusters(list);
+            }
+        } catch { /* source not ready */ }
+    }, []);
+
+    useEffect(() => {
+        if (!mapLoaded) return;
+        const map = mapRef.current?.getMap?.() ?? mapRef.current;
+        if (!map?.on) return;
+        const onSourceData = (e: any) => {
+            if (e.sourceId === 'interventions-points' && e.isSourceLoaded) updateClusters();
+        };
+        map.on('moveend', updateClusters);
+        map.on('sourcedata', onSourceData);
+        updateClusters();
+        return () => {
+            map.off?.('moveend', updateClusters);
+            map.off?.('sourcedata', onSourceData);
+        };
+    }, [mapLoaded, updateClusters, pointGeoJSON]);
+
+    const expandCluster = useCallback((cluster: ClusterInfo) => {
+        const map = mapRef.current;
+        const source = map?.getSource?.('interventions-points') as any;
+        if (!source?.getClusterExpansionZoom) return;
+        Promise.resolve(source.getClusterExpansionZoom(cluster.id))
+            .then((zoom: number) => {
+                map.easeTo({ center: [cluster.lng, cluster.lat], zoom: zoom + 0.5, duration: 500 });
+            })
+            .catch(() => {});
+    }, []);
+
     const selectIntervention = useCallback((intervention: MapIntervention | null) => {
         const prevId = prevSelectedIdRef.current;
         const map = mapRef.current;
@@ -1296,43 +1881,35 @@ const ProjectMap: React.FC<{
         } catch { /* ignore */ }
     }, []);
 
+    // If the selected intervention gets filtered out (legend or date), close it.
+    useEffect(() => {
+        const id = mapState.selectedInterventionId;
+        if (id != null && !filteredInterventions.some(i => i.id === id)) selectIntervention(null);
+    }, [filteredInterventions, mapState.selectedInterventionId, selectIntervention]);
+
+    // Re-apply the selected feature-state after a filter or basemap change
+    // re-creates the sources (feature-state does not survive that).
+    useEffect(() => {
+        const map = mapRef.current;
+        const id = mapState.selectedInterventionId;
+        if (!map || !mapLoaded || id == null) return;
+        const t = setTimeout(() => {
+            try {
+                if (map.getSource('interventions-points')) map.setFeatureState({ source: 'interventions-points', id }, { selected: true });
+                if (map.getSource('interventions-polygons')) map.setFeatureState({ source: 'interventions-polygons', id }, { selected: true });
+            } catch { /* ignore */ }
+        }, 50);
+        return () => clearTimeout(t);
+    }, [polygonGeoJSON, pointGeoJSON, basemap, mapLoaded, mapState.selectedInterventionId]);
+
     const handleMapLoad = useCallback(() => {
         setMapLoaded(true);
-        createTreeIcon(mapRef.current?.getMap?.() ?? mapRef.current);
     }, []);
-
-    // Switching basemaps calls setStyle, which drops custom images and layers.
-    // react-map-gl re-adds the Source/Layer children, but the tree-icon image is
-    // imperative — re-create it whenever a new style finishes loading.
-    useEffect(() => {
-        if (!mapLoaded) return;
-        const map = mapRef.current?.getMap?.() ?? mapRef.current;
-        if (!map?.on) return;
-        const ensure = () => createTreeIcon(map);
-        map.on('styledata', ensure);
-        return () => { map.off?.('styledata', ensure); };
-    }, [mapLoaded]);
 
     const handleMapClick = useCallback((event: any) => {
         const feature = event.features?.[0];
         if (!feature) return;
         const layerId = feature.layer?.id;
-        // cluster click: zoom in to expand
-        if (layerId === 'interventions-points-clusters') {
-            const map = mapRef.current;
-            if (!map) return;
-            const clusterId = feature.properties?.cluster_id;
-            const source = map.getSource('interventions-points') as any;
-            if (source?.getClusterExpansionZoom) {
-                Promise.resolve(source.getClusterExpansionZoom(clusterId))
-                    .then((zoom: number) => {
-                        const [lng, lat] = (feature.geometry as any).coordinates;
-                        map.easeTo({ center: [lng, lat], zoom: zoom + 0.5, duration: 500 });
-                    })
-                    .catch(() => {});
-            }
-            return;
-        }
         // Sample tree click: open the tree detail and recenter on it.
         if (layerId === 'trees-points-circle') {
             const treeId = feature.properties?.id;
@@ -1356,6 +1933,57 @@ const ProjectMap: React.FC<{
             selectIntervention(intervention);
         }
     }, [interventions, trees, mapState.selectedInterventionId, selectIntervention]);
+
+    const handleMouseMove = useCallback((event: any) => {
+        lastPointRef.current = { x: event.point?.x ?? 0, y: event.point?.y ?? 0 };
+        if (tooltipRef.current) {
+            tooltipRef.current.style.transform = `translate(${lastPointRef.current.x + 14}px, ${lastPointRef.current.y + 14}px)`;
+        }
+        try {
+            const map = mapRef.current;
+            const feature = event.features?.[0];
+            const prev = hoveredFeatureRef.current;
+            if (feature && (feature.properties?.id ?? feature.id) != null) {
+                const id = feature.properties?.id ?? feature.id;
+                const source = feature.source || feature.layer?.source;
+                if (prev && (prev.id !== id || prev.source !== source)) {
+                    map?.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
+                    hoveredFeatureRef.current = null;
+                }
+                if (!prev || prev.id !== id || prev.source !== source) {
+                    map?.setFeatureState({ source, id }, { hover: true });
+                    hoveredFeatureRef.current = { source, id };
+                }
+                const nextHover = INTERVENTION_SOURCES.has(source) ? Number(id) : null;
+                setHoveredId(h => (h === nextHover ? h : nextHover));
+                setHoverPointer(true);
+            } else {
+                if (prev) {
+                    map?.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
+                    hoveredFeatureRef.current = null;
+                }
+                setHoveredId(h => (h === null ? h : null));
+                setHoverPointer(false);
+            }
+        } catch { /* ignore */ }
+    }, []);
+
+    const handleMouseLeave = useCallback(() => {
+        try {
+            const prev = hoveredFeatureRef.current;
+            if (prev && mapRef.current) {
+                mapRef.current.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
+                hoveredFeatureRef.current = null;
+            }
+        } catch { /* ignore */ }
+        setHoveredId(null);
+        setHoverPointer(false);
+    }, []);
+
+    const hoveredIntervention = useMemo(
+        () => (hoveredId == null ? undefined : interventions.find(i => i.id === hoveredId)),
+        [interventions, hoveredId],
+    );
 
     const selectedIntervention = useMemo(
         () => interventions.find(i => i.id === mapState.selectedInterventionId),
@@ -1382,13 +2010,9 @@ const ProjectMap: React.FC<{
         return () => clearTimeout(t);
     }, [mapState.selectedInterventionId, mapLoaded, selectedIntervention]);
 
-    // A single point at the selected intervention's location (centroid for
-    // polygons) that drives the animated "pulse" ring on the map. Empty when
-    // nothing is selected so the ring disappears.
+    // A single point at the selected point intervention, driving the animated
+    // "pulse" ring. Polygons are marked by their white halo instead.
     const selectedPulseGeoJSON = useMemo(() => {
-        // Only pulse point interventions. For polygons the green outline + glow
-        // already signal selection; a ring on the centroid just reads as a stray
-        // dot in the middle of the shape.
         if (!selectedIntervention || selectedIntervention.location.type !== 'Point') {
             return { type: 'FeatureCollection' as const, features: [] };
         }
@@ -1470,8 +2094,8 @@ const ProjectMap: React.FC<{
         return () => { cancelled = true; };
     }, [mapState.selectedTreeId, trees, projectId, token]);
 
-    // Tree history (remeasurement records) is loaded on demand, not on select —
-    // reset it whenever the open tree changes so each tree starts collapsed.
+    // Tree history (remeasurement records) is loaded on demand, not on select.
+    // Reset it whenever the open tree changes so each tree starts collapsed.
     useEffect(() => {
         setTreeRecords(null);
         setIsLoadingRecords(false);
@@ -1496,9 +2120,9 @@ const ProjectMap: React.FC<{
         }
     }, [mapState.selectedTreeId, trees, projectId, token]);
 
-    // When an intervention is selected (map marker or sidebar list), fetch its
-    // full detail and plot its trees. A loader covers the panel while the call
-    // is in flight. Clears when the selection is cleared.
+    // When an intervention is selected (map or sidebar list), fetch its full
+    // detail and plot its trees. A loader covers the panel while the call is in
+    // flight. Clears when the selection is cleared.
     useEffect(() => {
         const id = mapState.selectedInterventionId;
         if (id == null) {
@@ -1533,18 +2157,31 @@ const ProjectMap: React.FC<{
 
     // The right detail pane is a grid column, so opening/closing it changes the
     // map's span (and width). maplibre tracks size via ResizeObserver, but nudge
-    // a resize after the reflow so the canvas fills cleanly (covers the close
-    // case, where the framing effect bails out early).
+    // a resize after the reflow so the canvas fills cleanly.
     useEffect(() => {
         const id = setTimeout(() => {
             try { mapRef.current?.resize(); } catch { /* map not ready */ }
         }, 90);
         return () => clearTimeout(id);
+    }, [rightPaneOpen, sidebarOpen]);
+
+    // The map gets narrow while the detail pane is open, so the legend folds
+    // into a button then, and comes back as it was when the pane closes.
+    const legendBeforePaneRef = useRef<boolean | null>(null);
+    useEffect(() => {
+        if (rightPaneOpen) {
+            if (legendBeforePaneRef.current === null) {
+                legendBeforePaneRef.current = legendOpen;
+                setLegendOpen(false);
+            }
+        } else if (legendBeforePaneRef.current !== null) {
+            setLegendOpen(legendBeforePaneRef.current);
+            legendBeforePaneRef.current = null;
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rightPaneOpen]);
 
-    // Animate a "pulse" ring on the selected intervention so it stands out on
-    // the map. A radar-style ring repeatedly expands outward and fades. Runs
-    // only while something is selected; the ring layer hides otherwise.
+    // Animate a "pulse" ring on a selected point intervention.
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !mapLoaded || mapState.selectedInterventionId == null) return;
@@ -1553,8 +2190,8 @@ const ProjectMap: React.FC<{
         const PERIOD = 1500; // ms per pulse
         const animate = (now: number) => {
             const t = ((now - start) % PERIOD) / PERIOD; // 0 -> 1
-            const radius = 16 + t * 36;        // expands outward
-            const opacity = 0.6 * (1 - t);     // fades as it grows
+            const radius = 10 + t * 26;
+            const opacity = 0.8 * (1 - t);
             try {
                 if (map.getLayer('selected-pulse-ring')) {
                     map.setPaintProperty('selected-pulse-ring', 'circle-radius', radius);
@@ -1566,6 +2203,23 @@ const ProjectMap: React.FC<{
         raf = requestAnimationFrame(animate);
         return () => cancelAnimationFrame(raf);
     }, [mapLoaded, mapState.selectedInterventionId]);
+
+    // Full screen for the map card.
+    useEffect(() => {
+        const onChange = () => {
+            setIsFullscreen(document.fullscreenElement === fullscreenRef.current);
+            setTimeout(() => { try { mapRef.current?.resize(); } catch { /* ignore */ } }, 50);
+        };
+        document.addEventListener('fullscreenchange', onChange);
+        return () => document.removeEventListener('fullscreenchange', onChange);
+    }, []);
+
+    const toggleFullscreen = useCallback(() => {
+        try {
+            if (document.fullscreenElement) document.exitFullscreen();
+            else fullscreenRef.current?.requestFullscreen?.();
+        } catch { /* fullscreen not allowed */ }
+    }, []);
 
     if (isLoading) {
         return (
@@ -1598,19 +2252,27 @@ const ProjectMap: React.FC<{
         // 4-column grid mirroring the stat-card grid above, so the left list and
         // right detail card line up exactly with the stat cards. Left = 1 col,
         // map = 2 or 3 cols, right detail = 1 col when open.
-        <div className="w-full h-full grid grid-cols-4 grid-rows-1 gap-3">
-            {/* Left — interventions list (search + scrollable list) */}
-            <InterventionSidebar
-                interventions={filteredInterventions}
-                selectedId={mapState.selectedInterventionId}
-                onSelect={selectIntervention}
-                hidSearch={hidSearch}
-                onHidSearch={setHidSearch}
-                total={interventions.length}
-            />
+        <div
+            ref={fullscreenRef}
+            className={cn('w-full h-full grid grid-cols-4 grid-rows-1 gap-3', isFullscreen && 'bg-background p-3')}
+        >
+            {/* Left: interventions list (search + scrollable list) */}
+            {sidebarOpen && (
+                <InterventionSidebar
+                    interventions={filteredInterventions}
+                    selectedId={mapState.selectedInterventionId}
+                    onSelect={selectIntervention}
+                    hidSearch={hidSearch}
+                    onHidSearch={setHidSearch}
+                    total={interventions.length}
+                    onCollapse={() => toggleSidebar(false)}
+                />
+            )}
 
-            {/* Center — map */}
-            <div className={cn('relative h-full rounded-2xl overflow-hidden', detailIntervention ? 'col-span-2' : 'col-span-3')}>
+            {/* Center: map */}
+            <div
+                className={cn('relative h-full rounded-2xl overflow-hidden bg-muted', mapSpanClass(sidebarOpen, !!detailIntervention))}
+            >
             <Map
                 ref={mapRef}
                 onLoad={handleMapLoad}
@@ -1622,76 +2284,40 @@ const ProjectMap: React.FC<{
                 }}
                 style={MAP_CONTAINER_STYLE}
                 interactiveLayerIds={INTERACTIVE_LAYER_IDS}
+                cursor={hoverPointer ? 'pointer' : 'grab'}
                 onClick={handleMapClick}
-                onMouseMove={event => {
-                    try {
-                        const map = mapRef.current;
-                        const feature = event.features?.[0];
-                        const prev = hoveredFeatureRef.current;
-                        if (feature && (feature.properties?.id ?? feature.id) != null) {
-                            const id = feature.properties?.id ?? feature.id;
-                            const source = feature.source || feature.layer?.source;
-                            if (prev && (prev.id !== id || prev.source !== source)) {
-                                map?.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
-                                hoveredFeatureRef.current = null;
-                            }
-                            if (!prev || prev.id !== id || prev.source !== source) {
-                                map?.setFeatureState({ source, id }, { hover: true });
-                                hoveredFeatureRef.current = { source, id };
-                            }
-                        } else if (prev) {
-                            map?.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
-                            hoveredFeatureRef.current = null;
-                        }
-                    } catch { /* ignore */ }
-                }}
-                onMouseLeave={() => {
-                    try {
-                        const prev = hoveredFeatureRef.current;
-                        if (prev && mapRef.current) {
-                            mapRef.current.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
-                            hoveredFeatureRef.current = null;
-                        }
-                    } catch { /* ignore */ }
-                }}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
                 onError={() => { /* suppress tile load errors */ }}
             >
-                {/* Static site + intervention layers. Memoized so selecting an
-                    intervention (which re-renders ProjectMap) does not re-render
-                    these layers, preventing the shapes/markers from blinking.
-                    Selection/hover highlight is driven by feature-state, set
-                    imperatively below, so it still works without re-rendering. */}
                 <StaticMapLayers
                     showSiteBoundaries={showSiteBoundaries}
                     sites={sites}
+                    siteMask={siteMask}
                     polygonGeoJSON={polygonGeoJSON}
                     centroidGeoJSON={centroidGeoJSON}
                     pointGeoJSON={pointGeoJSON}
-                    basemap={basemap}
-                    mapLoaded={mapLoaded}
+                    hasSelection={mapState.selectedInterventionId != null}
                 />
 
-                {/* Pulsing ring on the selected intervention (animated in an
-                    effect via setPaintProperty). Sits above the intervention
-                    layers so it is always visible. */}
+                {/* Pulsing ring on a selected point intervention */}
                 {selectedPulseGeoJSON.features.length > 0 && (
                     <Source id="selected-pulse" type="geojson" data={selectedPulseGeoJSON}>
                         <Layer
                             id="selected-pulse-ring"
                             type="circle"
                             paint={{
-                                'circle-radius': 16,
+                                'circle-radius': 10,
                                 'circle-color': 'rgba(0,0,0,0)',
-                                'circle-stroke-color': SELECTED_COLOR,
-                                'circle-stroke-width': 3,
-                                'circle-stroke-opacity': 0.6,
+                                'circle-stroke-color': HALO_COLOR,
+                                'circle-stroke-width': 2.5,
+                                'circle-stroke-opacity': 0.8,
                             }}
                         />
                     </Source>
                 )}
 
-                {/* Sample trees — clickable circle layer, colored by status,
-                    selected one enlarged with a white ring. */}
+                {/* Sample trees: dots by status with a white ring */}
                 {treesGeoJSON.features.length > 0 && (
                     <Source id="trees-points" type="geojson" data={treesGeoJSON}>
                         <Layer
@@ -1701,22 +2327,63 @@ const ProjectMap: React.FC<{
                                 'circle-color': ['get', 'color'],
                                 'circle-radius': [
                                     'case',
-                                    ['feature-state', 'selected'], 9,
-                                    ['feature-state', 'hover'], 7,
-                                    5.5,
+                                    ['boolean', ['feature-state', 'selected'], false], 8,
+                                    ['boolean', ['feature-state', 'hover'], false], 6,
+                                    4.5,
                                 ],
-                                'circle-stroke-color': BORDER_COLOR,
+                                'circle-stroke-color': HALO_COLOR,
                                 'circle-stroke-width': [
                                     'case',
-                                    ['feature-state', 'selected'], 3,
-                                    ['feature-state', 'hover'], 2,
-                                    1.5,
+                                    ['boolean', ['feature-state', 'selected'], false], 3,
+                                    1.75,
                                 ],
                             }}
                         />
                     </Source>
                 )}
+
+                {/* Site name chips */}
+                {showSiteBoundaries && siteLabels.map(l => (
+                    <Marker key={`site-${l.id}`} longitude={l.point[0]} latitude={l.point[1]} anchor="bottom" offset={[0, -6]}>
+                        <SiteLabel
+                            name={l.name}
+                            active={selectedSiteId === l.id}
+                            onClick={() => handleSelectSite(selectedSiteId === l.id ? null : l.id)}
+                        />
+                    </Marker>
+                ))}
+
+                {/* Cluster bubbles */}
+                {clusters.map(c => (
+                    <Marker key={`cluster-${c.id}`} longitude={c.lng} latitude={c.lat} anchor="center">
+                        <ClusterBubble cluster={c} onClick={() => expandCluster(c)} />
+                    </Marker>
+                ))}
+
+                <ScaleControl position="bottom-left" unit="metric" />
             </Map>
+
+            {/* Hover tooltip: type, date, area or trees */}
+            {hoveredIntervention && (
+                <div
+                    ref={tooltipRef}
+                    role="tooltip"
+                    className="pointer-events-none absolute left-0 top-0 z-30 rounded-lg bg-zinc-950 px-2.5 py-2 text-xs text-white shadow-lg whitespace-nowrap"
+                    style={{ transform: `translate(${lastPointRef.current.x + 14}px, ${lastPointRef.current.y + 14}px)` }}
+                >
+                    <div className="flex items-center gap-1.5 font-semibold">
+                        <span className="size-2 rounded-sm" style={{ backgroundColor: getInterventionColor(hoveredIntervention.type) }} />
+                        {getInterventionLabel(hoveredIntervention.type)}
+                    </div>
+                    <div className="text-zinc-400 mt-0.5">
+                        {formatDate(hoveredIntervention.interventionStartDate)}
+                        {' · '}
+                        {hoveredIntervention.location.type === 'Point'
+                            ? `${formatNum(hoveredIntervention.totalTreeCount ?? 0)} trees`
+                            : resolveArea(hoveredIntervention)}
+                    </div>
+                </div>
+            )}
 
             {/* Error */}
             <AnimatePresence>
@@ -1729,87 +2396,70 @@ const ProjectMap: React.FC<{
                 )}
             </AnimatePresence>
 
-            {/* Site filter — map control, top-left */}
-            {sites.features.length > 0 && (
-                <div className="absolute top-3 left-3 z-20">
+            {/* Top-left: what you see (site, dates), then the legend filter */}
+            <div className="absolute top-3 left-3 bottom-24 z-20 flex flex-col gap-2 pointer-events-none max-w-[calc(100%-180px)]">
+                <div className="flex flex-wrap gap-2 [&>*]:pointer-events-auto">
+                    {!sidebarOpen && (
+                        <Button
+                            variant="outline"
+                            onClick={() => toggleSidebar(true)}
+                            className={cn(TOOLBAR_BUTTON, 'gap-2 px-3')}
+                            aria-label="Show interventions list"
+                            title="Show list"
+                        >
+                            <PanelLeftOpen className="w-4 h-4 text-muted-foreground" />
+                            <span className="tabular-nums">{formatNum(filteredInterventions.length)}</span>
+                        </Button>
+                    )}
                     <SiteSelect
                         sites={sites.features}
                         selectedSiteId={selectedSiteId}
                         onSelectSite={handleSelectSite}
                     />
+                    <DateFilter range={dateRange} onChange={setDateRange} />
                 </div>
-            )}
+                <div className="flex-1 min-h-0 flex items-start">
+                    <div className="pointer-events-auto max-h-full overflow-y-auto rounded-[10px]">
+                        <MapLegend
+                            typeCounts={typeCounts}
+                            hiddenTypes={hiddenTypes}
+                            onToggleType={toggleType}
+                            onShowAll={() => setHiddenTypes(new Set())}
+                            // Tree status legend hidden for now. Restore with:
+                            // showTreeStatus={treesGeoJSON.features.length > 0}
+                            showTreeStatus={false}
+                            expanded={legendOpen}
+                            onExpandedChange={setLegendOpen}
+                        />
+                    </div>
+                </div>
+            </div>
 
-            {/* Map top-right overlay slot (e.g. live-activity toggle) */}
+            {/* Top-right overlay slot (e.g. live-activity toggle) */}
             {mapTopRight && (
                 <div className="absolute top-3 right-3 z-20">
                     {mapTopRight}
                 </div>
             )}
 
-            {/* Map controls — layers panel + zoom */}
-            <div className="absolute bottom-10 right-3 z-20 flex flex-col gap-1.5">
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant="outline"
-                            size="icon-sm"
-                            className="rounded-full bg-background shadow-md text-foreground mb-1"
-                            title="Layers"
-                        >
-                            <Layers size={16} strokeWidth={2.5} />
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent side="left" align="end" className="w-52 p-3 gap-3">
-                        <div>
-                            <div className="text-xs font-medium text-muted-foreground mb-1.5">Basemap</div>
-                            <div className="grid grid-cols-3 gap-1">
-                                {BASEMAP_OPTIONS.map(opt => (
-                                    <button
-                                        key={opt.key}
-                                        onClick={() => setBasemap(opt.key)}
-                                        className={cn(
-                                            'px-2 py-1 text-xs rounded-md border transition-colors',
-                                            basemap === opt.key
-                                                ? 'bg-primary text-primary-foreground border-primary'
-                                                : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted',
-                                        )}
-                                    >
-                                        {opt.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        {sites.features.length > 0 && (
-                            <label className="flex items-center justify-between gap-2 pt-3 border-t border-border cursor-pointer">
-                                <span className="text-sm text-foreground">Site boundaries</span>
-                                <Switch checked={showSiteBoundaries} onCheckedChange={setShowSiteBoundaries} />
-                            </label>
-                        )}
-                    </PopoverContent>
-                </Popover>
-                <Button
-                    variant="outline"
-                    size="icon-sm"
-                    onClick={() => mapRef.current?.zoomIn()}
-                    className="rounded-full bg-background shadow-md text-foreground"
-                    title="Zoom in"
-                >
-                    <Plus size={17} strokeWidth={2.5} />
-                </Button>
-                <Button
-                    variant="outline"
-                    size="icon-sm"
-                    onClick={() => mapRef.current?.zoomOut()}
-                    className="rounded-full bg-background shadow-md text-foreground"
-                    title="Zoom out"
-                >
-                    <Minus size={17} strokeWidth={2.5} />
-                </Button>
+            {/* Bottom-right: how you move (layers, framing, zoom) */}
+            <div className="absolute bottom-10 right-3 z-20">
+                <MapControls
+                    basemap={basemap}
+                    onBasemap={setBasemap}
+                    hasSites={sites.features.length > 0}
+                    showSiteBoundaries={showSiteBoundaries}
+                    onShowSiteBoundaries={setShowSiteBoundaries}
+                    onFit={() => (selectedSiteId != null ? handleSelectSite(selectedSiteId) : fitProject())}
+                    isFullscreen={isFullscreen}
+                    onToggleFullscreen={toggleFullscreen}
+                    onZoomIn={() => mapRef.current?.zoomIn()}
+                    onZoomOut={() => mapRef.current?.zoomOut()}
+                />
             </div>
             </div>
 
-            {/* Right — detail pane (a 1-col grid cell, shown when something is
+            {/* Right: detail pane (a 1-col grid cell, shown when something is
                 selected). Drills intervention -> tree -> records in place; the
                 map's col-span shrinks to make room. */}
             {detailIntervention && (
@@ -1837,6 +2487,7 @@ const ProjectMap: React.FC<{
                             trees={detail?.trees ?? trees}
                             isLoading={isLoadingDetail}
                             projectUid={projectId}
+                            siteName={siteNameOf(detailIntervention)}
                             onClose={() => selectIntervention(null)}
                             onSelectTree={(tree) => {
                                 setMapState(prev => ({ ...prev, selectedTreeId: tree.id, showTreeDetails: true }));
