@@ -62,7 +62,7 @@ const Home = () => {
   }
 
   return (
-    <div className="py-6 px-4 sm:px-6 lg:px-8 w-full h-full">
+    <div className="py-6 px-4 sm:px-6 lg:px-8 w-full min-h-full">
       {currentStep > 1 && (
         <div className="flex items-center justify-between gap-3 mb-4">
           <Button

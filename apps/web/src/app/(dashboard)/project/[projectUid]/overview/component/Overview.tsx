@@ -24,7 +24,9 @@ const Overview = () => {
     const isAdminOrOwner = projectRole === 'admin' || projectRole === 'owner'
 
     return (
-        <div className="w-full h-full flex flex-col overflow-hidden">
+        // min-h: on a short screen the map would otherwise shrink to a thin
+        // strip under the stat cards; past this height the page scrolls instead.
+        <div className="w-full h-full min-h-[520px] flex flex-col overflow-hidden">
             {/* Stats — visible to all project members */}
             <div className="flex-shrink-0">
                 <StatCardsContainer setTotalTrees={() => {}} />

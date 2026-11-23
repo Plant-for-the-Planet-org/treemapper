@@ -716,7 +716,7 @@ const SpeciesManagementDashboard = () => {
   );
 
   return (
-    <div className="bg-muted/20 flex flex-col h-screen w-full">
+    <div className="bg-muted/20 flex flex-col h-full w-full">
       {/* Bulk Action Bar */}
       <AnimatePresence>
         {canAssignUnknown && selectedUnknownSpecies.length > 0 && (

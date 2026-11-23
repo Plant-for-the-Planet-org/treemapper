@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Trophy, Medal, Award, Users, Calendar, ChevronDown, Crown, Loader2, TreeDeciduous, AlertCircle } from 'lucide-react'
 import { getProjectAnalytics } from '@shared-core/fetchApi/api.fetch'
 import { useToken } from '@/context/useTokenContext'
@@ -113,15 +113,22 @@ export default function ForestLeaderboard() {
     if (hasMore && !loadingMore) fetchLeaderboard(currentPage + 1, selectedFilter, true)
   }
 
+  // Load the next page when the end of the list comes into view. This used to
+  // listen to window scroll, but the dashboard shell locks the window and
+  // scrolls an inner element instead, so that listener never fired. Watching a
+  // marker works whichever element does the scrolling, and it also keeps
+  // loading while a short list does not yet fill the screen.
+  const loadMoreRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 1000) {
-        loadMore()
-      }
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [hasMore, loadingMore, currentPage])
+    const marker = loadMoreRef.current
+    if (!marker || !hasMore || loadingMore) return
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting) loadMore()
+    })
+    observer.observe(marker)
+    return () => observer.disconnect()
+    // leaderboardData.length: the marker only mounts once the first page lands.
+  }, [hasMore, loadingMore, currentPage, selectedFilter, leaderboardData.length])
 
   return (
     <div className="w-full mx-auto p-6">
@@ -252,6 +259,8 @@ export default function ForestLeaderboard() {
                 </Collapsible>
               )
             })}
+
+            {hasMore && <div ref={loadMoreRef} aria-hidden className="h-px" />}
 
             {loadingMore && (
               <div className="p-5 flex justify-center items-center gap-2 text-muted-foreground">

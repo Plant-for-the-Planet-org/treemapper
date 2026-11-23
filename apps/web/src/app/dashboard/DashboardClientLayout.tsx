@@ -476,7 +476,15 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
                 <ImpersonationBanner />
                 <TopBarActionsProvider>
                   {showSidebar && variant !== 'workspace' && <DashboardTopBar />}
-                  {renderMainContent()}
+                  {/* The one scroll area for page content. The shell above is
+                      locked to the window height with overflow hidden, so a page
+                      taller than the screen (small laptops) needs this to be
+                      reachable at all. Full-height pages (overview, TreeMatch,
+                      form builder) still fit with h-full / flex-1 min-h-0 and
+                      scroll inside themselves, so they never trigger it. */}
+                  <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+                    {renderMainContent()}
+                  </div>
                 </TopBarActionsProvider>
               </SidebarInset>
             </SidebarProvider>
