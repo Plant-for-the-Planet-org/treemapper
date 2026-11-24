@@ -737,6 +737,12 @@ const ProjectSettings = () => {
       : isProjectOwnerAdmin)
   // Settings now follow a single gate, including basic info (no separate platform lock).
   const canEditBasicInfo = canEdit
+  // The public page (and its embeddable widget) is the one exception to the
+  // platform lock: it changes nothing about the project's data, only whether
+  // already-published records are shown, so project owners and admins keep it
+  // on platform projects too. Matches the server, whose public page settings
+  // routes require project owner/admin and have no platform rule.
+  const canEditPublicPage = isImpersonatingSuperAdmin || isProjectOwnerAdmin || (isPlatformWorkspace && isWorkspaceOwner)
 
   const activeTab = NAV_ITEMS.some(i => i.id === tabParam) ? tabParam! : 'general'
   const setActiveTab = (id: string) => router.push(`/project/${projectUid}/settings?tab=${id}`)
@@ -1011,7 +1017,7 @@ const ProjectSettings = () => {
             accessToken={accessToken}
             projectUid={selectedProject?.uid || ''}
             projectSlug={projectData.slug}
-            canEdit={canEdit}
+            canEdit={canEditPublicPage}
           />
         )
       case 'danger':
@@ -1029,7 +1035,7 @@ const ProjectSettings = () => {
         <Alert className="rounded-none border-x-0 border-t-0">
           <Lock />
           <AlertDescription>
-            This project belongs to the platform workspace, so its settings are read-only.
+            This project belongs to the platform workspace, so its settings are read-only{isProjectOwnerAdmin ? ', except the public page' : ''}.
             {isProjectOwnerAdmin
               ? ' You can edit them only while the project is in review.'
               : ' Only the platform workspace owner can change them.'}

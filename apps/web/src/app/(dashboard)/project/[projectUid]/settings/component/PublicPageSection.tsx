@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   AlertTriangle,
   Check,
+  Code2,
   Copy,
   ExternalLink,
   Globe,
@@ -25,6 +26,16 @@ import { Switch } from '@/components/ui/switch'
 import { cdnUrl } from '@/lib/cdn'
 import { cn } from '@/lib/utils'
 import { THEMES } from '@/components/public-page/themes'
+import { BLOCK_CATALOGUE } from '@/components/public-page/layout'
+import {
+  EMBED_BLOCK_IDS,
+  EMBED_DEFAULT_BLOCKS,
+  EMBED_HEIGHT_MESSAGE,
+  EMBED_MAX_BLOCKS,
+  embedPath,
+  embedSnippet,
+} from '@/components/public-page/embed'
+import type { EmbedBlockId } from '@/components/public-page/embed'
 import { isPublicPageImage } from '@/components/public-page/types'
 import type { PublicPageTheme } from '@/components/public-page/types'
 import {
@@ -419,6 +430,8 @@ export const PublicPageSection = ({
         </div>
       </Card>
 
+      <EmbedCard slug={slug} enabled={settings.enabled} />
+
       <Card className="py-0 gap-0 overflow-hidden">
         <div className="px-5 py-4 flex items-center gap-2.5 border-b border-border">
           <Users size={14} className="text-primary" />
@@ -468,6 +481,164 @@ export const PublicPageSection = ({
         </div>
       </Card>
     </div>
+  )
+}
+
+/**
+ * Builds the embed code for a widget on a partner's website.
+ *
+ * Nothing here is saved: the chosen blocks are part of the widget URL (see
+ * `components/public-page/embed.ts`), so this is a code generator, not a
+ * setting. Blocks show in the order they were picked, which is the order the
+ * numbered chips show.
+ */
+function EmbedCard({ slug, enabled }: { slug: string; enabled: boolean }) {
+  const [picked, setPicked] = useState<EmbedBlockId[]>(EMBED_DEFAULT_BLOCKS)
+  const [copied, setCopied] = useState(false)
+  const [previewHeight, setPreviewHeight] = useState(480)
+  const preview = useRef<HTMLIFrameElement>(null)
+
+  const origin = typeof window === 'undefined' ? '' : window.location.origin
+  const code = embedSnippet(origin, slug, picked)
+  const path = embedPath(slug, picked)
+
+  // The live preview sizes itself the same way embed.js does on a partner site.
+  useEffect(() => {
+    const onMessage = (event: MessageEvent) => {
+      if (event.source !== preview.current?.contentWindow) return
+      if (event.data?.type !== EMBED_HEIGHT_MESSAGE) return
+      const height = Math.ceil(Number(event.data.height))
+      if (height > 0 && height < 20000) setPreviewHeight(height)
+    }
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
+  }, [])
+
+  const toggle = (id: EmbedBlockId) => {
+    setPicked((current) => {
+      if (current.includes(id)) {
+        return current.length > 1 ? current.filter((value) => value !== id) : current
+      }
+      return current.length >= EMBED_MAX_BLOCKS ? current : [...current, id]
+    })
+  }
+
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      toast.error('Could not copy. Select the code and copy it by hand.')
+    }
+  }
+
+  return (
+    <Card className="py-0 gap-0 overflow-hidden">
+      <div className="px-5 py-4 flex items-center gap-2.5 border-b border-border">
+        <Code2 size={14} className="text-primary" />
+        <h3 className="text-sm font-semibold text-foreground">Embed on your website</h3>
+      </div>
+
+      <div className="p-5 space-y-5">
+        <p className="text-xs text-muted-foreground max-w-[60ch]">
+          Show part of this page as a widget on any website, such as your own or a partner&apos;s.
+          It uses the same theme and the same data as the public page, updates on its own, and
+          disappears if you take the page down.
+        </p>
+
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Blocks to show</Label>
+          <p className="text-xs text-muted-foreground">
+            Up to {EMBED_MAX_BLOCKS}. They appear in the order you pick them.
+          </p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            {EMBED_BLOCK_IDS.map((id) => {
+              const position = picked.indexOf(id)
+              const active = position !== -1
+              const full = !active && picked.length >= EMBED_MAX_BLOCKS
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={active}
+                  disabled={full}
+                  onClick={() => toggle(id)}
+                  title={BLOCK_CATALOGUE[id].description}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors',
+                    active
+                      ? 'border-primary bg-primary/10 text-foreground'
+                      : 'border-border text-muted-foreground hover:bg-muted/50',
+                    full && 'cursor-not-allowed opacity-50',
+                  )}
+                >
+                  {active ? (
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[0.625rem] font-semibold text-primary-foreground">
+                      {position + 1}
+                    </span>
+                  ) : null}
+                  {BLOCK_CATALOGUE[id].label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Embed code</Label>
+          <textarea
+            readOnly
+            value={code}
+            rows={4}
+            onFocus={(event) => event.currentTarget.select()}
+            className="w-full resize-none rounded-xl border border-border bg-muted/40 p-3 font-mono text-xs leading-relaxed"
+          />
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" onClick={copyCode}>
+              <Copy size={13} className="mr-1.5" />
+              {copied ? 'Copied' : 'Copy code'}
+            </Button>
+            {enabled ? (
+              <Button size="sm" variant="outline" asChild>
+                <a href={path} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink size={13} className="mr-1.5" />
+                  Open widget
+                </a>
+              </Button>
+            ) : null}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Paste it where you want the widget, in an HTML or embed block. The script line is
+            optional: it fits the height to the content.
+          </p>
+        </div>
+
+        {enabled ? (
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Preview</Label>
+            <div className="overflow-hidden rounded-xl border border-border">
+              <iframe
+                ref={preview}
+                key={path}
+                src={path}
+                title="Widget preview"
+                style={{ height: previewHeight }}
+                className="block w-full border-0"
+              />
+            </div>
+          </div>
+        ) : (
+          <Alert>
+            <AlertTriangle size={14} />
+            <AlertDescription>
+              The widget shows nothing until the public page is live. You can copy the code now
+              and publish the page later.
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
+    </Card>
   )
 }
 

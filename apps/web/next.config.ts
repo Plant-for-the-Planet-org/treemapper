@@ -20,6 +20,17 @@ const nextConfig: NextConfig = {
         source: '/.well-known/assetlinks.json',
         headers: [{ key: 'Content-Type', value: 'application/json' }],
       },
+      // The embeddable widget is the one path any site may frame. Stated
+      // outright rather than left to the absence of a header, so a later
+      // app-wide frame-ancestors rule cannot quietly break every widget.
+      {
+        source: '/embed/:path*',
+        headers: [{ key: 'Content-Security-Policy', value: 'frame-ancestors *' }],
+      },
+      {
+        source: '/embed.js',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=3600' }],
+      },
       ...(!isProduction
         ? [{ source: '/(.*)', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] }]
         : []),

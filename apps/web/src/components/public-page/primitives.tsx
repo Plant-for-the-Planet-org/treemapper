@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { cdnUrl } from '@/lib/cdn'
 import { BlockImage } from './BlockImage'
 import { cn } from '@/lib/utils'
@@ -91,6 +91,24 @@ export type StatVariant = 'rules' | 'display' | 'cards' | 'plain'
  * One headline figure. The variant decides the furniture around it, never the
  * number itself, so Report and Academy cannot drift apart on what they claim.
  */
+/**
+ * A headline figure's font size, capped so the figure always fits its column.
+ *
+ * `--pp-stat-size` is sized for short figures. A large count ("8,288,287") in
+ * a six- or three-column row is wider than its cell at that size, and grid
+ * cells do not shrink below their content, so it spilled into the next
+ * figure. The cell is a size container, and the font is the smaller of the
+ * theme size and what fits: `100cqi` (the cell width) over the figure's
+ * length times ~0.62em, a little more than a digit's advance in the widest
+ * face the themes use (the mono one), so proportional faces fit with room.
+ */
+const STAT_CELL: CSSProperties = { containerType: 'inline-size', minWidth: 0 }
+
+function statFontSize(value: string): string {
+  const chars = Math.max(value.length, 3)
+  return `min(var(--pp-stat-size), calc(100cqi / ${(chars * 0.62).toFixed(2)}))`
+}
+
 export function Stat({
   value,
   label,
@@ -109,9 +127,9 @@ export function Stat({
     return (
       <div
         className="p-6"
-        style={{ background: tint ?? 'var(--pp-accent-soft)', borderRadius: 'var(--pp-radius)' }}
+        style={{ ...STAT_CELL, background: tint ?? 'var(--pp-accent-soft)', borderRadius: 'var(--pp-radius)' }}
       >
-        <div className="pp-display" style={{ fontSize: 'var(--pp-stat-size)', lineHeight: 1 }}>
+        <div className="pp-display whitespace-nowrap" style={{ fontSize: statFontSize(value), lineHeight: 1 }}>
           {value}
         </div>
         <div className="mt-2 text-[0.9375rem] font-semibold">{label}</div>
@@ -126,10 +144,10 @@ export function Stat({
 
   if (variant === 'display') {
     return (
-      <div>
+      <div style={STAT_CELL}>
         <div
-          className="pp-display"
-          style={{ fontSize: 'var(--pp-stat-size)', lineHeight: 1, color: 'var(--pp-accent)' }}
+          className="pp-display whitespace-nowrap"
+          style={{ fontSize: statFontSize(value), lineHeight: 1, color: 'var(--pp-accent)' }}
         >
           {value}
         </div>
@@ -142,10 +160,10 @@ export function Stat({
 
   if (variant === 'rules') {
     return (
-      <div className="pt-3.5" style={{ borderTop: '2px solid var(--pp-ink)' }}>
+      <div className="pt-3.5" style={{ ...STAT_CELL, borderTop: '2px solid var(--pp-ink)' }}>
         <div
-          className="pp-num font-medium"
-          style={{ fontSize: 'var(--pp-stat-size)', letterSpacing: '-0.02em' }}
+          className="pp-num font-medium whitespace-nowrap"
+          style={{ fontSize: statFontSize(value), letterSpacing: '-0.02em' }}
         >
           {value}
         </div>

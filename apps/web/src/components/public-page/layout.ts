@@ -344,7 +344,7 @@ export function matchesDefault(theme: ThemeConfig, blocks: BlockSpec[]): boolean
   )
 }
 
-function defaultVariantFor(id: BlockId, tone: Tone): string | undefined {
+export function defaultVariantFor(id: BlockId, tone: Tone): string | undefined {
   const definition = BLOCK_CATALOGUE[id]
   return definition.defaultVariant?.[tone] ?? definition.variants[0]?.id
 }
