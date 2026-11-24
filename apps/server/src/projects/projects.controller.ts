@@ -96,6 +96,30 @@ export class ProjectsController {
     });
   }
 
+  // The project's full activity log (Admin > Activity log on the web). Same
+  // owner/admin rule as team-activity; the service leaves out ipAddress.
+  @Get(':id/audit-logs')
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async getProjectActivityLogs(
+    @Membership() membership: ProjectGuardResponse,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('action') action?: string,
+    @Query('entityType') entityType?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.projectsService.getProjectActivityLogs(membership, {
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+      action: action || undefined,
+      entityType: entityType || undefined,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+    });
+  }
+
   @Post(':id/invites/expire')
   @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)

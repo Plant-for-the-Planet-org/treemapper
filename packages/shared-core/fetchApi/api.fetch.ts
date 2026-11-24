@@ -737,6 +737,29 @@ export const getWorkspaceAuditLogs = async (
   return await fetchGetCall(uri, token);
 };
 
+// Full activity log of one project (owner/admin). Same params and response
+// shape as getWorkspaceAuditLogs, plus oldValues/newValues per entry.
+export const getProjectAuditLogs = async (
+  token: string,
+  projectUid: string,
+  params: {
+    page?: number;
+    limit?: number;
+    action?: string;
+    entityType?: string;
+    startDate?: string;
+    endDate?: string;
+  } = {},
+) => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== '') query.set(k, String(v));
+  });
+  const qs = query.toString();
+  const uri = `${getUrlApi.teamMembers}/${projectUid}/audit-logs${qs ? `?${qs}` : ''}`;
+  return await fetchGetCall(uri, token);
+};
+
 export const getWorkspaceSettings = async (token: string, uid: string) => {
   const uri = `${getUrlApi.getWorkspaceSettings}/${uid}/settings`;
   return await fetchGetCall(uri, token);

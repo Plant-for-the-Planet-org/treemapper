@@ -9,7 +9,7 @@ import {
   CheckSquare, FileText, BarChart2, Trophy, Settings, Building,
   ChevronDown, ChevronRight, Plus,
   UserCog, SlidersHorizontal, UserCheck, LogOut, Grid2x2, Smartphone,
-  Link2
+  Link2, History
 } from 'lucide-react'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -261,6 +261,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         label: 'Admin',
         items: [
           ...(isAdminOrOwner ? [{ icon: SlidersHorizontal, label: 'Project settings', id: 'settings' }] : []),
+          ...(isAdminOrOwner ? [{ icon: History, label: 'Activity log', id: 'activity' }] : []),
           // Impersonation now lives inside Workspace settings (Members), so
           // anyone who may impersonate reaches it through the Workspace item.
           ...((isWorkspaceManager || canImpersonate) ? [{ icon: Building, label: 'Workspace', id: 'workspace' }] : []),

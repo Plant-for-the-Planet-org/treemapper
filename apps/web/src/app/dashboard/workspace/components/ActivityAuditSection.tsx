@@ -19,7 +19,7 @@ import {
   UserCheck,
   Users,
 } from 'lucide-react';
-import { getWorkspaceAuditLogs } from '@shared-core/fetchApi/api.fetch';
+import { getProjectAuditLogs, getWorkspaceAuditLogs } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import type { AuditAction, AuditLogsResponse, WorkspaceAuditLog } from '../types';
@@ -87,7 +87,32 @@ const ENTITY_LABELS: Record<string, string> = {
   image: 'Image',
   notification: 'Notification',
   migration: 'Migration',
+  form: 'Form',
 };
+
+// Entity filter options per scope. A project log never holds workspace or
+// login rows, so offering them there would only ever return nothing.
+const ENTITY_FILTERS: Record<'workspace' | 'project', string[]> = {
+  workspace: ['project', 'site', 'intervention', 'workspace_member', 'project_member', 'user', 'tree', 'project_invite'],
+  project: ['project', 'site', 'intervention', 'tree', 'project_species', 'project_member', 'project_invite', 'form'],
+};
+
+// Field-level changes for one entry. Prefer the stored changedFields; fall back
+// to every key in either side, since many writers only fill old/new values.
+function changeRows(log: WorkspaceAuditLog): { field: string; from: unknown; to: unknown }[] {
+  const oldV = log.oldValues ?? {};
+  const newV = log.newValues ?? {};
+  const fields = log.changedFields?.length
+    ? log.changedFields
+    : Array.from(new Set([...Object.keys(oldV), ...Object.keys(newV)]));
+  return fields.map((field) => ({ field, from: oldV[field], to: newV[field] }));
+}
+
+function formatValue(v: unknown): string {
+  if (v === undefined || v === null || v === '') return '(empty)';
+  if (typeof v === 'object') return JSON.stringify(v);
+  return String(v);
+}
 
 function entityIcon(entityType: string) {
   switch (entityType) {
@@ -129,17 +154,28 @@ function dateRangeToStartDate(days: string): string | undefined {
 }
 
 function exportToCsv(logs: WorkspaceAuditLog[]) {
+  const withValues = logs.some((l) => l.oldValues || l.newValues);
   const headers = ['Date', 'Action', 'Entity', 'Entity UID', 'Changed Fields', 'User', 'Source'];
-  const rows = logs.map((l) => [
-    new Date(l.occurredAt).toISOString(),
-    l.action,
-    l.entityType,
-    l.entityUid ?? '',
-    (l.changedFields ?? []).join('; '),
-    l.userDisplayName ?? l.userEmail ?? '',
-    l.source ?? '',
-  ]);
-  const csv = [headers, ...rows].map((r) => r.map((v) => `"${v}"`).join(',')).join('\n');
+  if (withValues) headers.push('Changes');
+  const rows = logs.map((l) => {
+    const row = [
+      new Date(l.occurredAt).toISOString(),
+      l.action,
+      l.entityType,
+      l.entityUid ?? '',
+      (l.changedFields ?? []).join('; '),
+      l.userDisplayName ?? l.userEmail ?? '',
+      l.source ?? '',
+    ];
+    if (withValues) {
+      row.push(changeRows(l).map((c) => `${c.field}: ${formatValue(c.from)} -> ${formatValue(c.to)}`).join('; '));
+    }
+    return row;
+  });
+  // Double any quote inside a value, or a field holding one breaks the CSV.
+  const csv = [headers, ...rows]
+    .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -170,9 +206,31 @@ function UserAvatar({ name, image }: { name: string | null; image: string | null
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 
-export function ActivityAuditSection() {
+interface ActivityAuditSectionProps {
+  // 'workspace' (default) reads the selected workspace from the store;
+  // 'project' needs projectUid and also shows field-level changes.
+  scope?: 'workspace' | 'project';
+  projectUid?: string;
+  title?: string;
+}
+
+export function ActivityAuditSection({
+  scope = 'workspace',
+  projectUid,
+  title = 'Activity & Audit',
+}: ActivityAuditSectionProps = {}) {
   const { accessToken } = useToken();
-  const workspaceUid = useProjectStore((state) => state.selectedWorkspce?.uid);
+  const selectedWorkspaceUid = useProjectStore((state) => state.selectedWorkspce?.uid);
+  const targetUid = scope === 'project' ? projectUid : selectedWorkspaceUid;
+
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggleExpanded = (uid: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(uid)) next.delete(uid);
+      else next.add(uid);
+      return next;
+    });
 
   const [logs, setLogs] = useState<WorkspaceAuditLog[]>([]);
   const [total, setTotal] = useState(0);
@@ -192,18 +250,21 @@ export function ActivityAuditSection() {
 
   const fetchLogs = useCallback(
     async (pageNum: number, append = false) => {
-      if (!accessToken || !workspaceUid) return;
+      if (!accessToken || !targetUid) return;
       append ? setIsLoadingMore(true) : setIsLoading(true);
       setError(null);
 
       const f = filtersRef.current;
-      const res = await getWorkspaceAuditLogs(accessToken, workspaceUid, {
+      const params = {
         page: pageNum,
         limit: PAGE_SIZE,
         action: f.action || undefined,
         entityType: f.entityType || undefined,
         startDate: dateRangeToStartDate(f.dateRange),
-      });
+      };
+      const res = scope === 'project'
+        ? await getProjectAuditLogs(accessToken, targetUid, params)
+        : await getWorkspaceAuditLogs(accessToken, targetUid, params);
 
       append ? setIsLoadingMore(false) : setIsLoading(false);
 
@@ -216,7 +277,7 @@ export function ActivityAuditSection() {
       setTotal(payload.total);
       setLogs((prev) => (append ? [...prev, ...payload.data] : payload.data));
     },
-    [accessToken, workspaceUid],
+    [accessToken, targetUid, scope],
   );
 
   // initial load + re-load when filters or the selected workspace change
@@ -244,7 +305,7 @@ export function ActivityAuditSection() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Activity & Audit</CardTitle>
+            <CardTitle>{title}</CardTitle>
             {!isLoading && (
               <p className="mt-0.5 text-sm text-gray-500">
                 {total.toLocaleString()} {total === 1 ? 'entry' : 'entries'}
@@ -300,14 +361,9 @@ export function ActivityAuditSection() {
             placeholder="All entities"
           >
             <SelectItem value="">All entities</SelectItem>
-            <SelectItem value="project">Project</SelectItem>
-            <SelectItem value="site">Site</SelectItem>
-            <SelectItem value="intervention">Intervention</SelectItem>
-            <SelectItem value="workspace_member">Member</SelectItem>
-            <SelectItem value="project_member">Project member</SelectItem>
-            <SelectItem value="user">User</SelectItem>
-            <SelectItem value="tree">Tree</SelectItem>
-            <SelectItem value="project_invite">Invite</SelectItem>
+            {ENTITY_FILTERS[scope].map((e) => (
+              <SelectItem key={e} value={e}>{ENTITY_LABELS[e] ?? e}</SelectItem>
+            ))}
           </Select>
 
           <Select
@@ -417,7 +473,43 @@ export function ActivityAuditSection() {
                         {log.source}
                       </span>
                     )}
+                    {(log.oldValues || log.newValues) && changeRows(log).length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => toggleExpanded(log.uid)}
+                        className="flex items-center gap-0.5 font-medium text-[#007A49] hover:underline"
+                      >
+                        <ChevronDown
+                          className={`h-3 w-3 transition-transform ${expanded.has(log.uid) ? 'rotate-180' : ''}`}
+                        />
+                        {expanded.has(log.uid) ? 'Hide changes' : 'Show changes'}
+                      </button>
+                    )}
                   </div>
+
+                  {/* Field-level changes (project log only) */}
+                  {expanded.has(log.uid) && (
+                    <div className="mt-2 overflow-x-auto rounded-md border border-gray-200 bg-white">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-gray-100 text-left text-gray-500">
+                            <th className="px-2 py-1.5 font-medium">Field</th>
+                            <th className="px-2 py-1.5 font-medium">Before</th>
+                            <th className="px-2 py-1.5 font-medium">After</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {changeRows(log).map((c) => (
+                            <tr key={c.field} className="border-b border-gray-50 last:border-0 align-top">
+                              <td className="px-2 py-1.5 font-mono text-[11px] text-gray-700">{c.field}</td>
+                              <td className="max-w-[240px] break-words px-2 py-1.5 text-gray-500">{formatValue(c.from)}</td>
+                              <td className="max-w-[240px] break-words px-2 py-1.5 text-gray-900">{formatValue(c.to)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

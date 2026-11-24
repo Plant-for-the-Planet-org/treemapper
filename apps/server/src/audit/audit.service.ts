@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { eq, and, desc, gte, lte, sql, inArray } from 'drizzle-orm';
-import { auditLog, workspace, user } from '../database/schema/index'
+import { auditLog, auditActionEnum, auditEntityEnum, workspace, user } from '../database/schema/index'
 import { DrizzleService } from '../database/drizzle.service'
 
 export interface CreateAuditLogDto {
@@ -258,6 +258,77 @@ export class AuditService {
       console.error('Error fetching project audit logs:', error);
       throw error;
     }
+  }
+
+  /**
+   * The full activity log of one project, for its owners and admins (the
+   * project "Activity log" page). Unlike `getProjectAuditLogs` (superadmin
+   * only) this joins the acting user and never returns `ipAddress`: project
+   * admins see who changed what and when, not where they were. Filters are
+   * checked against the enums first, because an unknown value would reach
+   * Postgres as an invalid enum literal and surface as a 500.
+   */
+  async getProjectActivityLogs(
+    projectId: number,
+    query: AuditLogQueryDto = {},
+  ): Promise<{ data: any[]; total: number; page: number; limit: number }> {
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(query.limit) || 25));
+    const offset = (page - 1) * limit;
+    const { action, entityType, startDate, endDate } = query;
+
+    if (action && !auditActionEnum.enumValues.includes(action as any)) {
+      throw new BadRequestException(`Unknown action: ${action}`);
+    }
+    if (entityType && !auditEntityEnum.enumValues.includes(entityType as any)) {
+      throw new BadRequestException(`Unknown entity type: ${entityType}`);
+    }
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+    if ((start && isNaN(start.getTime())) || (end && isNaN(end.getTime()))) {
+      throw new BadRequestException('Invalid date filter');
+    }
+
+    const whereConditions: any[] = [eq(auditLog.projectId, projectId)];
+    if (action) whereConditions.push(eq(auditLog.action, action as any));
+    if (entityType) whereConditions.push(eq(auditLog.entityType, entityType as any));
+    if (start) whereConditions.push(gte(auditLog.occurredAt, start));
+    if (end) whereConditions.push(lte(auditLog.occurredAt, end));
+    const whereClause = and(...whereConditions);
+
+    const [data, countResult] = await Promise.all([
+      this.drizzleService.db
+        .select({
+          id: auditLog.id,
+          uid: auditLog.uid,
+          action: auditLog.action,
+          entityType: auditLog.entityType,
+          entityId: auditLog.entityId,
+          entityUid: auditLog.entityUid,
+          changedFields: auditLog.changedFields,
+          oldValues: auditLog.oldValues,
+          newValues: auditLog.newValues,
+          source: auditLog.source,
+          occurredAt: auditLog.occurredAt,
+          userUid: user.uid,
+          userDisplayName: user.displayName,
+          userEmail: user.email,
+          userImage: user.image,
+        })
+        .from(auditLog)
+        .leftJoin(user, eq(auditLog.userId, user.id))
+        .where(whereClause)
+        .orderBy(desc(auditLog.occurredAt))
+        .limit(limit)
+        .offset(offset),
+
+      this.drizzleService.db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(auditLog)
+        .where(whereClause),
+    ]);
+
+    return { data, total: countResult[0]?.count ?? 0, page, limit };
   }
 
   /**
