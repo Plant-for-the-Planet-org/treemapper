@@ -24,7 +24,9 @@ const Overview = () => {
     const isAdminOrOwner = projectRole === 'admin' || projectRole === 'owner'
 
     return (
-        <div className="w-full h-full flex flex-col overflow-hidden">
+        // min-h: on a short screen the map would otherwise shrink to a thin
+        // strip under the stat cards; past this height the page scrolls instead.
+        <div className="w-full h-full min-h-[520px] flex flex-col overflow-hidden">
             {/* Stats — visible to all project members */}
             <div className="flex-shrink-0">
                 <StatCardsContainer setTotalTrees={() => {}} />
@@ -45,13 +47,12 @@ const Overview = () => {
                             mapTopRight={isAdminOrOwner && !panelOpen ? (
                                 <Button
                                     variant="outline"
-                                    size="sm"
                                     onClick={() => setPanelOpen(true)}
-                                    className="rounded-full bg-background/95 shadow-md"
+                                    className="h-10 rounded-lg bg-background shadow-sm border-border font-medium gap-2 px-3"
                                 >
-                                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                                     Live activity
-                                    <ChevronLeft size={12} className="text-muted-foreground" />
+                                    <ChevronLeft size={16} className="text-muted-foreground" />
                                 </Button>
                             ) : undefined}
                         />

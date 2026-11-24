@@ -400,6 +400,14 @@ export const getProjectIntervention = async (token: string, id: string, queryPar
   return result
 }
 
+// Everyone who has recorded an intervention in the project, for the
+// "Recorded by" filter. Owner/admin only on the server.
+export const getProjectRecorders = async (token: string, id: string) => {
+  const uri = `${getUrlApi.getProjectIntervnetion}/${id}/recorders`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
 
 export const createBulkIntervention = async (token: string, params: any, prjId: string) => {
   const uri = `${postUrlApi.createNewIntervention}/${prjId}/bulk`;
@@ -726,6 +734,29 @@ export const getWorkspaceAuditLogs = async (
   });
   const qs = query.toString();
   const uri = `${getUrlApi.getWorkspaceAuditLogs}/${uid}${qs ? `?${qs}` : ''}`;
+  return await fetchGetCall(uri, token);
+};
+
+// Full activity log of one project (owner/admin). Same params and response
+// shape as getWorkspaceAuditLogs, plus oldValues/newValues per entry.
+export const getProjectAuditLogs = async (
+  token: string,
+  projectUid: string,
+  params: {
+    page?: number;
+    limit?: number;
+    action?: string;
+    entityType?: string;
+    startDate?: string;
+    endDate?: string;
+  } = {},
+) => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== '') query.set(k, String(v));
+  });
+  const qs = query.toString();
+  const uri = `${getUrlApi.teamMembers}/${projectUid}/audit-logs${qs ? `?${qs}` : ''}`;
   return await fetchGetCall(uri, token);
 };
 

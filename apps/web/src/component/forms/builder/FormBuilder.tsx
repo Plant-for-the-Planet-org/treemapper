@@ -151,7 +151,7 @@ export default function FormBuilder() {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex flex-col" style={{ height: 'calc(100vh - 80px)' }}>
+      <div className="flex h-full min-h-0 flex-col">
         <BuilderTopBar />
         <div className="flex overflow-hidden" style={{ flex: 1, minHeight: 0 }}>
           <FormCanvas />

@@ -5,6 +5,8 @@ import {
     Search, Download, Eye, ChevronUp, ChevronDown, Plus, Upload, X,
     Users, UserCheck, Mail, TreePine,
 } from 'lucide-react'
+import Link from 'next/link'
+import { projectHref } from '@/lib/projectRoutes'
 import InviteUserModal from './component/InviteUserModal'
 import UserDetailsModal from './component/UserDetailsModal'
 import { toast } from 'react-toastify'
@@ -568,7 +570,17 @@ const TeamsDashboard = () => {
                     {/* Team activity */}
                     <Card className="py-0">
                         <CardContent className="p-4">
-                            <h3 className="text-sm font-semibold text-foreground">Team activity</h3>
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-semibold text-foreground">Team activity</h3>
+                                {SelectedProject?.uid && (
+                                    <Link
+                                        href={projectHref(SelectedProject.uid, 'activity')}
+                                        className="text-xs font-medium text-primary hover:underline"
+                                    >
+                                        View all
+                                    </Link>
+                                )}
+                            </div>
                             <p className="text-xs text-muted-foreground mb-3">Joins, role changes and invitations</p>
                             {loading ? (
                                 <div className="space-y-3">

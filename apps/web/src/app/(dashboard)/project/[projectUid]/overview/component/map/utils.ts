@@ -3,7 +3,12 @@
 import * as turf from '@turf/turf';
 import { Trees, Sprout, Shield, Activity, Leaf, Target, type LucideIcon } from 'lucide-react';
 import { cdnUrl } from '@/lib/cdn';
-import { BRAND } from './constants';
+import {
+    INTERVENTION_COLORS,
+    INTERVENTION_LABELS,
+    OTHER_INTERVENTION_COLOR,
+    TREE_STATUS_COLORS,
+} from './constants';
 import type { MapIntervention, MapTree, ProjectMapBounds } from './types';
 
 export const validateGeoJSONGeometry = (geometry: any): boolean => {
@@ -64,17 +69,14 @@ export const createTreeIcon = (map: any) => {
     } catch { /* image add failed; icons fall back to circles */ }
 };
 
-export const getInterventionColor = (type: string): string => {
-    const colors: Record<string, string> = {
-        'single-tree-registration': BRAND,
-        'multi-tree-registration': BRAND,
-        'direct-seeding': '#005c37',
-        'enrichment-planting': '#009a5c',
-        'maintenance': '#00b36b',
-        'monitoring': '#004d30',
-        'removal-invasive-species': '#c53030',
-    };
-    return colors[type] ?? BRAND;
+export const getInterventionColor = (type: string): string =>
+    INTERVENTION_COLORS[type] ?? OTHER_INTERVENTION_COLOR;
+
+// Human label for an intervention type. Falls back to the kebab key in words.
+export const getInterventionLabel = (type: string): string => {
+    if (INTERVENTION_LABELS[type]) return INTERVENTION_LABELS[type];
+    const words = type.replace(/-/g, ' ');
+    return words.charAt(0).toUpperCase() + words.slice(1);
 };
 
 // Intervention type -> icon, mirroring the interventions list page so the
@@ -96,16 +98,8 @@ export const interventionTypeIcons: Record<string, LucideIcon> = {
 export const getInterventionIcon = (type: string): LucideIcon =>
     interventionTypeIcons[type] ?? Target;
 
-export const getTreeStatusColor = (status: string): string => {
-    const colors: Record<string, string> = {
-        alive: '#10b981',
-        dead: '#dc2626',
-        sick: '#f59e0b',
-        unknown: '#6b7280',
-        removed: '#374151',
-    };
-    return colors[status] ?? '#6b7280';
-};
+export const getTreeStatusColor = (status: string): string =>
+    TREE_STATUS_COLORS[status] ?? TREE_STATUS_COLORS.unknown;
 
 export const formatDate = (dateString: string): string => {
     try {
@@ -246,3 +240,26 @@ export const calculateBounds = (interventions: MapIntervention[]): ProjectMapBou
         return { bounds: [-180, -85, 180, 85], center: [0, 0] };
     }
 };
+
+// Where a site's name chip sits: just above the site's northern-most vertex,
+// so the label never covers the boundary line or the data inside it.
+export const getSiteLabelPoint = (geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon): [number, number] | null => {
+    try {
+        const rings = geometry.type === 'Polygon'
+            ? [geometry.coordinates[0]]
+            : geometry.coordinates.map(p => p[0]);
+        let top: number[] | null = null;
+        for (const ring of rings) {
+            for (const c of ring) {
+                if (!top || c[1] > top[1]) top = c;
+            }
+        }
+        return top ? [top[0], top[1]] : null;
+    } catch {
+        return null;
+    }
+};
+
+// Compact count for cluster bubbles: 950, 1.2k, 12k, 1.4M.
+export const formatCompact = (n: number): string =>
+    n.toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 1 });

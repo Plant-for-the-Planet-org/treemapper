@@ -17,10 +17,18 @@ interface Site {
   name: string
 }
 
+interface Recorder {
+  uid: string
+  name: string | null
+  email: string | null
+  interventionCount: number
+}
+
 interface Filters {
   type: string
   captureMode: string
   projectSiteId: string
+  recordedBy: string
   flag: string
   sortOrder: string
   [key: string]: unknown
@@ -38,6 +46,8 @@ interface Props {
   setFilters: React.Dispatch<React.SetStateAction<any>>
   interventionTypes: string[]
   sites: Site[]
+  // Empty for non-admins, which hides the "Recorded by" filter.
+  recorders: Recorder[]
   pagination: { total: number }
   activeFilterCount: number
   clearAllFilters: () => void
@@ -70,7 +80,7 @@ const CAPTURE_MODES = [
 
 export const InterventionsPanel = ({
   interventions, selectedIntervention, onSelect, loading, error,
-  searchTerm, setSearchTerm, filters, setFilters, interventionTypes, sites,
+  searchTerm, setSearchTerm, filters, setFilters, interventionTypes, sites, recorders,
   pagination, activeFilterCount, clearAllFilters, hasMore, observerRef, fetchInterventionData, onCreate,
   isBulkMode, selectedUids, onToggleSelect, onEnterBulkMode, onExitBulkMode,
   onSelectAll, onClearSelection,
@@ -105,12 +115,18 @@ export const InterventionsPanel = ({
     : 'Flag: all'
 
   const siteName = (id: string) => sites.find((s) => String(s.id) === id)?.name ?? id
+  const recorderLabel = (r: Recorder) => r.name || r.email || 'Unknown'
+  const recorderName = (uid: string) => {
+    const r = recorders.find((x) => x.uid === uid)
+    return r ? recorderLabel(r) : 'Unknown'
+  }
 
   // Active popover filters shown as removable chips under the search bar.
   // Flag is excluded: it has its own independent toggle next to sort.
   const activeChips = [
     filters.type && { key: 'type', label: `Type: ${labelize(filters.type)}` },
     filters.projectSiteId && { key: 'projectSiteId', label: `Site: ${siteName(filters.projectSiteId)}` },
+    filters.recordedBy && { key: 'recordedBy', label: `By: ${recorderName(filters.recordedBy)}` },
     filters.captureMode && { key: 'captureMode', label: `Mode: ${CAPTURE_MODES.find((m) => m.value === filters.captureMode)?.label ?? filters.captureMode}` },
   ].filter(Boolean) as { key: string; label: string }[]
 
@@ -185,6 +201,23 @@ export const InterventionsPanel = ({
                   </SelectContent>
                 </Select>
               </div>
+
+              {recorders.length > 0 && (
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Recorded by</label>
+                  <Select value={filters.recordedBy || 'all'} onValueChange={(v) => setFilter('recordedBy', v)}>
+                    <SelectTrigger size="sm" className="h-8 text-xs w-full"><SelectValue placeholder="Anyone" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="text-xs">Anyone</SelectItem>
+                      {recorders.map((r) => (
+                        <SelectItem key={r.uid} value={r.uid} className="text-xs">
+                          {recorderLabel(r)} ({r.interventionCount})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               {activeChips.length > 0 && (
                 <Button variant="ghost" size="sm" className="h-7 w-full text-xs text-muted-foreground" onClick={clearAllFilters}>

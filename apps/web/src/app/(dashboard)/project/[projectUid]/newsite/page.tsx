@@ -436,7 +436,7 @@ export function CreateProjectUI() {
     const area = finalGeoJSON ? calculateFarmArea(finalGeoJSON) : null;
 
     return (
-        <div className="bg-gray-50 h-screen flex flex-col overflow-hidden">
+        <div className="bg-gray-50 h-full flex flex-col overflow-hidden">
             <CreateSiteHeader
                 onGoBack={router.back}
                 projectName={SelectedProject?.name}

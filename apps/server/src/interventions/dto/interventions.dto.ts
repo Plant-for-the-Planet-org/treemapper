@@ -690,6 +690,12 @@ export class GetProjectInterventionsQueryDto {
   @IsInt()
   userId?: number;
 
+  // Uid of the user who recorded the intervention. The web client only ever
+  // sees user uids, never the numeric id that `userId` takes.
+  @IsOptional()
+  @IsString()
+  recordedBy?: string;
+
   @IsOptional()
   @IsDateString()
   interventionStartDate?: string;
@@ -828,6 +834,16 @@ export interface PaginationDto {
 export interface GetProjectInterventionsResponseDto {
   intervention: InterventionDto[];
   pagination: PaginationDto;
+}
+
+// One person who has recorded interventions in a project, for the
+// "Recorded by" filter. Includes people who have since left the project.
+export interface ProjectRecorderDto {
+  uid: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+  interventionCount: number;
 }
 
 

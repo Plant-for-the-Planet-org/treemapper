@@ -188,7 +188,7 @@ export type AuditEntityType =
   | 'user' | 'workspace' | 'workspace_member' | 'project' | 'project_member'
   | 'site' | 'intervention' | 'tree' | 'tree_record' | 'scientific_species'
   | 'project_species' | 'species_request' | 'project_invite' | 'bulk_invite'
-  | 'image' | 'notification' | 'migration';
+  | 'image' | 'notification' | 'migration' | 'form';
 
 export interface WorkspaceAuditLog {
   id: number;
@@ -204,6 +204,9 @@ export interface WorkspaceAuditLog {
   userDisplayName: string | null;
   userEmail: string | null;
   userImage: string | null;
+  // Only the project log returns these; the workspace log leaves them out.
+  oldValues?: Record<string, unknown> | null;
+  newValues?: Record<string, unknown> | null;
 }
 
 export interface AuditLogsResponse {

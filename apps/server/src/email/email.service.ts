@@ -52,6 +52,7 @@ export class EmailService {
     token,
     expiresAt,
     role,
+    message,
   }: {
     email: string;
     projectName: string;
@@ -59,19 +60,29 @@ export class EmailService {
     token: string;
     expiresAt: Date;
     role: string;
+    message?: string;
   }): Promise<boolean> {
     const inviteUrl = `${this.frontendUrl}?project-invite=${token}`;
-    const expiryDate = new Date(expiresAt).toLocaleDateString();
+    const expiryDate = new Date(expiresAt).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
+    const inviter = inviterName?.trim();
     return this.sendTemplateEmail({
       to: email,
-      subject: `TreeMapper Invitation to join ${projectName}`,
+      subject: inviter
+        ? `${inviter} invited you to join ${projectName} on TreeMapper`
+        : `You're invited to join ${projectName} on TreeMapper`,
       templateName: 'project-invite',
       context: {
         projectName,
-        inviterName,
+        inviterName: inviter,
         inviteUrl,
         expiryDate,
         role: this.formatRoleName(role),
+        message: message?.trim(),
       },
     });
   }

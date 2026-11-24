@@ -21,7 +21,7 @@ import { CACHE_KEYS, CACHE_TTL } from 'src/cache/cache-keys';
 import { CacheService } from 'src/cache/cache.service';
 import { ProjectCacheService } from 'src/cache/project-cache.service';
 import { UserCacheService } from 'src/cache/user-cache.service';
-import { AuditService } from 'src/audit/audit.service';
+import { AuditService, AuditLogQueryDto } from 'src/audit/audit.service';
 
 // `viaWorkspaceAdmin` marks a membership the guard synthesized from a workspace
 // owner/admin role rather than read from `project_member`. Routes that are happy
@@ -775,6 +775,7 @@ export class ProjectsService {
         inviterName: currentUser.displayName || '',
         token: invitation.token,
         expiresAt: expiryDate,
+        message,
       });
       this.notificationService.createNotification(
         {
@@ -879,6 +880,10 @@ export class ProjectsService {
 
   async getProjectTeamActivity(membership: ProjectGuardResponse, query: { page?: number; limit?: number } = {}) {
     return this.auditLogsService.getProjectTeamActivity(membership.projectId, query);
+  }
+
+  async getProjectActivityLogs(membership: ProjectGuardResponse, query: AuditLogQueryDto = {}) {
+    return this.auditLogsService.getProjectActivityLogs(membership.projectId, query);
   }
 
   async expireInvite(token: string, userData: User, projectId: number) {
