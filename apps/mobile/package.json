@@ -56,7 +56,7 @@
     "expo-status-bar": "~55.0.6",
     "expo-system-ui": "~55.0.18",
     "expo-web-browser": "~55.0.16",
-    "i18next": "25.7.3",
+    "i18next": "26.3.4",
     "jszip": "3.10.1",
     "moment": "2.30.1",
     "moti": "0.28.1",
