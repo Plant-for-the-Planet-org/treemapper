@@ -7,8 +7,9 @@ test layers, the harness and the CI setup. Read that first.
 
 **Status:** proposed 2026-11-04, for review. Written so far: F1 scenario 1 in
 Layer 2 (full stack, local only, 2026-11-05), F2 in Layer 1 except the switch
-across workspaces (`mocked/specs/project-links.spec.ts`, 2026-11-11), and F2 scenario 1 in
-Layer 2 (`fullstack/specs/project-links.spec.ts`, 2026-11-12).
+across workspaces (`mocked/specs/project-links.spec.ts`, 2026-11-11), F2 scenario 1 in
+Layer 2 (`fullstack/specs/project-links.spec.ts`, 2026-11-12), and F3 in Layer 1
+(`mocked/specs/session-errors.spec.ts`, 2026-11-25).
 
 **How this was made:** by reading the code, not by running the app. Labels,
 endpoints and bugs below come from the source and give a path where it
@@ -66,6 +67,11 @@ CI"](./e2e-testing-plan.md#running-locally-and-in-ci).
 unknown project, the switcher within one workspace, legacy `/dashboard` links
 and an invite on a project route. See [F2](#f2-deep-links-unknown-projects-and-the-project-switcher)
 for what is in and what is left out.
+
+`apps/web/e2e/mocked/specs/session-errors.spec.ts` covers F3 in Layer 1: the
+error screens for 401 and 403, the retry loop for every other failure (timed
+with `page.clock`), getting back to the dashboard, and every button on the
+error screens. See [F3](#f3-session-error-screens) for the full list.
 
 Tests 2 to 5 in [e2e-testing-plan.md, "First five
 tests"](./e2e-testing-plan.md#first-five-tests) map to F1, F2, the legacy
@@ -377,7 +383,8 @@ timers in a test.
 `handleError` retry loop).
 
 **API:** `GET users/me` answering `fail(401|403, ..., code)` or
-`fail(500)`; `GET projects` answering non-200.
+`fail(500)`; `GET projects` answering non-200 (meant to retry too, but today it
+does not, see Bugs).
 
 **Logic**
 
@@ -399,6 +406,43 @@ timers in a test.
 the stub answers `login_required`, which logs out. Assert the logout request.
 
 **Prerequisites:** `page.clock`.
+
+**Status** (Layer 1 in `mocked/specs/session-errors.spec.ts`; no Layer 2 planned,
+since a real server cannot be made to fail on cue)
+
+| Scenario | Layer 1 (mocked) |
+|---|---|
+| 1. `email_not_verified` | **Done** |
+| 2. Another 401 or 403 code: "Sign in again" logs out | **Done**, for both 401 and 403 |
+| 3. `users/me` 500: error after 3 retries, "Try Again" runs 3 more | **Done** |
+| 4. The server recovers on a later call | **Done**, after two 500s and after two 503s |
+| Edge: "I have verified, check again" when the Auth0 session has ended | **Done**. Logs out |
+| Edge: "I have verified, check again" when it works | **Done**. Gets a new token with no full sign in, then loads the dashboard |
+| Extra: each retry fires exactly 5s after the failure | **Done** |
+| Extra: a network failure, a 502 HTML page, cut-off JSON in a 200 and a 200 with no user | **Done**. All handled like a 500 |
+| Extra: a double click on "Try Again" | **Done**. Sends one request, not two |
+| Extra: a reload after the error screen | **Done**, with the server still down and with it back |
+| Extra: "Sign out" and "Sign in with a different account" | **Done**. Both log out and go to login |
+| Extra: `projects` answers 500 | **Done** as `test.fail()`. It is never retried (#1151, see Bugs) |
+
+What writing it taught, for later flows:
+
+- **Step the fake clock, do not jump it.** The retry timer starts only once
+  the failed response has been read, and that happens in real time. One 5s
+  `fastForward` can run before the timer exists and skip nothing.
+  `advanceClockUntilCallCount` in `e2e/mocked/helpers/fake-clock.ts` steps 1s at a time
+  until the next call lands. It proves the call happened, not when, so the 5s
+  delay has its own test.
+- **Never sync on a console log.** CI runs a production build, and
+  `removeConsole` in `next.config.ts` strips every `console.*` call from it,
+  so a test that waits for a log line passes locally (dev mode) and times out
+  in CI. To time the retry delay, the test pauses the fake clock, waits for the
+  call to reach the mock, then waits 500ms of real time for the app to start
+  its timer. Real time does not move a paused clock, so the 5s still measures
+  exactly.
+- **`test.fail()` checked with the JSON reporter.** The `projects` test fails at
+  the clock step (1 `projects` call, never 2), which is where the bug says, not
+  at a mock.
 
 ---
 
@@ -1017,6 +1061,7 @@ normal test for the rest of the page.
 | F1 | Notification action button only closes the modal; the per-item X removes it only on the client | `component/header/NotificationIcon.tsx` |
 | F1 | **#1137. Seen in a browser** (Layer 2). The sidebar shows a blank user name, and "U" as the initials when there is no image, for a user with no first or last name: it falls back to `user.name`, but `users/me` sends `displayName`, not `name`. `fullstack/specs/landing.spec.ts` notes it as a "known issue" for now | `component/sidebar/DashboardSidebar.tsx`, `userName` |
 | F2 | **Seen in a test** (`project-links.spec.ts`, `test.fail()`), #1143. `?project-invite=` on a project route leaves the project list empty, so the page spins behind the modal | `DashboardClientLayout.tsx`, `initializeApp` |
+| F3 | **Seen in a test** (`session-errors.spec.ts`, `test.fail()`), #1151. A 500 from `projects` is never retried. `users/me` already put the user in the store, so when the retry timer resets the state, the effect takes the "already loaded" branch and marks success. The page spins forever and never shows an error | `DashboardClientLayout.tsx`, the bootstrap effect |
 | Later | Leaderboard filters and "load more" send no parameters, so every filter shows the same data and "load more" appends duplicates | `leaderboard/page.tsx` |
 | Later | Profile save does not check the `PATCH` result, and does not update the store | `(standalone)/profile/page.tsx` |
 
