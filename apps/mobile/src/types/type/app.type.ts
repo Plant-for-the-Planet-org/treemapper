@@ -9,7 +9,7 @@ export type DATA_VISIBILITY = 'public' | 'private' | 'app'
 
 export type MAP_BOUNDS = "DISPLAY_MAP" | "POINT_MAP" | "POLYGON_MAP" | "PREVIEW_MAP" | "UNKNOWN"
 
-export type SIDE_DRAWER_ELEMENTS = 'logout' | 'manage_species' | 'manage_projects' | 'additional_data' | 'offline_map' | 'data_explorer' | 'activity_log' | 'inventory' | 'language' | 'delete' | 'guide' | 'notification' | 'features' | 'feedback' | 'forms' | 'tours' | 'analytics_consent' | 'rate_app'
+export type SIDE_DRAWER_ELEMENTS = 'logout' | 'manage_species' | 'manage_projects' | 'additional_data' | 'offline_map' | 'data_explorer' | 'activity_log' | 'inventory' | 'language' | 'delete' | 'guide' | 'notification' | 'features' | 'feedback' | 'forms' | 'tours' | 'analytics_consent' | 'rate_app' | 'app_mode'
 
 
 export type INTERVENTION_STATUS = 'SYNCED' | 'INITIALIZED' | 'PENDING_DATA_UPLOAD' | 'PENDING_SAMPLE_TREE' | "PENDING_TREE_IMAGE" | "PENDING_REMEASUREMENT_SYNC" | "REMEASUREMENT_DATA_UPLOAD" | "REMEASUREMENT_EVENT_UPDATE" | "SKIP_REMEASUREMENT"
@@ -46,3 +46,7 @@ export type LAST_SCREEN = "FORM" | "LOCATION" | "SPECIES" | "TOTAL_TREES" | "TRE
 // uploaded, so this never holds back a sync; it marks the record in the
 // list and carries the reason in fix_reason.
 export type FIX_REQUIRED = "NO" | "PROJECT_ID_MISSING" | "UNKNOWN" | "SERVER_REJECTED" | "INCOMPLETE_DATA"
+
+// Simple shows only what a planter needs; Full is the whole toolbox.
+// See src/hooks/useAppMode.ts for how the two are chosen.
+export type AppMode = 'simple' | 'full'

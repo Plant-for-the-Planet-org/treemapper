@@ -21,7 +21,9 @@ import { updateSpeciesDownloaded } from 'src/store/slice/appStateSlice'
 import { usePostHog } from 'posthog-react-native'
 import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 import useManageSpeciesTour, { useSpeciesTourScreen } from 'src/hooks/useManageSpeciesTour'
-import { useTourAction } from 'src/hooks/useTourController'
+import { useSuspendTourOnFocus, useTourAction } from 'src/hooks/useTourController'
+import { SINGLE_TREE_TOUR_ID } from 'src/utils/tour/interventionTour'
+import { MULTI_TREE_TOUR_ID } from 'src/utils/tour/multiTreeTour'
 import { SPECIES_TOUR_STEPS } from 'src/utils/tour/manageSpeciesTour'
 
 const SpeciesSearchView = () => {
@@ -38,6 +40,11 @@ const SpeciesSearchView = () => {
   // Only reached from Manage Species in the drawer's manage mode; the capture
   // flow uses this screen to pick a species for an intervention instead.
   useSpeciesTourScreen('speciesSearch', Boolean(isManageSpecies))
+  // In the capture flow the tree walkthroughs send the user here from their
+  // species step, but have no step on this screen. Pause them; Manage Species
+  // resumes them when the user comes back, with or without a pick.
+  useSuspendTourOnFocus(SINGLE_TREE_TOUR_ID, !isManageSpecies)
+  useSuspendTourOnFocus(MULTI_TREE_TOUR_ID, !isManageSpecies)
 
   const handleBackPress = () => {
     navigation.goBack()

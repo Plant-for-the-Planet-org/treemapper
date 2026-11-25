@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native'
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import CustomButton from '../common/CustomButton'
 import { useDispatch, useSelector } from 'react-redux'
@@ -24,7 +24,14 @@ import { UserInterface } from 'src/types/interface/slice.interface'
 import { usePostHog } from 'posthog-react-native'
 import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 
-const LoginButton = () => {
+interface Props {
+  // Lets the button sit outside the drawer (the home sign-in card) without the
+  // drawer's height and bottom margin.
+  containerStyle?: StyleProp<ViewStyle>
+  buttonStyle?: StyleProp<ViewStyle>
+}
+
+const LoginButton = ({ containerStyle, buttonStyle }: Props = {}) => {
   const webAuthLoading = useSelector(
     (state: RootState) => state.tempState.webAuthLoading)
   const { authorizeUser, user, getUserCredentials, logoutUser, error } = useAuthentication()
@@ -191,11 +198,11 @@ const LoginButton = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       <CustomButton
         label={i18next.t("label.login_signup")}
         pressHandler={handleLogin}
-        containerStyle={styles.wrapper}
+        containerStyle={StyleSheet.flatten([styles.wrapper, buttonStyle])}
         disable={webAuthLoading}
         loading={webAuthLoading}
         hideFadeIn

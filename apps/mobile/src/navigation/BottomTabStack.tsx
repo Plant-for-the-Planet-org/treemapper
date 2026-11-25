@@ -7,6 +7,7 @@ import { BottomTabParamList } from 'src/types/type/navigation.type'
 import Screens from 'src/screens'
 import BottomTabBar from 'src/components/bottomTab/BottomTabBar'
 import { useTranslation } from 'react-i18next'
+import useAppMode from 'src/hooks/useAppMode'
 
 const BottomTabStack = createBottomTabNavigator<BottomTabParamList>()
 
@@ -18,6 +19,9 @@ const Blank = () => {
 
 const BottomStack = () => {
   const { t } = useTranslation()
+  // Simple view drops the Plots tab. The screen stays registered in Full, and
+  // BottomTabIcon picks icons by index, so Plots must stay third when shown.
+  const { isSimple } = useAppMode()
 
   // The whole bar is drawn by one component now -- shape, icons and the "+"
   // button all read the same geometry, so nothing can drift apart on a
@@ -42,13 +46,17 @@ const BottomStack = () => {
       <BottomTabStack.Screen
         name="Interventions"
         component={Screens.Interventions}
-        options={{ tabBarLabel: t('label.interventions') }}
+        options={{
+          tabBarLabel: isSimple ? t('label.my_trees') : t('label.interventions'),
+        }}
       />
-      <BottomTabStack.Screen
-        name="Plots"
-        component={Screens.PlotView}
-        options={{ tabBarLabel: t('label.plots') }}
-      />
+      {!isSimple && (
+        <BottomTabStack.Screen
+          name="Plots"
+          component={Screens.PlotView}
+          options={{ tabBarLabel: t('label.plots') }}
+        />
+      )}
       <BottomTabStack.Screen
         name="Add"
         component={Blank}

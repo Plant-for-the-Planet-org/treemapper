@@ -9,6 +9,7 @@ export type BottomTabParamList = {
 
 export type RootStackParamList = {
   Home: undefined
+  Onboarding: undefined
   TakePicture: TakePictureView
   PolygonMarker: PolygonMarkerView
   HomeSideDrawer: undefined

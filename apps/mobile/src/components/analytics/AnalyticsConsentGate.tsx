@@ -43,13 +43,17 @@ const AnalyticsConsentGate = () => {
   const posthog = usePostHog()
   const { consent, updateConsent } = useAnalyticsConsent()
   const isLoggedIn = useSelector((state: RootState) => state.appState.isLoggedIn)
+  // Wait until the first-launch slides are closed, so the two never stack.
+  const onboardingSeen = useSelector(
+    (state: RootState) => state.appState.onboardingSeen ?? false,
+  )
   const { id, country, type, locale } = useSelector((state: RootState) => state.userState)
   const [startupSettled, setStartupSettled] = useState(false)
 
   useEffect(() => {
     // Nothing to wait for once they have answered: a later change goes
     // through settings, which renders its own copy of the modal.
-    if (consent !== 'unset') return
+    if (consent !== 'unset' || !onboardingSeen) return
     let timer: ReturnType<typeof setTimeout> | undefined
     // runAfterInteractions first so the delay starts counting from a quiet
     // JS thread, not from mount while animations and queries are still in
@@ -62,7 +66,7 @@ const AnalyticsConsentGate = () => {
       task.cancel()
       if (timer) clearTimeout(timer)
     }
-  }, [consent])
+  }, [consent, onboardingSeen])
 
   useEffect(() => {
     if (!posthog) return

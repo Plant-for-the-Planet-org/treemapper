@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { ProjectStateSlice } from 'src/types/interface/slice.interface'
+import { AppMode } from 'src/types/type/app.type'
 
 const initialState: ProjectStateSlice = {
   projectAdded: false,
@@ -12,6 +13,7 @@ const initialState: ProjectStateSlice = {
     siteName: '',
     siteId: '',
   },
+  projectAppModes: {},
 }
 
 const projectStateSlice = createSlice({
@@ -42,13 +44,16 @@ const projectStateSlice = createSlice({
         siteId: action.payload.id,
       }
     },
+    updateProjectAppModes(state, action: PayloadAction<Record<string, AppMode>>) {
+      state.projectAppModes = action.payload
+    },
     resetProjectState() {
       return { ...initialState }
     }
   },
 })
 
-export const { updateProjectError, updateProjectState, updateProjectSite, updateCurrentProject, resetProjectState } =
+export const { updateProjectError, updateProjectState, updateProjectSite, updateCurrentProject, resetProjectState, updateProjectAppModes } =
   projectStateSlice.actions
 
 export default projectStateSlice.reducer

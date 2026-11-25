@@ -1,0 +1,13 @@
+{
+  "onboarding_map_title": "Registra cada árbol que plantas",
+  "onboarding_map_text": "Guarda árboles con GPS, fotos y especie.",
+  "onboarding_offline_title": "Funciona sin señal",
+  "onboarding_offline_text": "Captura datos en el campo. Se sincroniza cuando vuelves a tener conexión.",
+  "onboarding_grow_title": "Míralos crecer",
+  "onboarding_grow_text": "Vuelve a medir tus árboles con el tiempo y ve tu progreso.",
+  "onboarding_project_title": "¿Eres parte de un proyecto?",
+  "onboarding_project_text": "Inicia sesión con el correo al que tu proyecto te invitó, para que tus árboles se guarden en él.",
+  "onboarding_skip": "Omitir",
+  "onboarding_next": "Siguiente",
+  "onboarding_continue": "Continuar sin cuenta"
+}

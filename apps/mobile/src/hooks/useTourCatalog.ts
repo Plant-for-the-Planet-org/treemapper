@@ -14,6 +14,7 @@ import useMultiTreeTour from 'src/hooks/useMultiTreeTour'
 import useSyncTour from 'src/hooks/useSyncTour'
 import useOfflineMapTour from 'src/hooks/useOfflineMapTour'
 import useRemeasureTour from 'src/hooks/useRemeasureTour'
+import useAppMode from 'src/hooks/useAppMode'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { ProjectInterface } from 'src/types/interface/app.interface'
 import { InterventionData, SampleTree } from 'src/types/interface/slice.interface'
@@ -76,6 +77,10 @@ const useTourCatalog = (): TourCatalogEntry[] => {
     data.filtered('purpose != "funds"'),
   )
   const hasProject = recordableProjects.length > 0
+  // The plot and site tours start on "+" rows that Simple view hides, so they
+  // would stall on their first step. Say why instead.
+  const { isSimple } = useAppMode()
+  const simpleBlocked = isSimple ? t('label.tour_needs_full_view') : undefined
 
   // The sync tile only exists while something is waiting, so the tour that
   // explains it needs something waiting. Same filter `SyncIntervention` tiles
@@ -172,7 +177,7 @@ const useTourCatalog = (): TourCatalogEntry[] => {
         summary: t('label.tour_plot_summary'),
         confirmTitle: t('label.plot_tour_start_alert_title'),
         confirmMessage: t('label.plot_tour_start_alert_message'),
-        blockedReason: hasProject ? undefined : t('label.plot_tour_needs_project'),
+        blockedReason: simpleBlocked ?? (hasProject ? undefined : t('label.plot_tour_needs_project')),
         begin: () => {
           // Opens on the "+" button, same as the single tree tour.
           navigation.popToTop()
@@ -186,7 +191,7 @@ const useTourCatalog = (): TourCatalogEntry[] => {
         summary: t('label.tour_site_summary'),
         confirmTitle: t('label.site_tour_start_alert_title'),
         confirmMessage: t('label.site_tour_start_alert_message'),
-        blockedReason: hasProject ? undefined : t('label.site_tour_needs_project'),
+        blockedReason: simpleBlocked ?? (hasProject ? undefined : t('label.site_tour_needs_project')),
         begin: () => {
           // Opens on the "+" button, same as the tree and plot tours.
           navigation.popToTop()
@@ -264,6 +269,7 @@ const useTourCatalog = (): TourCatalogEntry[] => {
       startOfflineMapTour,
       startRemeasureTour,
       hasProject,
+      simpleBlocked,
       waitingToUpload.length,
       remeasurableTree,
     ],

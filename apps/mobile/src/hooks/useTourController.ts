@@ -166,6 +166,28 @@ export const useTourScreen = (
 }
 
 /**
+ * Pause a running tour while this screen is focused, for a screen the tour does
+ * not cover. Without it the overlay keeps pointing at the previous screen's
+ * target, and since nearly every step is `interactive`, every pixel outside
+ * that stale hole is press-blocked. The next covered screen resumes the tour on
+ * focus (`useTourStage` / `useTourScreen`).
+ *
+ * Call it near the top of the component: a screen that `replace`s itself in a
+ * mount effect must pause before that effect runs.
+ */
+export const useSuspendTourOnFocus = (tourId: string, enabled = true) => {
+  const { suspendTour } = useTourController(tourId)
+
+  useFocusEffect(
+    useCallback(() => {
+      if (enabled) {
+        suspendTour()
+      }
+    }, [enabled, suspendTour]),
+  )
+}
+
+/**
  * Lend a screen's own press handler to a tour step, for the steps the tour
  * drives itself rather than by letting the tap fall through the spotlight.
  * See the note on the registry in `utils/tour/tourActions.ts`.

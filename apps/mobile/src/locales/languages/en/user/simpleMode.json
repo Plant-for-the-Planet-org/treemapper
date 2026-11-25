@@ -1,0 +1,12 @@
+{
+  "my_trees": "My trees",
+  "plant_one_tree": "Plant one tree",
+  "plant_many_trees": "Plant many trees",
+  "simple_view": "Simple view",
+  "simple_view_hint": "Only show the tools to plant trees",
+  "tour_needs_full_view": "Turn off Simple view in the menu to use this.",
+  "getting_tree_names": "Getting tree names",
+  "saving_tree_names": "Saving tree names",
+  "tree_names_missing": "Tree names are missing. Tap below to get them.",
+  "get_tree_names": "Get tree names"
+}

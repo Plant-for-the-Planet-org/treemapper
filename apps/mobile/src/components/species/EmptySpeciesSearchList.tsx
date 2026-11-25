@@ -31,7 +31,7 @@ const EmptySpeciesSearchList = ({ onPressSync }: Props) => {
     const hasMoreThan150Species =
       realm.objects<IScientificSpecies>(RealmSchema.ScientificSpecies).length > 150;
     if (!hasMoreThan150Species) {
-      setTitle("Species need sync. Please refresh the species to download offline species.")
+      setTitle(i18next.t('label.tree_names_missing'))
       setNeedsSync(true)
     }
   }
@@ -52,7 +52,7 @@ const EmptySpeciesSearchList = ({ onPressSync }: Props) => {
             <Icon name="sync-alt" size={16} color="#FFF" />
           )}
           <Text style={styles.syncButtonLabel}>
-            {speciesWriting ? 'Syncing' : speciesDownloading ? 'Downloading' : 'Sync species'}
+            {speciesWriting ? i18next.t('label.saving_tree_names') : speciesDownloading ? i18next.t('label.getting_tree_names') : i18next.t('label.get_tree_names')}
           </Text>
         </TouchableOpacity>
       )}

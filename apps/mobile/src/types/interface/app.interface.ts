@@ -15,6 +15,11 @@ export interface SideDrawerItem {
   visible: boolean
   key:  SIDE_DRAWER_ELEMENTS
   disable?: boolean
+  // Small line under the label.
+  description?: string
+  // When set, the row shows a switch instead of an arrow and does not navigate.
+  switchValue?: boolean
+  onSwitch?: (value: boolean) => void
 }
 
 export interface IScientificSpecies {

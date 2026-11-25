@@ -1,4 +1,4 @@
-import { FIX_REQUIRED, HISTORY_STATUS, INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LAST_SCREEN, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, MAP_VIEW, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
+import { AppMode, FIX_REQUIRED, HISTORY_STATUS, INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LAST_SCREEN, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, MAP_VIEW, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
 import { IScientificSpecies } from './app.interface'
 import { FormElement, MainForm } from './form.interface'
 
@@ -28,6 +28,12 @@ export interface AppInitialState {
   // Drives the "Enjoying TreeMapper?" store-rating prompt. Device-level, so it
   // survives logout like seenTours and analyticsConsent do.
   rating: AppRatingState
+  // The person's own Simple/Full choice. null means "use the project default".
+  // Device-level, so it survives logout like seenTours does.
+  appModeOverride: AppMode | null
+  // The first-launch slides were shown (or skipped because this install
+  // already had an account or data). Device-level, survives logout.
+  onboardingSeen: boolean
 }
 
 export type AnalyticsConsent = 'unset' | 'granted' | 'denied'
@@ -200,6 +206,9 @@ export interface ProjectStateSlice {
     siteName: string
     siteId: string
   }
+  // Default view per project id, as set by the project admin on the dashboard.
+  // Filled from the project list; a project missing here has no default yet.
+  projectAppModes: Record<string, AppMode>
 }
 
 export type LocationPermissionStatus = 'undetermined' | 'granted' | 'denied'

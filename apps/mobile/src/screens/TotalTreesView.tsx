@@ -26,8 +26,8 @@ import AlertModal from 'src/components/common/AlertModal'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 import i18next from 'i18next'
 import { TourTarget } from '@wrack/react-native-tour-guide'
-import useInterventionTour, { useTourAction, useTourStage } from 'src/hooks/useInterventionTour'
-import { TOUR_TARGETS, TOUR_STEPS } from 'src/utils/tour/interventionTour'
+import { useTourAction } from 'src/hooks/useInterventionTour'
+import { TOUR_TARGETS } from 'src/utils/tour/interventionTour'
 import useMultiTreeTour, { useMultiTreeTourScreen } from 'src/hooks/useMultiTreeTour'
 import { MULTI_TOUR_STEPS } from 'src/utils/tour/multiTreeTour'
 
@@ -47,13 +47,12 @@ const TotalTreesView = () => {
   const [showExistingTree, setShowExistingTree] = useState('')
   const toast = useToast()
   const [showSampleTreeModal, setShowSampleTreeModal] = useState(false)
-  const { advanceIfOn, suspendTour } = useInterventionTour()
   const { advanceIfOn: advanceMultiTreeTour } = useMultiTreeTour()
-  useTourStage('totalTrees')
+  // Only the Multiple Trees walkthrough passes through here; a single tree goes
+  // from the species list to ReviewTreeDetails instead.
   useMultiTreeTourScreen('totalTrees')
-  // Tapping anywhere on this tour step continues, same as the button.
-  useTourAction(TOUR_STEPS.REVIEW_SPECIES, () => navigationToNext())
-  // Same for the Multiple Trees walkthrough, where this is the last step: the
+  // Tapping anywhere on this tour step continues, same as the button. It is the
+  // last step of the Multiple Trees walkthrough: the
   // sample tree question that follows is a modal the inline overlay cannot
   // draw over, so the tour ends here rather than waiting behind it.
   useTourAction(MULTI_TOUR_STEPS.TREES, () => navigationToNext())
@@ -72,13 +71,7 @@ const TotalTreesView = () => {
     RealmSchema.Intervention, interventionId
   )
   const navigationToNext = async () => {
-    advanceIfOn(TOUR_STEPS.REVIEW_SPECIES)
     advanceMultiTreeTour(MULTI_TOUR_STEPS.TREES)
-    // DynamicForm sits between here and the review screen. For a single tree it
-    // has no fields, so it renders nothing and resets straight through -- but
-    // it is still a screen the walkthrough does not cover, so hide the overlay
-    // rather than let it flash against an empty one. The review screen resumes.
-    suspendTour()
     const { has_sample_trees } = setUpIntervention(intervention.intervention_key)
     if (!isEditTrees) {
       const result = await updateInterventionLastScreen(intervention.form_id, 'TOTAL_TREES')

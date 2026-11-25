@@ -1,6 +1,6 @@
 {
-  "species_sync_error_heading": "Species sync is incomplete!",
-  "species_sync_error_text": "Species syncing is required to add species in inventory. Sync when internet connection is available.",
+  "species_sync_error_heading": "Tree names are not ready yet",
+  "species_sync_error_text": "You need them to pick a species. Connect to the internet and tap the button.",
   "something_went_wrong": "Something went wrong!",
   "no_internet_connection": "No Internet Connection !",
   "verify_email": "Verify your Email",

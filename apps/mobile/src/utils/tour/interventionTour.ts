@@ -22,8 +22,11 @@ import { runTourAction } from './tourActions'
  *   push and pop between themselves.
  *
  * The flow itself: "+" -> Single Tree -> PointMarker (tap the map, confirm) ->
- * ManageSpecies -> TotalTrees -> DynamicForm (empty for this type, so it resets
- * straight through) -> InterventionPreview.
+ * ManageSpecies -> ReviewTreeDetails -> TakePicture -> tree measurements ->
+ * DynamicForm -> InterventionPreview. Everything between the species pick and
+ * the review screen is a detour the tour does not cover: ManageSpecies pauses
+ * it there and InterventionPreview resumes it. A single tree never visits
+ * TotalTrees (that is the Multiple Trees flow), so no step points there.
  */
 
 export const SINGLE_TREE_TOUR_ID = 'single-tree-intervention'
@@ -52,7 +55,6 @@ export const TOUR_STEPS = {
   MAP_TAP: 'tour-step-map-tap',
   CONFIRM_LOCATION: 'tour-step-confirm-location',
   SPECIES: 'tour-step-species',
-  REVIEW_SPECIES: 'tour-step-review-species',
   SAVE: 'tour-step-save',
 } as const
 
@@ -64,7 +66,6 @@ export const STAGE_ENTRY = {
   home: TOUR_STEPS.ADD,
   pointMarker: TOUR_STEPS.MAP_TAP,
   manageSpecies: TOUR_STEPS.SPECIES,
-  totalTrees: TOUR_STEPS.REVIEW_SPECIES,
   interventionPreview: TOUR_STEPS.SAVE,
 } as const
 
@@ -183,22 +184,15 @@ export const buildSingleTreeTourSteps = (
     title: t('tour_species_title'),
     description: t('tour_species_desc'),
     interactive: true,
+    // Next opens the species search (`ManageSpeciesHome` lends it). It must not
+    // just move the overlay on: the next step lives on another screen, and the
+    // list may be empty, so the user would be left with nothing to tap.
     // No real Back: the step before this one points at a control on the capture
     // map, and the flow has left that map behind. Going back would re-enter it
     // in a state the step no longer describes.
     hidePrevButton: true,
     tooltipPosition: 'auto',
     spotlightPadding: 4,
-  },
-  {
-    id: TOUR_STEPS.REVIEW_SPECIES,
-    targetId: TOUR_TARGETS.SPECIES_CONTINUE,
-    title: t('tour_review_species_title'),
-    description: t('tour_review_species_desc'),
-    interactive: true,
-    backdropBehavior: () => runTourAction(TOUR_STEPS.REVIEW_SPECIES),
-    tooltipPosition: 'top',
-    spotlightPadding: 6,
   },
   {
     id: TOUR_STEPS.SAVE,

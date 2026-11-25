@@ -1,0 +1,12 @@
+{
+  "my_trees": "Minhas árvores",
+  "plant_one_tree": "Plantar uma árvore",
+  "plant_many_trees": "Plantar muitas árvores",
+  "simple_view": "Visão simples",
+  "simple_view_hint": "Mostrar só as ferramentas para plantar árvores",
+  "tour_needs_full_view": "Desative a visão simples no menu para usar isto.",
+  "getting_tree_names": "Carregando nomes de árvores",
+  "saving_tree_names": "Salvando nomes de árvores",
+  "tree_names_missing": "Faltam os nomes de árvores. Toque abaixo para obtê-los.",
+  "get_tree_names": "Obter nomes de árvores"
+}

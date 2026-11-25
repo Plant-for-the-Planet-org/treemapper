@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 import { AnalyticsConsent, AppInitialState } from 'src/types/interface/slice.interface'
+import { AppMode } from 'src/types/type/app.type'
 
 const initialState: AppInitialState = {
   isLoggedIn: false,
@@ -28,6 +29,8 @@ const initialState: AppInitialState = {
     hasRated: false,
     dontAskAgain: false,
   },
+  appModeOverride: null,
+  onboardingSeen: false,
 }
 
 const appStateSlice = createSlice({
@@ -129,12 +132,20 @@ const appStateSlice = createSlice({
       if (!state.rating) return
       state.rating.dontAskAgain = true
     },
+    // null hands the choice back to the project default.
+    setAppModeOverride(state, action: PayloadAction<AppMode | null>) {
+      state.appModeOverride = action.payload
+    },
+    // Device-level like seenTours: someone who signs out has still seen it.
+    markOnboardingSeen(state) {
+      state.onboardingSeen = true
+    },
     logoutAppUser(state) {
-      return { ...initialState, speciesSync: true, speciesLocalURL: state.speciesLocalURL, lastServerInterventionpage: '', seenTours: state.seenTours, analyticsConsent: state.analyticsConsent, rating: state.rating }
+      return { ...initialState, speciesSync: true, speciesLocalURL: state.speciesLocalURL, lastServerInterventionpage: '', seenTours: state.seenTours, analyticsConsent: state.analyticsConsent, rating: state.rating, appModeOverride: state.appModeOverride ?? null, onboardingSeen: state.onboardingSeen ?? false }
     },
   },
 })
 
-export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData, updateRefetchProject, updateUserPojectSpecies, markTourSeen, setAnalyticsConsent, registerRatingEvent, markRatingAsked, markRated, setRatingDontAskAgain } = appStateSlice.actions
+export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData, updateRefetchProject, updateUserPojectSpecies, markTourSeen, setAnalyticsConsent, registerRatingEvent, markRatingAsked, markRated, setRatingDontAskAgain, setAppModeOverride, markOnboardingSeen } = appStateSlice.actions
 
 export default appStateSlice.reducer

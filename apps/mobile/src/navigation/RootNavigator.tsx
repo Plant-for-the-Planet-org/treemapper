@@ -1,15 +1,54 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { useRealm } from '@realm/react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import BottomTabStack from './BottomTabStack'
 import Screens from 'src/screens'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import { RootState } from 'src/store'
+import { markOnboardingSeen } from 'src/store/slice/appStateSlice'
+import { RealmSchema } from 'src/types/enum/db.enum'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
+/**
+ * Onboarding is for fresh installs only. An install that is signed in or
+ * already holds field data is an existing user who just updated the app, so
+ * they skip it and are marked as having seen it. Decided once at mount, so a
+ * sign-in mid-session never swaps the first screen under them.
+ */
+// TODO: set back to false before release. While true, the slides open on
+// every launch for everyone, signed in or not, so they can be tested.
+const ALWAYS_SHOW_ONBOARDING = true
+
+const useShowOnboarding = () => {
+  const realm = useRealm()
+  const dispatch = useDispatch()
+  // Older installs rehydrate without this field, hence the fallback.
+  const seen = useSelector((state: RootState) => state.appState.onboardingSeen ?? false)
+  const isLoggedIn = useSelector((state: RootState) => state.appState.isLoggedIn)
+  const [show] = useState(() => {
+    if (ALWAYS_SHOW_ONBOARDING) return true
+    if (seen) return false
+    if (isLoggedIn) return false
+    return realm.objects(RealmSchema.Intervention).length === 0
+  })
+
+  useEffect(() => {
+    if (!seen && !show) dispatch(markOnboardingSeen())
+  }, [seen, show, dispatch])
+
+  return show
+}
+
 const RootNavigator = () => {
+  const showOnboarding = useShowOnboarding()
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName='Home'>
+    <Stack.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName={showOnboarding ? 'Onboarding' : 'Home'}>
       <Stack.Screen name="Home" component={BottomTabStack} />
+      <Stack.Screen name="Onboarding" component={Screens.Onboarding} options={{ gestureEnabled: false }} />
       <Stack.Screen name="TakePicture" component={Screens.TakePicture} />
       <Stack.Screen name="PolygonMarker" component={Screens.PolygonMarker} />
       <Stack.Screen name="ManageSpecies" component={Screens.ManageSpecies} />

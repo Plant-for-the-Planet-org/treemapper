@@ -41,6 +41,7 @@ import useCreateSiteTour from 'src/hooks/useCreateSiteTour'
 import { SITE_TOUR_STEPS, SITE_TOUR_TARGETS } from 'src/utils/tour/createSiteTour'
 import useMultiTreeTour from 'src/hooks/useMultiTreeTour'
 import { MULTI_TOUR_STEPS, MULTI_TOUR_TARGETS } from 'src/utils/tour/multiTreeTour'
+import useAppMode from 'src/hooks/useAppMode'
 
 
 interface Props {
@@ -61,6 +62,7 @@ const AddOptionModal = (props: Props) => {
   const { advanceIfOn: advancePlotTour } = useMonitoringPlotTour()
   const { advanceIfOn: advanceSiteTour } = useCreateSiteTour()
   const { advanceIfOn: advanceMultiTreeTour } = useMultiTreeTour()
+  const { isSimple } = useAppMode()
 
   const handleSingleTree = () => {
     if (!checkWhetherProjectIsSelected()) {
@@ -154,9 +156,10 @@ const AddOptionModal = (props: Props) => {
     }
   };
 
-  const addOptions = [
+  const allOptions = [
     {
       svgIcon: <ChartIcon width={SCALE_24} height={SCALE_24} />,
+      key: 'monitoring_plot',
       title: i18next.t('label.monitoring_plot'),
       coming_soon: false,
       tourTargetId: PLOT_TOUR_TARGETS.ADD_OPTION,
@@ -165,6 +168,7 @@ const AddOptionModal = (props: Props) => {
     },
     {
       svgIcon: <CrossArrow width={SCALE_24} height={SCALE_24} />,
+      key: 'project_sites',
       title: i18next.t('label.project_sites'),
       coming_soon: false,
       tourTargetId: SITE_TOUR_TARGETS.ADD_OPTION,
@@ -173,6 +177,7 @@ const AddOptionModal = (props: Props) => {
     },
     {
       svgIcon: <Intervention width={SCALE_24} height={SCALE_24} />,
+      key: 'intervention',
       title: i18next.t('label.intervention'),
       coming_soon: false,
       onPress: () => {
@@ -186,7 +191,8 @@ const AddOptionModal = (props: Props) => {
     },
     {
       svgIcon: <SingleTreeIcon width={SCALE_24} height={SCALE_24} />,
-      title: i18next.t('label.single_tree'),
+      key: 'single_tree',
+      title: isSimple ? i18next.t('label.plant_one_tree') : i18next.t('label.single_tree'),
       coming_soon: false,
       tourTargetId: TOUR_TARGETS.ADD_SINGLE_TREE,
       onPress: handleSingleTree,
@@ -194,13 +200,21 @@ const AddOptionModal = (props: Props) => {
     },
     {
       svgIcon: <MultipleTreeIcon width={SCALE_24} height={SCALE_24} />,
-      title: i18next.t('label.multiple_trees'),
+      key: 'multiple_trees',
+      title: isSimple ? i18next.t('label.plant_many_trees') : i18next.t('label.multiple_trees'),
       coming_soon: false,
       tourTargetId: MULTI_TOUR_TARGETS.ADD_OPTION,
       onPress: handleMultipleTrees,
       disabled: false,
     },
   ]
+
+  // Simple view keeps only the two planting flows. The flows themselves are
+  // unchanged; this only hides the other ways in.
+  const SIMPLE_OPTIONS = ['single_tree', 'multiple_trees']
+  const addOptions = isSimple
+    ? allOptions.filter((option) => SIMPLE_OPTIONS.includes(option.key))
+    : allOptions
 
   const toggleModal = () => {
     dispatch(updateProjectModal(true))
@@ -210,7 +224,7 @@ const AddOptionModal = (props: Props) => {
     return addOptions.map((option) => {
       const row = (
         <TouchableOpacity
-          key={String(option.title)}
+          key={option.key}
           style={styles.addButtonOptionWrap}
           disabled={option.disabled}
           onPress={option.onPress}>
@@ -229,7 +243,7 @@ const AddOptionModal = (props: Props) => {
         return row
       }
       return (
-        <TourTarget key={String(option.title)} id={option.tourTargetId}>
+        <TourTarget key={option.key} id={option.tourTargetId}>
           {row}
         </TourTarget>
       )

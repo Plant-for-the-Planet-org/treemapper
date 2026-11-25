@@ -24,6 +24,8 @@ import Other from './user/other.json'
 import Tour from './user/tour.json'
 import Analytics from './user/analytics.json'
 import Rating from './user/rating.json'
+import SimpleMode from './user/simpleMode.json'
+import Onboarding from './user/onboarding.json'
 export default {
   ...WelcomeScreen,
   ...RegisterTree,
@@ -50,5 +52,7 @@ export default {
   ...Other,
   ...Tour,
   ...Analytics,
-  ...Rating
+  ...Rating,
+  ...SimpleMode,
+  ...Onboarding,
 };

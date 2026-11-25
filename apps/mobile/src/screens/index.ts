@@ -44,6 +44,7 @@ import DeleteAccount from './DeleteAccount'
 import CreateProjectScreen from './CreateProject'
 import GuideView from './GuideView'
 import GuidedToursView from './GuidedToursView'
+import OnboardingView from './OnboardingView'
 import NotificationView from './NotificationView'
 import NotificationDetailView from './NotificationDetailView'
 import LanguageSettingsView from './LanguageSettingsView'
@@ -106,6 +107,7 @@ export default {
   CreateProject:CreateProjectScreen,
   Guide: GuideView,
   GuidedTours: GuidedToursView,
+  Onboarding: OnboardingView,
   Notification: NotificationView,
   NotificationDetail: NotificationDetailView,
   Language: LanguageSettingsView,

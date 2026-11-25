@@ -216,7 +216,7 @@ const ManageSpeciesView = () => {
           <RotatingView isClockwise={true}>
             <RefreshIcon />
           </RotatingView>
-          <Text style={styles.label}>Syncing</Text>
+          <Text style={styles.label}>{i18next.t('label.saving_tree_names')}</Text>
         </View>
       )
     }
@@ -226,7 +226,7 @@ const ManageSpeciesView = () => {
           <RotatingView isClockwise={true}>
             <RefreshIcon />
           </RotatingView>
-          <Text style={styles.label}>Downloading</Text>
+          <Text style={styles.label}>{i18next.t('label.getting_tree_names')}</Text>
         </View>
       )
     }

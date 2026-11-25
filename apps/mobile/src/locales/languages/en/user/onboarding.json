@@ -1,0 +1,13 @@
+{
+  "onboarding_map_title": "Map every tree you plant",
+  "onboarding_map_text": "Record trees with GPS, photos and species.",
+  "onboarding_offline_title": "Works without signal",
+  "onboarding_offline_text": "Capture in the field. It syncs when you are back online.",
+  "onboarding_grow_title": "Watch them grow",
+  "onboarding_grow_text": "Measure your trees again over time and see your progress.",
+  "onboarding_project_title": "Part of a project?",
+  "onboarding_project_text": "Sign in with the email your project invited, so your trees are saved to it.",
+  "onboarding_skip": "Skip",
+  "onboarding_next": "Next",
+  "onboarding_continue": "Continue without an account"
+}

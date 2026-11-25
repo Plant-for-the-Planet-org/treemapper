@@ -29,6 +29,7 @@ import SyncMonitoringPlot from '../monitoringPlot/SyncMonitoringPlot'
 import { TourTarget } from '@wrack/react-native-tour-guide'
 import { useTourAction } from 'src/hooks/useInterventionTour'
 import { TOUR_TARGETS, TOUR_STEPS } from 'src/utils/tour/interventionTour'
+import useAppMode from 'src/hooks/useAppMode'
 
 interface Props {
   toggleFilterModal: () => void
@@ -50,6 +51,8 @@ const HomeHeader = (props: Props) => {
   const [tokenValid, setTokenValid] = useState<boolean>(false)
   const { serverInterventionAdded, isLoggedIn, expiringAt } = useSelector((state: RootState) => state.appState)
   const { addNewLog } = useLogManagement()
+  // The map filter (by type and date) is a Full view tool.
+  const { isSimple } = useAppMode()
 
   const { isSyncing } = useSelector(
     (state: RootState) => state.syncState,
@@ -324,12 +327,12 @@ const HomeHeader = (props: Props) => {
           />
         </Pressable>
       </TourTarget>}
-      <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleFilterModal}>
+      {!isSimple && <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleFilterModal}>
         <FilterMapIcon
           onPress={toggleFilterModal}
           width={SCALE_24} height={SCALE_24}
         />
-      </Pressable>
+      </Pressable>}
     </View>
   )
 }

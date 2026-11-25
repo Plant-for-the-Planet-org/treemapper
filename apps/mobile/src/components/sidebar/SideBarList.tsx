@@ -19,6 +19,7 @@ import useAnalyticsConsent from 'src/hooks/useAnalyticsConsent'
 import AnalyticsConsentModal from '../analytics/AnalyticsConsentModal'
 import useAppRating from 'src/hooks/useAppRating'
 import { useToast } from 'react-native-toast-notifications'
+import useAppMode from 'src/hooks/useAppMode'
 
 interface Props {
   isLoggedIn: boolean
@@ -52,11 +53,23 @@ const SideBarList = (props: Props) => {
     )
   }
 
+  // Anyone can switch, either way. The project admin only sets the default.
+  const { isSimple, setMode } = useAppMode()
+
   const UserType = useSelector(
     (state: RootState) => state.userState.type
   )
 
   const data: SideDrawerItem[] = [
+    {
+      label: t('label.simple_view'),
+      description: t('label.simple_view_hint'),
+      icon: <View style={styles.guideIconWrapper}><Ionicons name="leaf" size={16} color="#fff" style={{ paddingTop: 2 }} /></View>,
+      visible: true,
+      key: 'app_mode',
+      switchValue: isSimple,
+      onSwitch: (value: boolean) => setMode(value ? 'simple' : 'full'),
+    },
     {
       label: t('label.manage_species'),
       screen: 'ManageSpecies',
@@ -142,7 +155,8 @@ const SideBarList = (props: Props) => {
       label: "Delete Account",
       screen: 'DeleteAccount',
       icon: <View style={styles.binIconWrapper}><BinIcon width={15} height={15} fill={'#fff'} /></View>,
-      visible: true,
+      // There is no account to delete while signed out.
+      visible: isLoggedIn,
       key: 'delete'
     },
     {

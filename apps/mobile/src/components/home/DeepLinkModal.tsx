@@ -15,7 +15,8 @@ import { RootState } from 'src/store';
 import { updateInviteId, markInviteHandled } from 'src/store/slice/tempStateSlice';
 import { useDeepLinking } from 'src/hooks/useDeeplink';
 import { acceptEmailInvite, acceptLinkInvite, getMobileInviteStatus, getMobileInviteStatusEmail, getUserProjects } from 'src/api/api.fetch';
-import { updateProjectState, updateCurrentProject } from 'src/store/slice/projectStateSlice';
+import { updateProjectState, updateCurrentProject, updateProjectAppModes } from 'src/store/slice/projectStateSlice';
+import { appModesFromProjects } from 'src/hooks/useAppMode';
 import useProjectManagement from 'src/hooks/realm/useProjectManagement';
 
 import { Typography } from 'src/utils/constants'
@@ -78,6 +79,7 @@ const DeepLinkModal = () => {
       const result = await addAllProjects(responseData);
       if (result) {
         dispatch(updateProjectState(true));
+        dispatch(updateProjectAppModes(appModesFromProjects(responseData)));
         if (!currentProject.projectId) {
           const firstProject = responseData[0];
           dispatch(updateCurrentProject({

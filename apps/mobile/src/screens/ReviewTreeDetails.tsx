@@ -39,6 +39,8 @@ import RemeasurementIconScalable from 'assets/images/svg/RemeasurementIconScalab
 import PlantHistory from './PlantHistoryView'
 import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
 import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { useSuspendTourOnFocus } from 'src/hooks/useTourController'
+import { SINGLE_TREE_TOUR_ID } from 'src/utils/tour/interventionTour'
 import { convertMeasurements, getConvertedDiameter, getConvertedHeight } from 'src/utils/constants/measurements'
 import { updateFilePath } from 'src/utils/helpers/fileSystemHelper'
 
@@ -48,6 +50,11 @@ type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'species' | 'date'
 
 const ReviewTreeDetails = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'ReviewTreeDetails'>>()
+    // After the species pick, the Single Tree walkthrough detours through this
+    // screen, the camera and the measurements, none of which it covers. Pause
+    // it here (before the mount effect below replaces this screen); the review
+    // screen resumes it on its save step.
+    useSuspendTourOnFocus(SINGLE_TREE_TOUR_ID)
     const interventionId = route.params?.id ?? '';
     const Intervention = useObject<InterventionData>(
         RealmSchema.Intervention, interventionId

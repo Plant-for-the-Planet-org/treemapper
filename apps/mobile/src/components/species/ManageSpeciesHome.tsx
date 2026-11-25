@@ -17,6 +17,8 @@ import { RefreshControl } from 'react-native'
 import useManageSpeciesTour from 'src/hooks/useManageSpeciesTour'
 import { SPECIES_TOUR_STEPS } from 'src/utils/tour/manageSpeciesTour'
 import { useTourAction } from 'src/hooks/useTourController'
+import { TOUR_STEPS } from 'src/utils/tour/interventionTour'
+import { MULTI_TOUR_STEPS } from 'src/utils/tour/multiTreeTour'
 
 
 const cardSize = scaleSize(60)
@@ -61,6 +63,11 @@ const ManageSpeciesHome = (props: Props) => {
   // but a near-miss on the backdrop should open it too: one control, one
   // decision. Lending the real handler keeps the route params in one place.
   useTourAction(SPECIES_TOUR_STEPS.SEARCH, handleNav)
+  // The capture walkthroughs' species step: Next opens the search too. Without
+  // it Next only moved the overlay to a step on a screen the user had not
+  // reached, and with an empty list there was nothing else to tap.
+  useTourAction(TOUR_STEPS.SPECIES, handleNav)
+  useTourAction(MULTI_TOUR_STEPS.SPECIES, handleNav)
 
 
   const syncUserSpecies = async () => {

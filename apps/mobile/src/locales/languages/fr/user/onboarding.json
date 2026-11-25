@@ -1,0 +1,13 @@
+{
+  "onboarding_map_title": "Cartographiez chaque arbre planté",
+  "onboarding_map_text": "Enregistrez les arbres avec GPS, photos et espèce.",
+  "onboarding_offline_title": "Fonctionne sans réseau",
+  "onboarding_offline_text": "Saisissez sur le terrain. Tout se synchronise dès que vous êtes de nouveau en ligne.",
+  "onboarding_grow_title": "Suivez leur croissance",
+  "onboarding_grow_text": "Mesurez à nouveau vos arbres au fil du temps et suivez vos progrès.",
+  "onboarding_project_title": "Membre d'un projet ?",
+  "onboarding_project_text": "Connectez-vous avec l'e-mail invité par votre projet, pour que vos arbres y soient enregistrés.",
+  "onboarding_skip": "Passer",
+  "onboarding_next": "Suivant",
+  "onboarding_continue": "Continuer sans compte"
+}

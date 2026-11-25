@@ -207,12 +207,24 @@ const PolygonMarkerMap = (props: Props) => {
 
   // An explicit press of the locate button. Unlike the automatic centring it
   // overrides a restored boundary's framing, because the user asked for it.
+  //
+  // The press bumps recenterRequest before the fresh fix it asks for has
+  // landed. With no fix yet in the store, the press used to do nothing and the
+  // fix that arrived a moment later was ignored. Hold the request until a
+  // usable fix exists, then honour it once.
+  const pendingRecenterRef = useRef(false)
+
   useEffect(() => {
-    if (!recenterRequest) return
+    if (recenterRequest) pendingRecenterRef.current = true
+  }, [recenterRequest])
+
+  useEffect(() => {
+    if (!pendingRecenterRef.current) return
     if (!currentUserLocation || currentUserLocation[0] === 0) return
+    pendingRecenterRef.current = false
     hasAutoCenteredRef.current = true
     handleCamera2()
-  }, [recenterRequest])
+  }, [recenterRequest, currentUserLocation])
 
   useEffect(() => {
     if (currentPosition) {
@@ -239,11 +251,13 @@ const PolygonMarkerMap = (props: Props) => {
       if (restoredCoordsRef.current.length > 0) {
         frameRestoredPoints()
       } else if (key === 'POLYGON_MAP' && hasValidBounds) {
+        // Maplibre v11 takes one [west, south, east, north] array plus an
+        // options object. The old (ne, sw, padding, duration) call handed it a
+        // 2-number "bounds" and an array as options, which iOS drops silently,
+        // so the map stayed on the world view.
         cameraRef.current.fitBounds(
-          [bounds[0], bounds[1]],
-          [bounds[2], bounds[3]],
-          40,
-          1000,
+          [bounds[0], bounds[1], bounds[2], bounds[3]],
+          { padding: { top: 40, right: 40, bottom: 40, left: 40 }, duration: 1000 },
         )
       } else {
         handleCamera()
@@ -294,8 +308,13 @@ const PolygonMarkerMap = (props: Props) => {
       return
     }
     if (cameraRef?.current) {
+      // Zoom is required. Without it easeTo keeps the current zoom, and when
+      // the first fix lands after the map has loaded (the usual case on iOS,
+      // where gpsState starts empty every launch) that zoom is the world view:
+      // the map centred on the user at zoom 0 and looked like it never moved.
       cameraRef.current.easeTo({
         center: [...currentUserLocation],
+        zoom: 17,
         duration: 1000,
       })
     }

@@ -97,6 +97,11 @@ export const AnalyticsEvents = {
   // / dismiss and `source` is prompt (automatic) or menu (manual entry).
   APP_RATING_PROMPT:      'app_rating_prompt',
 
+  // ── Onboarding ────────────────────────────────────────────────────────────
+  // The first-launch slides closed. `action` is sign_in / continue / skip and
+  // `slide` is the 1-based slide they left from.
+  ONBOARDING_FINISHED:    'onboarding_finished',
+
   // ── Content ───────────────────────────────────────────────────────────────
   GUIDE_OPENED:           'guide_opened',
   NOTIFICATION_OPENED:    'notification_opened',

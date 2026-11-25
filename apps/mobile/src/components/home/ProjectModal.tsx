@@ -16,7 +16,9 @@ import {
   updateProjectSite,
   updateProjectState,
   updateProjectError,
+  updateProjectAppModes,
 } from 'src/store/slice/projectStateSlice'
+import { appModesFromProjects } from 'src/hooks/useAppMode'
 import NetInfo from '@react-native-community/netinfo'
 import { getUserProjects } from 'src/api/api.fetch'
 import useProjectManagement from 'src/hooks/realm/useProjectManagement'
@@ -161,6 +163,7 @@ const ProjectModal = (props: Props) => {
     const result = await addAllProjects(responseData)
     if (result) {
       dispatch(updateProjectState(true))
+      dispatch(updateProjectAppModes(appModesFromProjects(responseData)))
 
       // Keep the active selection valid. If nothing is selected yet, or the
       // selected project was removed on the server, fall back to the first

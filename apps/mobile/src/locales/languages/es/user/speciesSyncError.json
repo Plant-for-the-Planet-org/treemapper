@@ -1,6 +1,6 @@
 {
-  "species_sync_error_heading": "La sincronización de especies está incompleta",
-  "species_sync_error_text": "La sincronización de especies es necesaria para añadir especies en el inventario. Sincroniza cuando la conexión a Internet esté disponible.",
+  "species_sync_error_heading": "Los nombres de árboles aún no están listos",
+  "species_sync_error_text": "Los necesitas para elegir una especie. Conéctate a internet y toca el botón.",
   "something_went_wrong": "Algo salió mal.",
   "no_internet_connection": "No hay conexión a Internet",
   "verify_email": "Verifique su correo electrónico",

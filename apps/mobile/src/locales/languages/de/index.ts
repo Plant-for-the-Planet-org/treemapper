@@ -21,6 +21,8 @@ import Intervention from './user/intervention.json'
 import CommonStrings from './user/commonData.json'
 import Plots from './monitoringPlots/plots.json'
 import Other from './user/other.json'
+import SimpleMode from './user/simpleMode.json'
+import Onboarding from './user/onboarding.json'
 export default {
   ...WelcomeScreen,
   ...RegisterTree,
@@ -44,5 +46,7 @@ export default {
   ...Intervention,
   ...CommonStrings,
   ...Plots,
-  ...Other
+  ...Other,
+  ...SimpleMode,
+  ...Onboarding,
 };

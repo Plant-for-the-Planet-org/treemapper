@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-native'
 import React from 'react'
 import CtaArrow from 'assets/images/svg/CtaArrow.svg'
 import { SideDrawerItem } from 'src/types/interface/app.interface'
@@ -25,7 +25,8 @@ interface Props {
 
 const SideBarCard = (props: Props) => {
   const { logoutUser } = useAuthentication()
-  const { label, screen, icon, visible, key, disable } = props.item
+  const { label, screen, icon, visible, key, disable, description, switchValue, onSwitch } = props.item
+  const isSwitch = typeof switchValue === 'boolean'
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   const posthog = usePostHog()
@@ -40,6 +41,10 @@ const SideBarCard = (props: Props) => {
       item_key: key,
       target_screen: screen,
     })
+    if (isSwitch) {
+      onSwitch?.(!switchValue)
+      return
+    }
     let params = {}
     if (key === 'logout') {
       handleLogout()
@@ -82,15 +87,30 @@ if (!visible) {
 }
 
 return (
-  <Pressable style={styles.container} onPress={handleNavigation}>
-    <View style={[styles.wrapper, { opacity: disable ? 0.5 : 1, backgroundColor: disable ? Colors.BACKDROP_COLOR : 'white' }]}>
+  <Pressable style={[styles.container, isSwitch && styles.containerAuto]} onPress={handleNavigation}>
+    <View style={[styles.wrapper, isSwitch && styles.wrapperAuto, { opacity: disable ? 0.5 : 1, backgroundColor: disable ? Colors.BACKDROP_COLOR : 'white' }]}>
       <View style={styles.iconWrapper}>{icon}</View>
       <View style={styles.labelWrapper}>
         <Text style={styles.label}>{label}</Text>
+        {!!description && <Text style={styles.description} numberOfLines={2}>{description}</Text>}
       </View>
-      <View style={styles.arrowWrapper}>
-        <CtaArrow  width={SCALE_16} height={SCALE_16}/>
-      </View>
+      {isSwitch ? (
+        <View style={styles.switchWrapper}>
+          <Switch
+            style={styles.switch}
+            value={switchValue}
+            onValueChange={(value) => onSwitch?.(value)}
+            trackColor={{ true: Colors.NEW_PRIMARY, false: Colors.GRAY_BACKDROP }}
+            thumbColor={Colors.WHITE}
+            ios_backgroundColor={Colors.GRAY_BACKDROP}
+            accessibilityLabel={label}
+          />
+        </View>
+      ) : (
+        <View style={styles.arrowWrapper}>
+          <CtaArrow  width={SCALE_16} height={SCALE_16}/>
+        </View>
+      )}
     </View>
   </Pressable>
 )
@@ -137,6 +157,39 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  description: {
+    fontSize: scaleFont(12),
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    color: Colors.TEXT_LIGHT,
+    marginLeft: 10,
+  },
+  // The switch row carries a description line, so it grows with its text
+  // instead of being clipped by the fixed 64px row the other cards use.
+  containerAuto: {
+    height: undefined,
+    minHeight: scaleSize(64),
+    paddingVertical: scaleSize(6.4),
+  },
+  wrapperAuto: {
+    height: undefined,
+    minHeight: scaleSize(51),
+    paddingVertical: 8,
+  },
+  // Same right inset as the arrow column, so the switch's right edge lines up
+  // with the arrows on the rows below.
+  switchWrapper: {
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
+  switch: Platform.select({
+    // The stock iOS switch (51x31) is much bigger than the 16px arrows; scale it
+    // down a little so the row reads as one list.
+    ios: { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }], marginRight: -5 },
+    // Android's switch carries its own horizontal padding; pull it flush.
+    android: { marginRight: -6 },
+    default: {},
+  }),
   label: {
     fontSize: scaleFont(16),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
