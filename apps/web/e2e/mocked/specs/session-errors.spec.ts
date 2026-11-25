@@ -51,16 +51,25 @@ async function failThroughAllRetries(page: Page, count: () => number) {
 }
 
 /**
- * Waits until the app detects that loading the dashboard has failed.
+ * Waits until call number `callNumber` has reached the mock, then gives the
+ * app a moment in real time to handle the failed reply.
  *
- * The app starts its 5-second retry timer after detecting the failure.
- * Waiting for this message helps us start checking the retry delay
- * from the correct point.
+ * The app starts its 5-second retry timer only after it has read the reply,
+ * which happens a little after the request reaches the mock. With the fake
+ * clock paused, this real-time wait does not move fake time, so the timer
+ * still starts at the same fake moment and the 5s can be measured exactly.
+ *
+ * Do not wait for the app's "App initialization failed" log instead: the
+ * production build used in CI removes every `console.*` call
+ * (`removeConsole` in next.config.ts), so that line never appears there.
  */
-function waitForBootstrapFailure(page: Page) {
-  return page.waitForEvent('console', msg =>
-    msg.text().includes('App initialization failed'),
-  )
+async function waitForFailureHandled(
+  page: Page,
+  count: () => number,
+  callNumber: number,
+) {
+  await expect.poll(count).toBe(callNumber)
+  await page.waitForTimeout(500)
 }
 
 test.describe('F3. Session error screens', () => {
@@ -173,20 +182,17 @@ test.describe('F3. Session error screens', () => {
       // fastForward calls below move it.
       await page.clock.pauseAt(Date.now() + 1_000)
 
-      let nextFailure = waitForBootstrapFailure(page)
       await page.goto(PROJECT_PAGE)
 
       for (const n of [1, 2, 3]) {
-        await nextFailure
+        await waitForFailureHandled(page, count, n)
         // 1ms short of the delay: nothing yet.
         await expectNoAdditionalCalls(page, count, n, RETRY_DELAY - 1)
         // The last millisecond: the retry goes out.
-        nextFailure = waitForBootstrapFailure(page)
         await page.clock.fastForward(1)
         await expect.poll(count).toBe(n + 1)
       }
 
-      await nextFailure
       await expect(errorHeading(page)).toBeVisible()
     })
 

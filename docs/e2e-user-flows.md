@@ -433,9 +433,13 @@ What writing it taught, for later flows:
   `advanceClockUntilCallCount` in `e2e/mocked/helpers/fake-clock.ts` steps 1s at a time
   until the next call lands. It proves the call happened, not when, so the 5s
   delay has its own test.
-- **The console line is the sync point for the timer.** The layout logs "App
-  initialization failed" in the same tick it starts the retry timer, so a test
-  that times the delay waits for that line, not for the response.
+- **Never sync on a console log.** CI runs a production build, and
+  `removeConsole` in `next.config.ts` strips every `console.*` call from it,
+  so a test that waits for a log line passes locally (dev mode) and times out
+  in CI. To time the retry delay, the test pauses the fake clock, waits for the
+  call to reach the mock, then waits 500ms of real time for the app to start
+  its timer. Real time does not move a paused clock, so the 5s still measures
+  exactly.
 - **`test.fail()` checked with the JSON reporter.** The `projects` test fails at
   the clock step (1 `projects` call, never 2), which is where the bug says, not
   at a mock.
