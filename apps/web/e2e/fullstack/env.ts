@@ -58,7 +58,7 @@ function readEnvKey(file: string, key: string): string | undefined {
     .replace(/^["']|["']$/g, '')
 }
 
-const LOCAL_HOSTS = ['localhost', '127.0.0.1', '::1']
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
 
 /**
  * Layer 2 reads and writes through a real server, so make sure that server is
@@ -85,7 +85,7 @@ export function assertLocalBackend() {
     throw new Error('apps/server/.env has no DATABASE_URL.')
   }
   const host = new URL(dbUrl).hostname.replace(/^\[|\]$/g, '')
-  if (!LOCAL_HOSTS.includes(host)) {
+  if (!LOCAL_HOSTS.has(host)) {
     throw new Error(
       `apps/server/.env DATABASE_URL points at "${host}", not a local database. ` +
         'Layer 2 must never run against shared staging.',
