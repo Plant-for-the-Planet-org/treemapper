@@ -1,7 +1,8 @@
 import { test as base, expect } from '@playwright/test';
 
-import { seedToken } from '../helpers/auth';
-import { type Auth0Stub, stubAuth0 } from '../helpers/auth0';
+import { seedToken } from './helpers/fake-token';
+import { type Auth0Stub, stubAuth0 } from './helpers/auth0-stub';
+import { hideNextDevTools } from '../shared/devtools';
 import { ApiMock } from './api-mock';
 
 interface Options {
@@ -61,8 +62,9 @@ export const test = base.extend<Options & Fixtures>({
   ],
 
   api: [
+    // blockedHosts is listed only so it is set up first (see above).
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async ({ page, baseURL, blockedHosts }, use) => {
-      void blockedHosts;
       const api = new ApiMock();
       await api.install(page, new URL(baseURL!).origin);
 
@@ -74,8 +76,9 @@ export const test = base.extend<Options & Fixtures>({
   ],
 
   auth0: [
+    // blockedHosts is listed only so it is set up first (see above).
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async ({ page, blockedHosts, loggedIn }, use) => {
-      void blockedHosts;
       // A real logged-in user also has an Auth0 session, so give them one.
       const stub = await stubAuth0(page, { session: loggedIn });
 
@@ -89,17 +92,7 @@ export const test = base.extend<Options & Fixtures>({
   ],
 
   page: async ({ page, baseURL, loggedIn }, use) => {
-    // `next dev` draws its dev tools button in the bottom-left corner, on top
-    // of the collapsed sidebar's account button, and it swallows the click.
-    // It only exists in dev, so hide it rather than click around it. Build
-    // errors still fail the test; they are just not drawn.
-    // An adopted stylesheet, not a <style> tag: a tag added to <head> while
-    // React hydrates is a mismatch, and the re-mount breaks the auth flow.
-    await page.addInitScript(() => {
-      const sheet = new CSSStyleSheet();
-      sheet.replaceSync('nextjs-portal { display: none !important; }');
-      document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
-    });
+    await hideNextDevTools(page);
 
     if (loggedIn) await seedToken(page, { origin: new URL(baseURL!).origin });
     await use(page);

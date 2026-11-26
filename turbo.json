@@ -25,7 +25,13 @@
     },
     "test:e2e": {
       "cache": false,
-      "passThroughEnv": ["CI", "E2E_PORT", "PLAYWRIGHT_*"]
+      "passThroughEnv": [
+        "CI",
+        "E2E_PORT",
+        "E2E_FULLSTACK",
+        "E2E_FULLSTACK_CI_NO_ARTIFACTS",
+        "PLAYWRIGHT_*"
+      ]
     }
   },
   "globalEnv": ["NODE_ENV"],

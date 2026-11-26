@@ -1,7 +1,6 @@
 import type { Page } from '@playwright/test'
 
-// Custom email claim used by the app and server.
-const EMAIL_CLAIM = 'https://app.plant-for-the-planet.org/email'
+import { EMAIL_CLAIM } from '../../shared/constants'
 
 export const E2E_EMAIL = 'e2e.user@example.com'
 

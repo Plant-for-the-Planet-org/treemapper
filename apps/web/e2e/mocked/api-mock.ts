@@ -1,10 +1,7 @@
 import type { Page, Request } from '@playwright/test';
 
-import { fail, isEnvelope } from '../helpers/envelope';
-
-// The browser only ever calls same-origin /api/server/*, which next.config.ts
-// rewrites to the Nest server (see docs/e2e-testing-plan.md).
-const API_PREFIX = '/api/server/';
+import { API_PREFIX } from '../shared/constants';
+import { fail, isEnvelope } from './helpers/envelope';
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -17,10 +14,65 @@ export interface MockRequest {
   request: Request;
 }
 
-/** An envelope from `ok()` / `fail()`, or a function that returns one. */
+/** A JSON body: usually an envelope from `ok()` / `fail()`. */
+type MockBody = object | string | number | boolean | null;
+
+// Marks the two replies below, so a plain JSON body can never be mistaken
+// for one.
+const SPECIAL = Symbol('api-mock special reply');
+
+interface NetworkErrorReply {
+  [SPECIAL]: 'network-error';
+  reason: string;
+}
+
+interface RawReply {
+  [SPECIAL]: 'raw';
+  status: number;
+  body: string;
+  contentType: string;
+}
+
+type SpecialReply = NetworkErrorReply | RawReply;
+
+/**
+ * The request fails with no response at all, as when the connection drops or
+ * the server is down. In the browser `fetch` rejects with a TypeError.
+ * `reason` is a Playwright abort code; the default, `failed`, is the generic one.
+ */
+export function networkError(reason = 'failed'): NetworkErrorReply {
+  return { [SPECIAL]: 'network-error', reason };
+}
+
+/**
+ * Sends `body` exactly as given, not as JSON. For responses that are not an
+ * envelope at all: an HTML error page from a proxy, a cut-off body.
+ */
+export function rawResponse({
+  status = 200,
+  body,
+  contentType = 'text/html',
+}: {
+  status?: number;
+  body: string;
+  contentType?: string;
+}): RawReply {
+  return { [SPECIAL]: 'raw', status, body, contentType };
+}
+
+function isSpecial(value: unknown): value is SpecialReply {
+  return typeof value === 'object' && value !== null && SPECIAL in value;
+}
+
+type MockResult = MockBody | SpecialReply;
+
+/**
+ * An envelope from `ok()` / `fail()`, a `networkError()` or `rawResponse()`,
+ * or a function that returns any of those.
+ */
 export type MockReply =
-  | unknown
-  | ((req: MockRequest) => unknown | Promise<unknown>);
+  | MockResult
+  | ((req: MockRequest) => MockResult | Promise<MockResult>);
 
 interface Handler {
   method: Method;
@@ -42,7 +94,7 @@ function readBody(request: Request): unknown {
 export class ApiMock {
   readonly calls: MockRequest[] = [];
   readonly unmocked: string[] = [];
-  private handlers: Handler[] = [];
+  private readonly handlers: Handler[] = [];
 
   get(path: string | RegExp, reply: MockReply) {
     return this.on('GET', path, reply);
@@ -113,6 +165,15 @@ export class ApiMock {
         typeof handler.reply === 'function'
           ? await handler.reply(call)
           : handler.reply;
+
+      if (isSpecial(body)) {
+        if (body[SPECIAL] === 'network-error') return route.abort(body.reason);
+        return route.fulfill({
+          status: body.status,
+          contentType: body.contentType,
+          body: body.body,
+        });
+      }
 
       return route.fulfill({
         status: isEnvelope(body) ? body.statusCode : 200,
