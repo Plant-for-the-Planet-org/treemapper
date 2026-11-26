@@ -6,6 +6,7 @@ import { expect, test } from '../test'
 import { fail, ok } from '../helpers/envelope'
 import {
   advanceClockUntilCallCount,
+  countTimeoutsWithDelay,
   expectNoAdditionalCalls,
 } from '../helpers/fake-clock'
 import { E2E_EMAIL, fakeJwt } from '../helpers/fake-token'
@@ -51,25 +52,25 @@ async function failThroughAllRetries(page: Page, count: () => number) {
 }
 
 /**
- * Waits until call number `callNumber` has reached the mock, then gives the
- * app a moment in real time to handle the failed reply.
+ * Waits until call number `callNumber` has reached the mock and the app has
+ * started the retry timer for it.
  *
  * The app starts its 5-second retry timer only after it has read the reply,
- * which happens a little after the request reaches the mock. With the fake
- * clock paused, this real-time wait does not move fake time, so the timer
- * still starts at the same fake moment and the 5s can be measured exactly.
+ * which happens a little after the request reaches the mock. Moving the fake
+ * clock before that would start the timer late and break the exact 5s check,
+ * so wait for the timer itself rather than for a fixed amount of real time.
  *
  * Do not wait for the app's "App initialization failed" log instead: the
  * production build used in CI removes every `console.*` call
  * (`removeConsole` in next.config.ts), so that line never appears there.
  */
 async function waitForFailureHandled(
-  page: Page,
   count: () => number,
+  retryTimersStarted: () => Promise<number>,
   callNumber: number,
 ) {
   await expect.poll(count).toBe(callNumber)
-  await page.waitForTimeout(500)
+  await expect.poll(retryTimersStarted).toBe(callNumber)
 }
 
 test.describe('F3. Session error screens', () => {
@@ -181,11 +182,12 @@ test.describe('F3. Session error screens', () => {
       // spent waiting would count toward the 5s. Stop it, so only the
       // fastForward calls below move it.
       await page.clock.pauseAt(Date.now() + 1_000)
+      const retryTimersStarted = await countTimeoutsWithDelay(page, RETRY_DELAY)
 
       await page.goto(PROJECT_PAGE)
 
       for (const n of [1, 2, 3]) {
-        await waitForFailureHandled(page, count, n)
+        await waitForFailureHandled(count, retryTimersStarted, n)
         // 1ms short of the delay: nothing yet.
         await expectNoAdditionalCalls(page, count, n, RETRY_DELAY - 1)
         // The last millisecond: the retry goes out.
