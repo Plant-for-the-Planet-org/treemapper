@@ -178,7 +178,8 @@ async function checkSavedToken(
   }
 
   const msLeft = Number(claims.exp) * 1000 - Date.now()
-  if (!(msLeft > MIN_TOKEN_LIFE_MS)) {
+  // A missing or non-numeric `exp` gives NaN, which must count as expired.
+  if (!Number.isFinite(msLeft) || msLeft <= MIN_TOKEN_LIFE_MS) {
     return {
       reusable: false,
       reason: 'New login: saved token expires within an hour',
