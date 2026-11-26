@@ -192,16 +192,20 @@ Opt in, and never part of `yarn test:e2e` or CI. The Playwright projects
   not pass `--trace on` to a Layer 2 run: the command line overrides the
   project setting. To debug a failed login, run it with `--headed` instead.
 - **Credentials:** `E2E_USER_EMAIL` and `E2E_USER_PASSWORD` in
-  `apps/web/.env.e2e`. It is gitignored (`.env*`), Next does not load it, and
-  the config only reads it when `E2E_FULLSTACK` is set. The account needs a
+  `apps/web/.env.e2e`. It is gitignored (`.env*`) and Next does not load it.
+  `credentials()` reads those two keys when the setup needs them and never
+  puts them in `process.env`, so a dev server Playwright starts does not
+  inherit the password. A value set in the shell wins. The account needs a
   password on the tenant: an account made with Google or another social login
   gets "Wrong email or password".
 - **Safety:** before logging in, `assertLocalBackend()` (`fullstack/env.ts`)
-  stops the run if `apps/web/.env` has `NEXT_PUBLIC_BACKEND_API=true`
-  (dev.treemapper.app) or if `apps/server/.env` `DATABASE_URL` is not on
-  `localhost`, `127.0.0.1` or `::1`. It reads those two keys only, so server
-  secrets never reach the tests. It checks the files, not the running
-  processes, so restart a server after editing its `.env`.
+  stops the run if `NEXT_PUBLIC_BACKEND_API=true` (dev.treemapper.app) or if
+  `DATABASE_URL` is not on `localhost`, `127.0.0.1` or `::1`. It looks where
+  the servers look, in the same order: the shell first, then for the web app
+  `.env.development.local`, `.env.local`, `.env.development` and `.env`, and
+  for the server only `apps/server/.env`. It reads those two keys only, so
+  server secrets never reach the tests. It cannot see the env of a server
+  that is already running, so restart a server after editing its env.
 - **Fixtures:** specs import `test` and `expect` from `fullstack/test.ts`,
   never from `mocked/test.ts` (Layer 1 mocks the API and stubs Auth0). It
   gives:

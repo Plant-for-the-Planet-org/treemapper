@@ -1,8 +1,6 @@
-import fs from 'node:fs'
-
 import { defineConfig, devices, type Project } from '@playwright/test'
 
-import { AUTH_FILE, CREDENTIALS_FILE } from './e2e/fullstack/env'
+import { AUTH_FILE } from './e2e/fullstack/env'
 
 // The test layers and the reasons behind these settings are in
 // docs/e2e-testing-plan.md.
@@ -25,10 +23,6 @@ if (isCI && isFullstack && !process.env.E2E_FULLSTACK_CI_NO_ARTIFACTS) {
       'needs its own job with no artifact upload. See "CI (Layer 2)" in ' +
       'docs/e2e-testing-plan.md.',
   )
-}
-
-if (isFullstack && fs.existsSync(CREDENTIALS_FILE)) {
-  process.loadEnvFile(CREDENTIALS_FILE)
 }
 
 const fullstackProjects: Project[] = [
