@@ -11,6 +11,7 @@ import {
   credentials,
   readSavedToken,
 } from './env'
+import { blockWrites } from './test'
 
 const AUTH0_LOGIN = /^https:\/\/accounts\.plant-for-the-planet\.org\/u\//
 
@@ -76,6 +77,12 @@ setup.describe(() => {
     const { email, password } = credentials()
     const appOrigin = new URL(baseURL!).origin
 
+    // This is the base `page`, so the specs' write guard does not cover it.
+    // The login ends on the dashboard, whose bootstrap can write (it POSTs
+    // projects/personal for an account with no main project), so guard it
+    // here before the first navigation.
+    const blockedWrites = await blockWrites(page, baseURL!)
+
     // 4. Otherwise, log in through the real Auth0 Universal Login page.
     await hideNextDevTools(page)
     await page.goto('/login')
@@ -140,6 +147,12 @@ setup.describe(() => {
 
     // 5. Save the token, and only the token.
     saveToken(appOrigin, token!)
+
+    // The token is saved first, so a rerun reuses it and does not log in
+    // again just to hit the same write.
+    expect(blockedWrites, 'Writes the page tried to send after login').toEqual(
+      [],
+    )
   })
 })
 

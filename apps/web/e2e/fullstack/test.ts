@@ -1,4 +1,9 @@
-import { type APIRequestContext, test as base, expect } from '@playwright/test'
+import {
+  type APIRequestContext,
+  type Page,
+  test as base,
+  expect,
+} from '@playwright/test'
 
 import type { ApiResponse } from '@shared-core/types/api-responses'
 
@@ -105,20 +110,7 @@ export const test = base.extend<Options & Fixtures>({
   // a separate client and is not routed.
   blockedWrites: [
     async ({ page, baseURL, allowWrites }, use) => {
-      const blocked: string[] = []
-      if (!allowWrites) {
-        await page.route(
-          `${new URL(baseURL!).origin}${API_PREFIX}**`,
-          route => {
-            const request = route.request()
-            if (request.method() === 'GET') return route.fallback()
-            blocked.push(
-              `${request.method()} ${new URL(request.url()).pathname}`,
-            )
-            return route.abort('blockedbyclient')
-          },
-        )
-      }
+      const blocked = allowWrites ? [] : await blockWrites(page, baseURL!)
 
       await use(blocked)
       expect(blocked, 'Writes the page tried to send').toEqual([])
@@ -131,5 +123,22 @@ export const test = base.extend<Options & Fixtures>({
     await use(page)
   },
 })
+
+/**
+ * Aborts every non-GET /api/server/ request `page` sends from now on, and
+ * returns the list it aborted (`POST /api/server/projects/personal`). Only the
+ * app's own API is routed: Auth0 and the token swap at /api/auth/ pass
+ * untouched.
+ */
+export async function blockWrites(page: Page, baseURL: string) {
+  const blocked: string[] = []
+  await page.route(`${new URL(baseURL).origin}${API_PREFIX}**`, route => {
+    const request = route.request()
+    if (request.method() === 'GET') return route.fallback()
+    blocked.push(`${request.method()} ${new URL(request.url()).pathname}`)
+    return route.abort('blockedbyclient')
+  })
+  return blocked
+}
 
 export { expect }
