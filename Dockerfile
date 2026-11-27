@@ -83,6 +83,14 @@ ENV NEXT_PUBLIC_AUTH0_CLIENT_ID=${NEXT_PUBLIC_AUTH0_CLIENT_ID}
 RUN yarn turbo build --filter=shared-core...
 RUN yarn turbo build --filter=web --filter=server --parallel
 
+# Playwright is a dev dependency of apps/web, used only by the E2E tests, and
+# nothing at runtime imports it. Drop it so the runner does not copy ~18 MB of
+# it. Only these packages: a full devDependency prune would make yarn nest
+# packages differently (see the COPY notes above) and needs its own testing.
+RUN rm -rf node_modules/playwright node_modules/playwright-core \
+  node_modules/@playwright node_modules/.bin/playwright \
+  node_modules/.bin/playwright-core apps/web/node_modules/.bin/playwright
+
 # Production stage
 FROM base AS runner
 WORKDIR /app
