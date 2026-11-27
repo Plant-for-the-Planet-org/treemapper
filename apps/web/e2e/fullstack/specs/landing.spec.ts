@@ -1,3 +1,4 @@
+import type { ApiResponse } from '@shared-core/types/api-responses'
 import type {
   ProjectWithUserRoleI,
   UserInterface,
@@ -47,16 +48,6 @@ test('a returning user lands on their main project overview', async ({
   const project = projects.find(p => p.uid === me.primaryProjectUid)
   expect(project, "The main project is in the user's project list").toBeTruthy()
 
-  const { kpis } = await backend.get<{ kpis: ProjectKpis }>(
-    `analytics/project-kpis/${project.uid}`,
-  )
-  // The same formatting StatCardsContainer applies.
-  const expectedStats: Record<(typeof STAT_TITLES)[number], string> = {
-    'Trees Planted': formatNumber(Number(kpis.totalTreesPlanted)),
-    'Species Planted': String(kpis.totalSpeciesPlanted),
-    'Restoration Area': `${formatNumber(Number(kpis.totalAreaCovered))} ha`,
-    'Active Contributors': String(kpis.totalContributors),
-  }
   const isAdminOrOwner = ['owner', 'admin'].includes(project.userRole)
 
   // The cards start at 0 and stay at 0 if the KPI call fails, so a project with
@@ -99,9 +90,21 @@ test('a returning user lands on their main project overview', async ({
     await expect(sidebar.getByText(group, { exact: true })).toBeVisible()
   }
 
-  // The four stat cards show the live KPI values.
-  const kpiBody = await (await pageKpis).json()
+  // The four stat cards show the KPI values the page itself received. A
+  // separate read through `backend` could see different numbers if the data
+  // changed in between, and then fail a page that is right.
+  const kpiBody = (await (await pageKpis).json()) as ApiResponse<{
+    kpis: ProjectKpis
+  }>
   expect(kpiBody.statusCode, 'The page loaded its KPIs').toBe(200)
+  const { kpis } = kpiBody.data
+  // The same formatting StatCardsContainer applies.
+  const expectedStats: Record<(typeof STAT_TITLES)[number], string> = {
+    'Trees Planted': formatNumber(Number(kpis.totalTreesPlanted)),
+    'Species Planted': String(kpis.totalSpeciesPlanted),
+    'Restoration Area': `${formatNumber(Number(kpis.totalAreaCovered))} ha`,
+    'Active Contributors': String(kpis.totalContributors),
+  }
   for (const title of STAT_TITLES) {
     const card = page
       .locator('[data-slot="card"]')
