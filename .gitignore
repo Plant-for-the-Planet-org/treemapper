@@ -27,6 +27,14 @@ web-build/
 # turbo (task cache, written at the repo root and per workspace)
 .turbo/
 
+# Playwright output. Saved login state (.auth/) holds tokens and the repo is
+# public, so these are ignored wherever they get written.
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.auth/
+
 # debug
 npm-debug.*
 yarn-debug.*

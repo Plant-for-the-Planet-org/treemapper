@@ -15,11 +15,14 @@ dist/
 build/
 
 # Environment files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# `**/` is needed for the same reason as node_modules above: `.env` alone only
+# matches the root file, so apps/*/.env and the E2E test account in
+# apps/web/.env.e2e reached the build context. Heroku builds from git, where
+# they never exist, and gets NEXT_PUBLIC_* as build args. A local build now
+# works the same way: `next build` no longer picks up a developer's
+# apps/web/.env.
+.env*
+**/.env*
 
 # IDE files
 .vscode/
@@ -38,6 +41,12 @@ Thumbs.db
 # Documentation
 README.md
 *.md
+
+# Playwright output. .auth/ holds a real access token from the E2E login.
+**/.auth/
+**/test-results/
+**/playwright-report/
+**/blob-report/
 
 # Test files
 coverage/

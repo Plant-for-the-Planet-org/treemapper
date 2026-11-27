@@ -1,0 +1,97 @@
+# Layer 1 E2E tests for the web dashboard (mocked API, no secrets).
+# Why it is built this way: docs/e2e-testing-plan.md, "Running locally and in CI".
+#
+# Actions are pinned to commit SHAs, like every other dependency in this repo.
+# To upgrade one, pick a release at least two weeks old and update the SHA and
+# the version comment together.
+
+name: E2E
+
+on:
+  pull_request:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+# Layer 1 needs no secrets, so `pull_request` (never `pull_request_target`) is
+# safe for forks. Keep the token read-only.
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.event.pull_request.number || github.ref }}
+  # Cancel a PR run when a new commit lands, but let every develop run finish.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  web:
+    name: Web (Chromium)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      # --ignore-scripts: no dependency gets to run code at install time. None of
+      # the install scripts in the tree are needed to build or test the web app
+      # (they are telemetry, banners, or mobile/server only). If one ever is,
+      # run that package's script by name in its own step instead.
+      - name: Install dependencies
+        working-directory: .
+        run: yarn install --frozen-lockfile --ignore-scripts
+
+      # Browsers are tied to the Playwright version, so that is the cache key.
+      - name: Get Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      # Headless shell only. Tests run headless with no `channel` set, which
+      # launches chrome-headless-shell, so full Chromium is never used. If a
+      # test ever needs headed mode or `channel: 'chromium'`, drop
+      # `--only-shell` here and change the cache key.
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-chromium-headless-shell
+
+      - name: Install Chromium headless shell
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: yarn playwright install --with-deps --only-shell chromium
+
+      # The cache holds the browser only. The system libraries it needs still
+      # have to be installed on every fresh runner.
+      - name: Install Chromium system deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: yarn playwright install-deps chromium
+
+      # With CI set (GitHub sets it), playwright.config.ts builds the app and
+      # serves it with `next start`, using dummy env values. No .env needed.
+      - name: Run E2E tests
+        run: yarn test:e2e
+
+      # Upload on success too. A test that fails and then passes on retry
+      # leaves the job green, and its trace is the only record of the flake.
+      # The 14 days cover the "two weeks of stable runs" check in the plan.
+      - name: Upload report and traces
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-report-${{ github.run_attempt }}
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+          retention-days: 14
+          if-no-files-found: ignore
