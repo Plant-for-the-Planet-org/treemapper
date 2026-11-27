@@ -86,6 +86,16 @@ const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
  */
 export function assertLocalBackend() {
   const backendApi = firstSet('NEXT_PUBLIC_BACKEND_API', WEB_DIR, WEB_ENV_FILES)
+  // `parseEnv` keeps `$NAME` as text, but Next expands it from the other env
+  // values, so `$REMOTE` with REMOTE=true is really `true`. Rather than copy
+  // Next's expansion, refuse any value that still has a `$` in it.
+  if (backendApi?.value.includes('$')) {
+    throw new Error(
+      `NEXT_PUBLIC_BACKEND_API="${backendApi.value}" (from ${backendApi.source}) ` +
+        'refers to another variable, so this check cannot tell where the web ' +
+        'app will send its API calls. Set it to a plain false.',
+    )
+  }
   if (backendApi?.value === 'true') {
     throw new Error(
       `NEXT_PUBLIC_BACKEND_API=true (from ${backendApi.source}) makes the web ` +
