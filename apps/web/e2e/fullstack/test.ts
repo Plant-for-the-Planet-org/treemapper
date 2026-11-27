@@ -12,7 +12,7 @@ export interface Backend {
    * Fails the test unless the envelope says 200. Use it to read what the page
    * should show, so no real data is ever written into the repo.
    */
-  get<T = any>(path: string): Promise<T>
+  get<T = unknown>(path: string): Promise<T>
   request: APIRequestContext
 }
 

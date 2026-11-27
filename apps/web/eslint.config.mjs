@@ -11,6 +11,12 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    // Playwright fixtures get a callback named `use`, which this rule mistakes
+    // for React's `use` hook. Nothing under e2e/ is React.
+    files: ["e2e/**/*.ts"],
+    rules: { "react-hooks/rules-of-hooks": "off" },
+  },
 ];
 
 export default eslintConfig;

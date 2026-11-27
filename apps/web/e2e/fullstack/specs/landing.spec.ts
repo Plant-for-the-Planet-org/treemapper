@@ -25,6 +25,16 @@ const STAT_TITLES = [
 // not have (the Layer 1 USER mock adds them the same way).
 type Me = UserInterface & { firstName?: string; lastName?: string }
 
+// The fields of analytics/project-kpis that the stat cards show. No shared type
+// exists for it. Numbers may arrive as strings, hence the Number() calls below.
+type ProjectKpis = Record<
+  | 'totalTreesPlanted'
+  | 'totalSpeciesPlanted'
+  | 'totalAreaCovered'
+  | 'totalContributors',
+  number | string
+>
+
 test('a returning user lands on their main project overview', async ({
   page,
   backend,
@@ -37,7 +47,9 @@ test('a returning user lands on their main project overview', async ({
   const project = projects.find(p => p.uid === me.primaryProjectUid)
   expect(project, "The main project is in the user's project list").toBeTruthy()
 
-  const { kpis } = await backend.get(`analytics/project-kpis/${project.uid}`)
+  const { kpis } = await backend.get<{ kpis: ProjectKpis }>(
+    `analytics/project-kpis/${project.uid}`,
+  )
   // The same formatting StatCardsContainer applies.
   const expectedStats: Record<(typeof STAT_TITLES)[number], string> = {
     'Trees Planted': formatNumber(Number(kpis.totalTreesPlanted)),
